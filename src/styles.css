@@ -316,6 +316,32 @@ button:active { transform: scale(0.97); }
   border-width: 2px;
 }
 
+/* ─── Client Chips (multi-select booking) ─── */
+.client-chips {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: 8px;
+}
+.client-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px 6px 12px;
+  border-radius: 10px;
+  background: rgba(232,69,60,0.15);
+  border: 1px solid rgba(232,69,60,0.3);
+  color: #FF6B6B;
+  font-size: 13px; font-weight: 600;
+}
+.client-chip-x {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
+  font-size: 14px; line-height: 1;
+  cursor: pointer;
+}
+.client-chip-x:hover {
+  background: rgba(255,255,255,0.2);
+}
+
 /* ─── Filter Buttons ─── */
 .filter-row { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
 .filter-btn {

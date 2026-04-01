@@ -6,7 +6,7 @@ export default function Schedule({ state, dispatch }) {
   const [showForm, setShowForm] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
   const [selectedDate, setSelectedDate] = useState(today());
-  const [form, setForm] = useState({ clientId: '', type: 'Strength', date: today(), time: '09:00', duration: 60 });
+  const [form, setForm] = useState({ clientIds: [], type: 'Strength', date: today(), time: '09:00', duration: 60 });
   const [confirmMsg, setConfirmMsg] = useState(null);
 
   const daySessions = state.sessions
@@ -15,27 +15,35 @@ export default function Schedule({ state, dispatch }) {
 
   const openBooking = () => {
     setEditingSession(null);
-    setForm({ clientId: state.clients[0]?.id || '', type: 'Strength', date: selectedDate, time: '09:00', duration: 60 });
+    setForm({ clientIds: [], type: 'Strength', date: selectedDate, time: '09:00', duration: 60 });
     setShowForm(true);
   };
 
   const openEdit = (session) => {
     setEditingSession(session);
-    setForm({ clientId: session.clientId, type: session.type, date: session.date, time: session.time, duration: session.duration });
+    setForm({ clientIds: [session.clientId], type: session.type, date: session.date, time: session.time, duration: session.duration });
     setShowForm(true);
   };
 
   const saveSession = () => {
-    if (!form.clientId) return;
+    if (form.clientIds.length === 0) return;
     if (editingSession) {
-      dispatch({ type: 'UPDATE_SESSION', payload: { id: editingSession.id, ...form } });
+      // Edit mode: update the single session (clientId from clientIds[0])
+      const { clientIds, ...rest } = form;
+      dispatch({ type: 'UPDATE_SESSION', payload: { id: editingSession.id, clientId: clientIds[0], ...rest } });
       setShowForm(false);
     } else {
-      const session = { id: genId(), ...form, status: 'scheduled', createdAt: new Date().toISOString() };
-      dispatch({ type: 'ADD_SESSION', payload: session });
+      // Create mode: one independent session per selected client
+      const created = form.clientIds.map(clientId => {
+        const { clientIds, ...rest } = form;
+        const session = { id: genId(), clientId, ...rest, status: 'scheduled', createdAt: new Date().toISOString() };
+        dispatch({ type: 'ADD_SESSION', payload: session });
+        return { client: state.clients.find(c => c.id === clientId), session };
+      }).filter(c => c.client);
       setShowForm(false);
-      const client = state.clients.find(c => c.id === form.clientId);
-      if (client) setConfirmMsg({ client, session });
+      if (created.length > 0) {
+        setConfirmMsg({ items: created, index: 0 });
+      }
     }
   };
 
@@ -164,13 +172,36 @@ export default function Schedule({ state, dispatch }) {
       {/* Booking Modal */}
       {showForm && (
         <Modal title={editingSession ? 'Edit Session' : 'Book Session'} onClose={() => setShowForm(false)}
-          action={<button className="btn-primary" onClick={saveSession}>{editingSession ? 'Save Changes' : '📅 Book Session'}</button>}>
+          action={<button className="btn-primary" onClick={saveSession}>{editingSession ? 'Save Changes' : `📅 Book Session${form.clientIds.length > 1 ? ` (${form.clientIds.length} clients)` : ''}`}</button>}>
           <div className="field">
-            <label className="field-label">Client</label>
-            <select className="select" value={form.clientId} onChange={e => setForm(p => ({ ...p, clientId: e.target.value }))}>
-              <option value="">Select a client...</option>
-              {state.clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+            <label className="field-label">Client{!editingSession && 's'}</label>
+            {/* Chips showing selected clients */}
+            {form.clientIds.length > 0 && (
+              <div className="client-chips">
+                {form.clientIds.map(id => {
+                  const c = state.clients.find(cl => cl.id === id);
+                  return c ? (
+                    <span key={id} className="client-chip">
+                      {c.name}
+                      {!editingSession && (
+                        <span className="client-chip-x" onClick={() => setForm(p => ({ ...p, clientIds: p.clientIds.filter(cid => cid !== id) }))}>×</span>
+                      )}
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            )}
+            {/* Dropdown to add clients — hidden in edit mode */}
+            {!editingSession && (
+              <select className="select" style={{ marginTop: form.clientIds.length > 0 ? 8 : 0 }} value="" onChange={e => {
+                if (e.target.value) setForm(p => ({ ...p, clientIds: [...p.clientIds, e.target.value] }));
+              }}>
+                <option value="">Select a client...</option>
+                {state.clients.filter(c => !form.clientIds.includes(c.id)).map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            )}
           </div>
           <div className="field">
             <label className="field-label">Session Type</label>
@@ -206,27 +237,40 @@ export default function Schedule({ state, dispatch }) {
         </Modal>
       )}
 
-      {/* Success + WhatsApp Prompt */}
-      {confirmMsg && (
-        <Modal title="Session Booked! 🎉" onClose={() => setConfirmMsg(null)}
-          action={<>
-            <button className="btn-whatsapp-lg mb-10" onClick={() => {
-              sendBookingWhatsApp(confirmMsg.client, confirmMsg.session);
-              setConfirmMsg(null);
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-              Send Confirmation via WhatsApp
-            </button>
-            <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
-              onClick={() => setConfirmMsg(null)}>Skip for Now</button>
-          </>}>
-          <div className="success-center">
-            <div className="success-icon">✅</div>
-            <div className="success-name">{confirmMsg.client.name}</div>
-            <div className="success-detail">{formatDate(confirmMsg.session.date)} at {confirmMsg.session.time}</div>
-          </div>
-        </Modal>
-      )}
+      {/* Success + WhatsApp Prompt (cycles through clients) */}
+      {confirmMsg && (() => {
+        const { items, index } = confirmMsg;
+        const { client, session } = items[index];
+        const total = items.length;
+        const isLast = index === total - 1;
+        const advance = () => {
+          if (isLast) {
+            setConfirmMsg(null);
+          } else {
+            setConfirmMsg({ items, index: index + 1 });
+          }
+        };
+        return (
+          <Modal title={total > 1 ? `Session Booked! 🎉 (${index + 1}/${total})` : 'Session Booked! 🎉'} onClose={() => setConfirmMsg(null)}
+            action={<>
+              <button className="btn-whatsapp-lg mb-10" onClick={() => {
+                sendBookingWhatsApp(client, session);
+                advance();
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Send Confirmation via WhatsApp
+              </button>
+              <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
+                onClick={advance}>{isLast ? 'Done' : 'Skip'}</button>
+            </>}>
+            <div className="success-center">
+              <div className="success-icon">✅</div>
+              <div className="success-name">{client.name}</div>
+              <div className="success-detail">{formatDate(session.date)} at {session.time}</div>
+            </div>
+          </Modal>
+        );
+      })()}
     </div>
   );
 }
