@@ -15,17 +15,16 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 
 ## Roadmap
 
-### Stage 1 — Local single-file app (CURRENT)
-- App builds to a single HTML file that can be shared via WhatsApp
-- PT opens the file on his iPhone, Pierre can open it on his Android
-- All data (clients, sessions, messages) stored in localStorage on the device
-- Each device has its own independent data
-- Workflow: Pierre develops → builds → sends file via WhatsApp → PT opens on iPhone
+### Stage 1 — Web app with cloud sync (CURRENT)
+- Hosted on GitHub Pages: https://pih-dev.github.io/PTApp/
+- Data synced to GitHub repo (makdissi-dev/ptapp-data) via GitHub API
+- Both PT and Pierre see the same data
+- PT bookmarks the URL on his iPhone, Pierre on Android
 
-### Stage 2 — Cloud-synced data (FUTURE)
-- App data should be stored in the cloud so Pierre and the PT see the same data
-- Options to explore: Google account storage (PT's Google account with Pierre access), GitHub-based storage, or a lightweight backend
-- Goal: when PT adds a client or schedules a session, Pierre can see it too (and vice versa)
+### Stage 2 — Native app (FUTURE)
+- Publish to Apple App Store and Google Play Store
+- Requires a final app name (not "PTApp")
+- May need a proper backend to replace GitHub API storage
 
 ## Core Features
 - **Client Management**: Add/edit/delete clients with name, phone (with country code), and notes
@@ -61,6 +60,19 @@ PTApp/
         ├── Sessions.jsx
         └── Modal.jsx
 ```
+
+## Data Preservation Rules (CRITICAL)
+- **NEVER delete or lose user data.** The PT's clients and sessions are real business records.
+- **Backward compatible always.** When the data schema changes, write a migration in `utils.js` (`migrateData`) that upgrades old data to the new format. Never require the user to re-enter anything.
+- **Version the data.** The `_dataVersion` field in the data tracks the schema version. Increment `DATA_VERSION` and add a migration step for each schema change.
+- **Preserve history.** Even if a feature is removed, keep the data that was collected. Archive it under a different key if needed, but never drop it.
+- **Test migrations.** Before deploying a schema change, verify that existing data (from the PT's live app) loads correctly in the new version.
+
+## App Name
+- "PTApp" is a working title, NOT the final name.
+- A unique name is needed before publishing to Apple App Store / Google Play Store.
+- The name must not be already taken or trademarked in the fitness/trainer app space.
+- TODO: brainstorm and research a final name before the native app stage.
 
 ## Key Design Decisions
 - Single-page app with bottom tab navigation (Home, Clients, Schedule, Sessions)

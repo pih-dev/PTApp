@@ -73,17 +73,40 @@ export const formatDateLong = (dateStr) => {
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 };
 
+// ─── Data versioning & migration ───
+// Increment DATA_VERSION when the schema changes. Add a migration function
+// for each version bump. Existing data is NEVER discarded — only migrated forward.
+const DATA_VERSION = 1;
+
+function migrateData(data) {
+  // No version field means v0 (original format: { clients, sessions })
+  let v = data._dataVersion || 0;
+
+  // Migration chain: each step moves data forward one version
+  // Example for future:
+  // if (v === 1) { data.messages = data.messages || []; v = 2; }
+
+  if (v < DATA_VERSION) {
+    data._dataVersion = DATA_VERSION;
+  }
+  // Ensure required fields always exist
+  data.clients = data.clients || [];
+  data.sessions = data.sessions || [];
+  data._dataVersion = DATA_VERSION;
+  return data;
+}
+
 // ─── localStorage persistence ───
 const STORAGE_KEY = 'ptapp-data';
 
 export const loadData = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) return migrateData(JSON.parse(raw));
   } catch (e) {
     console.error('Failed to load data:', e);
   }
-  return { clients: [], sessions: [] };
+  return migrateData({ clients: [], sessions: [] });
 };
 
 export const saveData = (data) => {
