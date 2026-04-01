@@ -1,0 +1,310 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(145deg, #0F0F0F 0%, #1A1A2E 50%, #16213E 100%);
+  color: #E8E8E8;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+input, select, button, textarea { font-family: inherit; }
+input:focus, select:focus {
+  border-color: #E8453C !important;
+  box-shadow: 0 0 0 3px rgba(232,69,60,0.15) !important;
+  outline: none;
+}
+button { cursor: pointer; border: none; background: none; }
+button:active { transform: scale(0.97); }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ─── Layout ─── */
+.app-container {
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.header {
+  padding: 16px 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.logo { display: flex; align-items: center; gap: 10px; }
+
+.logo-icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: linear-gradient(135deg, #E8453C, #FF6B6B);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(232,69,60,0.3);
+}
+
+.logo-text {
+  font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #fff, #aaa);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.logo-sub {
+  font-size: 11px; color: rgba(255,255,255,0.35);
+  font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 16px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Bottom Nav ─── */
+.nav {
+  flex-shrink: 0;
+  background: rgba(15,15,15,0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+.nav-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 16px;
+  color: rgba(255,255,255,0.4);
+  font-size: 11px; font-weight: 500;
+  transition: color 0.2s;
+}
+.nav-btn.active { color: #E8453C; font-weight: 700; }
+.nav-btn svg { width: 22px; height: 22px; }
+
+/* ─── Cards ─── */
+.card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: background 0.2s;
+}
+
+/* ─── Buttons ─── */
+.btn-primary {
+  padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 15px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: linear-gradient(135deg, #E8453C, #FF6B6B); color: #fff;
+  box-shadow: 0 4px 16px rgba(232,69,60,0.3);
+  width: 100%;
+}
+.btn-sm {
+  padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, #E8453C, #FF6B6B); color: #fff;
+}
+.btn-secondary {
+  padding: 8px 14px; border-radius: 10px; font-weight: 600; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.08); color: #fff;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.btn-whatsapp {
+  padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, #25D366, #128C7E); color: #fff;
+}
+.btn-whatsapp-lg {
+  padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 15px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: linear-gradient(135deg, #25D366, #128C7E); color: #fff;
+  box-shadow: 0 4px 16px rgba(37,211,102,0.3);
+  width: 100%;
+}
+.btn-confirm {
+  padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 12px;
+  display: inline-flex; align-items: center; gap: 4px;
+  background: linear-gradient(135deg, #10B981, #059669); color: #fff;
+}
+.btn-danger-sm {
+  padding: 6px 8px; border-radius: 8px;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.15);
+  color: #EF4444;
+}
+.btn-ghost {
+  padding: 6px 8px; border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.5);
+}
+.btn-icon { padding: 6px; color: rgba(255,255,255,0.3); }
+
+/* ─── Form ─── */
+.input, .select {
+  width: 100%; padding: 14px 16px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06); color: #fff; font-size: 15px;
+}
+.select { background: rgba(30,30,50,0.9); appearance: none; }
+.field { margin-bottom: 16px; }
+.field-label {
+  display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;
+  color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+/* ─── Badge ─── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700;
+}
+
+/* ─── Modal ─── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: flex-end; justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+.modal-bg {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+}
+.modal-content {
+  position: relative; width: 100%; max-width: 480px; max-height: 85vh;
+  background: linear-gradient(180deg, #1E1E30, #151525);
+  border-radius: 24px 24px 0 0; padding: 24px 20px;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
+}
+.modal-title { font-size: 20px; font-weight: 800; }
+.modal-close { color: rgba(255,255,255,0.5); padding: 4px; }
+
+/* ─── Misc ─── */
+.section-title {
+  font-size: 18px; font-weight: 800; margin: 20px 0 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.empty {
+  text-align: center; padding: 60px 20px;
+  color: rgba(255,255,255,0.3); font-size: 15px;
+}
+.empty-icon { font-size: 50px; margin-bottom: 12px; }
+
+/* ─── Stats ─── */
+.stat-row { display: flex; gap: 10px; margin-bottom: 20px; }
+.stat-card { border-radius: 16px; padding: 16px; flex: 1; min-width: 0; }
+.stat-num { font-size: 28px; font-weight: 900; }
+.stat-label { font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 600; }
+
+/* ─── Helpers ─── */
+.flex-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.flex-row-12 { display: flex; gap: 12px; }
+.meta {
+  display: flex; gap: 8px; align-items: center;
+  color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 4px;
+}
+.client-name { font-weight: 700; font-size: 16px; margin-bottom: 2px; }
+.client-phone {
+  display: flex; align-items: center; gap: 6px;
+  color: rgba(255,255,255,0.4); font-size: 13px; margin-bottom: 4px;
+}
+.client-notes { font-size: 13px; color: rgba(255,255,255,0.3); font-style: italic; }
+.session-count { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 6px; }
+
+/* ─── Week Strip ─── */
+.week-strip { display: flex; gap: 4px; padding: 16px 0; overflow-x: auto; }
+.week-day {
+  flex: 1; min-width: 48px; padding: 10px 4px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.5);
+  text-align: center; font-family: inherit;
+}
+.week-day.selected {
+  border: 2px solid #E8453C;
+  background: rgba(232,69,60,0.15);
+  color: #FF6B6B;
+}
+.week-day.is-today { color: #fff; }
+.week-day-label { font-size: 11px; font-weight: 600; text-transform: uppercase; }
+.week-day-num { font-size: 20px; font-weight: 800; margin-top: 2px; }
+.week-day-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #E8453C; margin: 4px auto 0;
+}
+
+/* ─── Week Nav ─── */
+.week-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  margin: 4px 0 12px;
+}
+.week-nav-label {
+  font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.6);
+}
+
+/* ─── Session Type Picker ─── */
+.type-btn {
+  padding: 8px 14px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.6);
+  font-size: 13px; font-weight: 600; font-family: inherit;
+}
+.type-btn.selected {
+  border-width: 2px;
+}
+
+/* ─── Filter Buttons ─── */
+.filter-row { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
+.filter-btn {
+  padding: 7px 14px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  font-size: 12px; font-weight: 700; text-transform: capitalize;
+  font-family: inherit; white-space: nowrap;
+}
+.filter-btn.active {
+  border: 2px solid #E8453C;
+  background: rgba(232,69,60,0.15);
+  color: #FF6B6B;
+}
+
+/* ─── Success Modal ─── */
+.success-center { text-align: center; margin-bottom: 20px; }
+.success-icon { font-size: 50px; margin-bottom: 12px; }
+.success-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.success-detail { font-size: 14px; color: rgba(255,255,255,0.5); }
+.mb-10 { margin-bottom: 10px; }
+.mt-16 { margin-top: 16px; }
