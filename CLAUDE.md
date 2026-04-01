@@ -6,7 +6,7 @@
 - Commit to git frequently — after every significant change, not batched at the end
 - Always push to master AND deploy to gh-pages after every commit (see deploy section)
 - Keep memory/session_log.md updated mid-session with key inputs and decisions
-- When a hard-won lesson is learned (debugging, workflow, platform quirk), suggest adding it to this file's Lessons Learned section so it persists across all sessions and projects
+- When an incident, workaround, or non-obvious behavior is discovered, immediately save it to memory so future sessions don't repeat the same mistakes
 
 ## What This Project Is
 A mobile-first web app for a personal trainer (the end user) to manage his gym clients. Developed by Pierre (pih-dev on GitHub). The PT uses the app on his iPhone; Pierre tests on his Android.
@@ -120,25 +120,3 @@ git checkout master
 - The `fixForFileProtocol` plugin in vite.config.js uses a function replacement (`() =>`). Never change this to a string replacement — `$&` in React's minified code will corrupt the bundle.
 - The `vite-plugin-singlefile` plugin inlines all JS and CSS into one HTML file.
 - Google Fonts (DM Sans) still loads from the internet — device needs connectivity.
-
-## Lessons Learned
-Hard-won fixes and patterns from real debugging sessions. **Do not remove entries.** When a new lesson is learned, add it here and suggest the update to Pierre.
-
-### Deployment
-- **gh-pages is the deploy branch, not master.** Pushing source to master changes nothing on the live site. Must build and push dist/index.html to gh-pages every time.
-- **Always verify the build before deploying.** Run `node --check` on the extracted JS bundle. A corrupted build produces a blank page with zero useful error messages — caught one on 2026-04-01 that took 30+ minutes to debug.
-- **Version label in the header.** The app shows a version string (e.g. "v1.4") in App.jsx. Bump it on every deploy and state the version in chat so Pierre can confirm the right build loaded. GitHub Pages caches aggressively — without a visible version, stale cache is invisible.
-
-### Build Pipeline
-- **`String.replace` with JS code as the replacement is dangerous.** `$&`, `$'`, `` $` `` in replacement strings are special patterns. React's minified code contains `$&` which gets substituted with the matched text, corrupting the bundle. Always use a function replacement: `str.replace(pattern, () => replacement)`.
-- **The single-file build (`vite-plugin-singlefile` + `fixForFileProtocol`) is fragile.** Any change to vite.config.js or the build plugins needs the `node --check` verification. Don't assume a successful `npm run build` means the output is valid.
-
-### iPhone / Mobile Safari
-- **Bottom safe area inset.** iPhone has a home indicator bar. Fixed-bottom elements (nav bar, modal footer) must use `padding-bottom: max(8px, env(safe-area-inset-bottom))`.
-- **Modal z-index layering.** Bottom nav is `z-index: 100`. Modals must be `z-index: 200+` or their action buttons get hidden behind the nav bar.
-- **Modal action buttons must be in `modal-footer` (sticky).** Never put action buttons at the bottom of scrollable modal body — they'll be hidden on small screens or when the keyboard opens.
-- **iOS keyboard shrinks the viewport.** Modals use a `visualViewport` resize listener to adjust max-height when the keyboard opens. Without this, form fields and submit buttons get pushed off-screen.
-
-### General Patterns
-- **Don't duplicate controls across tabs.** The Home tab initially had the same inline action buttons as the Schedule tab. Solution: compact tappable cards on Home that open an action sheet modal on tap. Keeps the overview clean while still giving full control.
-- **Tab components own their modal state.** React unmounts inactive tabs (`{tab === 'x' && <Component />}`), so modal state resets automatically on tab switch. No shared state needed, no leak possible.
