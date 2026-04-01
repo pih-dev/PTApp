@@ -81,6 +81,7 @@ PTApp/
 - Session types: Strength, Cardio, Flexibility, HIIT, Recovery, Custom
 - Session statuses: Scheduled -> Confirmed -> Completed (or Cancelled)
 - Dark theme with red (#E8453C) accent color
+- **iPhone safe areas**: Bottom elements need `env(safe-area-inset-bottom)`. Nav bar is z-index 100, modals must be 200+. Modal action buttons go in `modal-footer` (sticky), never in scrollable body. iOS keyboard shrinks `visualViewport` — modals handle this via resize listener.
 
 ## How to Run (Development)
 ```bash
@@ -88,11 +89,32 @@ npm install
 npm run dev
 ```
 
-## How to Build and Share
+## How to Build, Verify, and Deploy
+Every code change must go through this full pipeline — **never skip steps**:
 ```bash
+# 1. Build
 npm run build
-# Produces a single dist/index.html (~176 KB) with all JS and CSS inlined
-# Send dist/index.html via WhatsApp to the PT — he opens it on his iPhone
+
+# 2. Verify the bundle isn't corrupted (catches blank-page bugs)
+node -e "const fs=require('fs'),h=fs.readFileSync('dist/index.html','utf8'),s=h.indexOf('<script>')+8,e=h.lastIndexOf('</script>');fs.writeFileSync('test-bundle.js',h.substring(s,e))" && node --check test-bundle.js && rm test-bundle.js
+
+# 3. Bump version in App.jsx header (e.g. v1.4 → v1.5), rebuild if changed
+
+# 4. Commit and push source to master
+git add <files> && git commit -m "message" && git push origin master
+
+# 5. Deploy built file to gh-pages (THIS IS WHAT MAKES IT LIVE)
+cp dist/index.html /tmp/ptapp-deploy.html
+git checkout gh-pages
+cp /tmp/ptapp-deploy.html index.html
+git add index.html && git commit -m "Deploy vX.Y: description" && git push origin gh-pages
+git checkout master
+
+# 6. Tell Pierre the version number so he can verify on his phone
 ```
-The `vite-plugin-singlefile` plugin inlines all JS and CSS into one HTML file.
-Google Fonts (DM Sans) still loads from the internet — device needs connectivity.
+
+**Critical notes:**
+- Pushing to `master` alone does NOT deploy. The live site serves from `gh-pages`.
+- The `fixForFileProtocol` plugin in vite.config.js uses a function replacement (`() =>`). Never change this to a string replacement — `$&` in React's minified code will corrupt the bundle.
+- The `vite-plugin-singlefile` plugin inlines all JS and CSS into one HTML file.
+- Google Fonts (DM Sans) still loads from the internet — device needs connectivity.
