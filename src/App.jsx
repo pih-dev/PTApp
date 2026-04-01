@@ -92,7 +92,7 @@ export default function App() {
       </div>
 
       <div className="content">
-        {tab === 'home' && <Dashboard state={state} setTab={setTab} />}
+        {tab === 'home' && <Dashboard state={state} dispatch={dispatch} setTab={setTab} />}
         {tab === 'clients' && <Clients state={state} dispatch={dispatch} />}
         {tab === 'schedule' && <Schedule state={state} dispatch={dispatch} />}
         {tab === 'sessions' && <Sessions state={state} dispatch={dispatch} />}
