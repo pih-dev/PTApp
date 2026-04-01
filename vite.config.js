@@ -16,7 +16,8 @@ function fixForFileProtocol() {
         // Remove it from head
         html = html.replace(scriptMatch[0], '')
         // Insert as plain script before </body>
-        html = html.replace('</body>', `<script>${scriptMatch[1]}</script>\n</body>`)
+        // Use a function replacement to avoid $& $' $` in JS being interpreted as replace patterns
+        html = html.replace('</body>', () => `<script>${scriptMatch[1]}</script>\n</body>`)
       }
       writeFileSync(file, html)
     }
