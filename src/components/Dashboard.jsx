@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { today, formatDate, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, sendReminderWhatsApp } from '../utils';
+import { today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, sendReminderWhatsApp } from '../utils';
 
 export default function Dashboard({ state, dispatch, setTab }) {
+  const [activeSession, setActiveSession] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
-  const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ clientId: '', type: 'Strength', date: today(), time: '09:00', duration: 60 });
 
   const todaySessions = state.sessions.filter(s => s.date === today());
@@ -22,25 +22,32 @@ export default function Dashboard({ state, dispatch, setTab }) {
 
   const getClientName = (id) => state.clients.find(c => c.id === id)?.name || 'Unknown';
 
-  const openEdit = (session) => {
-    setEditingSession(session);
+  const openActions = (session) => {
+    setActiveSession(session);
+  };
+
+  const openEdit = () => {
+    const session = activeSession;
     setForm({ clientId: session.clientId, type: session.type, date: session.date, time: session.time, duration: session.duration });
-    setShowForm(true);
+    setEditingSession(session);
+    setActiveSession(null);
   };
 
   const saveSession = () => {
     if (!form.clientId || !editingSession) return;
     dispatch({ type: 'UPDATE_SESSION', payload: { id: editingSession.id, ...form } });
-    setShowForm(false);
+    setEditingSession(null);
   };
 
   const updateStatus = (id, status) => {
     dispatch({ type: 'UPDATE_SESSION', payload: { id, status } });
+    setActiveSession(null);
   };
 
   const deleteSession = (id) => {
     if (confirm('Cancel this session?')) {
       dispatch({ type: 'DELETE_SESSION', payload: id });
+      setActiveSession(null);
     }
   };
 
@@ -79,10 +86,10 @@ export default function Dashboard({ state, dispatch, setTab }) {
         upcomingSessions.map(session => {
           const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
           const status = STATUS_MAP[session.status];
-          const client = state.clients.find(c => c.id === session.clientId);
           return (
-            <div key={session.id} className="card" style={{ borderLeft: `3px solid ${st.color}` }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+            <div key={session.id} className="card card-tap" style={{ borderLeft: `3px solid ${st.color}`, cursor: 'pointer' }}
+              onClick={() => openActions(session)}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                   <div className="client-name">{getClientName(session.clientId)}</div>
                   <div className="meta">
@@ -91,39 +98,73 @@ export default function Dashboard({ state, dispatch, setTab }) {
                   </div>
                   <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>{formatDate(session.date)}</div>
                 </div>
-                <span className="badge" style={{ color: status.color, background: status.bg }}>{status.label}</span>
-              </div>
-              <div className="flex-row">
-                {session.status === 'scheduled' && (
-                  <button className="btn-confirm" onClick={() => updateStatus(session.id, 'confirmed')}>✓ Confirm</button>
-                )}
-                {(session.status === 'scheduled' || session.status === 'confirmed') && (
-                  <button className="btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }}
-                    onClick={() => updateStatus(session.id, 'completed')}>✅ Complete</button>
-                )}
-                {client && (
-                  <button className="btn-whatsapp" style={{ fontSize: 12, padding: '6px 12px' }}
-                    onClick={() => sendReminderWhatsApp(client, session)}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                    Remind
-                  </button>
-                )}
-                <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }} onClick={() => openEdit(session)}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                  Edit
-                </button>
-                <button className="btn-icon" onClick={() => deleteSession(session.id)}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span className="badge" style={{ color: status.color, background: status.bg }}>{status.label}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
               </div>
             </div>
           );
         })
       )}
 
+      {/* Action Sheet Modal */}
+      {activeSession && (() => {
+        const session = activeSession;
+        const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
+        const status = STATUS_MAP[session.status];
+        const client = state.clients.find(c => c.id === session.clientId);
+        return (
+          <Modal title={getClientName(session.clientId)} onClose={() => setActiveSession(null)}
+            action={
+              <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15, color: '#E8453C' }}
+                onClick={() => deleteSession(session.id)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Cancel Session
+              </button>
+            }>
+            <div style={{ textAlign: 'center', padding: '8px 0 16px' }}>
+              <span className="badge" style={{ color: status.color, background: status.bg, fontSize: 14, padding: '6px 14px' }}>{status.label}</span>
+              <div style={{ marginTop: 12, color: 'rgba(255,255,255,0.6)', fontSize: 15 }}>
+                {st.emoji} {session.type} · {session.duration}min
+              </div>
+              <div style={{ marginTop: 4, color: 'rgba(255,255,255,0.6)', fontSize: 15 }}>
+                {formatDateLong(session.date)} at {session.time}
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {session.status === 'scheduled' && (
+                <button className="btn-confirm" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
+                  onClick={() => updateStatus(session.id, 'confirmed')}>
+                  ✓ Confirm
+                </button>
+              )}
+              {(session.status === 'scheduled' || session.status === 'confirmed') && (
+                <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
+                  onClick={() => updateStatus(session.id, 'completed')}>
+                  ✅ Complete
+                </button>
+              )}
+              {client && (
+                <button className="btn-whatsapp" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
+                  onClick={() => { sendReminderWhatsApp(client, session); setActiveSession(null); }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                  Send Reminder
+                </button>
+              )}
+              <button className="btn-ghost" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
+                onClick={openEdit}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit Session
+              </button>
+            </div>
+          </Modal>
+        );
+      })()}
+
       {/* Edit Modal */}
-      {showForm && editingSession && (
-        <Modal title="Edit Session" onClose={() => setShowForm(false)}
+      {editingSession && (
+        <Modal title="Edit Session" onClose={() => setEditingSession(null)}
           action={<button className="btn-primary" onClick={saveSession}>Save Changes</button>}>
           <div className="field">
             <label className="field-label">Client</label>
