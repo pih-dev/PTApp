@@ -70,6 +70,12 @@ button:active { transform: scale(0.97); }
   font-size: 11px; color: rgba(255,255,255,0.35);
   font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
 }
+.app-version {
+  margin-left: auto;
+  font-size: 11px;
+  color: rgba(255,255,255,0.25);
+  font-weight: 500;
+}
 
 .content {
   flex: 1;
