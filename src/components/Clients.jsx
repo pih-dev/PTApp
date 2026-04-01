@@ -5,18 +5,18 @@ import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaul
 export default function Clients({ state, dispatch }) {
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
-  const [form, setForm] = useState({ name: '', phone: '', notes: '' });
+  const [form, setForm] = useState({ name: '', phone: '', gender: '', birthdate: '', notes: '' });
   const [search, setSearch] = useState('');
   const [countryCode, setCountryCode] = useState(getDefaultCountryCode);
 
   const openAdd = () => {
-    setForm({ name: '', phone: '', notes: '' });
+    setForm({ name: '', phone: '', gender: '', birthdate: '', notes: '' });
     setEditingClient(null);
     setShowForm(true);
   };
 
   const openEdit = (c) => {
-    setForm({ name: c.name, phone: c.phone, notes: c.notes || '' });
+    setForm({ name: c.name, phone: c.phone, gender: c.gender || '', birthdate: c.birthdate || '', notes: c.notes || '' });
     setEditingClient(c);
     setShowForm(true);
   };
@@ -84,6 +84,13 @@ export default function Clients({ state, dispatch }) {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                   {c.phone}
                 </div>
+                {(c.gender || c.birthdate) && (
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 2 }}>
+                    {c.gender === 'male' ? 'M' : c.gender === 'female' ? 'F' : ''}
+                    {c.gender && c.birthdate ? ' · ' : ''}
+                    {c.birthdate || ''}
+                  </div>
+                )}
                 {c.notes && <div className="client-notes">{c.notes}</div>}
                 <div className="session-count">{sessionCount(c.id)} sessions</div>
               </div>
@@ -125,6 +132,21 @@ export default function Clients({ state, dispatch }) {
               />
               <input className="input" style={{ flex: 1 }} placeholder="e.g. 71 123 456" value={form.phone}
                 onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
+            </div>
+          </div>
+          <div className="flex-row-12">
+            <div className="field" style={{ flex: 1 }}>
+              <label className="field-label">Gender</label>
+              <select className="select" value={form.gender} onChange={e => setForm(p => ({ ...p, gender: e.target.value }))}>
+                <option value="">—</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+            <div className="field" style={{ flex: 1 }}>
+              <label className="field-label">Birthdate</label>
+              <input type="date" className="input" value={form.birthdate}
+                onChange={e => setForm(p => ({ ...p, birthdate: e.target.value }))} />
             </div>
           </div>
           <div className="field">

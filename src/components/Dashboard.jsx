@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, sendReminderWhatsApp } from '../utils';
+import { today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, sendReminderWhatsApp, getMonthlySessionCount } from '../utils';
 
 export default function Dashboard({ state, dispatch, setTab }) {
   const [activeSession, setActiveSession] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
-  const [form, setForm] = useState({ clientId: '', type: 'Strength', date: today(), time: '09:00', duration: 60 });
+  const [cancelPrompt, setCancelPrompt] = useState(null);
+  const [form, setForm] = useState({ clientId: '', type: 'Strength', date: today(), time: '09:00', duration: 45 });
 
   const todaySessions = state.sessions.filter(s => s.date === today());
   const upcomingSessions = state.sessions
@@ -44,11 +45,13 @@ export default function Dashboard({ state, dispatch, setTab }) {
     setActiveSession(null);
   };
 
-  const deleteSession = (id) => {
-    if (confirm('Cancel this session?')) {
-      dispatch({ type: 'DELETE_SESSION', payload: id });
-      setActiveSession(null);
-    }
+  const cancelSession = (session) => {
+    setActiveSession(null);
+    setCancelPrompt(session);
+  };
+  const confirmCancel = (counted) => {
+    dispatch({ type: 'UPDATE_SESSION', payload: { id: cancelPrompt.id, status: 'cancelled', cancelCounted: counted } });
+    setCancelPrompt(null);
   };
 
   return (
@@ -86,12 +89,13 @@ export default function Dashboard({ state, dispatch, setTab }) {
         upcomingSessions.map(session => {
           const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
           const status = STATUS_MAP[session.status];
+          const monthCount = getMonthlySessionCount(state.sessions, session.clientId, session.date.slice(0, 7));
           return (
             <div key={session.id} className="card card-tap" style={{ borderLeft: `3px solid ${st.color}`, cursor: 'pointer' }}
               onClick={() => openActions(session)}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <div className="client-name">{getClientName(session.clientId)}</div>
+                  <div className="client-name">{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.35)' }}>#{monthCount}</span></div>
                   <div className="meta">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     {session.time} · {session.duration}min · {st.emoji} {session.type}
@@ -118,7 +122,7 @@ export default function Dashboard({ state, dispatch, setTab }) {
           <Modal title={getClientName(session.clientId)} onClose={() => setActiveSession(null)}
             action={
               <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15, color: '#E8453C' }}
-                onClick={() => deleteSession(session.id)}>
+                onClick={() => cancelSession(session)}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 Cancel Session
               </button>
@@ -203,6 +207,33 @@ export default function Dashboard({ state, dispatch, setTab }) {
                 {DURATIONS.map(d => <option key={d} value={d}>{d} min</option>)}
               </select>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Cancel Prompt — Count or Forgive */}
+      {cancelPrompt && (
+        <Modal title="Cancel Session" onClose={() => setCancelPrompt(null)}
+          action={
+            <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
+              onClick={() => setCancelPrompt(null)}>
+              Keep Session
+            </button>
+          }>
+          <div className="success-center">
+            <div className="success-icon" style={{ fontSize: 40 }}>❌</div>
+            <div className="success-name">{getClientName(cancelPrompt.clientId)}</div>
+            <div className="success-detail">{formatDate(cancelPrompt.date)} at {cancelPrompt.time}</div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
+            <button className="btn-primary" style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}
+              onClick={() => confirmCancel(true)}>
+              Count (No-show / Late cancel)
+            </button>
+            <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
+              onClick={() => confirmCancel(false)}>
+              Forgive (Legitimate cancel)
+            </button>
           </div>
         </Modal>
       )}

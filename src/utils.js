@@ -61,6 +61,49 @@ for (let h = 5; h <= 22; h++) {
 // ─── Duration options ───
 export const DURATIONS = [30, 45, 60, 75, 90, 120];
 
+// ─── Time conflict helpers ───
+// Convert "HH:MM" to minutes since midnight
+export const timeToMinutes = (t) => {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+};
+
+// Build a map of time slot → occupying sessions for a given date
+// Returns { "09:30": [{ clientName, type }], "09:45": [...], ... }
+export const getOccupiedSlots = (sessions, clients, date) => {
+  const occupied = {};
+  sessions
+    .filter(s => s.date === date && s.status !== 'cancelled')
+    .forEach(s => {
+      const startMin = timeToMinutes(s.time);
+      const endMin = startMin + (s.duration || 45);
+      const clientName = clients.find(c => c.id === s.clientId)?.name || 'Unknown';
+      // Mark each 15-min slot this session spans
+      for (let m = startMin; m < endMin; m += 15) {
+        const hh = String(Math.floor(m / 60)).padStart(2, '0');
+        const mm = String(m % 60).padStart(2, '0');
+        const slot = `${hh}:${mm}`;
+        if (!occupied[slot]) occupied[slot] = [];
+        occupied[slot].push({ clientName, type: s.type });
+      }
+    });
+  return occupied;
+};
+
+// ─── Monthly session count ───
+// Count sessions for a client in a given month (YYYY-MM)
+// Includes: scheduled, confirmed, completed, and cancelled-but-counted sessions
+export const getMonthlySessionCount = (sessions, clientId, month) => {
+  return sessions.filter(s =>
+    s.clientId === clientId &&
+    s.date.startsWith(month) &&
+    (s.status !== 'cancelled' || s.cancelCounted)
+  ).length;
+};
+
+// Get current month as YYYY-MM
+export const currentMonth = () => new Date().toISOString().slice(0, 7);
+
 // ─── Date helpers ───
 export const today = () => new Date().toISOString().split('T')[0];
 

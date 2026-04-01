@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { formatDate, SESSION_TYPES, STATUS_MAP } from '../utils';
+import { formatDate, SESSION_TYPES, STATUS_MAP, getMonthlySessionCount } from '../utils';
 
 export default function Sessions({ state }) {
   const [filter, setFilter] = useState('all');
@@ -29,11 +29,12 @@ export default function Sessions({ state }) {
         sorted.map(session => {
           const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
           const status = STATUS_MAP[session.status];
+          const monthCount = getMonthlySessionCount(state.sessions, session.clientId, session.date.slice(0, 7));
           return (
             <div key={session.id} className="card" style={{ borderLeft: `3px solid ${st.color}`, padding: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>{getClientName(session.clientId)}</div>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.35)' }}>#{monthCount}</span></div>
                   <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
                     {formatDate(session.date)} · {session.time} · {session.duration}min · {st.emoji} {session.type}
                   </div>
