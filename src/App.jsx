@@ -1,18 +1,69 @@
-import React, { useState, useReducer, useEffect } from 'react';
+import React, { useState, useReducer, useEffect, useRef } from 'react';
 import Dashboard from './components/Dashboard';
 import Clients from './components/Clients';
 import Schedule from './components/Schedule';
 import Sessions from './components/Sessions';
+import TokenSetup from './components/TokenSetup';
 import { reducer, loadData, saveData } from './utils';
+import { getToken, fetchRemoteData, pushRemoteData } from './sync';
 
 export default function App() {
   const [state, dispatch] = useReducer(reducer, null, loadData);
   const [tab, setTab] = useState('home');
+  const [connected, setConnected] = useState(!!getToken());
+  const [initialLoad, setInitialLoad] = useState(!!getToken());
+  const skipSync = useRef(true);
 
-  // Save to localStorage on every change
+  // On first load with token, fetch remote data
+  useEffect(() => {
+    const token = getToken();
+    if (!token) { setInitialLoad(false); return; }
+
+    fetchRemoteData(token)
+      .then(remoteData => {
+        if (remoteData) {
+          skipSync.current = true;
+          dispatch({ type: 'REPLACE_ALL', payload: remoteData });
+        } else {
+          // No remote data yet — push local data up
+          pushRemoteData(token, state).catch(() => {});
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        setInitialLoad(false);
+        // Allow syncing after initial load settles
+        setTimeout(() => { skipSync.current = false; }, 500);
+      });
+  }, [connected]);
+
+  // Save to localStorage + sync to GitHub on every state change
   useEffect(() => {
     saveData(state);
+    if (skipSync.current) {
+      skipSync.current = false;
+      return;
+    }
+    const token = getToken();
+    if (token) {
+      pushRemoteData(token, state).catch(() => {});
+    }
   }, [state]);
+
+  if (!connected) {
+    return <TokenSetup onConnected={() => setConnected(true)} />;
+  }
+
+  if (initialLoad) {
+    return (
+      <div className="setup-container">
+        <div className="setup-card" style={{ textAlign: 'center' }}>
+          <div className="setup-spinner" />
+          <p style={{ marginTop: 16, color: 'rgba(255,255,255,0.5)' }}>Syncing...</p>
+        </div>
+      </div>
+    );
+  }
 
   const tabs = [
     { id: 'home', label: 'Home', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
@@ -23,7 +74,6 @@ export default function App() {
 
   return (
     <div className="app-container">
-      {/* Header */}
       <div className="header">
         <div className="logo">
           <div className="logo-icon">
@@ -41,7 +91,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="content">
         {tab === 'home' && <Dashboard state={state} setTab={setTab} />}
         {tab === 'clients' && <Clients state={state} dispatch={dispatch} />}
@@ -49,7 +98,6 @@ export default function App() {
         {tab === 'sessions' && <Sessions state={state} dispatch={dispatch} />}
       </div>
 
-      {/* Bottom Nav */}
       <div className="nav">
         {tabs.map(t => (
           <button key={t.id} className={`nav-btn${tab === t.id ? ' active' : ''}`} onClick={() => setTab(t.id)}>

@@ -308,3 +308,42 @@ button:active { transform: scale(0.97); }
 .success-detail { font-size: 14px; color: rgba(255,255,255,0.5); }
 .mb-10 { margin-bottom: 10px; }
 .mt-16 { margin-top: 16px; }
+
+/* ─── Setup / Token Screen ─── */
+.setup-container {
+  height: 100vh; height: 100dvh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.setup-card {
+  width: 100%; max-width: 360px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 32px 24px;
+}
+.setup-logo {
+  width: 48px; height: 48px;
+  margin: 0 auto 16px;
+}
+.setup-title {
+  text-align: center; font-size: 24px; font-weight: 800;
+  margin-bottom: 8px;
+}
+.setup-sub {
+  text-align: center; color: rgba(255,255,255,0.4);
+  font-size: 14px; margin-bottom: 24px;
+}
+.setup-error {
+  color: #E8453C; font-size: 13px; margin-top: 8px;
+}
+.setup-spinner {
+  width: 32px; height: 32px; margin: 0 auto;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #E8453C;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

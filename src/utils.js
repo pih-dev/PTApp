@@ -113,6 +113,8 @@ export function reducer(state, action) {
       return { ...state, sessions: state.sessions.map(s => s.id === action.payload.id ? { ...s, ...action.payload } : s) };
     case 'DELETE_SESSION':
       return { ...state, sessions: state.sessions.filter(s => s.id !== action.payload) };
+    case 'REPLACE_ALL':
+      return action.payload;
     default:
       return state;
   }
