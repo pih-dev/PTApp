@@ -1,10 +1,24 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 export default function Modal({ onClose, title, children }) {
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      if (contentRef.current) {
+        contentRef.current.style.maxHeight = vv.height * 0.75 + 'px';
+      }
+    };
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
+  }, []);
+
   return (
     <div className="modal-overlay">
       <div className="modal-bg" onClick={onClose} />
-      <div className="modal-content">
+      <div className="modal-content" ref={contentRef}>
         <div className="modal-header">
           <h2 className="modal-title">{title}</h2>
           <button className="modal-close" onClick={onClose}>
@@ -13,7 +27,9 @@ export default function Modal({ onClose, title, children }) {
             </svg>
           </button>
         </div>
-        {children}
+        <div className="modal-body">
+          {children}
+        </div>
       </div>
     </div>
   );

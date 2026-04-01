@@ -1,9 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git init:*)",
-      "Bash(gh auth:*)",
-      "Bash(git add:*)"
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "Skill(*)",
+      "Agent(*)",
+      "WebFetch(*)",
+      "WebSearch(*)"
     ]
   }
 }
