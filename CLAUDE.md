@@ -1,12 +1,9 @@
 # PTApp — Personal Trainer Client Management App
 
 ## Session Startup
-- Remind the user to run `/rc "PTApp"` for remote phone control if they haven't already
-- This project uses bypass permissions mode (yolo) — no need to ask for tool confirmations
-- Commit to git frequently — after every significant change, not batched at the end
 - Always push to master AND deploy to gh-pages after every commit (see deploy section)
-- Keep memory/session_log.md updated mid-session with key inputs and decisions
-- When an incident, workaround, or non-obvious behavior is discovered, immediately save it to memory so future sessions don't repeat the same mistakes
+- Auto-push to GitHub after every commit — do not ask, just push
+(Remote control, commit discipline, memory, and session management are in the global ~/.claude/CLAUDE.md)
 
 ## What This Project Is
 A mobile-first web app for a personal trainer (the end user) to manage his gym clients. Developed by Pierre (pih-dev on GitHub). The PT uses the app on his iPhone; Pierre tests on his Android.
