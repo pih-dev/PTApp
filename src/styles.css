@@ -219,7 +219,7 @@ button:active { transform: scale(0.97); }
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  padding-bottom: 8px;
 }
 .modal-title { font-size: 20px; font-weight: 800; }
 .modal-close { color: rgba(255,255,255,0.5); padding: 4px; }
