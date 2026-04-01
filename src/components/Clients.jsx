@@ -105,7 +105,8 @@ export default function Clients({ state, dispatch }) {
       )}
 
       {showForm && (
-        <Modal title={editingClient ? 'Edit Client' : 'New Client'} onClose={() => setShowForm(false)}>
+        <Modal title={editingClient ? 'Edit Client' : 'New Client'} onClose={() => setShowForm(false)}
+          action={<button className="btn-primary" onClick={save}>{editingClient ? 'Save Changes' : 'Add Client'}</button>}>
           <div className="field">
             <label className="field-label">Full Name</label>
             <input className="input" placeholder="e.g. Ahmad Khalil" value={form.name}
@@ -131,9 +132,6 @@ export default function Clients({ state, dispatch }) {
             <input className="input" placeholder="e.g. Bad knee, prefers mornings" value={form.notes}
               onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
           </div>
-          <button className="btn-primary" onClick={save}>
-            {editingClient ? 'Save Changes' : 'Add Client'}
-          </button>
         </Modal>
       )}
     </div>

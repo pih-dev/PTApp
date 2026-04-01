@@ -223,6 +223,11 @@ button:active { transform: scale(0.97); }
 }
 .modal-title { font-size: 20px; font-weight: 800; }
 .modal-close { color: rgba(255,255,255,0.5); padding: 4px; }
+.modal-footer {
+  flex-shrink: 0;
+  padding: 12px 0;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
 
 /* ─── Misc ─── */
 .section-title {
