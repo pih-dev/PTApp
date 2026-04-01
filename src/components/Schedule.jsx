@@ -4,6 +4,7 @@ import { genId, today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TI
 
 export default function Schedule({ state, dispatch }) {
   const [showForm, setShowForm] = useState(false);
+  const [editingSession, setEditingSession] = useState(null);
   const [selectedDate, setSelectedDate] = useState(today());
   const [form, setForm] = useState({ clientId: '', type: 'Strength', date: today(), time: '09:00', duration: 60 });
   const [confirmMsg, setConfirmMsg] = useState(null);
@@ -13,17 +14,29 @@ export default function Schedule({ state, dispatch }) {
     .sort((a, b) => a.time.localeCompare(b.time));
 
   const openBooking = () => {
+    setEditingSession(null);
     setForm({ clientId: state.clients[0]?.id || '', type: 'Strength', date: selectedDate, time: '09:00', duration: 60 });
     setShowForm(true);
   };
 
-  const bookSession = () => {
+  const openEdit = (session) => {
+    setEditingSession(session);
+    setForm({ clientId: session.clientId, type: session.type, date: session.date, time: session.time, duration: session.duration });
+    setShowForm(true);
+  };
+
+  const saveSession = () => {
     if (!form.clientId) return;
-    const session = { id: genId(), ...form, status: 'scheduled', createdAt: new Date().toISOString() };
-    dispatch({ type: 'ADD_SESSION', payload: session });
-    setShowForm(false);
-    const client = state.clients.find(c => c.id === form.clientId);
-    if (client) setConfirmMsg({ client, session });
+    if (editingSession) {
+      dispatch({ type: 'UPDATE_SESSION', payload: { id: editingSession.id, ...form } });
+      setShowForm(false);
+    } else {
+      const session = { id: genId(), ...form, status: 'scheduled', createdAt: new Date().toISOString() };
+      dispatch({ type: 'ADD_SESSION', payload: session });
+      setShowForm(false);
+      const client = state.clients.find(c => c.id === form.clientId);
+      if (client) setConfirmMsg({ client, session });
+    }
   };
 
   const updateStatus = (id, status) => {
@@ -135,6 +148,10 @@ export default function Schedule({ state, dispatch }) {
                     Remind
                   </button>
                 )}
+                <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }} onClick={() => openEdit(session)}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Edit
+                </button>
                 <button className="btn-icon" onClick={() => deleteSession(session.id)}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 </button>
@@ -146,8 +163,8 @@ export default function Schedule({ state, dispatch }) {
 
       {/* Booking Modal */}
       {showForm && (
-        <Modal title="Book Session" onClose={() => setShowForm(false)}
-          action={<button className="btn-primary" onClick={bookSession}>📅 Book Session</button>}>
+        <Modal title={editingSession ? 'Edit Session' : 'Book Session'} onClose={() => setShowForm(false)}
+          action={<button className="btn-primary" onClick={saveSession}>{editingSession ? 'Save Changes' : '📅 Book Session'}</button>}>
           <div className="field">
             <label className="field-label">Client</label>
             <select className="select" value={form.clientId} onChange={e => setForm(p => ({ ...p, clientId: e.target.value }))}>

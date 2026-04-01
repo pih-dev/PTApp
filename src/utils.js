@@ -53,8 +53,9 @@ export const STATUS_MAP = {
 // ─── Time slots ───
 export const TIMES = [];
 for (let h = 5; h <= 22; h++) {
-  TIMES.push(`${String(h).padStart(2, '0')}:00`);
-  TIMES.push(`${String(h).padStart(2, '0')}:30`);
+  for (let m = 0; m < 60; m += 15) {
+    TIMES.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+  }
 }
 
 // ─── Duration options ───
@@ -147,7 +148,7 @@ export function reducer(state, action) {
 export const sendBookingWhatsApp = (client, session) => {
   const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
   const phone = formatPhone(client.phone);
-  const msg = `Hi ${client.name}! 👋\n\n${st.emoji} Your *${session.type}* session is booked:\n📅 ${formatDateLong(session.date)}\n⏰ ${session.time} (${session.duration} min)\n\nPlease confirm by replying ✅\n\nSee you at the gym! 💪`;
+  const msg = `Hi ${client.name}! 👋\n\n${st.emoji} Your *${session.type}* session is booked:\n📅 ${formatDateLong(session.date)}\n⏰ ${session.time} (${session.duration} min)\n\n👍 Like this message to confirm\n❌ Reply to cancel/reschedule\n\nSee you at the gym! 💪`;
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
