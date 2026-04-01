@@ -6,9 +6,14 @@ export default function Modal({ onClose, title, children }) {
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
+    const fullHeight = vv.height;
     const onResize = () => {
-      if (contentRef.current) {
-        contentRef.current.style.maxHeight = vv.height * 0.75 + 'px';
+      if (!contentRef.current) return;
+      // Only shrink when keyboard is open (viewport significantly smaller)
+      if (vv.height < fullHeight * 0.85) {
+        contentRef.current.style.maxHeight = vv.height * 0.9 + 'px';
+      } else {
+        contentRef.current.style.maxHeight = '';
       }
     };
     vv.addEventListener('resize', onResize);
