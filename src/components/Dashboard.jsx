@@ -125,9 +125,9 @@ export default function Dashboard({ state, dispatch, setTab }) {
                     <div className="meta">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                       {session.time} · {session.duration}min ·{' '}
-                      {/* Inline type selector — change type, auto-clear focus tags */}
+                      {/* Inline type selector — keep focus tags so switching back preserves selections */}
                       <select className="inline-type-select" value={session.type} onChange={e => {
-                        dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value, focus: [] } });
+                        dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value } });
                       }}>
                         {SESSION_TYPES.map(t => <option key={t.label} value={t.label}>{t.emoji} {t.label}</option>)}
                       </select>
