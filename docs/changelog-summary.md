@@ -4,6 +4,16 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v1.9 — Tap to Change Session Type (Apr 2, 2026)
+
+Sometimes the PT books a session as "Strength" but switches to cardio or HIIT during the actual workout. Before, he'd have to open the Edit modal just to change the type.
+
+Now the session type on each card is tappable — tap it, pick a new type from the dropdown, done. Focus tags automatically reset to match the new type (old tags like "Chest" don't make sense for a "Cardio" session). Notes stay untouched.
+
+Works on both the Schedule tab and the Home tab (expanded view). One tap, everything adjusts.
+
+---
+
 ## v1.8 — Work From Home Screen (Apr 2, 2026)
 
 The Home screen used to just show a list of upcoming sessions. Tap one to see options. Simple but limited — the PT couldn't tag what he did during a session without switching to the Schedule tab.

@@ -4,6 +4,27 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v1.9 — Inline Session Type Selector (2026-04-02)
+
+**What changed:**
+- Session type on cards (Schedule + Dashboard expanded view) is now a tappable `<select>` dropdown instead of static text
+- Changing the type dispatches `UPDATE_SESSION` with the new type and `focus: []` (clears tags)
+- Session notes (`sessionNotes`) are left untouched on type change
+- New `.inline-type-select` CSS class makes the dropdown blend with the meta text line
+
+**Why:**
+The PT's next session was booked as "Strength" but he might switch to something else during the workout. Before this, changing the type required opening the Edit modal — unnecessary friction for a single-field change. Pierre proposed: tap the type, pick a new one, tags reset, notes stay. Flummox agreed ("one field, three behaviors").
+
+**Implementation:**
+- Replaced `{st.emoji} {session.type}` in the meta line with an inline `<select>` in both Schedule.jsx and Dashboard.jsx (expanded view)
+- The `onChange` handler dispatches `UPDATE_SESSION` with `{ type: newValue, focus: [] }` — same auto-save pattern as focus tags
+- Compact view and Sessions tab remain read-only (display contexts, not working contexts)
+- No schema change — `type` is an existing field, `focus` is already an optional array
+
+**No edge cases:** The `st` variable (session type lookup for color/emoji) re-derives from `session.type` on every render, so the card border color and emoji in the dropdown update instantly.
+
+---
+
 ## v1.8 — Dashboard Expanded View (2026-04-02)
 
 **What changed:**
