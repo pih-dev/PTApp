@@ -115,7 +115,7 @@ export default function Dashboard({ state, dispatch, setTab }) {
             };
             return (
               <div key={session.id}
-                className="card" style={{ borderLeft: `3px solid ${st.color}`, boxShadow: isNext ? '0 0 0 1px rgba(232,69,60,0.3)' : undefined }}>
+                className={`card${isNext ? ' card-now' : ''}`} style={{ borderLeft: `3px solid ${isNext ? '#E8453C' : st.color}` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                   <div>
                     <div className="client-name">{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.35)' }}>#{monthCount}</span></div>
