@@ -125,7 +125,11 @@ export const getSessionOrdinal = (sessions, sessionId, clientId, month) => {
 export const currentMonth = () => new Date().toISOString().slice(0, 7);
 
 // ─── Date helpers ───
-export const today = () => new Date().toISOString().split('T')[0];
+// Use local date, not UTC — toISOString() returns UTC which is wrong after midnight in Beirut (UTC+3)
+export const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 export const formatDate = (dateStr) => {
   const d = new Date(dateStr + 'T00:00:00');
