@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { formatDate, SESSION_TYPES, STATUS_MAP, getMonthlySessionCount, FOCUS_TAGS } from '../utils';
+import { formatDate, SESSION_TYPES, STATUS_MAP, getSessionOrdinal, FOCUS_TAGS } from '../utils';
 
 export default function Sessions({ state }) {
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('active');
   const sorted = [...state.sessions]
-    .filter(s => filter === 'all' || s.status === filter)
+    .filter(s => filter === 'all' ? true : filter === 'active' ? s.status !== 'cancelled' : s.status === filter)
     .sort((a, b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
 
   const getClientName = (id) => state.clients.find(c => c.id === id)?.name || 'Unknown';
@@ -13,9 +13,9 @@ export default function Sessions({ state }) {
     <div>
       <div className="section-title" style={{ marginTop: 16 }}>📋 All Sessions ({sorted.length})</div>
       <div className="filter-row">
-        {['all', 'scheduled', 'confirmed', 'completed', 'cancelled'].map(f => (
+        {['active', 'all', 'scheduled', 'confirmed', 'completed', 'cancelled'].map(f => (
           <button key={f} className={`filter-btn${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>
-            {f === 'all' ? 'All' : STATUS_MAP[f]?.label}
+            {f === 'active' ? 'Active' : f === 'all' ? 'All' : STATUS_MAP[f]?.label}
           </button>
         ))}
       </div>
@@ -29,7 +29,7 @@ export default function Sessions({ state }) {
         sorted.map(session => {
           const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
           const status = STATUS_MAP[session.status];
-          const monthCount = getMonthlySessionCount(state.sessions, session.clientId, session.date.slice(0, 7));
+          const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
           return (
             <div key={session.id} className="card" style={{ borderLeft: `3px solid ${st.color}`, padding: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

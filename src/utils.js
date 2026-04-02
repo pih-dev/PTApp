@@ -113,6 +113,14 @@ export const getMonthlySessionCount = (sessions, clientId, month) => {
   ).length;
 };
 
+// Sequential position of a session within the client's month (1st, 2nd, 3rd...)
+export const getSessionOrdinal = (sessions, sessionId, clientId, month) => {
+  const monthSessions = sessions
+    .filter(s => s.clientId === clientId && s.date.startsWith(month) && (s.status !== 'cancelled' || s.cancelCounted))
+    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  return monthSessions.findIndex(s => s.id === sessionId) + 1;
+};
+
 // Get current month as YYYY-MM
 export const currentMonth = () => new Date().toISOString().slice(0, 7);
 

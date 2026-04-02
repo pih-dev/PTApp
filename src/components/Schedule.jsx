@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Modal from './Modal';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getMonthlySessionCount, currentMonth } from '../utils';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getMonthlySessionCount, getSessionOrdinal, currentMonth } from '../utils';
 
 export default function Schedule({ state, dispatch }) {
   const [showForm, setShowForm] = useState(false);
@@ -133,7 +133,7 @@ export default function Schedule({ state, dispatch }) {
           const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
           const status = STATUS_MAP[session.status];
           const client = state.clients.find(c => c.id === session.clientId);
-          const monthCount = getMonthlySessionCount(state.sessions, session.clientId, session.date.slice(0, 7));
+          const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
           return (
             <div key={session.id} className="card" style={{ borderLeft: `3px solid ${st.color}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>

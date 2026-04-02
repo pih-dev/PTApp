@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getMonthlySessionCount, timeToMinutes } from '../utils';
+import { today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getSessionOrdinal, timeToMinutes } from '../utils';
 
 export default function Dashboard({ state, dispatch, setTab }) {
   const [activeSession, setActiveSession] = useState(null);
@@ -108,7 +108,7 @@ export default function Dashboard({ state, dispatch, setTab }) {
             const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
             const status = STATUS_MAP[session.status];
             const client = state.clients.find(c => c.id === session.clientId);
-            const monthCount = getMonthlySessionCount(state.sessions, session.clientId, session.date.slice(0, 7));
+            const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
             const tags = FOCUS_TAGS[session.type] || FOCUS_TAGS.Custom;
             const focus = session.focus || [];
             const isNext = isNowSession(session);
@@ -194,7 +194,7 @@ export default function Dashboard({ state, dispatch, setTab }) {
           upcomingSessions.map(session => {
             const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
             const status = STATUS_MAP[session.status];
-            const monthCount = getMonthlySessionCount(state.sessions, session.clientId, session.date.slice(0, 7));
+            const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
             return (
               <div key={session.id} className="card card-tap" style={{ borderLeft: `3px solid ${st.color}`, cursor: 'pointer' }}
                 onClick={() => openActions(session)}>
