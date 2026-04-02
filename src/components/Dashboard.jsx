@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import Modal from './Modal';
 import { today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getMonthlySessionCount, timeToMinutes } from '../utils';
 
@@ -8,7 +8,6 @@ export default function Dashboard({ state, dispatch, setTab }) {
   const [cancelPrompt, setCancelPrompt] = useState(null);
   const [expanded, setExpanded] = useState(true); // true = full cards, false = compact list
   const [form, setForm] = useState({ clientId: '', type: 'Strength', date: today(), time: '09:00', duration: 45 });
-  const nextSessionRef = useRef(null);
 
   const todaySessions = state.sessions
     .filter(s => s.date === today() && s.status !== 'cancelled')
@@ -27,13 +26,6 @@ export default function Dashboard({ state, dispatch, setTab }) {
     const diff = (d - now) / (1000 * 60 * 60 * 24);
     return diff >= 0 && diff <= 7 && s.status !== 'cancelled';
   });
-
-  // Auto-scroll to current/next session in expanded mode
-  useEffect(() => {
-    if (expanded && nextSessionRef.current) {
-      nextSessionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, [expanded]);
 
   const getClientName = (id) => state.clients.find(c => c.id === id)?.name || 'Unknown';
 
@@ -122,7 +114,7 @@ export default function Dashboard({ state, dispatch, setTab }) {
               dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, focus: updated } });
             };
             return (
-              <div key={session.id} ref={isNext ? nextSessionRef : null}
+              <div key={session.id}
                 className="card" style={{ borderLeft: `3px solid ${st.color}`, boxShadow: isNext ? '0 0 0 1px rgba(232,69,60,0.3)' : undefined }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                   <div>
