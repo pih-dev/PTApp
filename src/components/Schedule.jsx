@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Modal from './Modal';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getMonthlySessionCount, currentMonth } from '../utils';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getMonthlySessionCount, currentMonth } from '../utils';
 
 export default function Schedule({ state, dispatch }) {
   const [showForm, setShowForm] = useState(false);
@@ -171,6 +171,33 @@ export default function Schedule({ state, dispatch }) {
                   </button>
                 )}
               </div>
+              {/* Focus tags — tappable, auto-save */}
+              {(() => {
+                const tags = FOCUS_TAGS[session.type] || FOCUS_TAGS.Custom;
+                const focus = session.focus || [];
+                const toggleFocus = (tag) => {
+                  const updated = focus.includes(tag) ? focus.filter(t => t !== tag) : [...focus, tag];
+                  dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, focus: updated } });
+                };
+                return (
+                  <div>
+                    <div className="focus-row">
+                      {tags.map(tag => (
+                        <button key={tag} className={`focus-tag${focus.includes(tag) ? ' active' : ''}`}
+                          onClick={() => toggleFocus(tag)}>{tag}</button>
+                      ))}
+                    </div>
+                    <textarea className="focus-notes" rows="1" placeholder="Notes..."
+                      defaultValue={session.sessionNotes || ''}
+                      onBlur={e => {
+                        if (e.target.value !== (session.sessionNotes || '')) {
+                          dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, sessionNotes: e.target.value } });
+                        }
+                      }}
+                    />
+                  </div>
+                );
+              })()}
             </div>
           );
         })

@@ -42,6 +42,18 @@ export const SESSION_TYPES = [
   { label: 'Custom', color: '#6B7280', emoji: '🎯' },
 ];
 
+// ─── Focus Tags (per session type) ───
+// Tappable tags for recording what was done during a session.
+// Notes field handles anything not covered here; parseable later for weights/reps.
+export const FOCUS_TAGS = {
+  Strength:    ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core', 'Glutes', 'Full Body'],
+  Cardio:      ['Running', 'Cycling', 'Rowing', 'Swimming', 'Jump Rope', 'Stairs'],
+  Flexibility: ['Stretching', 'Yoga', 'Mobility', 'Foam Rolling'],
+  HIIT:        ['Upper Body', 'Lower Body', 'Full Body', 'Core', 'Tabata', 'Circuit'],
+  Recovery:    ['Foam Rolling', 'Stretching', 'Ice Bath', 'Light Cardio', 'Massage'],
+  Custom:      ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core', 'Glutes', 'Full Body'],
+};
+
 // ─── Session Statuses ───
 export const STATUS_MAP = {
   scheduled: { label: 'Scheduled', color: '#3B82F6', bg: '#EFF6FF' },

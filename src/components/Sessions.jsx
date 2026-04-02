@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { formatDate, SESSION_TYPES, STATUS_MAP, getMonthlySessionCount } from '../utils';
+import { formatDate, SESSION_TYPES, STATUS_MAP, getMonthlySessionCount, FOCUS_TAGS } from '../utils';
 
 export default function Sessions({ state }) {
   const [filter, setFilter] = useState('all');
@@ -41,6 +41,19 @@ export default function Sessions({ state }) {
                 </div>
                 <span className="badge" style={{ color: status.color, background: status.bg }}>{status.label}</span>
               </div>
+              {/* Show focus tags and notes (read-only) */}
+              {((session.focus && session.focus.length > 0) || session.sessionNotes) && (
+                <div style={{ marginTop: 6 }}>
+                  {session.focus && session.focus.length > 0 && (
+                    <div className="focus-row">
+                      {session.focus.map(tag => (
+                        <span key={tag} className="focus-tag active readonly">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                  {session.sessionNotes && <div className="focus-display">{session.sessionNotes}</div>}
+                </div>
+              )}
             </div>
           );
         })
