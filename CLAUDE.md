@@ -102,11 +102,13 @@ node -e "const fs=require('fs'),h=fs.readFileSync('dist/index.html','utf8'),s=h.
 # 4. Commit and push source to master
 git add <files> && git commit -m "message" && git push origin master
 
-# 5. Deploy built file to gh-pages (THIS IS WHAT MAKES IT LIVE)
+# 5. Deploy built files to gh-pages (THIS IS WHAT MAKES IT LIVE)
 cp dist/index.html /tmp/ptapp-deploy.html
+cp dist/sw.js /tmp/ptapp-deploy-sw.js
 git checkout gh-pages
 cp /tmp/ptapp-deploy.html index.html
-git add index.html && git commit -m "Deploy vX.Y: description" && git push origin gh-pages
+cp /tmp/ptapp-deploy-sw.js sw.js
+git add index.html sw.js && git commit -m "Deploy vX.Y: description" && git push origin gh-pages
 git checkout master
 
 # 6. Tell Pierre the version number so he can verify on his phone
