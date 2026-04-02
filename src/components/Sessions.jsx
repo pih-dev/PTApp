@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { formatDate, SESSION_TYPES, STATUS_MAP, getSessionOrdinal, FOCUS_TAGS } from '../utils';
 
-export default function Sessions({ state }) {
+export default function Sessions({ state, dispatch }) {
   const [filter, setFilter] = useState('scheduled');
   const sorted = [...state.sessions]
     .filter(s => filter === 'all' ? true : filter === 'active' ? s.status !== 'cancelled' : s.status === filter)
@@ -41,6 +41,15 @@ export default function Sessions({ state }) {
                 </div>
                 <span className="badge" style={{ color: status.color, background: status.bg }}>{status.label}</span>
               </div>
+              {/* Restore cancelled sessions */}
+              {session.status === 'cancelled' && (
+                <div className="flex-row" style={{ marginTop: 6 }}>
+                  <button className="btn-confirm" style={{ fontSize: 12, padding: '6px 12px' }}
+                    onClick={() => dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, status: 'scheduled' } })}>↩ Restore</button>
+                  <button className="btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }}
+                    onClick={() => dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, status: 'completed' } })}>✅ Complete</button>
+                </div>
+              )}
               {/* Show focus tags and notes (read-only) */}
               {((session.focus && session.focus.length > 0) || session.sessionNotes) && (
                 <div style={{ marginTop: 6 }}>
