@@ -100,6 +100,30 @@ Each session on the selected day shows:
 - Time, duration, session type
 - Status badge
 - Action buttons: Confirm, Complete, Remind (WhatsApp), Edit, Cancel
+- **Focus tags** — tappable tags for what was done (see below)
+- **Session notes** — free text field
+
+### Recording What Was Done (Focus Tags)
+
+Each session card has a row of tappable tags below the action buttons. Tags change based on the session type:
+
+| Session Type | Tags |
+|-------------|------|
+| **Strength** | Chest, Back, Shoulders, Arms, Legs, Core, Glutes, Full Body |
+| **Cardio** | Running, Cycling, Rowing, Swimming, Jump Rope, Stairs |
+| **Flexibility** | Stretching, Yoga, Mobility, Foam Rolling |
+| **HIIT** | Upper Body, Lower Body, Full Body, Core, Tabata, Circuit |
+| **Recovery** | Foam Rolling, Stretching, Ice Bath, Light Cardio, Massage |
+| **Custom** | Same as Strength |
+
+**How to use:**
+1. Tap any tag to activate it (turns red). Tap again to deactivate.
+2. Select as many tags as apply — e.g. "Chest" + "Arms" for a chest-and-arms day.
+3. Changes save instantly — no save button needed.
+
+**Session notes:** Below the tags, there's a text field for anything the tags don't cover. Type details like "Bench press 3x10 80kg" or "Client felt dizzy, stopped early." Notes save when you tap away from the field.
+
+Focus tags and notes appear in the **Sessions** tab history as a read-only record of what was done.
 
 ### Booking a Session
 
