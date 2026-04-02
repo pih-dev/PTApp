@@ -1,2 +1,2 @@
-# Normalize all text files to LF in the repo
+# Normalize line endings to LF on commit, regardless of OS
 * text=auto eol=lf
