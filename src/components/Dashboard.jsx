@@ -12,9 +12,12 @@ export default function Dashboard({ state, dispatch, setTab }) {
   const todaySessions = state.sessions
     .filter(s => s.date === today() && s.status !== 'cancelled')
     .sort((a, b) => a.time.localeCompare(b.time));
-  // Find the next session (closest to now or in the future)
+  // Highlight all sessions currently in progress (started but not yet ended)
   const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
-  const nextSessionIdx = todaySessions.findIndex(s => timeToMinutes(s.time) + (s.duration || 45) > nowMinutes);
+  const isNowSession = (s) => {
+    const start = timeToMinutes(s.time);
+    return nowMinutes >= start && nowMinutes < start + (s.duration || 45);
+  };
   const upcomingSessions = state.sessions
     .filter(s => s.date >= today() && s.status !== 'cancelled')
     .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
@@ -108,7 +111,7 @@ export default function Dashboard({ state, dispatch, setTab }) {
             const monthCount = getMonthlySessionCount(state.sessions, session.clientId, session.date.slice(0, 7));
             const tags = FOCUS_TAGS[session.type] || FOCUS_TAGS.Custom;
             const focus = session.focus || [];
-            const isNext = idx === nextSessionIdx;
+            const isNext = isNowSession(session);
             const toggleFocus = (tag) => {
               const updated = focus.includes(tag) ? focus.filter(t => t !== tag) : [...focus, tag];
               dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, focus: updated } });
