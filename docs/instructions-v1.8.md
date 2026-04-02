@@ -23,20 +23,32 @@ Your daily overview. Shows four stats at the top:
 | **Confirmed** | Upcoming sessions with "Confirmed" status |
 | **This Week** | Non-cancelled sessions in the next 7 days |
 
-Below the stats, **Upcoming Sessions** lists the next 5 sessions (sorted by date/time). Each card shows:
+Below the stats, the Home tab has two views controlled by a toggle button:
 
-- Client name with **#N** (the client's session count for that month — see Monthly Count below)
+### Expanded View (Default)
+
+Shows **today's sessions** with full inline controls — everything you need without leaving Home:
+
+- Client name with **#N** (monthly session count)
 - Time, duration, session type
-- Date
-- Status badge (Scheduled, Confirmed, Completed, Cancelled)
+- Status badge
+- Action buttons: Confirm, Complete, Remind (WhatsApp), Edit, Cancel
+- Focus tags (tappable — see "Recording What Was Done")
+- Session notes field
 
-**Tapping a session card** opens an action sheet where you can:
+The current or next session has a subtle red glow border so you can spot where you are in the day.
+
+### Compact View
+
+Tap **"Compact"** to switch to a simple overview: the next 5 upcoming sessions across all dates. Tap a session card to open an action sheet with:
 
 - **Confirm** — mark as confirmed (available when Scheduled)
 - **Complete** — mark as completed (available when Scheduled or Confirmed)
 - **Send Reminder** — opens WhatsApp with a reminder message
 - **Edit Session** — change client, type, date, time, or duration
 - **Cancel Session** — see "Cancelling a Session" below
+
+Tap **"Expanded"** to switch back.
 
 ---
 
