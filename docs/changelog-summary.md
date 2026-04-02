@@ -4,6 +4,16 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v1.9.2 — Restore Cancelled Sessions, Sessions Default to Scheduled (Apr 2, 2026)
+
+Two fixes driven by real use:
+
+**Restore cancelled sessions:** The PT accidentally cancelled Pierre's completed session that had notes and focus tags. Before, cancellation was permanent — data was preserved but there was no way back. Now cancelled sessions show a "↩ Restore" button (back to Scheduled) and a "✅ Complete" button (mark done directly). Available on both the Schedule tab and the Sessions tab. Notes and tags are never lost.
+
+**Sessions tab defaults to Scheduled:** The Sessions tab now opens showing only scheduled sessions — what's coming up. Cancelled sessions are out of view by default. Tap "Cancelled" or "All" to see them.
+
+---
+
 ## v1.9.1 — Offline Mode, Smarter Highlights, Client History (Apr 2, 2026)
 
 A batch of quality-of-life improvements:

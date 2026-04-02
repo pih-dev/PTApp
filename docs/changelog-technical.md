@@ -4,6 +4,28 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v1.9.2 — Restore Cancelled Sessions (2026-04-02)
+
+**What changed:**
+- Cancelled sessions on Schedule tab now show "↩ Restore" button (sets status back to `scheduled`)
+- Cancelled sessions on Sessions tab show both "↩ Restore" and "✅ Complete" buttons
+- Sessions tab default filter changed from `active` to `scheduled`
+- Sessions component now accepts `dispatch` prop (was read-only before)
+
+**Why:**
+The PT accidentally cancelled Pierre's session that was already completed with notes and focus tags. The data was preserved (cancellation doesn't delete anything) but there was no UI to undo it. Status changes were one-way: you could cancel but never un-cancel.
+
+**Design decision:**
+- Restore sets status to `scheduled` (not back to whatever it was before) — simplest approach, and the PT can then Confirm/Complete as normal
+- "Complete" button offered directly on cancelled cards in Sessions tab — saves a step for the common case of "I cancelled this but it actually happened"
+- Dashboard expanded view still filters out cancelled sessions (correct — they're not active today)
+- Notes, focus tags, and all session data are fully preserved through cancel→restore
+
+**Why default to Scheduled:**
+Pierre requested it — the Sessions tab should show what's coming up, not everything. Cancelled sessions cluttering the default view was annoying.
+
+---
+
 ## v1.9.1 — Offline Support, Session Highlight, Client History (2026-04-02)
 
 **What changed:**
