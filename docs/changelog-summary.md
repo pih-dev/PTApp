@@ -4,6 +4,24 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v1.9.1 — Offline Mode, Smarter Highlights, Client History (Apr 2, 2026)
+
+A batch of quality-of-life improvements:
+
+**Offline support:** The app now works without internet. A service worker caches the page after the first load, so the PT can open it even with no connection (common in Beirut). Google Fonts load non-blocking — if they don't load, the app uses system fonts and still looks fine.
+
+**Current session glow:** The session card for whatever's happening right now gets a visible red glow — tinted background, red border, soft shadow. If multiple sessions run at the same time (group training), they all glow. The old 1px nearly-invisible border is gone.
+
+**Sequential session numbers:** The #N on cards now means "this is the client's Nth session this month" — #1 for the first, #2 for the second, etc. Before, it showed the same total on every card which wasn't useful.
+
+**Client session history:** Tap a client card on the Clients tab to expand it. Shows their sessions for the current month with a summary (total, completed, cancelled). Browse other months with < > arrows.
+
+**Sessions tab cleanup:** Defaults to "Active" view (hides cancelled sessions). New "Active" filter button added alongside All, Scheduled, etc.
+
+**Focus tags persist:** Switching a session type (Strength → Cardio → Strength) no longer wipes the focus tags. They're hidden when viewing a different type but come back when you switch back.
+
+---
+
 ## v1.9 — Tap to Change Session Type (Apr 2, 2026)
 
 Sometimes the PT books a session as "Strength" but switches to cardio or HIIT during the actual workout. Before, he'd have to open the Edit modal just to change the type.

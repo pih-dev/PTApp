@@ -4,6 +4,37 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v1.9.1 — Offline Support, Session Highlight, Client History (2026-04-02)
+
+**What changed:**
+- Service worker (`public/sw.js`) caches the app for offline use. Network-first for HTML, caches fonts too.
+- Google Fonts `<link>` made non-blocking with `media="print" onload="this.media='all'"` — app renders instantly without internet.
+- Current session highlight upgraded from invisible 1px box-shadow to visible red tint + border + glow. Now highlights ALL concurrent sessions, not just the first (`findIndex` → `isNowSession` function).
+- `#N` on session cards changed from total monthly count to sequential ordinal (1st, 2nd, 3rd session that month). New `getSessionOrdinal()` in utils.js.
+- Focus tags no longer cleared on session type change — hidden when viewing different type, restored when switching back.
+- Sessions tab defaults to "Active" filter (everything except cancelled). New "Active" button added.
+- Client cards on Clients tab are expandable — tap to see monthly session history with month navigator, summary counts, and session list.
+- `.gitattributes` added to normalize line endings to LF (silences CRLF warnings on Windows).
+
+**Why — Offline:**
+Internet connectivity in Beirut is unreliable. The PT needs the app to work when his connection drops. Service worker with network-first strategy means: online = fresh version, offline = cached version. Google Fonts degrade gracefully to system fonts.
+
+**Why — Highlight:**
+Pierre couldn't see the old highlight (1px at 30% opacity). Cranked it to `rgba(232,69,60,0.15)` background, `0.5` border, `20px` glow. Also fixed: `findIndex` only highlighted the first session at a given time, but group sessions mean multiple sessions run simultaneously.
+
+**Why — Sequential #N:**
+Showing "#3" on all three of a client's sessions was confusing. Now they show #1, #2, #3 in chronological order within the month. The booking chip still shows total count (context for "how many sessions so far").
+
+**Why — Focus tag persistence:**
+If the PT switches Strength → Cardio to try a tag, then switches back, the Strength tags were wiped. Data loss. Now tags are preserved — different type's tags are just hidden (the `focus` array isn't cleared on type change).
+
+**Why — Client history:**
+The PT wanted to see a client's sessions at a glance without switching to the Sessions tab and filtering. Tap the card, see the month, browse history.
+
+**Files changed:** `public/sw.js` (new), `src/main.jsx`, `index.html`, `src/components/Dashboard.jsx`, `src/components/Clients.jsx`, `src/components/Sessions.jsx`, `src/components/Schedule.jsx`, `src/utils.js`, `src/styles.css`, `.gitattributes` (new)
+
+---
+
 ## v1.9 — Inline Session Type Selector (2026-04-02)
 
 **What changed:**

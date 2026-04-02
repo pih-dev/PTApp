@@ -21,9 +21,11 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - PT bookmarks the URL on his iPhone, Pierre on Android
 
 ### Stage 2 — Native app (FUTURE)
-- Publish to Apple App Store and Google Play Store
+- Wrap web app with Capacitor for iOS/Android native builds
+- Publish to Apple App Store ($99/yr individual) and Google Play ($25 one-time)
+- No company registration needed — individual developer accounts work
 - Requires a final app name (not "PTApp")
-- May need a proper backend to replace GitHub API storage
+- See `docs/stage2-publishing-guide.md` for full details (costs, liability, prerequisites)
 
 ## Core Features
 - **Client Management**: Add/edit/delete clients with name, phone (with country code), and notes
@@ -38,7 +40,8 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - Vite for dev server and build
 - Pure CSS (no framework) — dark theme, mobile-first
 - Google Fonts: DM Sans
-- No backend — all data in browser localStorage
+- Service worker for offline support (network-first caching)
+- No backend — all data in browser localStorage + GitHub API cloud sync
 
 ## Project Structure
 ```
@@ -46,18 +49,24 @@ PTApp/
 ├── index.html          # Entry point
 ├── package.json        # Dependencies
 ├── vite.config.js      # Vite config
+├── .gitattributes      # LF line ending normalization
 ├── CLAUDE.md           # This file
-└── src/
-    ├── main.jsx        # React mount point
-    ├── App.jsx         # Main app with routing/tabs
-    ├── styles.css      # All styles
-    ├── utils.js        # Helpers, constants, storage
-    └── components/
-        ├── Dashboard.jsx
-        ├── Clients.jsx
-        ├── Schedule.jsx
-        ├── Sessions.jsx
-        └── Modal.jsx
+├── public/
+│   └── sw.js           # Service worker for offline support
+├── src/
+│   ├── main.jsx        # React mount point + SW registration
+│   ├── App.jsx         # Main app with routing/tabs
+│   ├── sync.js         # GitHub API sync (makdissi-dev/ptapp-data)
+│   ├── styles.css      # All styles
+│   ├── utils.js        # Helpers, constants, storage
+│   └── components/
+│       ├── Dashboard.jsx
+│       ├── Clients.jsx
+│       ├── Schedule.jsx
+│       ├── Sessions.jsx
+│       ├── Modal.jsx
+│       └── TokenSetup.jsx
+└── docs/               # Versioned instructions, changelogs, guides
 ```
 
 ## Data Preservation Rules (CRITICAL)

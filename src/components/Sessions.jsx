@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { formatDate, SESSION_TYPES, STATUS_MAP, getSessionOrdinal, FOCUS_TAGS } from '../utils';
 
 export default function Sessions({ state }) {
-  const [filter, setFilter] = useState('active');
+  const [filter, setFilter] = useState('scheduled');
   const sorted = [...state.sessions]
     .filter(s => filter === 'all' ? true : filter === 'active' ? s.status !== 'cancelled' : s.status === filter)
     .sort((a, b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
