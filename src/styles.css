@@ -94,7 +94,8 @@ button:active { transform: scale(0.97); }
   font-size: 12px; font-weight: 600;
 }
 .lang-toggle span {
-  padding: 5px 10px;
+  padding: 5px 0;
+  width: 36px; text-align: center;
   border-radius: 6px;
   color: rgba(255,255,255,0.45);
   transition: all 0.2s;
