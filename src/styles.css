@@ -577,7 +577,7 @@ button:active { transform: scale(0.97); }
 .theme-light .select { background: rgba(255,255,255,0.5); }
 .theme-light .field-label { color: rgba(30,27,75,0.55); }
 
-.theme-light .badge-completed { background: #374151; }
+.theme-light .badge-completed { background: #2563EB; }
 .theme-light .section-title { color: #1E1B4B; }
 .theme-light .empty { color: rgba(30,27,75,0.4); }
 
