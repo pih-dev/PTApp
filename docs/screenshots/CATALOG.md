@@ -54,14 +54,21 @@ Visual evolution of the app, organized chronologically. All screenshots taken on
 | `v2.4-dark-blue-header-refined-apr03.jpg` | Dark theme with blue-tinted header, slightly refined. |
 | `v2.4-light-blue-glass-header-apr03.jpg` | Light theme with blue glass header/nav on beige background. Cleaner than previous iteration. |
 
-**Note:** The final version (blue background replacing beige, matched dark nav) was deployed after these screenshots were taken. Screenshots of the final state are pending.
+---
+
+## v2.4 — Final State (Apr 3, 2026 ~11:30am)
+
+| File | Description |
+|------|-------------|
+| `v2.4-final-dark-apr03.jpg` | Dark theme, final state. Blue-tinted header and nav bars (matched). Boosted stat card colors. Blue glass cohesion top-to-bottom. |
+| `v2.4-final-light-apr03.jpg` | Light theme, final state. Blue-toned background (no beige), blue glass header/nav strips, soft blue cards, boosted stat cards. All elements coherent in the blue system. |
+
+**Pierre's verdict:** "amazing stuff, perfect" — "We can always enhance but for now I am happy."
 
 ---
 
 ## Not Yet Captured
 
-- v2.4 final: blue background (no beige), matched dark theme header + nav, boosted stat cards
 - Other tabs (Clients, Schedule, Sessions) in current theme
 - Arabic/RTL mode
 - Modal/booking flow
-- Dark vs light side-by-side of final version
