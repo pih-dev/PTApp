@@ -144,20 +144,28 @@ export const formatDateLong = (dateStr) => {
 // ─── Data versioning & migration ───
 // Increment DATA_VERSION when the schema changes. Add a migration function
 // for each version bump. Existing data is NEVER discarded — only migrated forward.
-const DATA_VERSION = 1;
+const DATA_VERSION = 2;
+
+// Capitalize each word: "pierre ghorra" → "Pierre Ghorra"
+export const capitalizeName = (name) =>
+  name.replace(/\b\w/g, c => c.toUpperCase());
 
 function migrateData(data) {
-  // No version field means v0 (original format: { clients, sessions })
   let v = data._dataVersion || 0;
 
-  // Migration chain: each step moves data forward one version
-  // Example for future:
-  // if (v === 1) { data.messages = data.messages || []; v = 2; }
-
-  if (v < DATA_VERSION) {
-    data._dataVersion = DATA_VERSION;
+  // v1 → v2: Add nickname field (first name), capitalize existing names
+  if (v < 2) {
+    (data.clients || []).forEach(c => {
+      // Capitalize name: "pierre ghorra" → "Pierre Ghorra"
+      c.name = capitalizeName(c.name);
+      // Set nickname to first name if not already set
+      if (!c.nickname) {
+        c.nickname = c.name.split(' ')[0];
+      }
+    });
+    v = 2;
   }
-  // Ensure required fields always exist
+
   data.clients = data.clients || [];
   data.sessions = data.sessions || [];
   data._dataVersion = DATA_VERSION;
@@ -212,16 +220,44 @@ export function reducer(state, action) {
 }
 
 // ─── WhatsApp helpers ───
+// Use nickname for friendly messages, fall back to full name
+const friendly = (client) => client.nickname || client.name.split(' ')[0];
+
 export const sendBookingWhatsApp = (client, session) => {
   const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
   const phone = formatPhone(client.phone);
-  const msg = `Hi ${client.name}! 👋\n\n${st.emoji} Your *${session.type}* session is booked:\n📅 ${formatDateLong(session.date)}\n⏰ ${session.time} (${session.duration} min)\n\n👍 Like this message to confirm\n❌ Reply to cancel/reschedule\n\nSee you at the gym! 💪`;
+  const msg = `Hi ${friendly(client)}! 👋\n\n${st.emoji} Your *${session.type}* session is booked:\n📅 ${formatDateLong(session.date)}\n⏰ ${session.time} (${session.duration} min)\n\n👍 Like this message to confirm\n❌ Reply to cancel/reschedule\n\nSee you at the gym! 💪`;
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
 export const sendReminderWhatsApp = (client, session) => {
   const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
   const phone = formatPhone(client.phone);
-  const msg = `Reminder! 🔔\n\nHey ${client.name}, just a reminder about your session:\n${st.emoji} ${session.type}\n📅 ${formatDateLong(session.date)}\n⏰ ${session.time}\n\nSee you soon! 💪`;
+  const msg = `Reminder! 🔔\n\nHey ${friendly(client)}, just a reminder about your session:\n${st.emoji} ${session.type}\n📅 ${formatDateLong(session.date)}\n⏰ ${session.time}\n\nSee you soon! 💪`;
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+};
+
+// ─── Backup export/import with merge ───
+export const exportBackup = (state) => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ptapp-backup-${today()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+// Merge backup into live data: fills gaps, doesn't replace existing
+export const mergeBackup = (live, backup) => {
+  const merged = { ...live };
+  // Merge clients by ID — backup fills missing, doesn't overwrite existing
+  const liveClientIds = new Set(live.clients.map(c => c.id));
+  const restoredClients = backup.clients.filter(c => !liveClientIds.has(c.id));
+  merged.clients = [...live.clients, ...restoredClients];
+  // Merge sessions by ID — same logic
+  const liveSessionIds = new Set(live.sessions.map(s => s.id));
+  const restoredSessions = backup.sessions.filter(s => !liveSessionIds.has(s.id));
+  merged.sessions = [...live.sessions, ...restoredSessions];
+  return migrateData(merged);
 };

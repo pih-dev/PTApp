@@ -88,7 +88,7 @@ export default function App() {
             <div className="logo-text">PTApp</div>
             <div className="logo-sub">Personal Trainer</div>
           </div>
-          <div className="app-version">v1.9.2</div>
+          <div className="app-version">v2.0</div>
         </div>
       </div>
 

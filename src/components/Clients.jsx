@@ -1,24 +1,24 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, STATUS_MAP, getMonthlySessionCount, formatDate } from '../utils';
+import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, STATUS_MAP, getMonthlySessionCount, formatDate, capitalizeName, exportBackup, mergeBackup } from '../utils';
 
 export default function Clients({ state, dispatch }) {
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
-  const [form, setForm] = useState({ name: '', phone: '', gender: '', birthdate: '', notes: '' });
+  const [form, setForm] = useState({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '' });
   const [search, setSearch] = useState('');
   const [countryCode, setCountryCode] = useState(getDefaultCountryCode);
   const [expandedId, setExpandedId] = useState(null);
   const [viewMonth, setViewMonth] = useState(() => new Date().toISOString().slice(0, 7)); // YYYY-MM
 
   const openAdd = () => {
-    setForm({ name: '', phone: '', gender: '', birthdate: '', notes: '' });
+    setForm({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '' });
     setEditingClient(null);
     setShowForm(true);
   };
 
   const openEdit = (c) => {
-    setForm({ name: c.name, phone: c.phone, gender: c.gender || '', birthdate: c.birthdate || '', notes: c.notes || '' });
+    setForm({ name: c.name, nickname: c.nickname || '', phone: c.phone, gender: c.gender || '', birthdate: c.birthdate || '', notes: c.notes || '' });
     setEditingClient(c);
     setShowForm(true);
   };
@@ -137,7 +137,7 @@ export default function Clients({ state, dispatch }) {
               </div>
               <div className="flex-row" onClick={e => e.stopPropagation()}>
                 <button className="btn-whatsapp" style={{ padding: '8px 10px' }}
-                  onClick={() => window.open(`https://wa.me/${formatPhone(c.phone)}?text=${encodeURIComponent(`Hi ${c.name}! 💪`)}`, '_blank')}>
+                  onClick={() => window.open(`https://wa.me/${formatPhone(c.phone)}?text=${encodeURIComponent(`Hi ${c.nickname || c.name.split(' ')[0]}! 💪`)}`, '_blank')}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                 </button>
                 <button className="btn-ghost" onClick={() => openEdit(c)}>
@@ -206,13 +206,67 @@ export default function Clients({ state, dispatch }) {
         })
       )}
 
+      {/* Data backup section */}
+      <div style={{ marginTop: 24, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 16 }}>
+        <div className="section-title" style={{ fontSize: 14, marginBottom: 8 }}>💾 Data Backup</div>
+        <div className="flex-row" style={{ gap: 8 }}>
+          <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
+            onClick={() => exportBackup(state)}>
+            Export Backup
+          </button>
+          <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
+            onClick={() => {
+              const input = document.createElement('input');
+              input.type = 'file';
+              input.accept = '.json';
+              input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                  try {
+                    const backup = JSON.parse(ev.target.result);
+                    if (!backup.clients || !backup.sessions) {
+                      alert('Invalid backup file');
+                      return;
+                    }
+                    const merged = mergeBackup(state, backup);
+                    const added = merged.clients.length - state.clients.length;
+                    const restored = merged.sessions.length - state.sessions.length;
+                    dispatch({ type: 'REPLACE_ALL', payload: merged });
+                    alert(`Restore complete!\n+${added} client(s), +${restored} session(s) restored.`);
+                  } catch { alert('Could not read backup file'); }
+                };
+                reader.readAsText(file);
+              };
+              input.click();
+            }}>
+            Restore Backup
+          </button>
+        </div>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 6 }}>
+          Restore merges data — adds missing records without replacing existing ones.
+        </div>
+      </div>
+
       {showForm && (
         <Modal title={editingClient ? 'Edit Client' : 'New Client'} onClose={() => setShowForm(false)}
           action={<button className="btn-primary" onClick={save}>{editingClient ? 'Save Changes' : 'Add Client'}</button>}>
           <div className="field">
             <label className="field-label">Full Name</label>
             <input className="input" placeholder="e.g. Ahmad Khalil" value={form.name}
-              onChange={e => setForm(p => ({ ...p, name: e.target.value }))} />
+              onChange={e => {
+                const name = e.target.value;
+                const firstName = capitalizeName(name).split(' ')[0];
+                // Auto-populate nickname with first name (only if nickname hasn't been manually edited)
+                setForm(p => ({ ...p, name, nickname: p.nickname === '' || p.nickname === capitalizeName(p.name).split(' ')[0] ? firstName : p.nickname }));
+              }}
+              onBlur={e => setForm(p => ({ ...p, name: capitalizeName(p.name) }))} />
+          </div>
+          <div className="field">
+            <label className="field-label">Nickname <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.35)' }}>(used in WhatsApp)</span></label>
+            <input className="input" placeholder="e.g. Ahmad" value={form.nickname}
+              onChange={e => setForm(p => ({ ...p, nickname: e.target.value }))} />
           </div>
           <div className="field">
             <label className="field-label">Phone</label>
