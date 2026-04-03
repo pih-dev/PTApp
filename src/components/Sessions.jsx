@@ -19,9 +19,10 @@ function EditableFocus({ session, dispatch, lang }) {
             onClick={() => toggleFocus(tag)}>{tag}</button>
         ))}
       </div>
-      <textarea className="focus-notes" rows="1" placeholder={t(lang, 'notesPlaceholder')}
+      <textarea className={`focus-notes${session.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
         defaultValue={session.sessionNotes || ''}
         onBlur={e => {
+          e.target.classList.toggle('has-content', e.target.value.trim() !== '');
           if (e.target.value !== (session.sessionNotes || '')) {
             dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, sessionNotes: e.target.value } });
           }
