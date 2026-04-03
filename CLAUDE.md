@@ -12,6 +12,12 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
+## Current Version: v2.3
+- Blue accent color (both themes)
+- Warm stone light theme
+- i18n (English + Arabic)
+- Todo list with checkboxes in General panel
+
 ## Roadmap
 
 ### Stage 1 — Web app with cloud sync (CURRENT)
@@ -28,12 +34,17 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - See `docs/stage2-publishing-guide.md` for full details (costs, liability, prerequisites)
 
 ## Core Features
-- **Client Management**: Add/edit/delete clients with name, phone (with country code), and notes
-- **Session Scheduling**: Book training sessions with type, date, time, duration
-- **Session Tracking**: Mark sessions as confirmed, completed, or cancelled
-- **WhatsApp Messaging**: Send booking confirmations and reminders via WhatsApp (opens wa.me links)
-- **Dashboard**: Overview stats showing today's sessions, upcoming bookings, confirmed count, weekly total
-- **Persistent Storage**: All data saved to localStorage on the device
+- **Client Management**: Add/edit/delete clients with name, nickname, phone (with country code), gender, birthdate, and notes
+- **Session Scheduling**: Book training sessions with type, date, time, duration. Multi-client booking supported.
+- **Session Tracking**: Scheduled -> auto-completes when time passes (or manual Complete). Cancel with count/forgive.
+- **Focus Tags & Notes**: Per-session muscle group tags + free-text notes for recording what was done
+- **WhatsApp Messaging**: Booking confirmations and reminders via wa.me links. Templates editable by PT.
+- **Dashboard**: Overview stats (clients, today, this week). Expanded view with full inline controls. Compact view for quick glance.
+- **i18n**: Full Arabic/English toggle. RTL layout support. Arabic WhatsApp message templates.
+- **Themes**: Dark (default) and light theme toggle. Blue accent, warm stone light palette.
+- **Cloud Sync**: GitHub API sync to makdissi-dev/ptapp-data. Debounced (1s) pushes. Snapshots for backup.
+- **Offline**: Service worker caches the app for offline use.
+- **Todo List**: Shared todo in General panel with checkboxes (done/delete/edit).
 
 ## Tech Stack
 - React 18 (with hooks: useState, useReducer, useEffect)
@@ -55,19 +66,19 @@ PTApp/
 │   └── sw.js           # Service worker for offline support
 ├── src/
 │   ├── main.jsx        # React mount point + SW registration
-│   ├── App.jsx         # Main app with routing/tabs
+│   ├── App.jsx         # Main app with routing/tabs, sync, auto-complete
 │   ├── sync.js         # GitHub API sync (makdissi-dev/ptapp-data)
-│   ├── i18n.js         # Translations (en/ar) + t() lookup
-│   ├── styles.css      # All styles (dark + light themes)
-│   ├── utils.js        # Helpers, constants, storage
+│   ├── i18n.js         # Translations (en/ar) + t() lookup + dateLocale()
+│   ├── styles.css      # All styles (dark + light themes, ~630 lines)
+│   ├── utils.js        # Helpers, constants, storage, reducer, date helpers
 │   └── components/
-│       ├── Dashboard.jsx
-│       ├── Clients.jsx
-│       ├── Schedule.jsx
-│       ├── Sessions.jsx
-│       ├── General.jsx
-│       ├── Modal.jsx
-│       └── TokenSetup.jsx
+│       ├── Dashboard.jsx  # Home tab: stats, today's sessions, expanded/compact
+│       ├── Clients.jsx    # Client list, search, add/edit/delete, month history
+│       ├── Schedule.jsx   # Week view, booking flow, day sessions
+│       ├── Sessions.jsx   # All sessions log with filters
+│       ├── General.jsx    # Backup, todos, WhatsApp templates, docs
+│       ├── Modal.jsx      # Bottom-sheet modal wrapper
+│       └── TokenSetup.jsx # GitHub token setup (first-run)
 └── docs/               # Versioned instructions, changelogs, guides
 ```
 
@@ -77,6 +88,123 @@ PTApp/
 - **Version the data.** The `_dataVersion` field in the data tracks the schema version. Increment `DATA_VERSION` and add a migration step for each schema change.
 - **Preserve history.** Even if a feature is removed, keep the data that was collected. Archive it under a different key if needed, but never drop it.
 - **Test migrations.** Before deploying a schema change, verify that existing data (from the PT's live app) loads correctly in the new version.
+
+---
+
+## TRAPS & HARD-WON LESSONS
+
+These are patterns that have caused real bugs. Read these before writing any code.
+
+### TRAP: `toISOString()` for dates (UTC conversion bug)
+**What happened:** `toISOString()` converts to UTC. Midnight in Beirut (UTC+3) becomes 21:00 the previous day in UTC. Month navigation in Clients jumped Apr→Feb→Dec→Oct. The same bug also existed in Schedule week navigation, the "This Week" dashboard stat, and `createdAt` timestamps — it wasn't caught because the initial fix was only applied in one place.
+
+**Rule:** NEVER use `toISOString()` to format dates for display or comparison. Always use the local helpers:
+- `today()` → `YYYY-MM-DD` local date
+- `localDateStr(d)` → `YYYY-MM-DD` from a Date object, local time
+- `localMonthStr(d)` → `YYYY-MM` from a Date object, local time
+- `currentMonth()` → `YYYY-MM` current month, local time
+
+**Where it bit us:** `Clients.jsx` month navigation (3 places), `Schedule.jsx` week navigation (3 places), `Dashboard.jsx` "This Week" stat, `Schedule.jsx` `createdAt` field, `utils.js` `currentMonth()`.
+
+**When fixing a bug, audit EVERY file for the same pattern.** The `today()` function was already fixed in a prior session but nobody checked the other 8 places that used `toISOString()`.
+
+### TRAP: Variable shadowing of `t` (i18n function)
+The `t()` function from `i18n.js` is used everywhere for translations. Many `.find()` and `.map()` callbacks used `t` as their parameter name, silently shadowing the i18n function. This hasn't caused a visible crash yet but will the moment anyone adds a `t(lang, ...)` call inside one of those callbacks.
+
+**Rule:** Never use `t` as a callback parameter. Use `st` for session types, `tm` for times, `f` for focus tags, `tb` for tabs, `stype` for generic type lookups.
+
+### TRAP: `defaultValue` on uncontrolled inputs
+Textareas using `defaultValue` won't re-render when state changes externally (e.g., cloud sync, template reset). The textarea keeps its internal DOM state until the component unmounts.
+
+**Fix pattern:** Add a `key` prop tied to the state value to force remount when the underlying data changes. See General.jsx WhatsApp template textareas for the pattern.
+
+### TRAP: Vite bundle corruption with string replacement
+The `fixForFileProtocol` plugin in `vite.config.js` uses a function replacement (`() =>`). Never change this to a string replacement — `$&` in React's minified code will corrupt the bundle.
+
+### TRAP: iPhone safe areas
+Bottom elements need `env(safe-area-inset-bottom)`. Nav bar is z-index 100, modals must be 200+. Modal action buttons go in `modal-footer` (sticky), never in scrollable body. iOS keyboard shrinks `visualViewport` — modals handle this via resize listener.
+
+### TRAP: Inline styles and RTL
+Inline `marginLeft: 'auto'` doesn't flip in RTL mode. Use `marginInlineStart: 'auto'` instead. Similarly, use `borderInlineStart` not `borderLeft` for session card left borders. CSS class rules with `.theme-light` or `[dir="rtl"]` selectors DO flip correctly.
+
+### TRAP: Single dispatches in loops
+Auto-complete used to dispatch N separate `UPDATE_SESSION` actions for N lapsed sessions. Each dispatch triggers a re-render + a sync push. Now uses `BATCH_COMPLETE` to mark all in one dispatch. Apply the same pattern whenever you need to update multiple records.
+
+---
+
+## CODING CONVENTIONS
+
+### Color system
+- **Accent color**: `#2563EB` (blue) / `#60A5FA` (light blue). Used in both themes.
+- **Error/danger**: `#EF4444` (red). Only for destructive actions and error messages.
+- **Success**: `#10B981` (green). Confirmed status, todo checkmarks.
+- **Session type colors**: Indigo `#6366F1` (Strength), Blue `#3B82F6` (Cardio), Purple `#8B5CF6` (Flexibility), Amber `#F59E0B` (HIIT), Green `#10B981` (Recovery), Grey `#6B7280` (Custom).
+- **Theme-aware CSS vars**: `--t1` to `--t5` for text opacity levels, `--sep` for separators. Use these in inline styles — never hardcode `rgba(255,255,255,...)` or `rgba(0,0,0,...)`.
+
+### Status labels (i18n)
+Use `getStatus(status, lang, t)` to get a translated status object `{color, bg, label}`. Don't use `STATUS_MAP` directly in components — it returns English-only labels. The `STATUS_MAP` export still exists for backward compatibility but components should use `getStatus`.
+
+### Sync
+- Sync is debounced (1s) via `debouncedSync()` in App.jsx. Every state change saves to localStorage immediately but GitHub push waits 1s for more changes.
+- `pushRemoteData` retries on 409 conflict up to 3 times. No infinite recursion.
+- Sync errors are silently caught (`.catch(() => {})`). There is no sync status indicator yet.
+
+### Reducer actions
+| Action | Payload | Notes |
+|--------|---------|-------|
+| `ADD_CLIENT` | `{id, name, ...}` | |
+| `EDIT_CLIENT` | `{id, ...fields}` | |
+| `DELETE_CLIENT` | `clientId` | Also deletes all their sessions |
+| `ADD_SESSION` | `{id, clientId, ...}` | |
+| `UPDATE_SESSION` | `{id, ...fields}` | Merges fields |
+| `BATCH_COMPLETE` | `[id, id, ...]` | Marks all as completed in one dispatch |
+| `DELETE_SESSION` | `sessionId` | Not wired to any UI button yet |
+| `ADD_TODO` | `{id, text, done}` | Always include `done: false` |
+| `EDIT_TODO` | `{id, text}` | |
+| `TOGGLE_TODO` | `todoId` | Flips done boolean |
+| `DELETE_TODO` | `todoId` | |
+| `SET_TEMPLATES` | `{booking?, reminder?}` | |
+| `REPLACE_ALL` | `{clients, sessions, ...}` | Used by cloud sync |
+
+---
+
+## KNOWN ISSUES / TECH DEBT
+
+These are identified but not yet fixed. Check before starting related work.
+
+### Should fix soon
+- **`confirm()` for client delete** — English-only, blocks iOS thread, not styled. Should use an in-app modal like the cancel prompt. (`Clients.jsx:38`)
+- **Hardcoded English strings** — TokenSetup.jsx is entirely English. `alert()` messages in General.jsx and Clients.jsx are English. The "at" connector between date and time is English. (`Dashboard.jsx:235`, `Schedule.jsx:335,353`)
+- **No sync status indicator** — User can't tell if sync is working, broken, or in progress. Errors are silently swallowed.
+- **No error boundary** — If any component throws (e.g., corrupted localStorage), the entire app crashes to a white screen. A top-level error boundary would let the user access backup/export.
+
+### Structural debt (address in a larger session)
+- **Duplicated session card rendering** — Dashboard, Schedule, Sessions all render session cards independently (~50-80 lines each). A shared `SessionCard` component would eliminate this.
+- **Duplicated cancel prompt** — The count/forgive modal is copy-pasted in Dashboard.jsx and Schedule.jsx.
+- **Inline SVG duplication** — The WhatsApp icon SVG path is duplicated 6+ times. Other icons (edit, trash, clock) similarly. Should extract to a shared Icons module.
+- **Stale closure in initial sync** — `App.jsx:34` captures `state` from mount time. If the "no remote data" branch runs, it pushes stale state. Low risk (only on first load with empty remote).
+
+---
+
+## REVIEW DISCIPLINE
+
+### When to trigger a code review
+After accumulating **3+ feature changes** or **any session longer than ~2 hours of coding**, pause and run a comprehensive review before continuing. The review should check:
+1. **Pattern consistency** — Did a bug fix get applied everywhere the pattern exists? (The UTC bug was in 8 places but was only fixed in 1.)
+2. **Variable shadowing** — Any new `.map()` or `.find()` callbacks using `t`, `d`, or other commonly imported names?
+3. **Theme/RTL** — Any new inline styles that use `marginLeft`, `borderLeft`, or hardcoded colors?
+4. **i18n** — Any new user-facing strings that aren't in `i18n.js`?
+5. **Data safety** — Any new code that deletes, overwrites, or fails to migrate data?
+6. **Sync impact** — Any new dispatches in loops that should be batched?
+
+### Documentation after every change
+Every commit should be followed by appropriate documentation:
+- **Bug fixes**: Document the root cause, where it manifested, and the fix pattern in the TRAPS section above. Check if the same pattern exists elsewhere.
+- **New features**: Update `docs/instructions-v{X}.md`, `docs/changelog-summary.md`, `docs/changelog-technical.md`.
+- **Design decisions**: Add to Key Design Decisions or Coding Conventions above.
+- **Incidents/lessons**: Save to memory for cross-session persistence.
+
+---
 
 ## App Name
 - "PTApp" is a working title, NOT the final name.
@@ -89,9 +217,11 @@ PTApp/
 - WhatsApp integration uses `https://wa.me/{phone}?text={message}` — no API needed
 - Phone numbers must include country code (e.g. +961 for Lebanon)
 - Session types: Strength, Cardio, Flexibility, HIIT, Recovery, Custom
-- Session statuses: Scheduled -> Confirmed -> Completed (or Cancelled)
-- Dark theme with red (#E8453C) accent color
-- **iPhone safe areas**: Bottom elements need `env(safe-area-inset-bottom)`. Nav bar is z-index 100, modals must be 200+. Modal action buttons go in `modal-footer` (sticky), never in scrollable body. iOS keyboard shrinks `visualViewport` — modals handle this via resize listener.
+- Session statuses: Scheduled -> auto-completes -> Completed (or Cancelled with count/forgive)
+- Blue accent color (`#2563EB`). Dark theme default. Warm stone light theme.
+- Auto-complete: lapsed sessions are batch-marked completed on app load
+- Sync: debounced 1s, retry up to 3 on conflict, errors silently caught
+- UX simplicity is the priority — the PT adopted the app because it's simple. Don't add friction.
 
 ## How to Run (Development)
 ```bash
@@ -108,7 +238,7 @@ npm run build
 # 2. Verify the bundle isn't corrupted (catches blank-page bugs)
 node -e "const fs=require('fs'),h=fs.readFileSync('dist/index.html','utf8'),s=h.indexOf('<script>')+8,e=h.lastIndexOf('</script>');fs.writeFileSync('test-bundle.js',h.substring(s,e))" && node --check test-bundle.js && rm test-bundle.js
 
-# 3. Bump version in App.jsx header (e.g. v1.4 → v1.5), rebuild if changed
+# 3. Bump version in App.jsx header (e.g. v2.3 → v2.4), rebuild if changed
 
 # 4. Commit and push source to master
 git add <files> && git commit -m "message" && git push origin master

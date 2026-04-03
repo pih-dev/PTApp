@@ -4,6 +4,57 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.3.1 — Bug Fix Round + Code Review (2026-04-03)
+
+**What changed:**
+
+*Timezone / date handling:*
+- New `localDateStr(d)` and `localMonthStr(d)` helpers in utils.js — format Date objects using local time
+- `today()` and `currentMonth()` now use these helpers
+- Clients.jsx: `viewMonth` init, `shiftMonth()`, and `toggleExpand()` all switched from `toISOString().slice()` to `localMonthStr()`
+- Schedule.jsx: `weekDates` generation and week navigation switched from `toISOString().split('T')[0]` to `localDateStr()`
+- Schedule.jsx: `createdAt` on new sessions switched from `toISOString()` to `localDateStr()`
+- Dashboard.jsx: "This Week" stat switched from fractional day math `(d - now) / 86400000` to date string comparison `s.date >= todayStr && s.date <= localDateStr(weekEnd)`
+
+*Sync reliability:*
+- `pushRemoteData()` in sync.js now accepts `_retries` param, capped at 3 (was infinite recursion on 409)
+- App.jsx: `pushRemoteData` replaced with `debouncedSync()` (1 second debounce via `setTimeout`)
+
+*Auto-complete batching:*
+- New `BATCH_COMPLETE` reducer case in utils.js — takes array of IDs, marks all completed in one pass
+- App.jsx: auto-complete effect collects lapsed IDs then dispatches one `BATCH_COMPLETE` instead of N `UPDATE_SESSION`s
+
+*i18n:*
+- New `getStatus(status, lang, tFn)` helper in utils.js — returns `{color, bg, label}` with translated label
+- All components (Dashboard, Schedule, Sessions, Clients) switched from `STATUS_MAP[status]` to `getStatus(status, lang, t)`
+- Status badge labels ("Scheduled", "Completed", etc.) now show in Arabic when language is set to Arabic
+
+*Variable shadowing cleanup (all components):*
+- `.find(t =>` → `.find(st =>` for SESSION_TYPES lookups
+- `.map(t =>` → `.map(st =>` for SESSION_TYPES dropdowns, `.map(tm =>` for TIMES
+- `.filter(t =>` → `.filter(f =>` for focus tag filtering
+- `tabs.map(t =>` → `tabs.map(tb =>` in App.jsx nav
+
+*RTL:*
+- App.jsx: toggle container inline style `marginLeft: 'auto'` → `marginInlineStart: 'auto'`
+
+*Other:*
+- Schedule.jsx: removed unused `useRef`, `useEffect` imports
+- General.jsx: new todos initialize with explicit `done: false`
+- General.jsx: WhatsApp template textareas get `key` prop tied to state value, forcing remount on reset
+- `STATUS_MAP` export retained for backward compat but components use `getStatus()`
+
+**Why — Timezone:**
+`toISOString()` converts to UTC. Midnight in Beirut (UTC+3) = 21:00 previous day UTC. When the result is sliced to `YYYY-MM`, the month is wrong. The `today()` function was already fixed in a prior session but the same pattern existed in 8 other locations — Clients month nav, Schedule week nav, Dashboard week stat, and session createdAt. The fix was applied in one place without auditing the rest of the codebase. This incident established the review discipline: when fixing a pattern bug, audit every file.
+
+**Why — Debounced sync:**
+Every `dispatch()` triggers a state change, which triggers `pushRemoteData`. Tapping 3 focus tags + typing notes = 4+ API calls in seconds. The 1s debounce coalesces these into a single push. localStorage save remains immediate (no data loss risk if the tab closes).
+
+**Why — Batch auto-complete:**
+N lapsed sessions = N dispatches = N state changes = N debounced syncs = N re-renders. With `BATCH_COMPLETE`, it's 1 dispatch = 1 re-render = 1 sync push.
+
+---
+
 ## v2.3 — Blue Accent, Warm Light Theme, Todo Checkboxes (2026-04-03)
 
 **What changed:**

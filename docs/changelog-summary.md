@@ -4,6 +4,22 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.3.1 — Bug Fix Round + Code Review (Apr 3, 2026)
+
+**Timezone bug (toISOString → local helpers):** The app was using `toISOString()` to format dates in several places. This converts to UTC, so midnight in Beirut (UTC+3) becomes 9 PM the previous day. Result: the Clients month navigator jumped by 2 months instead of 1, the Schedule week strip could show wrong dates, and the "This Week" dashboard stat miscounted sessions. The `today()` function had already been fixed in an earlier version, but the same bug existed in 8 other places. All fixed now using new `localDateStr()` and `localMonthStr()` helpers.
+
+**Code review — 11 fixes in one pass:** After the timezone fix, a comprehensive review of the entire codebase caught:
+- Infinite recursion in GitHub sync on persistent 409 conflicts (now capped at 3 retries)
+- Auto-complete firing N separate dispatches for N lapsed sessions (now batched into one)
+- Status badges showing English labels even in Arabic mode (now uses i18n)
+- Variable `t` (translation function) shadowed in .map()/.find() callbacks across every component
+- GitHub sync firing on every tiny action (now debounced 1 second)
+- RTL layout broken by inline `marginLeft` (changed to `marginInlineStart`)
+- WhatsApp template "Reset to Defaults" not updating the visible textareas
+- Unused imports removed
+
+---
+
 ## v2.3 — Blue Accent, Warm Light Theme, Todo Checkboxes (Apr 3, 2026)
 
 **Blue accent everywhere:** The entire app now uses a blue accent color in both dark and light themes. The old red accent is gone — buttons, toggles, selections, focus tags, nav highlights, and active states are all blue. Session type indicators use distinct colors (indigo for Strength, blue for Cardio, purple for Flexibility, etc.) but the UI chrome is consistently blue.
