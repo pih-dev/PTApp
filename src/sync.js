@@ -68,3 +68,48 @@ export async function pushRemoteData(token, data) {
   const json = await res.json();
   currentSha = json.content.sha;
 }
+
+// ─── Snapshots ───
+const SNAPSHOT_DIR = 'snapshots';
+
+// Save a timestamped snapshot to GitHub
+export async function saveSnapshot(token, data) {
+  const now = new Date();
+  const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}-${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+  const filename = `${SNAPSHOT_DIR}/${ts}.json`;
+  const body = {
+    message: `Snapshot ${ts}`,
+    content: toBase64(JSON.stringify(data, null, 2)),
+  };
+  const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filename}`, {
+    method: 'PUT',
+    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`Snapshot failed (${res.status})`);
+  return ts;
+}
+
+// List available snapshots from GitHub
+export async function listSnapshots(token) {
+  const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${SNAPSHOT_DIR}`, {
+    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+  });
+  if (res.status === 404) return []; // no snapshots yet
+  if (!res.ok) throw new Error(`List failed (${res.status})`);
+  const files = await res.json();
+  return files
+    .filter(f => f.name.endsWith('.json'))
+    .map(f => ({ name: f.name.replace('.json', ''), path: f.path }))
+    .sort((a, b) => b.name.localeCompare(a.name)); // newest first
+}
+
+// Fetch a specific snapshot from GitHub
+export async function fetchSnapshot(token, path) {
+  const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
+    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+  });
+  if (!res.ok) throw new Error(`Fetch failed (${res.status})`);
+  const json = await res.json();
+  return JSON.parse(fromBase64(json.content));
+}
