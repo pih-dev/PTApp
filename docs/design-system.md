@@ -206,9 +206,14 @@ Rubber-band bounce when scrolling past the top or bottom of any page.
 - `initElasticScroll()` in utils.js, wired via `useRef`/`useEffect` in App.jsx
 - Works on all tabs, both themes
 
-**Lesson learned:** Attempted non-passive `touchmove` + `preventDefault()` + `overscroll-behavior: none` to prevent browser native overscroll from doubling up. This broke the elastic effect entirely on Android Chrome. Passive listeners with the browser's native behavior intact are the working approach.
+**Limitations:** Only works during momentum scroll (scroll hits boundary at speed). From standstill (already at top, pull down), the browser's native overscroll takes over and our CSS transform can't compete. Standstill rubber band is a native-app feature — parked for Stage 2 (Capacitor).
 
-**Pending:** iPhone Safari likely handles rubber-band natively. May need to conditionally disable on iOS to avoid doubling. Pierre checking on 2026-04-04.
+**Failed attempts (2026-04-03), all three broke the bounce entirely:**
+1. Non-passive `touchmove` + `preventDefault()` — broke the effect
+2. `overscroll-behavior: none` combined with non-passive listeners — broke the effect
+3. `overscroll-behavior-y: none` alone (passive listeners kept) — also kills our CSS transform, not just the browser's native effect. The property suppresses all overscroll visuals on the element.
+
+**Pending:** iPhone Safari has native rubber-band. Check if our JS doubles up on iOS (Pierre checking 2026-04-04).
 
 ---
 
