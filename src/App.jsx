@@ -5,7 +5,7 @@ import Schedule from './components/Schedule';
 import Sessions from './components/Sessions';
 import TokenSetup from './components/TokenSetup';
 import General from './components/General';
-import { reducer, loadData, saveData } from './utils';
+import { reducer, loadData, saveData, today, timeToMinutes } from './utils';
 import { getToken, fetchRemoteData, pushRemoteData } from './sync';
 
 export default function App() {
@@ -39,6 +39,21 @@ export default function App() {
         setTimeout(() => { skipSync.current = false; }, 500);
       });
   }, [connected]);
+
+  // Auto-complete lapsed sessions — if a scheduled/confirmed session's end time has passed, mark it completed
+  useEffect(() => {
+    if (initialLoad) return;
+    const now = new Date();
+    const todayStr = today();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const lapsed = state.sessions.filter(s =>
+      (s.status === 'scheduled' || s.status === 'confirmed') &&
+      (s.date < todayStr || (s.date === todayStr && nowMin >= timeToMinutes(s.time) + (s.duration || 45)))
+    );
+    lapsed.forEach(s => {
+      dispatch({ type: 'UPDATE_SESSION', payload: { id: s.id, status: 'completed' } });
+    });
+  }, [state.sessions, initialLoad]);
 
   // Save to localStorage + sync to GitHub on every state change
   useEffect(() => {

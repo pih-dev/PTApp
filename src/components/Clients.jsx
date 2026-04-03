@@ -116,7 +116,7 @@ export default function Clients({ state, dispatch }) {
               <div style={{ flex: 1 }}>
                 <div className="client-name">
                   {c.name}
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                     style={{ marginLeft: 6, transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>
                     <polyline points="9 18 15 12 9 6"/>
                   </svg>
@@ -126,7 +126,7 @@ export default function Clients({ state, dispatch }) {
                   {c.phone}
                 </div>
                 {(c.gender || c.birthdate) && (
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 2 }}>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>
                     {c.gender === 'male' ? 'M' : c.gender === 'female' ? 'F' : ''}
                     {c.gender && c.birthdate ? ' · ' : ''}
                     {c.birthdate || ''}
@@ -168,7 +168,7 @@ export default function Clients({ state, dispatch }) {
 
                 {/* Session list */}
                 {monthSessions.length === 0 ? (
-                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: '8px 0' }}>
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textAlign: 'center', padding: '8px 0' }}>
                     No sessions this month
                   </div>
                 ) : (
@@ -189,7 +189,7 @@ export default function Clients({ state, dispatch }) {
                             {s.focus && s.focus.length > 0 && ` · ${s.focus.join(', ')}`}
                           </div>
                           {s.sessionNotes && (
-                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2, fontStyle: 'italic' }}>
+                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2, fontStyle: 'italic' }}>
                               {s.sessionNotes}
                             </div>
                           )}
@@ -221,7 +221,7 @@ export default function Clients({ state, dispatch }) {
               onBlur={e => setForm(p => ({ ...p, name: capitalizeName(p.name) }))} />
           </div>
           <div className="field">
-            <label className="field-label">Nickname <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.35)' }}>(used in WhatsApp)</span></label>
+            <label className="field-label">Nickname <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.5)' }}>(used in WhatsApp)</span></label>
             <input className="input" placeholder="e.g. Ahmad" value={form.nickname}
               onChange={e => setForm(p => ({ ...p, nickname: e.target.value }))} />
           </div>

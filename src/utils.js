@@ -215,6 +215,8 @@ export function reducer(state, action) {
       return { ...state, sessions: state.sessions.filter(s => s.id !== action.payload) };
     case 'ADD_TODO':
       return { ...state, todos: [...(state.todos || []), action.payload] };
+    case 'EDIT_TODO':
+      return { ...state, todos: (state.todos || []).map(t => t.id === action.payload.id ? { ...t, text: action.payload.text } : t) };
     case 'DELETE_TODO':
       return { ...state, todos: (state.todos || []).filter(t => t.id !== action.payload) };
     case 'REPLACE_ALL':

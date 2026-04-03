@@ -140,6 +140,7 @@ export default function General({ state, dispatch, onClose }) {
   const [docContent, setDocContent] = useState(null); // { title, text }
   const [docLoading, setDocLoading] = useState(false);
   const [newTodo, setNewTodo] = useState('');
+  const [editingTodo, setEditingTodo] = useState(null); // id of todo being edited
 
   // Fetch and display a markdown doc in-app
   const openDoc = async (url, title) => {
@@ -261,7 +262,7 @@ export default function General({ state, dispatch, onClose }) {
           </div>
         )}
 
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 6 }}>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 6 }}>
           Restore merges data — adds missing records without replacing existing ones.
         </div>
       </div>
@@ -271,7 +272,7 @@ export default function General({ state, dispatch, onClose }) {
         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'rgba(255,255,255,0.7)' }}>📝 To Do</div>
 
         {(state.todos || []).length === 0 && (
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>No items yet</div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>No items yet</div>
         )}
 
         {(state.todos || []).map(t => (
@@ -279,9 +280,26 @@ export default function General({ state, dispatch, onClose }) {
             display: 'flex', alignItems: 'flex-start', gap: 8,
             padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)'
           }}>
-            <div style={{ flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>{t.text}</div>
+            {editingTodo === t.id ? (
+              <input className="input" style={{ flex: 1, fontSize: 13, padding: '6px 10px' }}
+                autoFocus
+                defaultValue={t.text}
+                onBlur={e => {
+                  const val = e.target.value.trim();
+                  if (val && val !== t.text) dispatch({ type: 'EDIT_TODO', payload: { id: t.id, text: val } });
+                  setEditingTodo(null);
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') e.target.blur();
+                  if (e.key === 'Escape') { setEditingTodo(null); }
+                }}
+              />
+            ) : (
+              <div style={{ flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5, cursor: 'pointer' }}
+                onClick={() => setEditingTodo(t.id)}>{t.text}</div>
+            )}
             <button onClick={() => dispatch({ type: 'DELETE_TODO', payload: t.id })}
-              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', fontSize: 16, padding: '0 4px', cursor: 'pointer', flexShrink: 0 }}>×</button>
+              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 16, padding: '0 4px', cursor: 'pointer', flexShrink: 0 }}>×</button>
           </div>
         ))}
 

@@ -67,13 +67,13 @@ button:active { transform: scale(0.97); }
 }
 
 .logo-sub {
-  font-size: 11px; color: rgba(255,255,255,0.35);
+  font-size: 11px; color: rgba(255,255,255,0.5);
   font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
 }
 .app-version {
   margin-left: auto;
   font-size: 11px;
-  color: rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.4);
   font-weight: 500;
 }
 
@@ -89,7 +89,7 @@ button:active { transform: scale(0.97); }
 .lang-toggle span {
   padding: 5px 10px;
   border-radius: 6px;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.45);
   transition: all 0.2s;
 }
 .lang-toggle .lang-active {
@@ -128,7 +128,7 @@ button:active { transform: scale(0.97); }
 .nav-btn {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: 8px 16px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.55);
   font-size: 11px; font-weight: 500;
   transition: color 0.2s;
 }
@@ -199,9 +199,9 @@ button:active { transform: scale(0.97); }
   padding: 6px 8px; border-radius: 8px;
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.6);
 }
-.btn-icon { padding: 6px; color: rgba(255,255,255,0.3); }
+.btn-icon { padding: 6px; color: rgba(255,255,255,0.45); }
 
 /* ─── Form ─── */
 .input, .select {
@@ -213,7 +213,7 @@ button:active { transform: scale(0.97); }
 .field { margin-bottom: 16px; }
 .field-label {
   display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;
-  color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 0.5px;
 }
 
 /* ─── Badge ─── */
@@ -256,7 +256,7 @@ button:active { transform: scale(0.97); }
   padding-bottom: 8px;
 }
 .modal-title { font-size: 20px; font-weight: 800; }
-.modal-close { color: rgba(255,255,255,0.5); padding: 4px; }
+.modal-close { color: rgba(255,255,255,0.6); padding: 4px; }
 .modal-footer {
   flex-shrink: 0;
   padding: 12px 0 0;
@@ -272,7 +272,7 @@ button:active { transform: scale(0.97); }
 }
 .empty {
   text-align: center; padding: 60px 20px;
-  color: rgba(255,255,255,0.3); font-size: 15px;
+  color: rgba(255,255,255,0.5); font-size: 15px;
 }
 .empty-icon { font-size: 50px; margin-bottom: 12px; }
 
@@ -280,22 +280,22 @@ button:active { transform: scale(0.97); }
 .stat-row { display: flex; gap: 10px; margin-bottom: 20px; }
 .stat-card { border-radius: 16px; padding: 16px; flex: 1; min-width: 0; }
 .stat-num { font-size: 28px; font-weight: 900; }
-.stat-label { font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 600; }
+.stat-label { font-size: 12px; color: rgba(255,255,255,0.65); font-weight: 600; }
 
 /* ─── Helpers ─── */
 .flex-row { display: flex; gap: 6px; flex-wrap: wrap; }
 .flex-row-12 { display: flex; gap: 12px; }
 .meta {
   display: flex; gap: 8px; align-items: center;
-  color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 4px;
+  color: rgba(255,255,255,0.6); font-size: 13px; margin-top: 4px;
 }
 .client-name { font-weight: 700; font-size: 16px; margin-bottom: 2px; }
 .client-phone {
   display: flex; align-items: center; gap: 6px;
-  color: rgba(255,255,255,0.4); font-size: 13px; margin-bottom: 4px;
+  color: rgba(255,255,255,0.55); font-size: 13px; margin-bottom: 4px;
 }
-.client-notes { font-size: 13px; color: rgba(255,255,255,0.3); font-style: italic; }
-.session-count { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 6px; }
+.client-notes { font-size: 13px; color: rgba(255,255,255,0.5); font-style: italic; }
+.session-count { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 6px; }
 
 /* ─── Week Strip ─── */
 .week-strip { display: flex; gap: 4px; padding: 16px 0; overflow-x: auto; }
@@ -304,7 +304,7 @@ button:active { transform: scale(0.97); }
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.03);
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.6);
   text-align: center; font-family: inherit;
 }
 .week-day.selected {
@@ -326,7 +326,7 @@ button:active { transform: scale(0.97); }
   margin: 4px 0 12px;
 }
 .week-nav-label {
-  font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.6);
+  font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75);
 }
 
 /* ─── Session Type Picker ─── */
@@ -334,7 +334,7 @@ button:active { transform: scale(0.97); }
   padding: 8px 14px; border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.6);
+  color: rgba(255,255,255,0.65);
   font-size: 13px; font-weight: 600; font-family: inherit;
 }
 .type-btn.selected {
@@ -425,7 +425,7 @@ button:active { transform: scale(0.97); }
   font-size: 11px; font-weight: 600;
   border: 1px solid rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.55);
   font-family: inherit;
 }
 .focus-tag.active {
@@ -441,15 +441,15 @@ button:active { transform: scale(0.97); }
   padding: 8px 10px; border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.6);
+  color: rgba(255,255,255,0.7);
   font-size: 12px; font-family: inherit;
   resize: none;
 }
 .focus-notes::placeholder {
-  color: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.3);
 }
 .focus-display {
-  font-size: 11px; color: rgba(255,255,255,0.35);
+  font-size: 11px; color: rgba(255,255,255,0.5);
   margin-top: 4px;
 }
 /* Inline type selector on session cards — blends with meta text */
@@ -472,7 +472,7 @@ button:active { transform: scale(0.97); }
   padding: 7px 14px; border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.1);
   background: transparent;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.6);
   font-size: 12px; font-weight: 700; text-transform: capitalize;
   font-family: inherit; white-space: nowrap;
 }
@@ -486,7 +486,7 @@ button:active { transform: scale(0.97); }
 .success-center { text-align: center; margin-bottom: 20px; }
 .success-icon { font-size: 50px; margin-bottom: 12px; }
 .success-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-.success-detail { font-size: 14px; color: rgba(255,255,255,0.5); }
+.success-detail { font-size: 14px; color: rgba(255,255,255,0.6); }
 .mb-10 { margin-bottom: 10px; }
 .mt-16 { margin-top: 16px; }
 
@@ -512,7 +512,7 @@ button:active { transform: scale(0.97); }
   margin-bottom: 8px;
 }
 .setup-sub {
-  text-align: center; color: rgba(255,255,255,0.4);
+  text-align: center; color: rgba(255,255,255,0.55);
   font-size: 14px; margin-bottom: 24px;
 }
 .setup-error {
