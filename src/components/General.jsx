@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { exportBackup, mergeBackup, genId, DEFAULT_TEMPLATES } from '../utils';
+import { exportBackup, mergeBackup, genId, DEFAULT_TEMPLATES, haptic } from '../utils';
 import { getToken, saveSnapshot, listSnapshots, fetchSnapshot } from '../sync';
 import { t } from '../i18n';
 
@@ -282,7 +282,7 @@ export default function General({ state, dispatch, onClose, lang }) {
             padding: '8px 0', borderBottom: '1px solid var(--sep)'
           }}>
             {/* Done toggle — checkbox */}
-            <button onClick={() => dispatch({ type: 'TOGGLE_TODO', payload: todo.id })}
+            <button onClick={() => { haptic(); dispatch({ type: 'TOGGLE_TODO', payload: todo.id }); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: 2,
                 color: todo.done ? '#10B981' : 'var(--t4)' }}>
               {todo.done ? (

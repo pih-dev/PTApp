@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { formatDate, SESSION_TYPES, getSessionOrdinal, FOCUS_TAGS, DURATIONS, TIMES, getStatus } from '../utils';
+import { formatDate, SESSION_TYPES, getSessionOrdinal, FOCUS_TAGS, DURATIONS, TIMES, getStatus, haptic } from '../utils';
 import { t } from '../i18n';
 
 // Editable focus tags + notes for completed sessions
@@ -16,7 +16,7 @@ function EditableFocus({ session, dispatch, lang }) {
       <div className="focus-row">
         {tags.map(tag => (
           <button key={tag} className={`focus-tag${focus.includes(tag) ? ' active' : ''}`}
-            onClick={() => toggleFocus(tag)}>{tag}</button>
+            onClick={() => { haptic(); toggleFocus(tag); }}>{tag}</button>
         ))}
       </div>
       <textarea className={`focus-notes${session.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
@@ -57,7 +57,7 @@ export default function Sessions({ state, dispatch, lang }) {
       <div className="section-title" style={{ marginTop: 16 }}>{t(lang, 'allSessions')} ({sorted.length})</div>
       <div className="filter-row">
         {['active', 'all', 'scheduled', 'completed', 'cancelled'].map(f => (
-          <button key={f} className={`filter-btn${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>
+          <button key={f} className={`filter-btn${filter === f ? ' active' : ''}`} onClick={() => { haptic(); setFilter(f); }}>
             {f === 'active' ? t(lang, 'active') : f === 'all' ? t(lang, 'all') : t(lang, f)}
           </button>
         ))}

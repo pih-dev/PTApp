@@ -5,7 +5,7 @@ import Schedule from './components/Schedule';
 import Sessions from './components/Sessions';
 import TokenSetup from './components/TokenSetup';
 import General from './components/General';
-import { reducer, loadData, saveData, today, timeToMinutes } from './utils';
+import { reducer, loadData, saveData, today, timeToMinutes, haptic } from './utils';
 import { getToken, fetchRemoteData, pushRemoteData } from './sync';
 import { t } from './i18n';
 
@@ -156,7 +156,7 @@ export default function App() {
 
       <div className="nav">
         {tabs.map(tb => (
-          <button key={tb.id} className={`nav-btn${tab === tb.id ? ' active' : ''}`} onClick={() => setTab(tb.id)}>
+          <button key={tb.id} className={`nav-btn${tab === tb.id ? ' active' : ''}`} onClick={() => { haptic(); setTab(tb.id); }}>
             {tb.icon}
             {tb.label}
           </button>

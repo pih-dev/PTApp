@@ -1,6 +1,10 @@
 // ─── ID Generator ───
 export const genId = () => Math.random().toString(36).slice(2, 9);
 
+// ─── Haptic Feedback ───
+/** Trigger haptic feedback — silent no-op on devices that don't support it (iOS) */
+export const haptic = (ms = 10) => { try { navigator.vibrate?.(ms); } catch(e) {} };
+
 // ─── Default country code ───
 const DEFAULT_COUNTRY_CODE_KEY = 'ptapp-country-code';
 export const getDefaultCountryCode = () => localStorage.getItem(DEFAULT_COUNTRY_CODE_KEY) || '961';

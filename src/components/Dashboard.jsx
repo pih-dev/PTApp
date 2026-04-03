@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getSessionOrdinal, timeToMinutes, localDateStr, getStatus } from '../utils';
+import { today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getSessionOrdinal, timeToMinutes, localDateStr, getStatus, haptic } from '../utils';
 import { t } from '../i18n';
 
 export default function Dashboard({ state, dispatch, setTab, lang }) {
@@ -134,7 +134,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                 <div className="flex-row">
                   {(session.status === 'scheduled' || session.status === 'confirmed') && (
                     <button className="btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }}
-                      onClick={() => updateStatus(session.id, 'completed')}>{t(lang, 'complete')}</button>
+                      onClick={() => { haptic(); updateStatus(session.id, 'completed'); }}>{t(lang, 'complete')}</button>
                   )}
                   {client && (
                     <button className="btn-whatsapp" style={{ fontSize: 12, padding: '6px 12px' }}
@@ -149,7 +149,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                     {t(lang, 'edit')}
                   </button>
                   {session.status !== 'cancelled' && (
-                    <button className="btn-danger-sm" onClick={() => cancelSession(session)}>
+                    <button className="btn-danger-sm" onClick={() => { haptic(); cancelSession(session); }}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     </button>
                   )}
@@ -158,7 +158,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                 <div className="focus-row" style={{ marginTop: 8 }}>
                   {tags.map(tag => (
                     <button key={tag} className={`focus-tag${focus.includes(tag) ? ' active' : ''}`}
-                      onClick={() => toggleFocus(tag)}>{tag}</button>
+                      onClick={() => { haptic(); toggleFocus(tag); }}>{tag}</button>
                   ))}
                 </div>
                 <textarea className={`focus-notes${session.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
