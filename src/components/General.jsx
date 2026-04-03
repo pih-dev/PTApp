@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { exportBackup, mergeBackup } from '../utils';
+import { exportBackup, mergeBackup, genId } from '../utils';
 import { getToken, saveSnapshot, listSnapshots, fetchSnapshot } from '../sync';
 
 // Raw GitHub URLs for docs — fetched at runtime, not bundled
@@ -139,6 +139,7 @@ export default function General({ state, dispatch, onClose }) {
   const [snapshotMsg, setSnapshotMsg] = useState('');
   const [docContent, setDocContent] = useState(null); // { title, text }
   const [docLoading, setDocLoading] = useState(false);
+  const [newTodo, setNewTodo] = useState('');
 
   // Fetch and display a markdown doc in-app
   const openDoc = async (url, title) => {
@@ -262,6 +263,47 @@ export default function General({ state, dispatch, onClose }) {
 
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 6 }}>
           Restore merges data — adds missing records without replacing existing ones.
+        </div>
+      </div>
+
+      {/* To-do list — shared between PT and developer */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'rgba(255,255,255,0.7)' }}>📝 To Do</div>
+
+        {(state.todos || []).length === 0 && (
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>No items yet</div>
+        )}
+
+        {(state.todos || []).map(t => (
+          <div key={t.id} style={{
+            display: 'flex', alignItems: 'flex-start', gap: 8,
+            padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)'
+          }}>
+            <div style={{ flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>{t.text}</div>
+            <button onClick={() => dispatch({ type: 'DELETE_TODO', payload: t.id })}
+              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', fontSize: 16, padding: '0 4px', cursor: 'pointer', flexShrink: 0 }}>×</button>
+          </div>
+        ))}
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <input className="input" style={{ flex: 1, fontSize: 13 }}
+            placeholder="Add something..."
+            value={newTodo}
+            onChange={e => setNewTodo(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && newTodo.trim()) {
+                dispatch({ type: 'ADD_TODO', payload: { id: genId(), text: newTodo.trim() } });
+                setNewTodo('');
+              }
+            }} />
+          <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px', flexShrink: 0 }}
+            onClick={() => {
+              if (!newTodo.trim()) return;
+              dispatch({ type: 'ADD_TODO', payload: { id: genId(), text: newTodo.trim() } });
+              setNewTodo('');
+            }}>
+            Add
+          </button>
         </div>
       </div>
 

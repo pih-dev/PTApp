@@ -168,6 +168,7 @@ function migrateData(data) {
 
   data.clients = data.clients || [];
   data.sessions = data.sessions || [];
+  data.todos = data.todos || [];
   data._dataVersion = DATA_VERSION;
   return data;
 }
@@ -212,6 +213,10 @@ export function reducer(state, action) {
       return { ...state, sessions: state.sessions.map(s => s.id === action.payload.id ? { ...s, ...action.payload } : s) };
     case 'DELETE_SESSION':
       return { ...state, sessions: state.sessions.filter(s => s.id !== action.payload) };
+    case 'ADD_TODO':
+      return { ...state, todos: [...state.todos, action.payload] };
+    case 'DELETE_TODO':
+      return { ...state, todos: state.todos.filter(t => t.id !== action.payload) };
     case 'REPLACE_ALL':
       return action.payload;
     default:
@@ -259,5 +264,9 @@ export const mergeBackup = (live, backup) => {
   const liveSessionIds = new Set(live.sessions.map(s => s.id));
   const restoredSessions = backup.sessions.filter(s => !liveSessionIds.has(s.id));
   merged.sessions = [...live.sessions, ...restoredSessions];
+  // Merge todos by ID
+  const liveTodoIds = new Set((live.todos || []).map(t => t.id));
+  const restoredTodos = (backup.todos || []).filter(t => !liveTodoIds.has(t.id));
+  merged.todos = [...(live.todos || []), ...restoredTodos];
   return migrateData(merged);
 };
