@@ -6,7 +6,7 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (Apr 3, 2026)
 
-**Light theme feels like its own app now.** The background is cooler and darker, cards are near-opaque white with real shadows that make them float, the nav bar is frosted white glass with blur (like iOS), and modals are clean white instead of matching the page. Everything has clear visual layers — cards above background, nav above content, modal above everything.
+**Light theme feels like its own app now.** The background is cooler and darker, cards are **soft blue** (not white — white was too harsh) with shadows that make them float, the nav bar is frosted white glass with blur (like iOS), and modals are clean white instead of matching the page. Everything has clear visual layers — cards above background, nav above content, modal above everything.
 
 **Everything moves smoothly.** Cards, focus tags, filter buttons, badges, and week day pills all transition between states instead of snapping. The modal slides up with a spring bounce (slight overshoot that settles). Buttons darken and push inward on press. Tappable cards push down 1px. Small things, but the whole app feels more alive.
 

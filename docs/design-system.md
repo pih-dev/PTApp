@@ -128,10 +128,11 @@ Cooler and slightly darker than v2.3's warm beige. Provides a neutral canvas for
 
 ### Cards
 ```css
-background: rgba(255,255,255,0.72);
-box-shadow: 0 2px 12px rgba(30,27,75,0.1);
+background: rgba(219,234,254,0.55);
+border-color: rgba(37,99,235,0.08);
+box-shadow: 0 2px 12px rgba(30,27,75,0.08);
 ```
-Near-opaque white with real shadows. Cards clearly float above the background — the most impactful single change.
+Soft blue tint (Tailwind blue-100 at 55% opacity). Initially used near-opaque white (`rgba(255,255,255,0.72)`) but Pierre found it hurt the eyes — white cards on a grey background are too contrasty in bright environments. The blue tint is softer while still clearly floating above the background, and ties into the blue accent color system.
 
 ### Nav Bar
 ```css
@@ -270,30 +271,48 @@ Light theme uses lower opacity: `rgba(37,99,235,0.04)` → `rgba(37,99,235,0.01)
 - Card shadows for depth
 
 ### v2.4: Visual Polish + Light Theme Redesign
-- **Light theme redesign:** Cooler background, white glass cards/nav/modals, real shadows
+- **Light theme redesign:** Cooler background, blue-tinted cards (not white), glass nav/modals
+- **Light theme cards:** `rgba(219,234,254,0.55)` — soft blue, easier on eyes than white
+- **Light theme inputs:** Blue-tinted `rgba(237,244,254,0.6)` to match cards
 - **Micro-polish:** Transitions on all interactive elements, spring modal, nav dot
 - **Button feel:** Brightness darken + shadow reduction on press, card push-down
-- **Session notes:** Blue hue on focus/has-content
+- **Session notes:** Blue hue on focus/has-content, **blue text** when has content
 - **Haptic feedback:** Vibration on Android for key interactions
 - **Logo:** Horizontal dumbbell (was vertical/water-jug)
 - **Auto-complete:** 1hr buffer after session end
+- **Stat cards:** Colored backgrounds — indigo (Clients), blue (Today), green (This Week)
+
+### v2.4 Refinement Notes
+After deploying v2.4 and testing on Android, Pierre observed:
+- "Looks almost the same but the experience is definitely enhanced"
+- Light theme white cards hurt the eyes → changed to soft blue tint
+- Session notes hue was too subtle → doubled the opacity + added blue text
+- Stat cards were invisible → tripled gradient opacity + changed This Week to green
+- **Key insight:** The web stack (CSS-only, GitHub Pages) has a ceiling for premium feel. The enhanced *experience* (transitions, press feedback, spring modals, haptic) matters more than pixel-level visual changes. Save ambitious visual work for the native app stage.
 
 ### Future (Stage 2: Native App)
-- Full design system review when wrapping with Capacitor
-- Potential glassmorphism expansion (heavier blur, layered glass panels)
-- Custom animations (checkbox draw, counter roll, card enter/exit)
-- Platform-specific refinements (iOS haptics via Capacitor plugin, Android material ripples)
+The web app has reached its visual ceiling for "Apple-like" premium feel. These require native capabilities:
+- **iOS haptics:** Capacitor Haptics plugin (Taptic Engine — way beyond `navigator.vibrate`)
+- **Native blur:** More performant than `backdrop-filter`, richer glass effects
+- **Gesture-driven modals:** Native bottom sheets with swipe-to-dismiss, rubber-band physics
+- **Custom page transitions:** Spring physics, shared element transitions between screens
+- **Bundled fonts:** No Google Fonts network dependency
+- **Platform-specific:** Material ripples on Android, vibrancy on iOS
+- **Full design system:** With native capabilities unlocked, a proper design refresh makes sense
 
 ---
 
 ## Screenshots
 
-Screenshots should be captured at each major visual version to track evolution.
+Screenshots capture visual evolution across versions.
 
-**Storage:** `docs/screenshots/` directory, named `v{version}-{theme}-{screen}.png`
+**Storage:** `docs/screenshots/` directory
 
-**Versions to capture:**
-- [ ] v2.3 (before polish) — dark + light, dashboard + schedule
-- [x] v2.4 (current) — needs capture
+**Captured:**
+- v2.3 → v2.4 comparison collages (dark + light themes) — provided by Pierre during the v2.4 development session on 2026-04-03. Show side-by-side old vs new on Android.
 
-**How to capture:** Open the app on a phone or use Chrome DevTools mobile emulation (iPhone 14 Pro, 393x852). Save to `docs/screenshots/`.
+**Observations from comparison:**
+- Dark theme: visually subtle difference, but transitions/press feedback create a noticeably better *feel*
+- Light theme: blue-tinted cards are the most visible change vs the old white cards
+- Stat cards: colored backgrounds add visual variety to the dashboard
+- Overall: the upgrade is more about interaction quality than visual appearance

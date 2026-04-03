@@ -6,6 +6,16 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (2026-04-03)
 
+**Post-deploy refinement (same day):**
+- Light theme cards: `rgba(255,255,255,0.72)` white → `rgba(219,234,254,0.55)` soft blue (white hurt eyes)
+- Light theme card border: `rgba(30,27,75,0.07)` → `rgba(37,99,235,0.08)` blue tint
+- Light theme inputs: `rgba(255,255,255,0.7)` → `rgba(237,244,254,0.6)` blue-tinted
+- Notes focus hue: `0.08` → `0.15` background, `0.25` → `0.35` border, added `color: #60A5FA`
+- Notes has-content hue: `0.06` → `0.12` background, `0.15` → `0.25` border, added `color: #60A5FA`
+- Light theme notes: added explicit `.focus-notes:focus` and `.focus-notes.has-content` overrides with `color: #2563EB`
+- Stat cards: gradient opacity ~3x (hex `15/08` → `30/18`), borders `25` → `35`
+- "This Week" stat: changed from purple `#8B5CF6` to green `#10B981` for color variety
+
 **What changed:**
 
 *Light theme redesign — layer separation:*
