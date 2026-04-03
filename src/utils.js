@@ -131,14 +131,16 @@ export const today = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
-export const formatDate = (dateStr) => {
+export const formatDate = (dateStr, lang = 'en') => {
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const locale = lang === 'ar' ? 'ar-LB' : 'en-US';
+  return d.toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' });
 };
 
-export const formatDateLong = (dateStr) => {
+export const formatDateLong = (dateStr, lang = 'en') => {
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  const locale = lang === 'ar' ? 'ar-LB' : 'en-US';
+  return d.toLocaleDateString(locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 };
 
 // ─── Data versioning & migration ───
@@ -237,8 +239,14 @@ const friendly = (client) => client.nickname || client.name.split(' ')[0];
 // Default message templates — editable by PT in General panel
 // Placeholders: {name} {type} {emoji} {date} {time} {duration}
 export const DEFAULT_TEMPLATES = {
-  booking: `Hi {name}! 👋\n\n{emoji} Your *{type}* session is booked:\n📅 {date}\n⏰ {time} ({duration} min)\n\n👍 Like this message to confirm\n❌ Reply to cancel/reschedule\n\nSee you at the gym! 💪`,
-  reminder: `Reminder! 🔔\n\nHey {name}, just a reminder about your session:\n{emoji} {type}\n📅 {date}\n⏰ {time}\n\nSee you soon! 💪`,
+  en: {
+    booking: `Hi {name}! 👋\n\n{emoji} Your *{type}* session is booked:\n📅 {date}\n⏰ {time} ({duration} min)\n\n👍 Like this message to confirm\n❌ Reply to cancel/reschedule\n\nSee you at the gym! 💪`,
+    reminder: `Reminder! 🔔\n\nHey {name}, just a reminder about your session:\n{emoji} {type}\n📅 {date}\n⏰ {time}\n\nSee you soon! 💪`,
+  },
+  ar: {
+    booking: `مرحبا {name}! 👋\n\n{emoji} تمّ حجز جلسة *{type}*:\n📅 {date}\n⏰ {time} ({duration} دقيقة)\n\n👍 أعجبني للتأكيد\n❌ ردّ للإلغاء أو تغيير الموعد\n\nمنشوفك بالنادي! 💪`,
+    reminder: `تذكير! 🔔\n\nمرحبا {name}، تذكير بجلستك:\n{emoji} {type}\n📅 {date}\n⏰ {time}\n\nمنشوفك قريباً! 💪`,
+  },
 };
 
 // Replace placeholders in a template with actual session values
@@ -253,16 +261,16 @@ const fillTemplate = (template, client, session) => {
     .replace(/\{duration\}/g, String(session.duration || 45));
 };
 
-export const sendBookingWhatsApp = (client, session, templates) => {
+export const sendBookingWhatsApp = (client, session, templates, lang = 'en') => {
   const phone = formatPhone(client.phone);
-  const tpl = (templates && templates.booking) || DEFAULT_TEMPLATES.booking;
+  const tpl = (templates && templates.booking) || DEFAULT_TEMPLATES[lang].booking;
   const msg = fillTemplate(tpl, client, session);
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
-export const sendReminderWhatsApp = (client, session, templates) => {
+export const sendReminderWhatsApp = (client, session, templates, lang = 'en') => {
   const phone = formatPhone(client.phone);
-  const tpl = (templates && templates.reminder) || DEFAULT_TEMPLATES.reminder;
+  const tpl = (templates && templates.reminder) || DEFAULT_TEMPLATES[lang].reminder;
   const msg = fillTemplate(tpl, client, session);
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 };

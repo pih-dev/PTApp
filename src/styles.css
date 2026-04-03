@@ -528,3 +528,10 @@ button:active { transform: scale(0.97); }
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ─── RTL overrides (Arabic) ─── */
+[dir="rtl"] .logo { direction: ltr; } /* Keep logo LTR — "PTApp" is a brand name */
+[dir="rtl"] .lang-toggle { margin-left: 0; margin-right: auto; }
+[dir="rtl"] .app-version { margin-left: 0; }
+[dir="rtl"] .focus-notes { text-align: right; }
+[dir="rtl"] .input, [dir="rtl"] .select { text-align: right; }

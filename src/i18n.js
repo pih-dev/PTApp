@@ -1,0 +1,250 @@
+// ─── Translations ───
+// All UI strings in English and Arabic.
+// English is the source of truth — Arabic keys must match English keys.
+
+const T = {
+  en: {
+    // App
+    personalTrainer: 'Personal Trainer',
+    syncing: 'Syncing...',
+
+    // Tabs
+    home: 'Home',
+    clients: 'Clients',
+    schedule: 'Schedule',
+    sessions: 'Sessions',
+
+    // Dashboard
+    overview: '📊 Overview',
+    statClients: 'Clients',
+    statToday: 'Today',
+    statWeek: 'This Week',
+    todaySessions: "Today's Sessions",
+    upcomingSessions: 'Upcoming Sessions',
+    compact: 'Compact',
+    expanded: 'Expanded',
+    noSessionsToday: 'No sessions today',
+    noUpcoming: 'No upcoming sessions',
+    bookSession: '+ Book Session',
+    bookFirst: '+ Book First Session',
+
+    // Common actions
+    complete: '✅ Complete',
+    remind: 'Remind',
+    edit: 'Edit',
+    editSession: 'Edit Session',
+    saveChanges: 'Save Changes',
+    cancel: 'Cancel',
+    cancelSession: 'Cancel Session',
+    keepSession: 'Keep Session',
+    countNoShow: 'Count (No-show / Late cancel)',
+    forgive: 'Forgive (Legitimate cancel)',
+    restore: '↩ Restore',
+    delete: 'Delete',
+    done: 'Done',
+    skip: 'Skip',
+    add: 'Add',
+
+    // Form labels
+    client: 'Client',
+    clientPlural: 'Clients',
+    sessionType: 'Session Type',
+    date: 'Date',
+    time: 'Time',
+    duration: 'Duration',
+    min: 'min',
+    fullName: 'Full Name',
+    nickname: 'Nickname',
+    nickLabel: '(used in WhatsApp)',
+    phone: 'Phone',
+    gender: 'Gender',
+    male: 'Male',
+    female: 'Female',
+    birthdate: 'Birthdate',
+    notes: 'Notes',
+    notesOpt: 'Notes (optional)',
+    notesPlaceholder: 'Notes...',
+
+    // Schedule
+    sessionsCount: 'Sessions',
+    book: '+ Book',
+    addClientFirst: 'Add a client first before booking sessions',
+    noSessionsDay: 'No sessions on this day',
+    prev: '← Prev',
+    next: 'Next →',
+    bookSessionBtn: 'Book Session',
+    sessionBooked: 'Session Booked! 🎉',
+    sendConfirmWA: 'Send Confirmation via WhatsApp',
+
+    // Sessions tab
+    allSessions: '📋 All Sessions',
+    active: 'Active',
+    all: 'All',
+    scheduled: 'Scheduled',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+    noSessionsFound: 'No sessions found',
+
+    // Clients
+    myClients: '👥 My Clients',
+    searchPlaceholder: 'Search by name or phone...',
+    noClients: 'No clients yet',
+    tapAdd: 'Tap "Add" to register your first client',
+    noMatch: 'No clients match',
+    sessionWord: 'sessions',
+    noSessionsMonth: 'No sessions this month',
+    editClient: 'Edit Client',
+    newClient: 'New Client',
+    addClient: 'Add Client',
+
+    // General
+    general: 'General',
+    backupTitle: '💾 Clients/Sessions Backup',
+    backup: 'Backup',
+    cloudBackup: 'Cloud Backup',
+    restoreBtn: 'Restore',
+    cloudRestore: 'Cloud Restore',
+    restoreNote: 'Restore merges data — adds missing records without replacing existing ones.',
+    merge: 'Merge',
+    todoTitle: '📝 To Do',
+    noItems: 'No items yet',
+    addSomething: 'Add something...',
+    waTitle: '💬 WhatsApp Messages',
+    waPlaceholders: 'Placeholders:',
+    bookingMsg: 'Booking Message',
+    reminderMsg: 'Reminder Message',
+    resetDefaults: 'Reset to Defaults',
+    docsTitle: '📖 Documentation',
+    appInstructions: 'App Instructions',
+    whatChanged: 'What Changed (Changelog)',
+    templatesReset: 'Templates reset to defaults. Reopen General to see the change.',
+
+    // Select placeholders
+    selectClient: 'Select a client...',
+  },
+  ar: {
+    // App
+    personalTrainer: 'مدرّب شخصي',
+    syncing: 'جاري المزامنة...',
+
+    // Tabs
+    home: 'الرئيسية',
+    clients: 'العملاء',
+    schedule: 'الجدول',
+    sessions: 'الجلسات',
+
+    // Dashboard
+    overview: '📊 نظرة عامة',
+    statClients: 'العملاء',
+    statToday: 'اليوم',
+    statWeek: 'هذا الأسبوع',
+    todaySessions: 'جلسات اليوم',
+    upcomingSessions: 'الجلسات القادمة',
+    compact: 'مختصر',
+    expanded: 'مفصّل',
+    noSessionsToday: 'لا جلسات اليوم',
+    noUpcoming: 'لا جلسات قادمة',
+    bookSession: '+ حجز جلسة',
+    bookFirst: '+ حجز أول جلسة',
+
+    // Common actions
+    complete: '✅ إتمام',
+    remind: 'تذكير',
+    edit: 'تعديل',
+    editSession: 'تعديل الجلسة',
+    saveChanges: 'حفظ التغييرات',
+    cancel: 'إلغاء',
+    cancelSession: 'إلغاء الجلسة',
+    keepSession: 'إبقاء الجلسة',
+    countNoShow: 'احتساب (غياب / إلغاء متأخر)',
+    forgive: 'إعفاء (إلغاء مبرّر)',
+    restore: '↩ استعادة',
+    delete: 'حذف',
+    done: 'تم',
+    skip: 'تخطي',
+    add: 'إضافة',
+
+    // Form labels
+    client: 'العميل',
+    clientPlural: 'العملاء',
+    sessionType: 'نوع الجلسة',
+    date: 'التاريخ',
+    time: 'الوقت',
+    duration: 'المدة',
+    min: 'د',
+    fullName: 'الاسم الكامل',
+    nickname: 'الاسم المختصر',
+    nickLabel: '(يُستخدم في واتساب)',
+    phone: 'الهاتف',
+    gender: 'الجنس',
+    male: 'ذكر',
+    female: 'أنثى',
+    birthdate: 'تاريخ الميلاد',
+    notes: 'ملاحظات',
+    notesOpt: 'ملاحظات (اختياري)',
+    notesPlaceholder: 'ملاحظات...',
+
+    // Schedule
+    sessionsCount: 'الجلسات',
+    book: '+ حجز',
+    addClientFirst: 'أضف عميلاً أولاً قبل حجز الجلسات',
+    noSessionsDay: 'لا جلسات في هذا اليوم',
+    prev: 'السابق ←',
+    next: '→ التالي',
+    bookSessionBtn: 'حجز جلسة',
+    sessionBooked: 'تمّ الحجز! 🎉',
+    sendConfirmWA: 'إرسال تأكيد عبر واتساب',
+
+    // Sessions tab
+    allSessions: '📋 كل الجلسات',
+    active: 'نشطة',
+    all: 'الكل',
+    scheduled: 'مجدولة',
+    completed: 'مكتملة',
+    cancelled: 'ملغاة',
+    noSessionsFound: 'لا جلسات',
+
+    // Clients
+    myClients: '👥 عملائي',
+    searchPlaceholder: 'البحث بالاسم أو الهاتف...',
+    noClients: 'لا عملاء بعد',
+    tapAdd: 'اضغط "إضافة" لتسجيل أول عميل',
+    noMatch: 'لا نتائج لـ',
+    sessionWord: 'جلسات',
+    noSessionsMonth: 'لا جلسات هذا الشهر',
+    editClient: 'تعديل العميل',
+    newClient: 'عميل جديد',
+    addClient: 'إضافة عميل',
+
+    // General
+    general: 'عام',
+    backupTitle: '💾 نسخ احتياطي',
+    backup: 'نسخ',
+    cloudBackup: 'نسخ سحابي',
+    restoreBtn: 'استعادة',
+    cloudRestore: 'استعادة سحابية',
+    restoreNote: 'الاستعادة تدمج البيانات — تضيف السجلات المفقودة دون استبدال الموجودة.',
+    merge: 'دمج',
+    todoTitle: '📝 المهام',
+    noItems: 'لا عناصر بعد',
+    addSomething: 'أضف شيئاً...',
+    waTitle: '💬 رسائل واتساب',
+    waPlaceholders: 'المتغيّرات:',
+    bookingMsg: 'رسالة الحجز',
+    reminderMsg: 'رسالة التذكير',
+    resetDefaults: 'إعادة للأصل',
+    docsTitle: '📖 الوثائق',
+    appInstructions: 'تعليمات التطبيق',
+    whatChanged: 'ما الجديد (سجل التغييرات)',
+    templatesReset: 'تمّت إعادة القوالب للأصل. أعد فتح عام لرؤية التغيير.',
+
+    // Select placeholders
+    selectClient: 'اختر عميلاً...',
+  },
+};
+
+// Get a translated string — falls back to English, then to the key itself
+export const t = (lang, key) => (T[lang] && T[lang][key]) || T.en[key] || key;
+
+// Date locale for the current language
+export const dateLocale = (lang) => lang === 'ar' ? 'ar-LB' : 'en-US';

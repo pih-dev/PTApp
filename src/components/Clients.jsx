@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
 import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, STATUS_MAP, getMonthlySessionCount, formatDate, capitalizeName } from '../utils';
+import { t, dateLocale } from '../i18n';
 
-export default function Clients({ state, dispatch }) {
+export default function Clients({ state, dispatch, lang }) {
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [form, setForm] = useState({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '' });
@@ -49,7 +50,7 @@ export default function Clients({ state, dispatch }) {
   };
   const monthLabel = (ym) => {
     const [y, m] = ym.split('-').map(Number);
-    return new Date(y, m - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    return new Date(y, m - 1).toLocaleDateString(dateLocale(lang), { month: 'long', year: 'numeric' });
   };
 
   // Get sessions for a client in a specific month
@@ -77,14 +78,14 @@ export default function Clients({ state, dispatch }) {
   return (
     <div>
       <div className="section-title section-header" style={{ marginTop: 16 }}>
-        <span>👥 My Clients ({state.clients.length})</span>
-        <button className="btn-sm" onClick={openAdd}>+ Add</button>
+        <span>👥 {t(lang, 'myClients')} ({state.clients.length})</span>
+        <button className="btn-sm" onClick={openAdd}>{'+ ' + t(lang, 'add')}</button>
       </div>
 
       {state.clients.length > 0 && (
         <input
           className="input"
-          placeholder="Search by name or phone..."
+          placeholder={t(lang, 'searchPlaceholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ marginBottom: 12 }}
@@ -94,13 +95,13 @@ export default function Clients({ state, dispatch }) {
       {state.clients.length === 0 ? (
         <div className="empty">
           <div className="empty-icon">👤</div>
-          <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>No clients yet</div>
-          <div>Tap "Add" to register your first client</div>
+          <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>{t(lang, 'noClients')}</div>
+          <div>{t(lang, 'tapAdd')}</div>
         </div>
       ) : filteredClients.length === 0 ? (
         <div className="empty">
           <div className="empty-icon">🔍</div>
-          <div>No clients match "{search}"</div>
+          <div>{t(lang, 'noMatch')} "{search}"</div>
         </div>
       ) : (
         filteredClients.map(c => {
@@ -133,7 +134,7 @@ export default function Clients({ state, dispatch }) {
                   </div>
                 )}
                 {c.notes && <div className="client-notes">{c.notes}</div>}
-                <div className="session-count">{sessionCount(c.id)} sessions</div>
+                <div className="session-count">{sessionCount(c.id)} {t(lang, 'sessionWord')}</div>
               </div>
               <div className="flex-row" onClick={e => e.stopPropagation()}>
                 <button className="btn-whatsapp" style={{ padding: '8px 10px' }}
@@ -161,15 +162,15 @@ export default function Clients({ state, dispatch }) {
 
                 {/* Month summary */}
                 <div style={{ display: 'flex', gap: 12, marginBottom: 10, fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
-                  <span>{monthTotal} session{monthTotal !== 1 ? 's' : ''}</span>
-                  {completedCount > 0 && <span style={{ color: '#10B981' }}>{completedCount} completed</span>}
-                  {cancelledCount > 0 && <span style={{ color: '#EF4444' }}>{cancelledCount} cancelled</span>}
+                  <span>{monthTotal} {t(lang, 'sessionWord')}</span>
+                  {completedCount > 0 && <span style={{ color: '#10B981' }}>{completedCount} {t(lang, 'completed')}</span>}
+                  {cancelledCount > 0 && <span style={{ color: '#EF4444' }}>{cancelledCount} {t(lang, 'cancelled')}</span>}
                 </div>
 
                 {/* Session list */}
                 {monthSessions.length === 0 ? (
                   <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textAlign: 'center', padding: '8px 0' }}>
-                    No sessions this month
+                    {t(lang, 'noSessionsMonth')}
                   </div>
                 ) : (
                   monthSessions.map(s => {
@@ -182,7 +183,7 @@ export default function Clients({ state, dispatch }) {
                       }}>
                         <div>
                           <div style={{ color: 'rgba(255,255,255,0.7)' }}>
-                            {formatDate(s.date)} · {s.time} · {s.duration}min
+                            {formatDate(s.date, lang)} · {s.time} · {s.duration}{t(lang, 'min')}
                           </div>
                           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
                             {st.emoji} {s.type}
@@ -207,10 +208,10 @@ export default function Clients({ state, dispatch }) {
       )}
 
       {showForm && (
-        <Modal title={editingClient ? 'Edit Client' : 'New Client'} onClose={() => setShowForm(false)}
-          action={<button className="btn-primary" onClick={save}>{editingClient ? 'Save Changes' : 'Add Client'}</button>}>
+        <Modal title={editingClient ? t(lang, 'editClient') : t(lang, 'newClient')} onClose={() => setShowForm(false)}
+          action={<button className="btn-primary" onClick={save}>{editingClient ? t(lang, 'saveChanges') : t(lang, 'addClient')}</button>}>
           <div className="field">
-            <label className="field-label">Full Name</label>
+            <label className="field-label">{t(lang, 'fullName')}</label>
             <input className="input" placeholder="e.g. Ahmad Khalil" value={form.name}
               onChange={e => {
                 const name = e.target.value;
@@ -221,12 +222,12 @@ export default function Clients({ state, dispatch }) {
               onBlur={e => setForm(p => ({ ...p, name: capitalizeName(p.name) }))} />
           </div>
           <div className="field">
-            <label className="field-label">Nickname <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.5)' }}>(used in WhatsApp)</span></label>
+            <label className="field-label">{t(lang, 'nickname')} <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.5)' }}>{t(lang, 'nickLabel')}</span></label>
             <input className="input" placeholder="e.g. Ahmad" value={form.nickname}
               onChange={e => setForm(p => ({ ...p, nickname: e.target.value }))} />
           </div>
           <div className="field">
-            <label className="field-label">Phone</label>
+            <label className="field-label">{t(lang, 'phone')}</label>
             <div style={{ display: 'flex', gap: 8 }}>
               <input className="input" style={{ width: 72, flexShrink: 0, textAlign: 'center' }}
                 value={`+${countryCode}`}
@@ -242,21 +243,21 @@ export default function Clients({ state, dispatch }) {
           </div>
           <div className="flex-row-12">
             <div className="field" style={{ flex: 1 }}>
-              <label className="field-label">Gender</label>
+              <label className="field-label">{t(lang, 'gender')}</label>
               <select className="select" value={form.gender} onChange={e => setForm(p => ({ ...p, gender: e.target.value }))}>
                 <option value="">—</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
+                <option value="male">{t(lang, 'male')}</option>
+                <option value="female">{t(lang, 'female')}</option>
               </select>
             </div>
             <div className="field" style={{ flex: 1 }}>
-              <label className="field-label">Birthdate</label>
+              <label className="field-label">{t(lang, 'birthdate')}</label>
               <input type="date" className="input" value={form.birthdate}
                 onChange={e => setForm(p => ({ ...p, birthdate: e.target.value }))} />
             </div>
           </div>
           <div className="field">
-            <label className="field-label">Notes (optional)</label>
+            <label className="field-label">{t(lang, 'notesOpt')}</label>
             <input className="input" placeholder="e.g. Bad knee, prefers mornings" value={form.notes}
               onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
           </div>

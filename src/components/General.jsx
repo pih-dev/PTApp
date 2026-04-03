@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import { exportBackup, mergeBackup, genId, DEFAULT_TEMPLATES } from '../utils';
 import { getToken, saveSnapshot, listSnapshots, fetchSnapshot } from '../sync';
+import { t } from '../i18n';
 
 // Raw GitHub URLs for docs — fetched at runtime, not bundled
 const DOCS = {
@@ -133,7 +134,7 @@ function renderMarkdown(text) {
   return elements;
 }
 
-export default function General({ state, dispatch, onClose }) {
+export default function General({ state, dispatch, onClose, lang }) {
   const [snapshots, setSnapshots] = useState(null);
   const [snapshotLoading, setSnapshotLoading] = useState(false);
   const [snapshotMsg, setSnapshotMsg] = useState('');
@@ -157,15 +158,15 @@ export default function General({ state, dispatch, onClose }) {
   };
 
   return (
-    <Modal title="General" onClose={onClose}>
+    <Modal title={t(lang, 'general')} onClose={onClose}>
       {/* Backup section */}
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'rgba(255,255,255,0.7)' }}>💾 Clients/Sessions Backup</div>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'rgba(255,255,255,0.7)' }}>{t(lang, 'backupTitle')}</div>
 
         <div className="flex-row" style={{ gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
           <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
             onClick={() => exportBackup(state)}>
-            Backup
+            {t(lang, 'backup')}
           </button>
           {getToken() && (
             <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
@@ -180,7 +181,7 @@ export default function General({ state, dispatch, onClose }) {
                 } catch (e) { setSnapshotMsg('Failed: ' + e.message); }
                 setSnapshotLoading(false);
               }}>
-              Cloud Backup
+              {t(lang, 'cloudBackup')}
             </button>
           )}
         </div>
@@ -210,7 +211,7 @@ export default function General({ state, dispatch, onClose }) {
               };
               input.click();
             }}>
-            Restore
+            {t(lang, 'restoreBtn')}
           </button>
           {getToken() && (
             <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
@@ -225,7 +226,7 @@ export default function General({ state, dispatch, onClose }) {
                 } catch (e) { setSnapshotMsg('Failed: ' + e.message); }
                 setSnapshotLoading(false);
               }}>
-              Cloud Restore
+              {t(lang, 'cloudRestore')}
             </button>
           )}
         </div>
@@ -255,7 +256,7 @@ export default function General({ state, dispatch, onClose }) {
                     } catch (e) { setSnapshotMsg('Failed: ' + e.message); }
                     setSnapshotLoading(false);
                   }}>
-                  Merge
+                  {t(lang, 'merge')}
                 </button>
               </div>
             ))}
@@ -263,30 +264,30 @@ export default function General({ state, dispatch, onClose }) {
         )}
 
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 6 }}>
-          Restore merges data — adds missing records without replacing existing ones.
+          {t(lang, 'restoreNote')}
         </div>
       </div>
 
       {/* To-do list — shared between PT and developer */}
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'rgba(255,255,255,0.7)' }}>📝 To Do</div>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'rgba(255,255,255,0.7)' }}>{t(lang, 'todoTitle')}</div>
 
         {(state.todos || []).length === 0 && (
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>No items yet</div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>{t(lang, 'noItems')}</div>
         )}
 
-        {(state.todos || []).map(t => (
-          <div key={t.id} style={{
+        {(state.todos || []).map(todo => (
+          <div key={todo.id} style={{
             display: 'flex', alignItems: 'flex-start', gap: 8,
             padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)'
           }}>
-            {editingTodo === t.id ? (
+            {editingTodo === todo.id ? (
               <input className="input" style={{ flex: 1, fontSize: 13, padding: '6px 10px' }}
                 autoFocus
-                defaultValue={t.text}
+                defaultValue={todo.text}
                 onBlur={e => {
                   const val = e.target.value.trim();
-                  if (val && val !== t.text) dispatch({ type: 'EDIT_TODO', payload: { id: t.id, text: val } });
+                  if (val && val !== todo.text) dispatch({ type: 'EDIT_TODO', payload: { id: todo.id, text: val } });
                   setEditingTodo(null);
                 }}
                 onKeyDown={e => {
@@ -296,16 +297,16 @@ export default function General({ state, dispatch, onClose }) {
               />
             ) : (
               <div style={{ flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5, cursor: 'pointer' }}
-                onClick={() => setEditingTodo(t.id)}>{t.text}</div>
+                onClick={() => setEditingTodo(todo.id)}>{todo.text}</div>
             )}
-            <button onClick={() => dispatch({ type: 'DELETE_TODO', payload: t.id })}
+            <button onClick={() => dispatch({ type: 'DELETE_TODO', payload: todo.id })}
               style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 16, padding: '0 4px', cursor: 'pointer', flexShrink: 0 }}>×</button>
           </div>
         ))}
 
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
           <input className="input" style={{ flex: 1, fontSize: 13 }}
-            placeholder="Add something..."
+            placeholder={t(lang, 'addSomething')}
             value={newTodo}
             onChange={e => setNewTodo(e.target.value)}
             onKeyDown={e => {
@@ -320,22 +321,22 @@ export default function General({ state, dispatch, onClose }) {
               dispatch({ type: 'ADD_TODO', payload: { id: genId(), text: newTodo.trim() } });
               setNewTodo('');
             }}>
-            Add
+            {t(lang, 'add')}
           </button>
         </div>
       </div>
 
       {/* WhatsApp message templates — editable by PT */}
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'rgba(255,255,255,0.7)' }}>💬 WhatsApp Messages</div>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'rgba(255,255,255,0.7)' }}>{t(lang, 'waTitle')}</div>
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 10 }}>
-          Placeholders: {'{name}'} {'{type}'} {'{emoji}'} {'{date}'} {'{time}'} {'{duration}'}
+          {t(lang, 'waPlaceholders')} {'{name}'} {'{type}'} {'{emoji}'} {'{date}'} {'{time}'} {'{duration}'}
         </div>
 
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>Booking Message</div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>{t(lang, 'bookingMsg')}</div>
           <textarea className="focus-notes" rows="6"
-            defaultValue={(state.messageTemplates && state.messageTemplates.booking) || DEFAULT_TEMPLATES.booking}
+            defaultValue={(state.messageTemplates && state.messageTemplates.booking) || DEFAULT_TEMPLATES[lang || 'en'].booking}
             onBlur={e => {
               const val = e.target.value.trim();
               dispatch({ type: 'SET_TEMPLATES', payload: { ...state.messageTemplates, booking: val || undefined } });
@@ -344,9 +345,9 @@ export default function General({ state, dispatch, onClose }) {
         </div>
 
         <div style={{ marginBottom: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>Reminder Message</div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>{t(lang, 'reminderMsg')}</div>
           <textarea className="focus-notes" rows="4"
-            defaultValue={(state.messageTemplates && state.messageTemplates.reminder) || DEFAULT_TEMPLATES.reminder}
+            defaultValue={(state.messageTemplates && state.messageTemplates.reminder) || DEFAULT_TEMPLATES[lang || 'en'].reminder}
             onBlur={e => {
               const val = e.target.value.trim();
               dispatch({ type: 'SET_TEMPLATES', payload: { ...state.messageTemplates, reminder: val || undefined } });
@@ -357,25 +358,25 @@ export default function General({ state, dispatch, onClose }) {
         <button className="btn-ghost" style={{ fontSize: 11, padding: '6px 10px' }}
           onClick={() => {
             dispatch({ type: 'SET_TEMPLATES', payload: {} });
-            alert('Templates reset to defaults. Reopen General to see the change.');
+            alert(t(lang, 'templatesReset'));
           }}>
-          Reset to Defaults
+          {t(lang, 'resetDefaults')}
         </button>
       </div>
 
       {/* Documentation — opens in-app */}
       <div>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'rgba(255,255,255,0.7)' }}>📖 Documentation</div>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'rgba(255,255,255,0.7)' }}>{t(lang, 'docsTitle')}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px' }}
             disabled={docLoading}
-            onClick={() => openDoc(DOCS.instructions, 'App Instructions')}>
-            App Instructions
+            onClick={() => openDoc(DOCS.instructions, t(lang, 'appInstructions'))}>
+            {t(lang, 'appInstructions')}
           </button>
           <button className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px' }}
             disabled={docLoading}
-            onClick={() => openDoc(DOCS.changelog, 'What Changed')}>
-            What Changed (Changelog)
+            onClick={() => openDoc(DOCS.changelog, t(lang, 'whatChanged'))}>
+            {t(lang, 'whatChanged')}
           </button>
         </div>
       </div>
