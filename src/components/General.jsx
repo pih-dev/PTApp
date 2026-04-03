@@ -327,14 +327,14 @@ export default function General({ state, dispatch, onClose, lang }) {
             onChange={e => setNewTodo(e.target.value)}
             onKeyDown={e => {
               if (e.key === 'Enter' && newTodo.trim()) {
-                dispatch({ type: 'ADD_TODO', payload: { id: genId(), text: newTodo.trim() } });
+                dispatch({ type: 'ADD_TODO', payload: { id: genId(), text: newTodo.trim(), done: false } });
                 setNewTodo('');
               }
             }} />
           <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px', flexShrink: 0 }}
             onClick={() => {
               if (!newTodo.trim()) return;
-              dispatch({ type: 'ADD_TODO', payload: { id: genId(), text: newTodo.trim() } });
+              dispatch({ type: 'ADD_TODO', payload: { id: genId(), text: newTodo.trim(), done: false } });
               setNewTodo('');
             }}>
             {t(lang, 'add')}
@@ -352,6 +352,7 @@ export default function General({ state, dispatch, onClose, lang }) {
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--t3)', marginBottom: 4 }}>{t(lang, 'bookingMsg')}</div>
           <textarea className="focus-notes" rows="6"
+            key={`booking-${JSON.stringify(state.messageTemplates?.booking || '')}`}
             defaultValue={(state.messageTemplates && state.messageTemplates.booking) || DEFAULT_TEMPLATES[lang || 'en'].booking}
             onBlur={e => {
               const val = e.target.value.trim();
@@ -363,6 +364,7 @@ export default function General({ state, dispatch, onClose, lang }) {
         <div style={{ marginBottom: 8 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--t3)', marginBottom: 4 }}>{t(lang, 'reminderMsg')}</div>
           <textarea className="focus-notes" rows="4"
+            key={`reminder-${JSON.stringify(state.messageTemplates?.reminder || '')}`}
             defaultValue={(state.messageTemplates && state.messageTemplates.reminder) || DEFAULT_TEMPLATES[lang || 'en'].reminder}
             onBlur={e => {
               const val = e.target.value.trim();

@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import Modal from './Modal';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getMonthlySessionCount, getSessionOrdinal, currentMonth, localDateStr } from '../utils';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getMonthlySessionCount, getSessionOrdinal, currentMonth, localDateStr, getStatus } from '../utils';
 import { t, dateLocale } from '../i18n';
 
 export default function Schedule({ state, dispatch, lang }) {
@@ -38,7 +38,7 @@ export default function Schedule({ state, dispatch, lang }) {
       // Create mode: one independent session per selected client
       const created = form.clientIds.map(clientId => {
         const { clientIds, ...rest } = form;
-        const session = { id: genId(), clientId, ...rest, status: 'scheduled', createdAt: new Date().toISOString() };
+        const session = { id: genId(), clientId, ...rest, status: 'scheduled', createdAt: localDateStr(new Date()) };
         dispatch({ type: 'ADD_SESSION', payload: session });
         return { client: state.clients.find(c => c.id === clientId), session };
       }).filter(c => c.client);
@@ -131,8 +131,8 @@ export default function Schedule({ state, dispatch, lang }) {
         </div>
       ) : (
         daySessions.map(session => {
-          const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
-          const status = STATUS_MAP[session.status];
+          const st = SESSION_TYPES.find(st => st.label === session.type) || SESSION_TYPES[5];
+          const status = getStatus(session.status, lang, t);
           const client = state.clients.find(c => c.id === session.clientId);
           const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
           return (
@@ -147,7 +147,7 @@ export default function Schedule({ state, dispatch, lang }) {
                     <select className="inline-type-select" value={session.type} onChange={e => {
                       dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value, focus: [] } });
                     }}>
-                      {SESSION_TYPES.map(t => <option key={t.label} value={t.label}>{t.emoji} {t.label}</option>)}
+                      {SESSION_TYPES.map(st => <option key={st.label} value={st.label}>{st.emoji} {st.label}</option>)}
                     </select>
                   </div>
                 </div>
@@ -183,7 +183,7 @@ export default function Schedule({ state, dispatch, lang }) {
                 const tags = FOCUS_TAGS[session.type] || FOCUS_TAGS.Custom;
                 const focus = session.focus || [];
                 const toggleFocus = (tag) => {
-                  const updated = focus.includes(tag) ? focus.filter(t => t !== tag) : [...focus, tag];
+                  const updated = focus.includes(tag) ? focus.filter(f => f !== tag) : [...focus, tag];
                   dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, focus: updated } });
                 };
                 return (
@@ -249,12 +249,12 @@ export default function Schedule({ state, dispatch, lang }) {
           <div className="field">
             <label className="field-label">{t(lang, 'sessionType')}</label>
             <div className="flex-row">
-              {SESSION_TYPES.map(t => (
-                <button key={t.label}
-                  className={`type-btn${form.type === t.label ? ' selected' : ''}`}
-                  style={form.type === t.label ? { borderColor: t.color, background: `${t.color}20`, color: t.color } : {}}
-                  onClick={() => setForm(p => ({ ...p, type: t.label }))}>
-                  {t.emoji} {t.label}
+              {SESSION_TYPES.map(st => (
+                <button key={st.label}
+                  className={`type-btn${form.type === st.label ? ' selected' : ''}`}
+                  style={form.type === st.label ? { borderColor: st.color, background: `${st.color}20`, color: st.color } : {}}
+                  onClick={() => setForm(p => ({ ...p, type: st.label }))}>
+                  {st.emoji} {st.label}
                 </button>
               ))}
             </div>
@@ -283,15 +283,15 @@ export default function Schedule({ state, dispatch, lang }) {
                     el.dataset.scrolled = '1';
                   }
                 }}>
-                  {TIMES.map(t => {
-                    const isSelected = form.time === t;
-                    const occ = occupied[t];
+                  {TIMES.map(tm => {
+                    const isSelected = form.time === tm;
+                    const occ = occupied[tm];
                     let cls = 'time-slot';
                     if (isSelected) cls += ' selected';
                     if (occ) cls += ' occupied';
                     return (
-                      <button key={t} className={cls} onClick={() => setForm(p => ({ ...p, time: t }))}>
-                        <span>{t}</span>
+                      <button key={tm} className={cls} onClick={() => setForm(p => ({ ...p, time: tm }))}>
+                        <span>{tm}</span>
                         {occ && <span className="time-slot-name">{occ[0].clientName}</span>}
                       </button>
                     );

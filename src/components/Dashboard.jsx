@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getSessionOrdinal, timeToMinutes } from '../utils';
+import { today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getSessionOrdinal, timeToMinutes, localDateStr, getStatus } from '../utils';
 import { t } from '../i18n';
 
 export default function Dashboard({ state, dispatch, setTab, lang }) {
@@ -23,11 +23,11 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
     .filter(s => s.date >= today() && s.status !== 'cancelled')
     .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
     .slice(0, 5);
+  // Compare date strings to avoid fractional day math errors near midnight
   const weekSessions = state.sessions.filter(s => {
-    const d = new Date(s.date + 'T00:00:00');
-    const now = new Date();
-    const diff = (d - now) / (1000 * 60 * 60 * 24);
-    return diff >= 0 && diff <= 7 && s.status !== 'cancelled';
+    const todayStr = today();
+    const weekEnd = new Date(new Date(todayStr + 'T00:00:00').getTime() + 7 * 86400000);
+    return s.date >= todayStr && s.date <= localDateStr(weekEnd) && s.status !== 'cancelled';
   });
 
   const getClientName = (id) => state.clients.find(c => c.id === id)?.name || 'Unknown';
@@ -101,15 +101,15 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
           </div>
         ) : (
           todaySessions.map((session, idx) => {
-            const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
-            const status = STATUS_MAP[session.status];
+            const st = SESSION_TYPES.find(st => st.label === session.type) || SESSION_TYPES[5];
+            const status = getStatus(session.status, lang, t);
             const client = state.clients.find(c => c.id === session.clientId);
             const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
             const tags = FOCUS_TAGS[session.type] || FOCUS_TAGS.Custom;
             const focus = session.focus || [];
             const isNext = isNowSession(session);
             const toggleFocus = (tag) => {
-              const updated = focus.includes(tag) ? focus.filter(t => t !== tag) : [...focus, tag];
+              const updated = focus.includes(tag) ? focus.filter(f => f !== tag) : [...focus, tag];
               dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, focus: updated } });
             };
             return (
@@ -125,7 +125,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                       <select className="inline-type-select" value={session.type} onChange={e => {
                         dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value } });
                       }}>
-                        {SESSION_TYPES.map(t => <option key={t.label} value={t.label}>{t.emoji} {t.label}</option>)}
+                        {SESSION_TYPES.map(st => <option key={st.label} value={st.label}>{st.emoji} {st.label}</option>)}
                       </select>
                     </div>
                   </div>
@@ -185,8 +185,8 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
           </div>
         ) : (
           upcomingSessions.map(session => {
-            const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
-            const status = STATUS_MAP[session.status];
+            const st = SESSION_TYPES.find(st => st.label === session.type) || SESSION_TYPES[5];
+            const status = getStatus(session.status, lang, t);
             const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
             return (
               <div key={session.id} className="card card-tap" style={{ borderInlineStart: `3px solid ${st.color}`, cursor: 'pointer' }}
@@ -214,8 +214,8 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
       {/* Action Sheet Modal */}
       {activeSession && (() => {
         const session = activeSession;
-        const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
-        const status = STATUS_MAP[session.status];
+        const st = SESSION_TYPES.find(st => st.label === session.type) || SESSION_TYPES[5];
+        const status = getStatus(session.status, lang, t);
         const client = state.clients.find(c => c.id === session.clientId);
         return (
           <Modal title={getClientName(session.clientId)} onClose={() => setActiveSession(null)}
@@ -273,12 +273,12 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
           <div className="field">
             <label className="field-label">{t(lang, 'sessionType')}</label>
             <div className="flex-row">
-              {SESSION_TYPES.map(t => (
-                <button key={t.label}
-                  className={`type-btn${form.type === t.label ? ' selected' : ''}`}
-                  style={form.type === t.label ? { borderColor: t.color, background: `${t.color}20`, color: t.color } : {}}
-                  onClick={() => setForm(p => ({ ...p, type: t.label }))}>
-                  {t.emoji} {t.label}
+              {SESSION_TYPES.map(st => (
+                <button key={st.label}
+                  className={`type-btn${form.type === st.label ? ' selected' : ''}`}
+                  style={form.type === st.label ? { borderColor: st.color, background: `${st.color}20`, color: st.color } : {}}
+                  onClick={() => setForm(p => ({ ...p, type: st.label }))}>
+                  {st.emoji} {st.label}
                 </button>
               ))}
             </div>
@@ -291,7 +291,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
             <div className="field" style={{ flex: 1 }}>
               <label className="field-label">{t(lang, 'time')}</label>
               <select className="select" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))}>
-                {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
+                {TIMES.map(tm => <option key={tm} value={tm}>{tm}</option>)}
               </select>
             </div>
             <div className="field" style={{ flex: 1 }}>

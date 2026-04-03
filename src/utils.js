@@ -55,11 +55,22 @@ export const FOCUS_TAGS = {
 };
 
 // ─── Session Statuses ───
-export const STATUS_MAP = {
-  scheduled: { label: 'Scheduled', color: '#3B82F6', bg: '#EFF6FF' },
-  confirmed: { label: 'Confirmed', color: '#10B981', bg: '#ECFDF5' },
-  completed: { label: 'Completed', color: '#6B7280', bg: '#F3F4F6' },
-  cancelled: { label: 'Cancelled', color: '#EF4444', bg: '#FEF2F2' },
+// Colors/backgrounds are theme-independent; labels come from i18n when lang is provided
+const STATUS_STYLES = {
+  scheduled: { color: '#3B82F6', bg: '#EFF6FF' },
+  confirmed: { color: '#10B981', bg: '#ECFDF5' },
+  completed: { color: '#6B7280', bg: '#F3F4F6' },
+  cancelled: { color: '#EF4444', bg: '#FEF2F2' },
+};
+const STATUS_FALLBACK = { scheduled: 'Scheduled', confirmed: 'Confirmed', completed: 'Completed', cancelled: 'Cancelled' };
+// STATUS_MAP kept as default English export for backward compatibility
+export const STATUS_MAP = Object.fromEntries(
+  Object.entries(STATUS_STYLES).map(([k, v]) => [k, { ...v, label: STATUS_FALLBACK[k] }])
+);
+// Use this to get translated status labels — pass lang from component
+export const getStatus = (status, lang, tFn) => {
+  const s = STATUS_STYLES[status] || STATUS_STYLES.scheduled;
+  return { ...s, label: tFn ? tFn(lang, status) : STATUS_FALLBACK[status] };
 };
 
 // ─── Time slots ───
@@ -218,6 +229,11 @@ export function reducer(state, action) {
       return { ...state, sessions: [...state.sessions, action.payload] };
     case 'UPDATE_SESSION':
       return { ...state, sessions: state.sessions.map(s => s.id === action.payload.id ? { ...s, ...action.payload } : s) };
+    case 'BATCH_COMPLETE': {
+      // Mark multiple sessions as completed in a single dispatch (avoids N re-renders)
+      const ids = new Set(action.payload);
+      return { ...state, sessions: state.sessions.map(s => ids.has(s.id) ? { ...s, status: 'completed' } : s) };
+    }
     case 'DELETE_SESSION':
       return { ...state, sessions: state.sessions.filter(s => s.id !== action.payload) };
     case 'ADD_TODO':

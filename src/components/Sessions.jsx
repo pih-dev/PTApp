@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { formatDate, SESSION_TYPES, STATUS_MAP, getSessionOrdinal, FOCUS_TAGS, DURATIONS, TIMES } from '../utils';
+import { formatDate, SESSION_TYPES, getSessionOrdinal, FOCUS_TAGS, DURATIONS, TIMES, getStatus } from '../utils';
 import { t } from '../i18n';
 
 // Editable focus tags + notes for completed sessions
@@ -8,7 +8,7 @@ function EditableFocus({ session, dispatch, lang }) {
   const tags = FOCUS_TAGS[session.type] || FOCUS_TAGS.Custom;
   const focus = session.focus || [];
   const toggleFocus = (tag) => {
-    const updated = focus.includes(tag) ? focus.filter(t => t !== tag) : [...focus, tag];
+    const updated = focus.includes(tag) ? focus.filter(f => f !== tag) : [...focus, tag];
     dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, focus: updated } });
   };
   return (
@@ -69,8 +69,8 @@ export default function Sessions({ state, dispatch, lang }) {
         </div>
       ) : (
         sorted.map(session => {
-          const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
-          const status = STATUS_MAP[session.status];
+          const st = SESSION_TYPES.find(st => st.label === session.type) || SESSION_TYPES[5];
+          const status = getStatus(session.status, lang, t);
           const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
           return (
             <div key={session.id} className="card" style={{ borderInlineStart: `3px solid ${st.color}`, padding: 14 }}>
@@ -116,7 +116,7 @@ export default function Sessions({ state, dispatch, lang }) {
           <div className="field">
             <label className="field-label">{t(lang, 'sessionType')}</label>
             <select className="select" value={editForm.type} onChange={e => setEditForm(p => ({ ...p, type: e.target.value }))}>
-              {SESSION_TYPES.map(t => <option key={t.label} value={t.label}>{t.emoji} {t.label}</option>)}
+              {SESSION_TYPES.map(st => <option key={st.label} value={st.label}>{st.emoji} {st.label}</option>)}
             </select>
           </div>
           <div className="field">
@@ -127,7 +127,7 @@ export default function Sessions({ state, dispatch, lang }) {
             <div className="field" style={{ flex: 1 }}>
               <label className="field-label">{t(lang, 'time')}</label>
               <select className="select" value={editForm.time} onChange={e => setEditForm(p => ({ ...p, time: e.target.value }))}>
-                {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
+                {TIMES.map(tm => <option key={tm} value={tm}>{tm}</option>)}
               </select>
             </div>
             <div className="field" style={{ flex: 1 }}>

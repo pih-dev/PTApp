@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, STATUS_MAP, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr } from '../utils';
+import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus } from '../utils';
 import { t, dateLocale } from '../i18n';
 
 export default function Clients({ state, dispatch, lang }) {
@@ -174,8 +174,8 @@ export default function Clients({ state, dispatch, lang }) {
                   </div>
                 ) : (
                   monthSessions.map(s => {
-                    const st = SESSION_TYPES.find(t => t.label === s.type) || SESSION_TYPES[5];
-                    const status = STATUS_MAP[s.status];
+                    const st = SESSION_TYPES.find(stype => stype.label === s.type) || SESSION_TYPES[5];
+                    const status = getStatus(s.status, lang, t);
                     return (
                       <div key={s.id} style={{
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center',

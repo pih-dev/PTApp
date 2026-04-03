@@ -41,7 +41,7 @@ export async function fetchRemoteData(token) {
   return JSON.parse(fromBase64(json.content));
 }
 
-export async function pushRemoteData(token, data) {
+export async function pushRemoteData(token, data, _retries = 0) {
   const body = {
     message: 'Update app data',
     content: toBase64(JSON.stringify(data, null, 2)),
@@ -58,9 +58,9 @@ export async function pushRemoteData(token, data) {
   });
 
   if (res.status === 409) {
-    // SHA conflict — fetch latest SHA and retry once
+    if (_retries >= 3) throw new Error('Sync conflict persists after 3 retries');
     await fetchRemoteData(token);
-    return pushRemoteData(token, data);
+    return pushRemoteData(token, data, _retries + 1);
   }
   if (res.status === 401) throw new Error('TOKEN_EXPIRED');
   if (!res.ok) throw new Error(`Sync failed (${res.status})`);

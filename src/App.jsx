@@ -9,6 +9,14 @@ import { reducer, loadData, saveData, today, timeToMinutes } from './utils';
 import { getToken, fetchRemoteData, pushRemoteData } from './sync';
 import { t } from './i18n';
 
+// Debounce timer for GitHub sync — prevents burst of API calls when multiple
+// dispatches fire in quick succession (e.g. auto-completing several sessions)
+let syncTimer = null;
+const debouncedSync = (token, data) => {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => pushRemoteData(token, data).catch(() => {}), 1000);
+};
+
 export default function App() {
   const [state, dispatch] = useReducer(reducer, null, loadData);
   const [tab, setTab] = useState('home');
@@ -42,22 +50,24 @@ export default function App() {
       });
   }, [connected]);
 
-  // Auto-complete lapsed sessions — if a scheduled/confirmed session's end time has passed, mark it completed
+  // Auto-complete lapsed sessions — batch into a single dispatch to avoid N re-renders + N API pushes
   useEffect(() => {
     if (initialLoad) return;
     const now = new Date();
     const todayStr = today();
     const nowMin = now.getHours() * 60 + now.getMinutes();
-    const lapsed = state.sessions.filter(s =>
-      (s.status === 'scheduled' || s.status === 'confirmed') &&
-      (s.date < todayStr || (s.date === todayStr && nowMin >= timeToMinutes(s.time) + (s.duration || 45)))
-    );
-    lapsed.forEach(s => {
-      dispatch({ type: 'UPDATE_SESSION', payload: { id: s.id, status: 'completed' } });
-    });
+    const lapsedIds = state.sessions
+      .filter(s =>
+        (s.status === 'scheduled' || s.status === 'confirmed') &&
+        (s.date < todayStr || (s.date === todayStr && nowMin >= timeToMinutes(s.time) + (s.duration || 45)))
+      )
+      .map(s => s.id);
+    if (lapsedIds.length > 0) {
+      dispatch({ type: 'BATCH_COMPLETE', payload: lapsedIds });
+    }
   }, [state.sessions, initialLoad]);
 
-  // Save to localStorage + sync to GitHub on every state change
+  // Save to localStorage + debounced sync to GitHub on every state change
   useEffect(() => {
     saveData(state);
     if (skipSync.current) {
@@ -66,7 +76,7 @@ export default function App() {
     }
     const token = getToken();
     if (token) {
-      pushRemoteData(token, state).catch(() => {});
+      debouncedSync(token, state);
     }
   }, [state]);
 
@@ -109,7 +119,7 @@ export default function App() {
             <div className="logo-sub">{t(lang, 'personalTrainer')}</div>
           </div>
           {/* Language + Theme toggles — stacked to save horizontal space */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginLeft: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginInlineStart: 'auto' }}>
             <button className="lang-toggle" onClick={() => {
               const next = lang === 'en' ? 'ar' : 'en';
               setLang(next);
@@ -145,10 +155,10 @@ export default function App() {
       {showGeneral && <General state={state} dispatch={dispatch} onClose={() => setShowGeneral(false)} lang={lang} />}
 
       <div className="nav">
-        {tabs.map(t => (
-          <button key={t.id} className={`nav-btn${tab === t.id ? ' active' : ''}`} onClick={() => setTab(t.id)}>
-            {t.icon}
-            {t.label}
+        {tabs.map(tb => (
+          <button key={tb.id} className={`nav-btn${tab === tb.id ? ' active' : ''}`} onClick={() => setTab(tb.id)}>
+            {tb.icon}
+            {tb.label}
           </button>
         ))}
       </div>
