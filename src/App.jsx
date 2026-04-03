@@ -59,7 +59,7 @@ export default function App() {
     const lapsedIds = state.sessions
       .filter(s =>
         (s.status === 'scheduled' || s.status === 'confirmed') &&
-        (s.date < todayStr || (s.date === todayStr && nowMin >= timeToMinutes(s.time) + (s.duration || 45)))
+        (s.date < todayStr || (s.date === todayStr && nowMin >= timeToMinutes(s.time) + (s.duration || 45) + 60))
       )
       .map(s => s.id);
     if (lapsedIds.length > 0) {
@@ -107,11 +107,12 @@ export default function App() {
       <div className="header">
         <div className="logo">
           <div className="logo-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6.5 6.5h11M6.5 17.5h11"/>
-              <rect x="2" y="5" width="4.5" height="14" rx="1.5"/>
-              <rect x="17.5" y="5" width="4.5" height="14" rx="1.5"/>
-              <line x1="4.25" y1="12" x2="19.75" y2="12"/>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="6" y1="12" x2="18" y2="12"/>
+              <rect x="3.5" y="7.5" width="3" height="9" rx="1.2"/>
+              <rect x="17.5" y="7.5" width="3" height="9" rx="1.2"/>
+              <rect x="1" y="9" width="2.5" height="6" rx="1"/>
+              <rect x="20.5" y="9" width="2.5" height="6" rx="1"/>
             </svg>
           </div>
           <div>
@@ -139,7 +140,7 @@ export default function App() {
           </div>
           <button onClick={() => setShowGeneral(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}>
-            <span className="app-version" style={{ margin: 0 }}>v2.3</span>
+            <span className="app-version" style={{ margin: 0 }}>v2.4</span>
             <span style={{ color: 'var(--t4)', fontSize: 28, lineHeight: 1 }}>⋮</span>
           </button>
         </div>
