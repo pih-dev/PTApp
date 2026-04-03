@@ -169,6 +169,7 @@ function migrateData(data) {
   data.clients = data.clients || [];
   data.sessions = data.sessions || [];
   data.todos = data.todos || [];
+  data.messageTemplates = data.messageTemplates || {};
   data._dataVersion = DATA_VERSION;
   return data;
 }
@@ -215,13 +216,15 @@ export function reducer(state, action) {
       return { ...state, sessions: state.sessions.filter(s => s.id !== action.payload) };
     case 'ADD_TODO':
       return { ...state, todos: [...(state.todos || []), action.payload] };
+    case 'SET_TEMPLATES':
+      return { ...state, messageTemplates: action.payload };
     case 'EDIT_TODO':
       return { ...state, todos: (state.todos || []).map(t => t.id === action.payload.id ? { ...t, text: action.payload.text } : t) };
     case 'DELETE_TODO':
       return { ...state, todos: (state.todos || []).filter(t => t.id !== action.payload) };
     case 'REPLACE_ALL':
       // Ensure all fields exist after replacing state (remote data may lack new fields)
-      return { todos: [], ...action.payload };
+      return { todos: [], messageTemplates: {}, ...action.payload };
     default:
       return state;
   }
@@ -231,17 +234,36 @@ export function reducer(state, action) {
 // Use nickname for friendly messages, fall back to full name
 const friendly = (client) => client.nickname || client.name.split(' ')[0];
 
-export const sendBookingWhatsApp = (client, session) => {
+// Default message templates — editable by PT in General panel
+// Placeholders: {name} {type} {emoji} {date} {time} {duration}
+export const DEFAULT_TEMPLATES = {
+  booking: `Hi {name}! 👋\n\n{emoji} Your *{type}* session is booked:\n📅 {date}\n⏰ {time} ({duration} min)\n\n👍 Like this message to confirm\n❌ Reply to cancel/reschedule\n\nSee you at the gym! 💪`,
+  reminder: `Reminder! 🔔\n\nHey {name}, just a reminder about your session:\n{emoji} {type}\n📅 {date}\n⏰ {time}\n\nSee you soon! 💪`,
+};
+
+// Replace placeholders in a template with actual session values
+const fillTemplate = (template, client, session) => {
   const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
+  return template
+    .replace(/\{name\}/g, friendly(client))
+    .replace(/\{type\}/g, session.type)
+    .replace(/\{emoji\}/g, st.emoji)
+    .replace(/\{date\}/g, formatDateLong(session.date))
+    .replace(/\{time\}/g, session.time)
+    .replace(/\{duration\}/g, String(session.duration || 45));
+};
+
+export const sendBookingWhatsApp = (client, session, templates) => {
   const phone = formatPhone(client.phone);
-  const msg = `Hi ${friendly(client)}! 👋\n\n${st.emoji} Your *${session.type}* session is booked:\n📅 ${formatDateLong(session.date)}\n⏰ ${session.time} (${session.duration} min)\n\n👍 Like this message to confirm\n❌ Reply to cancel/reschedule\n\nSee you at the gym! 💪`;
+  const tpl = (templates && templates.booking) || DEFAULT_TEMPLATES.booking;
+  const msg = fillTemplate(tpl, client, session);
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
-export const sendReminderWhatsApp = (client, session) => {
-  const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
+export const sendReminderWhatsApp = (client, session, templates) => {
   const phone = formatPhone(client.phone);
-  const msg = `Reminder! 🔔\n\nHey ${friendly(client)}, just a reminder about your session:\n${st.emoji} ${session.type}\n📅 ${formatDateLong(session.date)}\n⏰ ${session.time}\n\nSee you soon! 💪`;
+  const tpl = (templates && templates.reminder) || DEFAULT_TEMPLATES.reminder;
+  const msg = fillTemplate(tpl, client, session);
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
@@ -271,5 +293,7 @@ export const mergeBackup = (live, backup) => {
   const liveTodoIds = new Set((live.todos || []).map(t => t.id));
   const restoredTodos = (backup.todos || []).filter(t => !liveTodoIds.has(t.id));
   merged.todos = [...(live.todos || []), ...restoredTodos];
+  // Keep whichever has custom templates (live wins if both have them)
+  merged.messageTemplates = live.messageTemplates || backup.messageTemplates || {};
   return migrateData(merged);
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { exportBackup, mergeBackup, genId } from '../utils';
+import { exportBackup, mergeBackup, genId, DEFAULT_TEMPLATES } from '../utils';
 import { getToken, saveSnapshot, listSnapshots, fetchSnapshot } from '../sync';
 
 // Raw GitHub URLs for docs — fetched at runtime, not bundled
@@ -323,6 +323,44 @@ export default function General({ state, dispatch, onClose }) {
             Add
           </button>
         </div>
+      </div>
+
+      {/* WhatsApp message templates — editable by PT */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'rgba(255,255,255,0.7)' }}>💬 WhatsApp Messages</div>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 10 }}>
+          Placeholders: {'{name}'} {'{type}'} {'{emoji}'} {'{date}'} {'{time}'} {'{duration}'}
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>Booking Message</div>
+          <textarea className="focus-notes" rows="6"
+            defaultValue={(state.messageTemplates && state.messageTemplates.booking) || DEFAULT_TEMPLATES.booking}
+            onBlur={e => {
+              const val = e.target.value.trim();
+              dispatch({ type: 'SET_TEMPLATES', payload: { ...state.messageTemplates, booking: val || undefined } });
+            }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>Reminder Message</div>
+          <textarea className="focus-notes" rows="4"
+            defaultValue={(state.messageTemplates && state.messageTemplates.reminder) || DEFAULT_TEMPLATES.reminder}
+            onBlur={e => {
+              const val = e.target.value.trim();
+              dispatch({ type: 'SET_TEMPLATES', payload: { ...state.messageTemplates, reminder: val || undefined } });
+            }}
+          />
+        </div>
+
+        <button className="btn-ghost" style={{ fontSize: 11, padding: '6px 10px' }}
+          onClick={() => {
+            dispatch({ type: 'SET_TEMPLATES', payload: {} });
+            alert('Templates reset to defaults. Reopen General to see the change.');
+          }}>
+          Reset to Defaults
+        </button>
       </div>
 
       {/* Documentation — opens in-app */}
