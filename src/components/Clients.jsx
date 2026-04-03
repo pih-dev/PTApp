@@ -195,7 +195,7 @@ export default function Clients({ state, dispatch, lang }) {
                             </div>
                           )}
                         </div>
-                        <span className="badge" style={{ color: status.color, background: status.bg, fontSize: 11 }}>{status.label}</span>
+                        <span className={`badge badge-${s.status}`} style={{ fontSize: 11 }}>{status.label}</span>
                       </div>
                     );
                   })

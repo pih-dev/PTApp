@@ -81,7 +81,7 @@ export default function Sessions({ state, dispatch, lang }) {
                     {formatDate(session.date, lang)} · {session.time} · {session.duration}{t(lang, 'min')} · {st.emoji} {session.type}
                   </div>
                 </div>
-                <span className="badge" style={{ color: status.color, background: status.bg }}>{status.label}</span>
+                <span className={`badge badge-${session.status}`}>{status.label}</span>
               </div>
               {/* Actions for scheduled/confirmed sessions */}
               {(session.status === 'scheduled' || session.status === 'confirmed') && (

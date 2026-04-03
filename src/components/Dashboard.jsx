@@ -129,7 +129,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                       </select>
                     </div>
                   </div>
-                  <span className="badge" style={{ color: status.color, background: status.bg }}>{status.label}</span>
+                  <span className={`badge badge-${session.status}`}>{status.label}</span>
                 </div>
                 <div className="flex-row">
                   {(session.status === 'scheduled' || session.status === 'confirmed') && (
@@ -149,7 +149,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                     {t(lang, 'edit')}
                   </button>
                   {session.status !== 'cancelled' && (
-                    <button className="btn-icon" onClick={() => cancelSession(session)}>
+                    <button className="btn-danger-sm" onClick={() => cancelSession(session)}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     </button>
                   )}
@@ -201,7 +201,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                     <div style={{ fontSize: 13, color: 'var(--t5)', marginTop: 4 }}>{formatDate(session.date, lang)}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span className="badge" style={{ color: status.color, background: status.bg }}>{status.label}</span>
+                    <span className={`badge badge-${session.status}`}>{status.label}</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--t4)' }}><polyline points="9 18 15 12 9 6"/></svg>
                   </div>
                 </div>
@@ -227,7 +227,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
               </button>
             }>
             <div style={{ textAlign: 'center', padding: '8px 0 16px' }}>
-              <span className="badge" style={{ color: status.color, background: status.bg, fontSize: 14, padding: '6px 14px' }}>{status.label}</span>
+              <span className={`badge badge-${session.status}`} style={{ fontSize: 14, padding: '6px 14px' }}>{status.label}</span>
               <div style={{ marginTop: 12, color: 'var(--t3)', fontSize: 15 }}>
                 {st.emoji} {session.type} · {session.duration}{t(lang, 'min')}
               </div>
