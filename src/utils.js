@@ -214,11 +214,12 @@ export function reducer(state, action) {
     case 'DELETE_SESSION':
       return { ...state, sessions: state.sessions.filter(s => s.id !== action.payload) };
     case 'ADD_TODO':
-      return { ...state, todos: [...state.todos, action.payload] };
+      return { ...state, todos: [...(state.todos || []), action.payload] };
     case 'DELETE_TODO':
-      return { ...state, todos: state.todos.filter(t => t.id !== action.payload) };
+      return { ...state, todos: (state.todos || []).filter(t => t.id !== action.payload) };
     case 'REPLACE_ALL':
-      return action.payload;
+      // Ensure all fields exist after replacing state (remote data may lack new fields)
+      return { todos: [], ...action.payload };
     default:
       return state;
   }
