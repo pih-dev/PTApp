@@ -79,7 +79,7 @@ export default function App() {
       <div className="setup-container">
         <div className="setup-card" style={{ textAlign: 'center' }}>
           <div className="setup-spinner" />
-          <p style={{ marginTop: 16, color: 'rgba(255,255,255,0.5)' }}>{t(lang, 'syncing')}</p>
+          <p style={{ marginTop: 16, color: 'var(--t4)' }}>{t(lang, 'syncing')}</p>
         </div>
       </div>
     );
@@ -129,7 +129,7 @@ export default function App() {
           <button onClick={() => setShowGeneral(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}>
             <span className="app-version" style={{ margin: 0 }}>v2.2</span>
-            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 28, lineHeight: 1 }}>⋮</span>
+            <span style={{ color: 'var(--t4)', fontSize: 28, lineHeight: 1 }}>⋮</span>
           </button>
         </div>
       </div>

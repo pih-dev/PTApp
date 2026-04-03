@@ -117,7 +117,7 @@ export default function Clients({ state, dispatch, lang }) {
               <div style={{ flex: 1 }}>
                 <div className="client-name">
                   {c.name}
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--t4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                     style={{ marginLeft: 6, transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>
                     <polyline points="9 18 15 12 9 6"/>
                   </svg>
@@ -127,7 +127,7 @@ export default function Clients({ state, dispatch, lang }) {
                   {c.phone}
                 </div>
                 {(c.gender || c.birthdate) && (
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>
+                  <div style={{ fontSize: 12, color: 'var(--t4)', marginBottom: 2 }}>
                     {c.gender === 'male' ? 'M' : c.gender === 'female' ? 'F' : ''}
                     {c.gender && c.birthdate ? ' · ' : ''}
                     {c.birthdate || ''}
@@ -152,7 +152,7 @@ export default function Clients({ state, dispatch, lang }) {
 
             {/* Expanded: month navigator + session list */}
             {isExpanded && (
-              <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 12 }}>
+              <div style={{ marginTop: 12, borderTop: '1px solid var(--sep)', paddingTop: 12 }}>
                 {/* Month navigator */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <button className="btn-ghost" style={{ padding: '4px 8px', fontSize: 18 }} onClick={() => shiftMonth(-1)}>‹</button>
@@ -161,7 +161,7 @@ export default function Clients({ state, dispatch, lang }) {
                 </div>
 
                 {/* Month summary */}
-                <div style={{ display: 'flex', gap: 12, marginBottom: 10, fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
+                <div style={{ display: 'flex', gap: 12, marginBottom: 10, fontSize: 12, color: 'var(--t4)' }}>
                   <span>{monthTotal} {t(lang, 'sessionWord')}</span>
                   {completedCount > 0 && <span style={{ color: '#10B981' }}>{completedCount} {t(lang, 'completed')}</span>}
                   {cancelledCount > 0 && <span style={{ color: '#EF4444' }}>{cancelledCount} {t(lang, 'cancelled')}</span>}
@@ -169,7 +169,7 @@ export default function Clients({ state, dispatch, lang }) {
 
                 {/* Session list */}
                 {monthSessions.length === 0 ? (
-                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textAlign: 'center', padding: '8px 0' }}>
+                  <div style={{ fontSize: 13, color: 'var(--t4)', textAlign: 'center', padding: '8px 0' }}>
                     {t(lang, 'noSessionsMonth')}
                   </div>
                 ) : (
@@ -179,18 +179,18 @@ export default function Clients({ state, dispatch, lang }) {
                     return (
                       <div key={s.id} style={{
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 13
+                        padding: '8px 0', borderBottom: '1px solid var(--sep)', fontSize: 13
                       }}>
                         <div>
-                          <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                          <div style={{ color: 'var(--t2)' }}>
                             {formatDate(s.date, lang)} · {s.time} · {s.duration}{t(lang, 'min')}
                           </div>
-                          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                          <div style={{ fontSize: 12, color: 'var(--t5)', marginTop: 2 }}>
                             {st.emoji} {s.type}
                             {s.focus && s.focus.length > 0 && ` · ${s.focus.join(', ')}`}
                           </div>
                           {s.sessionNotes && (
-                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2, fontStyle: 'italic' }}>
+                            <div style={{ fontSize: 11, color: 'var(--t4)', marginTop: 2, fontStyle: 'italic' }}>
                               {s.sessionNotes}
                             </div>
                           )}
@@ -222,7 +222,7 @@ export default function Clients({ state, dispatch, lang }) {
               onBlur={e => setForm(p => ({ ...p, name: capitalizeName(p.name) }))} />
           </div>
           <div className="field">
-            <label className="field-label">{t(lang, 'nickname')} <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.5)' }}>{t(lang, 'nickLabel')}</span></label>
+            <label className="field-label">{t(lang, 'nickname')} <span style={{ fontWeight: 400, color: 'var(--t4)' }}>{t(lang, 'nickLabel')}</span></label>
             <input className="input" placeholder="e.g. Ahmad" value={form.nickname}
               onChange={e => setForm(p => ({ ...p, nickname: e.target.value }))} />
           </div>

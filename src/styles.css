@@ -39,6 +39,13 @@ button:active { transform: scale(0.97); }
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  /* Theme-aware colors for inline styles — dark defaults, overridden in .theme-light */
+  --t1: rgba(255,255,255,0.9);   /* primary: bold, headings */
+  --t2: rgba(255,255,255,0.7);   /* secondary: titles, labels */
+  --t3: rgba(255,255,255,0.6);   /* tertiary: meta, descriptions */
+  --t4: rgba(255,255,255,0.5);   /* muted: hints, counts, icons */
+  --t5: rgba(255,255,255,0.4);   /* dim: subtle info */
+  --sep: rgba(255,255,255,0.06); /* separators / borders */
 }
 
 .header {
@@ -531,7 +538,15 @@ button:active { transform: scale(0.97); }
 
 /* ─── Light Theme ─── */
 /* Swap: dark bg → white, red accent → blue, white text → dark text */
-.theme-light { background: linear-gradient(145deg, #F8F9FA 0%, #EEF0F4 50%, #E8ECF2 100%); color: #1A1A2E; }
+.theme-light {
+  background: linear-gradient(145deg, #F8F9FA 0%, #EEF0F4 50%, #E8ECF2 100%); color: #1A1A2E;
+  --t1: rgba(0,0,0,0.85);
+  --t2: rgba(0,0,0,0.6);
+  --t3: rgba(0,0,0,0.5);
+  --t4: rgba(0,0,0,0.4);
+  --t5: rgba(0,0,0,0.3);
+  --sep: rgba(0,0,0,0.06);
+}
 .theme-light .header { border-bottom-color: rgba(0,0,0,0.08); }
 .theme-light .logo-icon { background: linear-gradient(135deg, #2563EB, #60A5FA); box-shadow: 0 4px 20px rgba(37,99,235,0.3); }
 .theme-light .logo-text { background: linear-gradient(135deg, #1A1A2E, #444); -webkit-background-clip: text; }

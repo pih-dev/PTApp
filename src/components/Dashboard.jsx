@@ -117,7 +117,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                 className={`card${isNext ? ' card-now' : ''}`} style={{ borderInlineStart: `3px solid ${isNext ? '#E8453C' : st.color}` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                   <div>
-                    <div className="client-name">{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.5)' }}>#{monthCount}</span></div>
+                    <div className="client-name">{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--t4)' }}>#{monthCount}</span></div>
                     <div className="meta">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                       {session.time} · {session.duration}{t(lang, 'min')} ·{' '}
@@ -193,16 +193,16 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                 onClick={() => openActions(session)}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <div className="client-name">{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.5)' }}>#{monthCount}</span></div>
+                    <div className="client-name">{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--t4)' }}>#{monthCount}</span></div>
                     <div className="meta">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                       {session.time} · {session.duration}{t(lang, 'min')} · {st.emoji} {session.type}
                     </div>
-                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>{formatDate(session.date, lang)}</div>
+                    <div style={{ fontSize: 13, color: 'var(--t5)', marginTop: 4 }}>{formatDate(session.date, lang)}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span className="badge" style={{ color: status.color, background: status.bg }}>{status.label}</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--t4)' }}><polyline points="9 18 15 12 9 6"/></svg>
                   </div>
                 </div>
               </div>
@@ -228,10 +228,10 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
             }>
             <div style={{ textAlign: 'center', padding: '8px 0 16px' }}>
               <span className="badge" style={{ color: status.color, background: status.bg, fontSize: 14, padding: '6px 14px' }}>{status.label}</span>
-              <div style={{ marginTop: 12, color: 'rgba(255,255,255,0.6)', fontSize: 15 }}>
+              <div style={{ marginTop: 12, color: 'var(--t3)', fontSize: 15 }}>
                 {st.emoji} {session.type} · {session.duration}{t(lang, 'min')}
               </div>
-              <div style={{ marginTop: 4, color: 'rgba(255,255,255,0.6)', fontSize: 15 }}>
+              <div style={{ marginTop: 4, color: 'var(--t3)', fontSize: 15 }}>
                 {formatDateLong(session.date, lang)} at {session.time}
               </div>
             </div>
