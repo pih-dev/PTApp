@@ -2,6 +2,34 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import { formatDate, SESSION_TYPES, STATUS_MAP, getSessionOrdinal, FOCUS_TAGS, DURATIONS, TIMES } from '../utils';
 
+// Editable focus tags + notes for completed sessions
+function EditableFocus({ session, dispatch }) {
+  const tags = FOCUS_TAGS[session.type] || FOCUS_TAGS.Custom;
+  const focus = session.focus || [];
+  const toggleFocus = (tag) => {
+    const updated = focus.includes(tag) ? focus.filter(t => t !== tag) : [...focus, tag];
+    dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, focus: updated } });
+  };
+  return (
+    <div style={{ marginTop: 6 }}>
+      <div className="focus-row">
+        {tags.map(tag => (
+          <button key={tag} className={`focus-tag${focus.includes(tag) ? ' active' : ''}`}
+            onClick={() => toggleFocus(tag)}>{tag}</button>
+        ))}
+      </div>
+      <textarea className="focus-notes" rows="1" placeholder="Notes..."
+        defaultValue={session.sessionNotes || ''}
+        onBlur={e => {
+          if (e.target.value !== (session.sessionNotes || '')) {
+            dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, sessionNotes: e.target.value } });
+          }
+        }}
+      />
+    </div>
+  );
+}
+
 export default function Sessions({ state, dispatch }) {
   const [filter, setFilter] = useState('scheduled');
   const [editingSession, setEditingSession] = useState(null);
@@ -26,7 +54,7 @@ export default function Sessions({ state, dispatch }) {
     <div>
       <div className="section-title" style={{ marginTop: 16 }}>📋 All Sessions ({sorted.length})</div>
       <div className="filter-row">
-        {['active', 'all', 'scheduled', 'confirmed', 'completed', 'cancelled'].map(f => (
+        {['active', 'all', 'scheduled', 'completed', 'cancelled'].map(f => (
           <button key={f} className={`filter-btn${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>
             {f === 'active' ? 'Active' : f === 'all' ? 'All' : STATUS_MAP[f]?.label}
           </button>
@@ -72,18 +100,9 @@ export default function Sessions({ state, dispatch }) {
                     onClick={() => dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, status: 'completed' } })}>✅ Complete</button>
                 </div>
               )}
-              {/* Show focus tags and notes (read-only) */}
-              {((session.focus && session.focus.length > 0) || session.sessionNotes) && (
-                <div style={{ marginTop: 6 }}>
-                  {session.focus && session.focus.length > 0 && (
-                    <div className="focus-row">
-                      {session.focus.map(tag => (
-                        <span key={tag} className="focus-tag active readonly">{tag}</span>
-                      ))}
-                    </div>
-                  )}
-                  {session.sessionNotes && <div className="focus-display">{session.sessionNotes}</div>}
-                </div>
+              {/* Editable focus tags + notes for completed sessions */}
+              {session.status === 'completed' && (
+                <EditableFocus session={session} dispatch={dispatch} />
               )}
             </div>
           );

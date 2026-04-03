@@ -14,6 +14,7 @@ export default function App() {
   const [showGeneral, setShowGeneral] = useState(false);
   const [connected, setConnected] = useState(!!getToken());
   const [initialLoad, setInitialLoad] = useState(!!getToken());
+  const [lang, setLang] = useState(() => localStorage.getItem('ptapp-lang') || 'en');
   const skipSync = useRef(true);
 
   // On first load with token, fetch remote data
@@ -90,9 +91,18 @@ export default function App() {
             <div className="logo-text">PTApp</div>
             <div className="logo-sub">Personal Trainer</div>
           </div>
+          {/* Language toggle — Ar/En */}
+          <button className="lang-toggle" onClick={() => {
+            const next = lang === 'en' ? 'ar' : 'en';
+            setLang(next);
+            localStorage.setItem('ptapp-lang', next);
+          }}>
+            <span className={lang === 'ar' ? 'lang-active' : ''}>Ar</span>
+            <span className={lang === 'en' ? 'lang-active' : ''}>En</span>
+          </button>
           <button onClick={() => setShowGeneral(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}>
-            <span className="app-version" style={{ margin: 0 }}>v2.0</span>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}>
+            <span className="app-version" style={{ margin: 0 }}>v2.1</span>
             <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 28, lineHeight: 1 }}>⋮</span>
           </button>
         </div>

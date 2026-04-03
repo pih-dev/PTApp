@@ -153,9 +153,6 @@ export default function Schedule({ state, dispatch }) {
                 <span className="badge" style={{ color: status.color, background: status.bg }}>{status.label}</span>
               </div>
               <div className="flex-row">
-                {session.status === 'scheduled' && (
-                  <button className="btn-confirm" onClick={() => updateStatus(session.id, 'confirmed')}>✓ Confirm</button>
-                )}
                 {(session.status === 'scheduled' || session.status === 'confirmed') && (
                   <button className="btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }}
                     onClick={() => updateStatus(session.id, 'completed')}>✅ Complete</button>

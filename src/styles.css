@@ -77,6 +77,26 @@ button:active { transform: scale(0.97); }
   font-weight: 500;
 }
 
+/* Language toggle (Ar/En) */
+.lang-toggle {
+  display: flex; align-items: center; gap: 0;
+  margin-left: auto;
+  background: rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 2px;
+  font-size: 12px; font-weight: 600;
+}
+.lang-toggle span {
+  padding: 5px 10px;
+  border-radius: 6px;
+  color: rgba(255,255,255,0.3);
+  transition: all 0.2s;
+}
+.lang-toggle .lang-active {
+  background: rgba(232,69,60,0.2);
+  color: #FF6B6B;
+}
+
 .content {
   flex: 1;
   overflow-y: auto;

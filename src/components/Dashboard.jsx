@@ -22,7 +22,6 @@ export default function Dashboard({ state, dispatch, setTab }) {
     .filter(s => s.date >= today() && s.status !== 'cancelled')
     .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
     .slice(0, 5);
-  const confirmedCount = state.sessions.filter(s => s.status === 'confirmed' && s.date >= today()).length;
   const weekSessions = state.sessions.filter(s => {
     const d = new Date(s.date + 'T00:00:00');
     const now = new Date();
@@ -74,10 +73,6 @@ export default function Dashboard({ state, dispatch, setTab }) {
         <div className="stat-card" style={{ background: 'linear-gradient(135deg, #3B82F615, #3B82F608)', border: '1px solid #3B82F625' }}>
           <div className="stat-num">{todaySessions.length}</div>
           <div className="stat-label">Today</div>
-        </div>
-        <div className="stat-card" style={{ background: 'linear-gradient(135deg, #10B98115, #10B98108)', border: '1px solid #10B98125' }}>
-          <div className="stat-num">{confirmedCount}</div>
-          <div className="stat-label">Confirmed</div>
         </div>
         <div className="stat-card" style={{ background: 'linear-gradient(135deg, #8B5CF615, #8B5CF608)', border: '1px solid #8B5CF625' }}>
           <div className="stat-num">{weekSessions.length}</div>
@@ -136,9 +131,6 @@ export default function Dashboard({ state, dispatch, setTab }) {
                   <span className="badge" style={{ color: status.color, background: status.bg }}>{status.label}</span>
                 </div>
                 <div className="flex-row">
-                  {session.status === 'scheduled' && (
-                    <button className="btn-confirm" onClick={() => updateStatus(session.id, 'confirmed')}>✓ Confirm</button>
-                  )}
                   {(session.status === 'scheduled' || session.status === 'confirmed') && (
                     <button className="btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }}
                       onClick={() => updateStatus(session.id, 'completed')}>✅ Complete</button>
@@ -243,12 +235,6 @@ export default function Dashboard({ state, dispatch, setTab }) {
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {session.status === 'scheduled' && (
-                <button className="btn-confirm" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
-                  onClick={() => updateStatus(session.id, 'confirmed')}>
-                  ✓ Confirm
-                </button>
-              )}
               {(session.status === 'scheduled' || session.status === 'confirmed') && (
                 <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
                   onClick={() => updateStatus(session.id, 'completed')}>
