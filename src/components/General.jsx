@@ -5,7 +5,7 @@ import { getToken, saveSnapshot, listSnapshots, fetchSnapshot } from '../sync';
 
 // Raw GitHub URLs for docs — fetched at runtime, not bundled
 const DOCS = {
-  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.0.md',
+  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.1.md',
   changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
 };
 

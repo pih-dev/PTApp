@@ -4,6 +4,32 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.1 — Streamlined Workflow, Readability, Language Toggle (2026-04-03)
+
+**What changed:**
+- Removed "✓ Confirm" button from Schedule.jsx, Dashboard.jsx (expanded + action sheet)
+- Removed "Confirmed" stat card from Dashboard overview (now 3 cards: Clients, Today, This Week)
+- Removed `confirmed` from Sessions.jsx filter row
+- Auto-complete: new `useEffect` in App.jsx marks scheduled/confirmed sessions as completed when their end time (start + duration) has passed
+- Sessions.jsx: completed sessions now show `EditableFocus` component (tappable tags + notes textarea) instead of read-only display
+- All text opacity bumped across CSS and inline JSX — values like 0.25→0.4, 0.3→0.5, 0.35→0.5, 0.4→0.55, 0.5→0.65
+- Ar/En language toggle in App.jsx header — `lang` state persisted to localStorage (`ptapp-lang`)
+- New `EDIT_TODO` reducer case in utils.js
+- Todo items in General.jsx now editable inline (tap to switch to input, blur/Enter to save)
+
+**Why — Remove confirmation:**
+The PT never uses the Confirm step. Sessions go scheduled→completed in practice. Hiding it removes a button that adds friction without value. The `confirmed` status still exists in STATUS_MAP for backward compatibility with existing data.
+
+**Why — Auto-complete:**
+The PT doesn't bother tapping "Complete" after each session — he's busy training. Sessions from yesterday or earlier today were stuck on "Scheduled" indefinitely. Auto-completing when the session's end time passes makes the workflow organic. If a session needs cancelling, that option remains available.
+
+**Why — Readability bump:**
+The dark theme's secondary text was too faint (0.25–0.35 opacity) to read in bright environments like a gym. Systematic bump of all text opacity values while maintaining visual hierarchy.
+
+**Files changed:** `src/App.jsx`, `src/utils.js`, `src/styles.css`, `src/components/Dashboard.jsx`, `src/components/Schedule.jsx`, `src/components/Sessions.jsx`, `src/components/Clients.jsx`, `src/components/General.jsx`
+
+---
+
 ## v2.0 — Nicknames, General Panel, Backup & Docs (2026-04-02)
 
 **What changed:**

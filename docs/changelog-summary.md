@@ -4,6 +4,22 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.1 — Streamlined Workflow, Readability, Language Toggle (Apr 3, 2026)
+
+**Confirmation removed:** The "Confirm" button and "Confirmed" status have been hidden everywhere — sessions go straight from Scheduled to Completed. The Confirmed stat card is gone from the Dashboard. The PT never used confirmation, so it was just clutter.
+
+**Auto-complete lapsed sessions:** When a scheduled session's end time passes, it's automatically marked as completed. No more forgotten sessions stuck on "Scheduled" from yesterday. If a session needs cancelling, the Cancel option is still there.
+
+**Completed sessions are editable:** In the Sessions tab, completed sessions now have tappable focus tags and an editable notes field — same as the Schedule and Dashboard views. Previously these were read-only after completion.
+
+**Better readability:** All secondary text (labels, meta info, notes, placeholders) has been brightened for better visibility on the dark background. The app was hard to read in bright environments.
+
+**Language toggle (Ar/En):** A small Ar/En pill toggle in the header, between the title and the ⋮ button. Defaults to English, persists across sessions. Arabic translations will be wired up in a future version.
+
+**Editable todo list:** Todo items in the General panel can now be tapped to edit inline. Previously they could only be added or deleted.
+
+---
+
 ## v2.0 — Nicknames, General Panel, Backup & Docs (Apr 2, 2026)
 
 **Nicknames:** Clients now have a nickname field that auto-fills with their first name. The nickname is used in WhatsApp messages instead of the full name — "Hi Ahmad!" instead of "Hi Ahmad Khalil!". Existing client names were auto-capitalized and nicknames populated during migration.
