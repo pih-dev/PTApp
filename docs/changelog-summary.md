@@ -4,6 +4,26 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (Apr 3, 2026)
+
+**Light theme feels like its own app now.** The background is cooler and darker, cards are near-opaque white with real shadows that make them float, the nav bar is frosted white glass with blur (like iOS), and modals are clean white instead of matching the page. Everything has clear visual layers — cards above background, nav above content, modal above everything.
+
+**Everything moves smoothly.** Cards, focus tags, filter buttons, badges, and week day pills all transition between states instead of snapping. The modal slides up with a spring bounce (slight overshoot that settles). Buttons darken and push inward on press. Tappable cards push down 1px. Small things, but the whole app feels more alive.
+
+**Session notes glow blue.** When you tap into a notes field, it gets a blue tint (you're recording). When you type something and tap away, the blue stays — a visual signal that "this session has notes." Empty fields return to normal.
+
+**You can feel the taps.** On Android, tapping nav tabs, focus tags, complete/cancel buttons, filters, delete buttons, and todo checkboxes triggers a 10ms vibration. Subtle tactile feedback that makes the app feel physical. iOS doesn't support this (Safari limitation), but the PT can try it on Pierre's phone.
+
+**The logo is a dumbbell now.** The old icon (two tall rectangles connected by a bar) looked like a water jug. Replaced with a proper horizontal dumbbell — center bar with stacked weight plates on each side. Recognizable at any size.
+
+**Sessions auto-complete 1 hour later.** Previously, sessions were marked completed the moment their end time passed. Now there's a 1-hour buffer — gives the PT time to cancel a no-show before the system marks it done. Sessions from previous days still complete immediately on app load.
+
+**Stat cards have a glow.** The three stat cards on the dashboard now have a subtle blue gradient tint instead of being flat. Matches the blue accent throughout.
+
+**Active tab dot.** A small blue dot appears under the active nav tab icon — an extra "you are here" signal beyond the color change.
+
+---
+
 ## v2.3.2 — Visual Polish: Solid Badges, Indigo Light Theme, Depth (Apr 3, 2026)
 
 **Light theme no longer bland:** The light theme got a personality upgrade. All text now has an indigo tint instead of plain black — headings, labels, meta text all carry a subtle purple-blue warmth. The logo gradient matches. Cards have soft shadows for a layered "3D" feel similar to the dark theme. The nav bar has a top shadow for visual separation.

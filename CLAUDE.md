@@ -12,15 +12,22 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.3
+## Current Version: v2.4
 - Blue accent color (both themes)
-- Warm stone light theme with indigo-tinted text
+- Light theme redesigned: white glass cards/nav/modals on cooler grey canvas
+- Dark theme: micro-polished with transitions, button press feel, spring modals
 - Solid status badges (blue/green/red on white)
-- Solid blue active filter tabs
+- Solid blue active filter tabs with smooth transitions
 - Red delete buttons (solid, white icon)
-- Card shadows for depth in both themes
+- Card shadows for depth, cards push down on tap
+- Nav active indicator dot (blue pill under active tab)
+- Session notes blue hue (on focus + when has content)
+- Haptic feedback on Android (vibrate on taps)
+- Horizontal dumbbell logo (was vertical water-jug shape)
+- Auto-complete 1hr after session end (was immediate)
 - i18n (English + Arabic)
 - Todo list with checkboxes in General panel
+- See `docs/design-system.md` for comprehensive visual design documentation
 
 ## Roadmap
 

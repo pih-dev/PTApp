@@ -4,6 +4,88 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (2026-04-03)
+
+**What changed:**
+
+*Light theme redesign — layer separation:*
+- Background: `#E8E6E1 → #D8D4CD` warm beige changed to `#E2E0DB → #CDCAC4` cooler grey
+- Cards: `rgba(255,255,255,0.4)` → `rgba(255,255,255,0.72)` near-opaque white
+- Card shadows: `rgba(30,27,75,0.06)` → `rgba(30,27,75,0.1)` real depth
+- Nav: `rgba(232,230,225,0.97)` opaque beige → `rgba(255,255,255,0.82)` white glass with `backdrop-filter: blur(20px)`
+- Nav shadow: `0 -2px 8px rgba(0,0,0,0.05)` → `0 -2px 12px rgba(30,27,75,0.08)`
+- Modals: `#E8E6E1 → #DEDBD5` beige → `rgba(255,255,255,0.95) → rgba(248,247,245,0.97)` white
+- Inputs: `rgba(255,255,255,0.4)` → `rgba(255,255,255,0.7)` clean white
+- Focus notes: `rgba(255,255,255,0.35)` → `rgba(255,255,255,0.6)`
+- Setup card: `rgba(255,255,255,0.35)` → `rgba(255,255,255,0.7)`
+- Card-now glow shadow: `0.15` → `0.2` opacity
+- Card press: `background` change → `translateY(1px)` + shadow reduction
+- Button press: added `rgba(30,27,75,0.08)` override for secondary/ghost
+- Stat cards: added `linear-gradient(135deg, rgba(37,99,235,0.04), rgba(37,99,235,0.01))`
+
+*Micro-polish — transitions (both themes):*
+- `.card`: `transition: background 0.2s` → `background 0.2s, box-shadow 0.2s, transform 0.2s`
+- `.focus-tag`: added `transition: all 0.15s ease`
+- `.badge`: added `transition: background 0.2s, color 0.2s`
+- `.filter-btn`: added `transition: all 0.15s ease`
+- `.week-day`: added `transition: all 0.15s ease`
+
+*Micro-polish — button/card press (both themes):*
+- `.btn-primary:active` etc: added `box-shadow: 0 1px 4px`, `filter: brightness(0.92)`
+- `.btn-secondary:active`, `.btn-ghost:active`: added `background: rgba(255,255,255,0.12)`
+- `.card.card-tap:active`: `background` change → `translateY(1px)` + `box-shadow: 0 1px 4px`
+
+*Nav active indicator:*
+- `.nav-btn.active::after`: 4px blue dot below active tab label
+
+*Modal spring:*
+- `animation: slideUp 0.3s ease` → `slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)`
+
+*Stat cards:*
+- Added `background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(37,99,235,0.02))` + border
+
+*Session notes blue hue:*
+- New CSS: `.focus-notes:focus` blue tint, `.focus-notes.has-content` blue persists
+- Dashboard.jsx, Schedule.jsx, Sessions.jsx: `className` includes conditional `has-content`
+- `onBlur` handler toggles `.has-content` class via `classList.toggle()`
+
+*Haptic feedback:*
+- New `haptic()` helper in utils.js: `navigator.vibrate?.(ms)` with try/catch
+- Wired into: App.jsx (nav tabs), Dashboard.jsx (complete, cancel, focus tags), Schedule.jsx (complete, cancel, focus tags), Sessions.jsx (focus tags, filter tabs), Clients.jsx (delete), General.jsx (todo checkbox)
+
+*Dumbbell logo:*
+- App.jsx SVG: replaced tall vertical rectangles with horizontal bar + stacked plates
+- `strokeWidth` 2.5 → 2 for cleaner look
+
+*Auto-complete delay:*
+- App.jsx line ~62: `timeToMinutes(s.time) + (s.duration || 45)` → `+ 60` added
+- Today's sessions get 1hr buffer; previous days still complete immediately
+
+*Version:*
+- v2.3 → v2.4 in header label
+
+**Why — Light theme redesign:**
+Pierre found the light theme "inferior to the dark." Diagnosis: everything blended — cards, nav, modals, and background were all warm beige at similar opacity. The fix creates clear visual layers: cooler background provides contrast canvas, near-opaque white cards float with real shadows, nav gets iOS-style white glass with blur, modals are white overlays distinct from the page. The dark theme works because light on dark is inherently contrasty; the light theme now achieves contrast through white-on-grey layering + shadows.
+
+**Why — Micro-polish:**
+Pierre's goal: "maximum sophistication... Apple achieved superiority in UX." The individual changes are small (transitions, press effects, a dot, a spring curve) but they compound. When every interaction responds fluidly instead of snapping, the app feels crafted rather than assembled. Performance cost is near zero — all CSS transitions, no JS animation loops.
+
+**Why — Session notes blue hue:**
+Pierre's idea. Focus tags already go blue when active — notes should match. The persistent blue hue on non-empty notes provides an information signal: scanning session cards, you can instantly see which ones have notes recorded without reading the content.
+
+**Why — Haptic feedback:**
+Pierre's idea. `navigator.vibrate()` works on Android only (iOS Safari doesn't support it). The PT uses iPhone so he won't feel it, but Pierre tests on Android and can demo it. Zero cost on unsupported devices — the helper is a one-liner with optional chaining.
+
+**Why — Dumbbell logo:**
+Pierre: "I thought it was a gallon of water." The old SVG's proportions (tall narrow rectangles) didn't read as a dumbbell at 24px. The new design uses the classic horizontal silhouette that's recognizable at any size.
+
+**Why — Auto-complete delay:**
+Pierre's idea. The PT sometimes needs to cancel a no-show, but if the session auto-completes the moment it ends, the PT has to undo the completion. A 1-hour buffer gives time to mark the cancellation naturally. Previous days still auto-complete immediately on app load (no stale scheduled sessions from yesterday).
+
+**Files changed:** `src/styles.css`, `src/App.jsx`, `src/utils.js`, `src/components/Dashboard.jsx`, `src/components/Schedule.jsx`, `src/components/Sessions.jsx`, `src/components/Clients.jsx`, `src/components/General.jsx`
+
+---
+
 ## v2.3.2 — Visual Polish: Solid Badges, Indigo Light Theme, Depth (2026-04-03)
 
 **What changed:**
