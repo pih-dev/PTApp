@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, STATUS_MAP, getMonthlySessionCount, formatDate, capitalizeName } from '../utils';
+import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, STATUS_MAP, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr } from '../utils';
 import { t, dateLocale } from '../i18n';
 
 export default function Clients({ state, dispatch, lang }) {
@@ -10,7 +10,7 @@ export default function Clients({ state, dispatch, lang }) {
   const [search, setSearch] = useState('');
   const [countryCode, setCountryCode] = useState(getDefaultCountryCode);
   const [expandedId, setExpandedId] = useState(null);
-  const [viewMonth, setViewMonth] = useState(() => new Date().toISOString().slice(0, 7)); // YYYY-MM
+  const [viewMonth, setViewMonth] = useState(() => localMonthStr(new Date()));
 
   const openAdd = () => {
     setForm({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '' });
@@ -46,7 +46,7 @@ export default function Clients({ state, dispatch, lang }) {
   const shiftMonth = (dir) => {
     const [y, m] = viewMonth.split('-').map(Number);
     const d = new Date(y, m - 1 + dir, 1);
-    setViewMonth(d.toISOString().slice(0, 7));
+    setViewMonth(localMonthStr(d));
   };
   const monthLabel = (ym) => {
     const [y, m] = ym.split('-').map(Number);
@@ -64,7 +64,7 @@ export default function Clients({ state, dispatch, lang }) {
       setExpandedId(null);
     } else {
       setExpandedId(clientId);
-      setViewMonth(new Date().toISOString().slice(0, 7));
+      setViewMonth(localMonthStr(new Date()));
     }
   };
 

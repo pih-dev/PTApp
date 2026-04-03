@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Modal from './Modal';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getMonthlySessionCount, getSessionOrdinal, currentMonth } from '../utils';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getMonthlySessionCount, getSessionOrdinal, currentMonth, localDateStr } from '../utils';
 import { t, dateLocale } from '../i18n';
 
 export default function Schedule({ state, dispatch, lang }) {
@@ -71,7 +71,7 @@ export default function Schedule({ state, dispatch, lang }) {
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    weekDates.push(d.toISOString().split('T')[0]);
+    weekDates.push(localDateStr(d));
   }
 
   const getClientName = (id) => state.clients.find(c => c.id === id)?.name || 'Unknown';
@@ -103,13 +103,13 @@ export default function Schedule({ state, dispatch, lang }) {
         <button className="btn-secondary" onClick={() => {
           const d = new Date(selectedDate + 'T00:00:00');
           d.setDate(d.getDate() - 7);
-          setSelectedDate(d.toISOString().split('T')[0]);
+          setSelectedDate(localDateStr(d));
         }}>{t(lang, 'prev')}</button>
         <span className="week-nav-label">{formatDateLong(selectedDate, lang)}</span>
         <button className="btn-secondary" onClick={() => {
           const d = new Date(selectedDate + 'T00:00:00');
           d.setDate(d.getDate() + 7);
-          setSelectedDate(d.toISOString().split('T')[0]);
+          setSelectedDate(localDateStr(d));
         }}>{t(lang, 'next')}</button>
       </div>
 

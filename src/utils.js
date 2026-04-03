@@ -121,15 +121,19 @@ export const getSessionOrdinal = (sessions, sessionId, clientId, month) => {
   return monthSessions.findIndex(s => s.id === sessionId) + 1;
 };
 
-// Get current month as YYYY-MM
-export const currentMonth = () => new Date().toISOString().slice(0, 7);
-
 // ─── Date helpers ───
-// Use local date, not UTC — toISOString() returns UTC which is wrong after midnight in Beirut (UTC+3)
-export const today = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
+// NEVER use toISOString() for display dates — it converts to UTC, so midnight in
+// Beirut (UTC+3) becomes the previous day. All date→string must use local time.
+export const today = () => localDateStr(new Date());
+export const currentMonth = () => localMonthStr(new Date());
+
+// Convert a Date object to YYYY-MM-DD using LOCAL time (not UTC)
+export const localDateStr = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+// Convert a Date object to YYYY-MM using LOCAL time
+export const localMonthStr = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 
 export const formatDate = (dateStr, lang = 'en') => {
   const d = new Date(dateStr + 'T00:00:00');
