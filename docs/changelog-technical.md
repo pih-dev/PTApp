@@ -75,15 +75,15 @@ Version history with context, decisions, and the reasoning behind each change.
 
 *Elastic overscroll:*
 - `initElasticScroll()` in utils.js: touch event handlers on `.content` div
-- On overscroll (top or bottom), applies `translateY` with 0.35x resistance, capped at 100px
-- Spring-back via CSS transition `0.4s cubic-bezier(0.25, 1, 0.5, 1)`
+- Pull curve: `sqrt(absDistance) * 4`, capped at 120px — stronger initial response than linear
+- Bounce-back: `0.5s cubic-bezier(0.34, 1.56, 0.64, 1)` — same spring as modal, visible overshoot
 - Wired in App.jsx via `useEffect` + `useRef` on the content container
 
-*Session notes scroll lock:*
-- All `.focus-notes` textareas: `readOnly` attribute set by default
-- `onFocus`: removes `readOnly`, enables editing
-- `onBlur`: restores `readOnly`, saves changes
-- CSS: `overflow: hidden` + `touch-action: pan-y` prevents textarea from capturing page scroll
+*Session notes expand/collapse:*
+- All `.focus-notes` textareas: `readOnly` + `max-height: 32px` + `overflow: hidden` by default
+- `onFocus`: removes `readOnly`, adds `.editing` class → `max-height: 120px` + `overflow-y: auto`
+- `onBlur`: restores `readOnly`, removes `.editing` → collapses back to single line
+- Transition: `max-height 0.25s ease` for smooth expand/collapse
 - Applied in Dashboard.jsx, Schedule.jsx, Sessions.jsx
 
 *Haptic feedback:*

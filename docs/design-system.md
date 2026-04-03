@@ -193,13 +193,15 @@ Small 4px blue dot appears below the active tab label. Adds to the "you are here
 - **Has content + blurred:** Blue hue persists (signals "this session has notes")
 - **Empty + blurred:** Returns to default neutral
 - Uses `.has-content` CSS class toggled via `classList.toggle()` on blur
-- **Scroll-locked by default:** `readOnly` + `overflow: hidden` — prevents notes from stealing page scroll. Tap to focus enables editing.
+- **Scroll-locked by default:** `readOnly` + `overflow: hidden` + `max-height: 32px` — single line, page scrolls over it
+- **Expand on tap:** `.editing` class sets `max-height: 120px` + `overflow-y: auto` — grows downward with `transition: max-height 0.25s ease`, becomes scrollable for editing
+- **Collapse on blur:** removes `.editing`, animates back to single line
 
 ### Elastic Overscroll
 Rubber-band bounce when scrolling past the top or bottom of any page.
 - Touch handlers on `.content` div detect overscroll (scrollTop at 0 or at max)
-- Applies `translateY` with diminishing resistance (0.35x of finger movement, capped at 100px)
-- Spring-back: `transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)` — quick snap with gentle deceleration
+- Pull curve: `sqrt(distance) × 4`, capped at 120px — stronger initial response, diminishing at extremes
+- Bounce-back with overshoot: `0.5s cubic-bezier(0.34, 1.56, 0.64, 1)` — same spring curve as modal, content overshoots past zero and settles
 - Works on all tabs, both themes
 - `initElasticScroll()` in utils.js, wired via `useRef`/`useEffect` in App.jsx
 

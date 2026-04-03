@@ -26,7 +26,7 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 **Pages bounce like rubber.** Scrolling past the top or bottom of any page triggers an elastic rubber-band effect — the content stretches slightly and springs back. Feels physical and premium, like a native app.
 
-**Notes don't steal your scroll.** Session notes fields used to capture scroll events, making it hard to scroll past them on the Home tab. Now they're locked (read-only) by default — the page scrolls freely over them. Tap a notes field to edit it, tap away to lock it again.
+**Notes expand when you tap them.** Session notes show as a single collapsed line by default — the page scrolls freely over them. Tap a notes field and it smoothly expands downward (the session card and tags stay visible above), becomes scrollable for editing. Tap outside to collapse it back. No more accidentally scrolling notes when you meant to scroll the page.
 
 ---
 
