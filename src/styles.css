@@ -17,6 +17,13 @@ input:focus, select:focus {
 }
 button { cursor: pointer; border: none; background: none; }
 button:active { transform: scale(0.97); }
+.btn-primary:active, .btn-sm:active, .btn-whatsapp:active, .btn-whatsapp-lg:active {
+  box-shadow: 0 1px 4px rgba(37,99,235,0.15);
+  filter: brightness(0.92);
+}
+.btn-secondary:active, .btn-ghost:active {
+  background: rgba(255,255,255,0.12);
+}
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 
@@ -141,6 +148,16 @@ button:active { transform: scale(0.97); }
   transition: color 0.2s;
 }
 .nav-btn.active { color: #2563EB; font-weight: 700; }
+.nav-btn.active::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 2px;
+  background: #2563EB;
+  margin-top: 2px;
+  transition: opacity 0.2s;
+}
 .nav-btn svg { width: 22px; height: 22px; }
 
 /* ─── Cards ─── */
@@ -150,7 +167,7 @@ button:active { transform: scale(0.97); }
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 12px;
-  transition: background 0.2s;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 .card.card-now {
@@ -159,7 +176,8 @@ button:active { transform: scale(0.97); }
   box-shadow: 0 0 20px rgba(37,99,235,0.3), inset 0 0 30px rgba(37,99,235,0.05);
 }
 .card.card-tap:active {
-  background: rgba(255,255,255,0.08);
+  transform: translateY(1px);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
 /* ─── Buttons ─── */
@@ -229,6 +247,7 @@ button:active { transform: scale(0.97); }
 .badge {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  transition: background 0.2s, color 0.2s;
 }
 /* Status badge colors — solid fills for visibility in both themes */
 .badge-scheduled { background: #2563EB; color: #fff; }
@@ -256,7 +275,7 @@ button:active { transform: scale(0.97); }
   border-radius: 24px 24px 0 0;
   padding: 0 20px 16px;
   display: flex; flex-direction: column;
-  animation: slideUp 0.3s ease;
+  animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .modal-header {
   display: flex; justify-content: space-between; align-items: center;
@@ -292,7 +311,11 @@ button:active { transform: scale(0.97); }
 
 /* ─── Stats ─── */
 .stat-row { display: flex; gap: 10px; margin-bottom: 20px; }
-.stat-card { border-radius: 16px; padding: 16px; flex: 1; min-width: 0; }
+.stat-card {
+  border-radius: 16px; padding: 16px; flex: 1; min-width: 0;
+  background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(37,99,235,0.02));
+  border: 1px solid rgba(255,255,255,0.08);
+}
 .stat-num { font-size: 28px; font-weight: 900; }
 .stat-label { font-size: 12px; color: rgba(255,255,255,0.65); font-weight: 600; }
 
@@ -320,6 +343,7 @@ button:active { transform: scale(0.97); }
   background: rgba(255,255,255,0.03);
   color: rgba(255,255,255,0.6);
   text-align: center; font-family: inherit;
+  transition: all 0.15s ease;
 }
 .week-day.selected {
   border: 2px solid #2563EB;
@@ -441,6 +465,7 @@ button:active { transform: scale(0.97); }
   background: rgba(255,255,255,0.04);
   color: rgba(255,255,255,0.55);
   font-family: inherit;
+  transition: all 0.15s ease;
 }
 .focus-tag.active {
   background: rgba(37,99,235,0.15);
@@ -461,6 +486,17 @@ button:active { transform: scale(0.97); }
 }
 .focus-notes::placeholder {
   color: rgba(255,255,255,0.3);
+}
+/* Blue hue when focused (recording mode) */
+.focus-notes:focus {
+  background: rgba(37,99,235,0.08);
+  border-color: rgba(37,99,235,0.25);
+  outline: none;
+}
+/* Blue hue persists when textarea has content (even when blurred) */
+.focus-notes.has-content {
+  background: rgba(37,99,235,0.06);
+  border-color: rgba(37,99,235,0.15);
 }
 .focus-display {
   font-size: 11px; color: rgba(255,255,255,0.5);
@@ -489,6 +525,7 @@ button:active { transform: scale(0.97); }
   color: rgba(255,255,255,0.6);
   font-size: 12px; font-weight: 700; text-transform: capitalize;
   font-family: inherit; white-space: nowrap;
+  transition: all 0.15s ease;
 }
 .filter-btn.active {
   border: 2px solid #2563EB;
