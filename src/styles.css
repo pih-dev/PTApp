@@ -488,9 +488,17 @@ button:active { transform: scale(0.97); }
   color: rgba(255,255,255,0.7);
   font-size: 12px; font-family: inherit;
   resize: none;
-  /* Prevent notes from capturing page scroll — tap to edit */
+  /* Collapsed: single line, no internal scroll, page scrolls over it */
   overflow: hidden;
   touch-action: pan-y;
+  max-height: 32px;
+  transition: max-height 0.25s ease, overflow 0s;
+}
+/* Expanded: tap to edit — grows downward, scrollable */
+.focus-notes.editing {
+  max-height: 120px;
+  overflow-y: auto;
+  touch-action: auto;
 }
 .focus-notes::placeholder {
   color: rgba(255,255,255,0.3);

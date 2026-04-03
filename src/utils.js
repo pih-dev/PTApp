@@ -15,6 +15,8 @@ export const initElasticScroll = (el) => {
   const onTouchStart = (e) => {
     startY = e.touches[0].clientY;
     pulling = false;
+    // Kill any in-progress bounce so a new pull starts cleanly
+    el.style.transition = '';
   };
 
   const onTouchMove = (e) => {
@@ -23,18 +25,18 @@ export const initElasticScroll = (el) => {
     const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1 && dy < 0;
 
     if (atTop || atBottom) {
-      // Diminishing resistance — feels like stretching a rubber band
-      const raw = atTop ? dy : dy;
-      const pull = raw * 0.35;
-      const clamped = Math.max(-100, Math.min(100, pull));
-      el.style.transform = `translateY(${clamped}px)`;
+      // Stronger pull with diminishing resistance (sqrt curve)
+      const absDy = Math.abs(dy);
+      const pull = Math.sign(dy) * Math.min(Math.sqrt(absDy) * 4, 120);
+      el.style.transform = `translateY(${pull}px)`;
       pulling = true;
     }
   };
 
   const onTouchEnd = () => {
     if (pulling) {
-      el.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+      // Bounce back with overshoot — same spring curve as the modal
+      el.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
       el.style.transform = 'translateY(0)';
       const cleanup = () => { el.style.transition = ''; };
       el.addEventListener('transitionend', cleanup, { once: true });

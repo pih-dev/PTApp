@@ -22,9 +22,10 @@ function EditableFocus({ session, dispatch, lang }) {
       <textarea className={`focus-notes${session.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
         defaultValue={session.sessionNotes || ''}
         readOnly
-        onFocus={e => { e.target.readOnly = false; }}
+        onFocus={e => { e.target.readOnly = false; e.target.classList.add('editing'); }}
         onBlur={e => {
           e.target.readOnly = true;
+          e.target.classList.remove('editing');
           e.target.classList.toggle('has-content', e.target.value.trim() !== '');
           if (e.target.value !== (session.sessionNotes || '')) {
             dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, sessionNotes: e.target.value } });
