@@ -4,6 +4,20 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.3 — Blue Accent, Warm Light Theme, Todo Checkboxes (Apr 3, 2026)
+
+**Blue accent everywhere:** The entire app now uses a blue accent color in both dark and light themes. The old red accent is gone — buttons, toggles, selections, focus tags, nav highlights, and active states are all blue. Session type indicators use distinct colors (indigo for Strength, blue for Cardio, purple for Flexibility, etc.) but the UI chrome is consistently blue.
+
+**Warm light theme:** The light theme background was toned down from harsh white to a warm cream/stone palette. Cards blend gently instead of popping with stark white-on-grey contrast. Much easier on the eyes in bright environments.
+
+**Unified logo:** The dumbbell logo icon is the same blue in both themes for a consistent brand look.
+
+**Header layout improved:** The Ar/En and Lit/Drk toggles are stacked vertically instead of side by side, giving the logo and app title more room. Both toggle rows have fixed-width buttons for clean alignment.
+
+**Todo checkboxes:** The To Do list in the General panel now has checkboxes. Tap to mark an item as done — it turns green with a strikethrough. Done items stay visible until deleted. Tap the text to edit, tap the x to delete. Much easier than manually typing "Done" at the end of each item.
+
+---
+
 ## v2.2 — Arabic, Light Theme, Editable WhatsApp Messages (Apr 3, 2026)
 
 **Full Arabic support:** The Ar/En toggle in the header now switches the entire UI to Arabic — all labels, buttons, section titles, dates, and empty states. The layout flips to right-to-left (RTL). Session types and focus tags stay in English (the PT knows them that way). Dates use Arabic-Lebanon locale when in Arabic mode.

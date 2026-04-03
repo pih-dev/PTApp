@@ -4,6 +4,39 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.3 — Blue Accent, Warm Light Theme, Todo Checkboxes (2026-04-03)
+
+**What changed:**
+- All `#E8453C` (red) and `#FF6B6B` (light red) accent references in CSS replaced with `#2563EB` / `#60A5FA` (blue)
+- All `rgba(232,69,60,...)` replaced with `rgba(37,99,235,...)`
+- `.setup-error` kept as `#EF4444` (error red, not accent)
+- Strength session type color changed from `#E8453C` to `#6366F1` (indigo) in `SESSION_TYPES`
+- Light theme background: `#E8E6E1` → `#D8D4CD` warm stone gradient (was harsh `#F8F9FA` white)
+- Light theme cards: `rgba(255,255,255,0.35)` subtle frosted (was `rgba(0,0,0,0.03)` transparent)
+- Light theme nav: warm `rgba(232,230,225,0.97)` matching background
+- Light theme modal: warm `#E8E6E1` → `#DEDBD5` gradient
+- Light theme inputs/textareas: `rgba(255,255,255,0.4)` warm frosted
+- Removed `.theme-light .logo-icon` override — base logo is now blue, same both themes
+- Header: lang/theme toggles wrapped in `flex-direction: column` container
+- Toggle spans: `width: 36px; text-align: center` for fixed-width alignment
+- Dashboard stat card "Clients" changed from `#E8453C` to `#6366F1` (indigo)
+- Dashboard `isNowSession` border changed from `#E8453C` to `#2563EB`
+- Cancel button color changed from `#E8453C` to `#EF4444` (standard danger red)
+- New `TOGGLE_TODO` reducer case: flips `done` boolean on todo items
+- General.jsx: added checkbox SVG button before each todo item with done/undone toggle
+- Done items render with `text-decoration: line-through; opacity: 0.5`
+
+**Why — Blue accent:**
+The PT and Pierre both found the red accent too aggressive. Blue is calmer and works better in both dark and light themes. The light theme was already blue (v2.2 shipped with blue light theme), so aligning the dark theme creates visual consistency. Session type colors (indigo, blue, purple, amber, green, grey) remain distinct for differentiation.
+
+**Why — Warm light theme:**
+The v2.2 light theme used near-white backgrounds (#F8F9FA) which was painful in bright environments. The warm stone palette (#E8E6E1 area) reduces glare while maintaining readability. Subtle frosted cards (`rgba(255,255,255,0.35)`) blend with the background rather than creating jarring white rectangles.
+
+**Why — Todo checkboxes:**
+The PT was manually typing "Done" at the end of todo items because there was no way to mark them complete. The `done` boolean field is backward-compatible — existing todos without it default to `false` via the `!t.done` toggle.
+
+---
+
 ## v2.2 — Arabic, Light Theme, Editable WhatsApp Messages (2026-04-03)
 
 **What changed:**
