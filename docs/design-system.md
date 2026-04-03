@@ -96,12 +96,13 @@ box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 ```
 Barely-there translucent white. The subtle border + shadow creates just enough separation from the background.
 
-### Nav Bar
+### Header & Nav Bar
 ```css
-background: rgba(15,15,15,0.97);
+/* Header and nav both use subtle blue-tinted glass */
+background: rgba(37,99,235,0.06);
 backdrop-filter: blur(20px);
 ```
-Near-opaque with glass blur. Feels solid but alive.
+Blue-tinted glass — subtle enough to feel dark but visually distinct from the body gradient. Both header and nav match. Previously, the header was transparent (body gradient showed through) and the nav was near-black (`rgba(15,15,15,0.97)`) — they looked identical. The blue tint differentiates both from the background while connecting to the accent color system.
 
 ### Active Session Glow
 ```css
@@ -122,9 +123,9 @@ The v2.3 light theme had no layer separation. Background, cards, nav, and modals
 
 ### Background
 ```css
-background: linear-gradient(145deg, #E2E0DB 0%, #D5D2CC 50%, #CDCAC4 100%);
+background: linear-gradient(145deg, #C7D2E4 0%, #B8C5DA 50%, #ADBDD4 100%);
 ```
-Cooler and slightly darker than v2.3's warm beige. Provides a neutral canvas for white cards to float on.
+Blue-toned gradient. Earlier iterations used warm beige (`#E8E6E1`) then cooler grey (`#E2E0DB`), but both clashed with the blue card system. The blue-toned canvas provides coherent contrast — cards (soft blue) float above it, while header/nav strips (stronger blue) frame the content.
 
 ### Cards
 ```css
@@ -134,14 +135,14 @@ box-shadow: 0 2px 12px rgba(30,27,75,0.08);
 ```
 Soft blue tint (Tailwind blue-100 at 55% opacity). Initially used near-opaque white (`rgba(255,255,255,0.72)`) but Pierre found it hurt the eyes — white cards on a grey background are too contrasty in bright environments. The blue tint is softer while still clearly floating above the background, and ties into the blue accent color system.
 
-### Nav Bar
+### Header & Nav Bar
 ```css
-background: rgba(255,255,255,0.82);
+/* Both header and nav use the same stronger blue glass */
+background: rgba(171,205,252,0.7);
 backdrop-filter: blur(20px);
 -webkit-backdrop-filter: blur(20px);
-box-shadow: 0 -2px 12px rgba(30,27,75,0.08);
 ```
-White glass with blur — matches the iOS tab bar feel. The dark theme already had glass; the light theme was missing it.
+Blue frosted glass — stronger blue than the cards, clearly distinct from the background. Header and nav match each other, framing the content area. Earlier iterations used white glass (`rgba(255,255,255,0.82)`) but the white strips clashed with the blue cards and grabbed too much attention.
 
 ### Modals
 ```css
@@ -271,24 +272,44 @@ Light theme uses lower opacity: `rgba(37,99,235,0.04)` → `rgba(37,99,235,0.01)
 - Card shadows for depth
 
 ### v2.4: Visual Polish + Light Theme Redesign
-- **Light theme redesign:** Cooler background, blue-tinted cards (not white), glass nav/modals
+- **Light theme redesign:** Blue-toned background, blue-tinted cards, blue glass header/nav, white modals
+- **Light theme background:** `#C7D2E4 → #B8C5DA → #ADBDD4` blue-toned gradient (was beige, then grey)
 - **Light theme cards:** `rgba(219,234,254,0.55)` — soft blue, easier on eyes than white
+- **Light theme header/nav:** `rgba(171,205,252,0.7)` blue frosted glass (was white, clashed)
 - **Light theme inputs:** Blue-tinted `rgba(237,244,254,0.6)` to match cards
+- **Dark theme bars:** Header and nav both use `rgba(37,99,235,0.06)` blue-tinted glass (were transparent/near-black, looked identical)
 - **Micro-polish:** Transitions on all interactive elements, spring modal, nav dot
 - **Button feel:** Brightness darken + shadow reduction on press, card push-down
 - **Session notes:** Blue hue on focus/has-content, **blue text** when has content
 - **Haptic feedback:** Vibration on Android for key interactions
 - **Logo:** Horizontal dumbbell (was vertical/water-jug)
 - **Auto-complete:** 1hr buffer after session end
-- **Stat cards:** Colored backgrounds — indigo (Clients), blue (Today), green (This Week)
+- **Stat cards:** Colored backgrounds — indigo (Clients), blue (Today), green (This Week), boosted opacity
 
 ### v2.4 Refinement Notes
-After deploying v2.4 and testing on Android, Pierre observed:
+Deployed and iterated on Android throughout the session. Each round refined based on Pierre's feedback:
+
+**Round 1** — Initial deploy:
 - "Looks almost the same but the experience is definitely enhanced"
 - Light theme white cards hurt the eyes → changed to soft blue tint
 - Session notes hue was too subtle → doubled the opacity + added blue text
 - Stat cards were invisible → tripled gradient opacity + changed This Week to green
-- **Key insight:** The web stack (CSS-only, GitHub Pages) has a ceiling for premium feel. The enhanced *experience* (transitions, press feedback, spring modals, haptic) matters more than pixel-level visual changes. Save ambitious visual work for the native app stage.
+
+**Round 2** — Header/nav strips:
+- Light theme white header/nav clashed with blue cards ("ottoman strip grabbing attention")
+- → Changed to blue frosted glass (`rgba(191,219,254,0.65)`)
+- Dark theme header and nav looked identical
+- → Added blue tint to header (`rgba(37,99,235,0.06)`)
+
+**Round 3** — Background and coherence:
+- Light theme beige background was "the only weak link" — clashed with all-blue elements
+- → Replaced beige with blue-toned gradient (`#C7D2E4 → #ADBDD4`)
+- Strengthened header/nav to `rgba(171,205,252,0.7)` so they don't blend into new background
+- Boosted stat card opacity (hex `50/30` vs `30/18`) for the same reason
+- Dark theme nav matched to header's blue glass for cohesion
+- **Pierre's verdict:** "amazing stuff, perfect"
+
+**Key insight:** The web stack (CSS-only, GitHub Pages) has a ceiling for premium feel. The enhanced *experience* (transitions, press feedback, spring modals, haptic) matters more than pixel-level visual changes. Save ambitious visual work for the native app stage.
 
 ### Future (Stage 2: Native App)
 The web app has reached its visual ceiling for "Apple-like" premium feel. These require native capabilities:
@@ -304,15 +325,18 @@ The web app has reached its visual ceiling for "Apple-like" premium feel. These 
 
 ## Screenshots
 
-Screenshots capture visual evolution across versions.
+Screenshots capture visual evolution across versions. All taken on Pierre's Samsung S25 Ultra (Android).
 
-**Storage:** `docs/screenshots/` directory
+**Storage:** `docs/screenshots/` directory — see `CATALOG.md` for full index with descriptions.
 
-**Captured:**
-- v2.3 → v2.4 comparison collages (dark + light themes) — provided by Pierre during the v2.4 development session on 2026-04-03. Show side-by-side old vs new on Android.
+**Captured versions:**
+- **v1.x** (Apr 1): First day — red accent, 4 stat cards, Confirm button, old red logo
+- **v2.2** (Apr 3): Red accent in dark, warm beige light theme, outline badges
+- **v2.3 → v2.4** collages: Pierre's side-by-side before/after comparisons
+- **v2.4 iterations** (Apr 3): Blue glass header on beige → blue background final
 
-**Observations from comparison:**
-- Dark theme: visually subtle difference, but transitions/press feedback create a noticeably better *feel*
-- Light theme: blue-tinted cards are the most visible change vs the old white cards
-- Stat cards: colored backgrounds add visual variety to the dashboard
-- Overall: the upgrade is more about interaction quality than visual appearance
+**Key observations from the evolution:**
+- Dark theme: visually subtle across versions, but transitions/press feedback create a noticeably better *feel*
+- Light theme: the biggest visual journey — warm beige → cooler grey → blue-toned. Each step made it more cohesive with the blue accent system
+- The v1.x → v2.4 difference is dramatic: red accent + outline badges + no depth → blue accent + solid badges + layered glass + transitions
+- PT's WhatsApp reaction to v1.x ("This is awesome, its gonna make us money") confirms the core UX was right from day one — visual polish built on a solid foundation

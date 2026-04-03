@@ -6,7 +6,7 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (Apr 3, 2026)
 
-**Light theme feels like its own app now.** The background is cooler and darker, cards are **soft blue** (not white — white was too harsh) with shadows that make them float, the nav bar is frosted white glass with blur (like iOS), and modals are clean white instead of matching the page. Everything has clear visual layers — cards above background, nav above content, modal above everything.
+**Light theme feels like its own app now.** The background is a blue-toned gradient (the old beige clashed), cards are **soft blue** (not white — white was too harsh) with shadows that make them float, the header and nav bar are **stronger blue frosted glass** that frames the content, and modals are clean white overlays. Everything has clear visual layers — background (blue-grey) < cards (soft blue) < header/nav strips (stronger blue) < modals (white).
 
 **Everything moves smoothly.** Cards, focus tags, filter buttons, badges, and week day pills all transition between states instead of snapping. The modal slides up with a spring bounce (slight overshoot that settles). Buttons darken and push inward on press. Tappable cards push down 1px. Small things, but the whole app feels more alive.
 
@@ -18,7 +18,9 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 **Sessions auto-complete 1 hour later.** Previously, sessions were marked completed the moment their end time passed. Now there's a 1-hour buffer — gives the PT time to cancel a no-show before the system marks it done. Sessions from previous days still complete immediately on app load.
 
-**Stat cards have a glow.** The three stat cards on the dashboard now have a subtle blue gradient tint instead of being flat. Matches the blue accent throughout.
+**Dark theme header has a blue tint.** The header and nav bar both use a subtle blue-tinted glass instead of being transparent/near-black. They match each other and connect to the blue accent system. Previously they were indistinguishable from the dark background.
+
+**Stat cards have a glow.** The three stat cards on the dashboard now have colored gradient tints (indigo for Clients, blue for Today, green for This Week) instead of being flat.
 
 **Active tab dot.** A small blue dot appears under the active nav tab icon — an extra "you are here" signal beyond the color change.
 

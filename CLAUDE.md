@@ -14,8 +14,8 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 
 ## Current Version: v2.4
 - Blue accent color (both themes)
-- Light theme redesigned: white glass cards/nav/modals on cooler grey canvas
-- Dark theme: micro-polished with transitions, button press feel, spring modals
+- Light theme redesigned: blue-toned background, soft blue cards, blue glass header/nav, white modals
+- Dark theme: blue-tinted header/nav glass, micro-polished with transitions, button press feel, spring modals
 - Solid status badges (blue/green/red on white)
 - Solid blue active filter tabs with smooth transitions
 - Red delete buttons (solid, white icon)
