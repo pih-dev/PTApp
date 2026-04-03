@@ -5,6 +5,54 @@ export const genId = () => Math.random().toString(36).slice(2, 9);
 /** Trigger haptic feedback — silent no-op on devices that don't support it (iOS) */
 export const haptic = (ms = 10) => { try { navigator.vibrate?.(ms); } catch(e) {} };
 
+// ─── Elastic Overscroll ───
+/** Attach rubber-band overscroll to a scrollable element. Returns cleanup function. */
+export const initElasticScroll = (el) => {
+  if (!el) return () => {};
+  let startY = 0;
+  let pulling = false;
+
+  const onTouchStart = (e) => {
+    startY = e.touches[0].clientY;
+    pulling = false;
+  };
+
+  const onTouchMove = (e) => {
+    const dy = e.touches[0].clientY - startY;
+    const atTop = el.scrollTop <= 0 && dy > 0;
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1 && dy < 0;
+
+    if (atTop || atBottom) {
+      // Diminishing resistance — feels like stretching a rubber band
+      const raw = atTop ? dy : dy;
+      const pull = raw * 0.35;
+      const clamped = Math.max(-100, Math.min(100, pull));
+      el.style.transform = `translateY(${clamped}px)`;
+      pulling = true;
+    }
+  };
+
+  const onTouchEnd = () => {
+    if (pulling) {
+      el.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+      el.style.transform = 'translateY(0)';
+      const cleanup = () => { el.style.transition = ''; };
+      el.addEventListener('transitionend', cleanup, { once: true });
+      pulling = false;
+    }
+  };
+
+  el.addEventListener('touchstart', onTouchStart, { passive: true });
+  el.addEventListener('touchmove', onTouchMove, { passive: true });
+  el.addEventListener('touchend', onTouchEnd, { passive: true });
+
+  return () => {
+    el.removeEventListener('touchstart', onTouchStart);
+    el.removeEventListener('touchmove', onTouchMove);
+    el.removeEventListener('touchend', onTouchEnd);
+  };
+};
+
 // ─── Default country code ───
 const DEFAULT_COUNTRY_CODE_KEY = 'ptapp-country-code';
 export const getDefaultCountryCode = () => localStorage.getItem(DEFAULT_COUNTRY_CODE_KEY) || '961';

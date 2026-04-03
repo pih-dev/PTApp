@@ -5,7 +5,7 @@ import Schedule from './components/Schedule';
 import Sessions from './components/Sessions';
 import TokenSetup from './components/TokenSetup';
 import General from './components/General';
-import { reducer, loadData, saveData, today, timeToMinutes, haptic } from './utils';
+import { reducer, loadData, saveData, today, timeToMinutes, haptic, initElasticScroll } from './utils';
 import { getToken, fetchRemoteData, pushRemoteData } from './sync';
 import { t } from './i18n';
 
@@ -26,6 +26,7 @@ export default function App() {
   const [lang, setLang] = useState(() => localStorage.getItem('ptapp-lang') || 'en');
   const [theme, setTheme] = useState(() => localStorage.getItem('ptapp-theme') || 'dark');
   const skipSync = useRef(true);
+  const contentRef = useRef(null);
 
   // On first load with token, fetch remote data
   useEffect(() => {
@@ -79,6 +80,9 @@ export default function App() {
       debouncedSync(token, state);
     }
   }, [state]);
+
+  // Rubber-band overscroll on the main content area
+  useEffect(() => initElasticScroll(contentRef.current), []);
 
   if (!connected) {
     return <TokenSetup onConnected={() => setConnected(true)} />;
@@ -146,7 +150,7 @@ export default function App() {
         </div>
       </div>
 
-      <div className="content">
+      <div className="content" ref={contentRef}>
         {tab === 'home' && <Dashboard state={state} dispatch={dispatch} setTab={setTab} lang={lang} />}
         {tab === 'clients' && <Clients state={state} dispatch={dispatch} lang={lang} />}
         {tab === 'schedule' && <Schedule state={state} dispatch={dispatch} lang={lang} />}

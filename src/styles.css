@@ -488,6 +488,9 @@ button:active { transform: scale(0.97); }
   color: rgba(255,255,255,0.7);
   font-size: 12px; font-family: inherit;
   resize: none;
+  /* Prevent notes from capturing page scroll — tap to edit */
+  overflow: hidden;
+  touch-action: pan-y;
 }
 .focus-notes::placeholder {
   color: rgba(255,255,255,0.3);
