@@ -4,6 +4,35 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.2 — Arabic, Light Theme, Editable WhatsApp Messages (2026-04-03)
+
+**What changed:**
+- New `src/i18n.js` — ~100 translation keys in English and Arabic, `t(lang, key)` lookup function, `dateLocale(lang)` helper
+- All components accept `lang` prop and use `t()` for all user-facing strings
+- `dir="rtl"` applied to app container when Arabic selected
+- `formatDate` and `formatDateLong` accept optional `lang` param for locale-aware dates (ar-LB / en-US)
+- `DEFAULT_TEMPLATES` restructured to `{ en: { booking, reminder }, ar: { booking, reminder } }`
+- `sendBookingWhatsApp` / `sendReminderWhatsApp` accept `lang` param to pick correct default template
+- New `SET_TEMPLATES` reducer case + `messageTemplates` field in state (synced, backed up, merged)
+- General.jsx: new "WhatsApp Messages" section with editable textareas for booking/reminder templates
+- `borderLeft` replaced with `borderInlineStart` across all session card inline styles for RTL
+- RTL CSS overrides: logo stays LTR (brand name), inputs/notes right-aligned, lang toggle margin flipped
+- Light theme: `.theme-light` class on app-container, ~70 CSS overrides swapping dark→white bg and red→blue (#2563EB) accent
+- Lit/Drk toggle in header, persisted to localStorage (`ptapp-theme`)
+
+**Why — Full i18n:**
+The PT's clients speak Arabic. WhatsApp messages in English feel out of place. Pierre requested Arabic notifications as a future item — the Ar/En toggle was already in place, so wiring translations was the natural next step. The `t()` function falls back to English if a key is missing, so adding Arabic can't break the English UI.
+
+**Why — Editable templates:**
+The WhatsApp messages were hardcoded by the developer. The PT should own his client communication — tone, emoji, wording. Storing templates in state means they sync between devices (PT's iPhone and Pierre's Android see the same messages).
+
+**Why — Light theme:**
+Some users prefer light themes, especially outdoors in bright light. The blue accent distinguishes it visually from the dark theme's red. Both preferences persist independently via localStorage.
+
+**Files changed:** `src/i18n.js` (new), `src/App.jsx`, `src/utils.js`, `src/styles.css`, `src/components/Dashboard.jsx`, `src/components/Schedule.jsx`, `src/components/Sessions.jsx`, `src/components/Clients.jsx`, `src/components/General.jsx`
+
+---
+
 ## v2.1 — Streamlined Workflow, Readability, Language Toggle (2026-04-03)
 
 **What changed:**

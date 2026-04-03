@@ -38,7 +38,7 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 ## Tech Stack
 - React 18 (with hooks: useState, useReducer, useEffect)
 - Vite for dev server and build
-- Pure CSS (no framework) — dark theme, mobile-first
+- Pure CSS (no framework) — dark/light themes, mobile-first
 - Google Fonts: DM Sans
 - Service worker for offline support (network-first caching)
 - No backend — all data in browser localStorage + GitHub API cloud sync
@@ -57,13 +57,15 @@ PTApp/
 │   ├── main.jsx        # React mount point + SW registration
 │   ├── App.jsx         # Main app with routing/tabs
 │   ├── sync.js         # GitHub API sync (makdissi-dev/ptapp-data)
-│   ├── styles.css      # All styles
+│   ├── i18n.js         # Translations (en/ar) + t() lookup
+│   ├── styles.css      # All styles (dark + light themes)
 │   ├── utils.js        # Helpers, constants, storage
 │   └── components/
 │       ├── Dashboard.jsx
 │       ├── Clients.jsx
 │       ├── Schedule.jsx
 │       ├── Sessions.jsx
+│       ├── General.jsx
 │       ├── Modal.jsx
 │       └── TokenSetup.jsx
 └── docs/               # Versioned instructions, changelogs, guides

@@ -4,6 +4,18 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.2 — Arabic, Light Theme, Editable WhatsApp Messages (Apr 3, 2026)
+
+**Full Arabic support:** The Ar/En toggle in the header now switches the entire UI to Arabic — all labels, buttons, section titles, dates, and empty states. The layout flips to right-to-left (RTL). Session types and focus tags stay in English (the PT knows them that way). Dates use Arabic-Lebanon locale when in Arabic mode.
+
+**Arabic WhatsApp messages:** Default booking and reminder message templates are now available in Arabic. When the language is set to Arabic, the default templates switch automatically. Custom templates (edited in General panel) override the defaults regardless of language.
+
+**Editable WhatsApp templates:** Both the booking confirmation and reminder messages can now be customized from the General panel (⋮ menu → WhatsApp Messages). The PT can rewrite the messages however he wants using placeholders: `{name}`, `{type}`, `{emoji}`, `{date}`, `{time}`, `{duration}`. A "Reset to Defaults" button restores the originals.
+
+**Light theme:** A Lit/Drk toggle in the header switches between the dark theme (default) and a new light theme — white background with blue accent color replacing red. Both theme and language preferences persist across sessions.
+
+---
+
 ## v2.1 — Streamlined Workflow, Readability, Language Toggle (Apr 3, 2026)
 
 **Confirmation removed:** The "Confirm" button and "Confirmed" status have been hidden everywhere — sessions go straight from Scheduled to Completed. The Confirmed stat card is gone from the Dashboard. The PT never used confirmation, so it was just clutter.
