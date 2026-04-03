@@ -90,13 +90,11 @@ export default function App() {
             <div className="logo-text">PTApp</div>
             <div className="logo-sub">Personal Trainer</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
-            <div className="app-version" style={{ margin: 0 }}>v2.0</div>
-            <button onClick={() => setShowGeneral(true)}
-              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 28, padding: '4px 10px', cursor: 'pointer', lineHeight: 1 }}>
-              ⋮
-            </button>
-          </div>
+          <button onClick={() => setShowGeneral(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}>
+            <span className="app-version" style={{ margin: 0 }}>v2.0</span>
+            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 28, lineHeight: 1 }}>⋮</span>
+          </button>
         </div>
       </div>
 
