@@ -123,6 +123,8 @@ button:active { transform: scale(0.97); }
   padding: 0 16px 24px;
   padding-bottom: calc(80px + env(safe-area-inset-bottom));
   -webkit-overflow-scrolling: touch;
+  /* Disable browser's native overscroll — our JS handles rubber band */
+  overscroll-behavior: none;
 }
 
 /* ─── Bottom Nav ─── */
@@ -496,6 +498,7 @@ button:active { transform: scale(0.97); }
 }
 /* Expanded: tap to edit — grows downward, scrollable */
 .focus-notes.editing {
+  min-height: 80px;
   max-height: 120px;
   overflow-y: auto;
   touch-action: auto;

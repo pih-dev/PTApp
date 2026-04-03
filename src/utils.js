@@ -21,8 +21,8 @@ export const initElasticScroll = (el) => {
 
   const onTouchMove = (e) => {
     const dy = e.touches[0].clientY - startY;
-    const atTop = el.scrollTop <= 0 && dy > 0;
-    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1 && dy < 0;
+    const atTop = el.scrollTop <= 1 && dy > 0;
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 2 && dy < 0;
 
     if (atTop || atBottom) {
       // Prevent browser's native overscroll from doubling up
