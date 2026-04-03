@@ -4,12 +4,14 @@ import Clients from './components/Clients';
 import Schedule from './components/Schedule';
 import Sessions from './components/Sessions';
 import TokenSetup from './components/TokenSetup';
+import General from './components/General';
 import { reducer, loadData, saveData } from './utils';
 import { getToken, fetchRemoteData, pushRemoteData } from './sync';
 
 export default function App() {
   const [state, dispatch] = useReducer(reducer, null, loadData);
   const [tab, setTab] = useState('home');
+  const [showGeneral, setShowGeneral] = useState(false);
   const [connected, setConnected] = useState(!!getToken());
   const [initialLoad, setInitialLoad] = useState(!!getToken());
   const skipSync = useRef(true);
@@ -88,7 +90,13 @@ export default function App() {
             <div className="logo-text">PTApp</div>
             <div className="logo-sub">Personal Trainer</div>
           </div>
-          <div className="app-version">v2.0</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+            <div className="app-version" style={{ margin: 0 }}>v2.0</div>
+            <button onClick={() => setShowGeneral(true)}
+              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 20, padding: '4px 8px', cursor: 'pointer', lineHeight: 1 }}>
+              ⋮
+            </button>
+          </div>
         </div>
       </div>
 
@@ -98,6 +106,8 @@ export default function App() {
         {tab === 'schedule' && <Schedule state={state} dispatch={dispatch} />}
         {tab === 'sessions' && <Sessions state={state} dispatch={dispatch} />}
       </div>
+
+      {showGeneral && <General state={state} dispatch={dispatch} onClose={() => setShowGeneral(false)} />}
 
       <div className="nav">
         {tabs.map(t => (

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, STATUS_MAP, getMonthlySessionCount, formatDate, capitalizeName, exportBackup, mergeBackup } from '../utils';
-import { getToken, saveSnapshot, listSnapshots, fetchSnapshot } from '../sync';
+import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, STATUS_MAP, getMonthlySessionCount, formatDate, capitalizeName } from '../utils';
 
 export default function Clients({ state, dispatch }) {
   const [showForm, setShowForm] = useState(false);
@@ -11,9 +10,6 @@ export default function Clients({ state, dispatch }) {
   const [countryCode, setCountryCode] = useState(getDefaultCountryCode);
   const [expandedId, setExpandedId] = useState(null);
   const [viewMonth, setViewMonth] = useState(() => new Date().toISOString().slice(0, 7)); // YYYY-MM
-  const [snapshots, setSnapshots] = useState(null); // null = not loaded, [] = empty
-  const [snapshotLoading, setSnapshotLoading] = useState(false);
-  const [snapshotMsg, setSnapshotMsg] = useState('');
 
   const openAdd = () => {
     setForm({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '' });
@@ -209,118 +205,6 @@ export default function Clients({ state, dispatch }) {
           );
         })
       )}
-
-      {/* Data backup section */}
-      <div style={{ marginTop: 24, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 16 }}>
-        <div className="section-title" style={{ fontSize: 14, marginBottom: 8 }}>💾 Clients/Sessions Backup</div>
-
-        {/* Save buttons */}
-        <div className="flex-row" style={{ gap: 8, marginBottom: 8 }}>
-          <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
-            onClick={() => exportBackup(state)}>
-            Backup
-          </button>
-          {getToken() && (
-            <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
-              disabled={snapshotLoading}
-              onClick={async () => {
-                setSnapshotLoading(true);
-                setSnapshotMsg('');
-                try {
-                  const ts = await saveSnapshot(getToken(), state);
-                  setSnapshotMsg(`Saved: ${ts}`);
-                  setSnapshots(null); // refresh list next time
-                } catch (e) { setSnapshotMsg('Failed: ' + e.message); }
-                setSnapshotLoading(false);
-              }}>
-              Cloud Backup
-            </button>
-          )}
-        </div>
-
-        {/* Restore buttons */}
-        <div className="flex-row" style={{ gap: 8, marginBottom: 8 }}>
-          <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
-            onClick={() => {
-              const input = document.createElement('input');
-              input.type = 'file';
-              input.accept = '.json';
-              input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                  try {
-                    const backup = JSON.parse(ev.target.result);
-                    if (!backup.clients || !backup.sessions) { alert('Invalid backup file'); return; }
-                    const merged = mergeBackup(state, backup);
-                    const added = merged.clients.length - state.clients.length;
-                    const restored = merged.sessions.length - state.sessions.length;
-                    dispatch({ type: 'REPLACE_ALL', payload: merged });
-                    alert(`Restored: +${added} client(s), +${restored} session(s)`);
-                  } catch { alert('Could not read backup file'); }
-                };
-                reader.readAsText(file);
-              };
-              input.click();
-            }}>
-            Restore
-          </button>
-          {getToken() && (
-            <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
-              disabled={snapshotLoading}
-              onClick={async () => {
-                setSnapshotLoading(true);
-                setSnapshotMsg('');
-                try {
-                  const list = await listSnapshots(getToken());
-                  setSnapshots(list);
-                  if (list.length === 0) setSnapshotMsg('No snapshots found');
-                } catch (e) { setSnapshotMsg('Failed: ' + e.message); }
-                setSnapshotLoading(false);
-              }}>
-              Cloud Restore
-            </button>
-          )}
-        </div>
-
-        {snapshotMsg && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>{snapshotMsg}</div>}
-
-        {/* Snapshot list from GitHub */}
-        {snapshots && snapshots.length > 0 && (
-          <div style={{ marginTop: 4 }}>
-            {snapshots.map(s => (
-              <div key={s.name} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 13
-              }}>
-                <span style={{ color: 'rgba(255,255,255,0.6)' }}>{s.name}</span>
-                <button className="btn-confirm" style={{ fontSize: 11, padding: '4px 10px' }}
-                  disabled={snapshotLoading}
-                  onClick={async () => {
-                    setSnapshotLoading(true);
-                    try {
-                      const backup = await fetchSnapshot(getToken(), s.path);
-                      const merged = mergeBackup(state, backup);
-                      const added = merged.clients.length - state.clients.length;
-                      const restored = merged.sessions.length - state.sessions.length;
-                      dispatch({ type: 'REPLACE_ALL', payload: merged });
-                      setSnapshotMsg(`Restored from ${s.name}: +${added} client(s), +${restored} session(s)`);
-                      setSnapshots(null);
-                    } catch (e) { setSnapshotMsg('Failed: ' + e.message); }
-                    setSnapshotLoading(false);
-                  }}>
-                  Merge
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 6 }}>
-          Restore merges data — adds missing records without replacing existing ones.
-        </div>
-      </div>
 
       {showForm && (
         <Modal title={editingClient ? 'Edit Client' : 'New Client'} onClose={() => setShowForm(false)}
