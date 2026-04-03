@@ -25,11 +25,17 @@ export const initElasticScroll = (el) => {
     const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1 && dy < 0;
 
     if (atTop || atBottom) {
-      // Stronger pull with diminishing resistance (sqrt curve)
+      // Prevent browser's native overscroll from doubling up
+      e.preventDefault();
+      // Diminishing pull — sqrt curve feels like stretching rubber
       const absDy = Math.abs(dy);
       const pull = Math.sign(dy) * Math.min(Math.sqrt(absDy) * 4, 120);
       el.style.transform = `translateY(${pull}px)`;
       pulling = true;
+    } else if (pulling) {
+      // User scrolled back into normal range mid-pull — snap back
+      el.style.transform = '';
+      pulling = false;
     }
   };
 
@@ -45,7 +51,9 @@ export const initElasticScroll = (el) => {
   };
 
   el.addEventListener('touchstart', onTouchStart, { passive: true });
-  el.addEventListener('touchmove', onTouchMove, { passive: true });
+  // Non-passive so we can preventDefault during overscroll — prevents
+  // browser's native glow/stretch from doubling with our rubber band
+  el.addEventListener('touchmove', onTouchMove, { passive: false });
   el.addEventListener('touchend', onTouchEnd, { passive: true });
 
   return () => {

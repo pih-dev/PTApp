@@ -161,7 +161,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                       onClick={() => { haptic(); toggleFocus(tag); }}>{tag}</button>
                   ))}
                 </div>
-                <textarea className={`focus-notes${session.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
+                <textarea key={session.sessionNotes || ''} className={`focus-notes${session.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
                   defaultValue={session.sessionNotes || ''}
                   readOnly
                   onFocus={e => { e.target.readOnly = false; e.target.classList.add('editing'); }}
