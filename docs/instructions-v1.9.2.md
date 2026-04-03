@@ -291,6 +291,13 @@ The **#N** number shown next to client names on session cards shows this session
 - On session cards in Schedule, Sessions, and Home tabs
 - On client chips when booking (shows current month total before the new booking)
 
+**Monthly reset:** The counter resets to #1 at the start of each new month. This is by design — the PT tracks monthly quotas. If a client had 12 sessions in April, their first May session shows #1.
+
+**No data is lost:** All past sessions are permanently stored. To view previous months:
+- **Clients tab** — tap the client card, use < > arrows to browse any month
+- **Sessions tab** — shows all sessions ever, sorted newest first
+- **Schedule tab** — navigate to any past week
+
 **Why it matters:** The PT is typically paid a lump sum per month for a set number of sessions (e.g. 10). This counter lets you track how many sessions each client has used, including no-shows that should still count against their quota.
 
 ---
