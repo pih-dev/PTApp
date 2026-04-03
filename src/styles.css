@@ -132,7 +132,8 @@ button:active { transform: scale(0.97); }
   left: 0;
   right: 0;
   z-index: 100;
-  background: rgba(15,15,15,0.97);
+  /* Blue-tinted glass — matches header for cohesion */
+  background: rgba(37,99,235,0.06);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255,255,255,0.08);
@@ -589,7 +590,8 @@ button:active { transform: scale(0.97); }
 /* ─── Light Theme ─── */
 /* Indigo-tinted text on warm stone, depth via shadows */
 .theme-light {
-  background: linear-gradient(145deg, #E2E0DB 0%, #D5D2CC 50%, #CDCAC4 100%); color: #1E1B4B;
+  /* Blue-toned canvas — darker than cards so they float, cooler than beige */
+  background: linear-gradient(145deg, #C7D2E4 0%, #B8C5DA 50%, #ADBDD4 100%); color: #1E1B4B;
   --t1: rgba(30,27,75,0.9);
   --t2: rgba(30,27,75,0.65);
   --t3: rgba(30,27,75,0.55);
@@ -597,11 +599,11 @@ button:active { transform: scale(0.97); }
   --t5: rgba(30,27,75,0.3);
   --sep: rgba(30,27,75,0.06);
 }
-.theme-light .header { background: rgba(191,219,254,0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom-color: rgba(37,99,235,0.1); }
+.theme-light .header { background: rgba(171,205,252,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom-color: rgba(37,99,235,0.12); }
 .theme-light .logo-text { background: linear-gradient(135deg, #1E1B4B, #3730A3); -webkit-background-clip: text; }
 .theme-light .logo-sub { color: rgba(30,27,75,0.45); }
 .theme-light .app-version { color: rgba(30,27,75,0.35); }
-.theme-light .nav { background: rgba(191,219,254,0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top-color: rgba(37,99,235,0.1); box-shadow: 0 -2px 12px rgba(30,27,75,0.08); }
+.theme-light .nav { background: rgba(171,205,252,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top-color: rgba(37,99,235,0.12); box-shadow: 0 -2px 12px rgba(30,27,75,0.08); }
 .theme-light .nav-btn { color: rgba(30,27,75,0.45); }
 .theme-light .nav-btn.active { color: #2563EB; }
 
