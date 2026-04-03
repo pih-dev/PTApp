@@ -123,7 +123,7 @@ export default function General({ state, dispatch, onClose }) {
       <div>
         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'rgba(255,255,255,0.7)' }}>📖 Documentation</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <a href="https://github.com/pih-dev/PTApp/blob/master/docs/instructions-v1.9.2.md" target="_blank" rel="noopener noreferrer"
+          <a href="https://github.com/pih-dev/PTApp/blob/master/docs/instructions-v2.0.md" target="_blank" rel="noopener noreferrer"
             className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px', textDecoration: 'none', textAlign: 'center' }}>
             App Instructions
           </a>

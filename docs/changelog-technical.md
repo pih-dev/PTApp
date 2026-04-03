@@ -4,6 +4,30 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.0 — Nicknames, General Panel, Backup & Docs (2026-04-02)
+
+**What changed:**
+- New `nickname` field on clients — auto-populated with first name, used in WhatsApp messages (`friendly(client)` helper)
+- `capitalizeName()` utility capitalizes each word in a name
+- Data schema v2: migration capitalizes existing names and populates nicknames
+- New `General.jsx` component — modal panel with backup/restore and documentation links
+- ⋮ button added to app header (next to version label) to open General panel
+- Backup section removed from Clients.jsx — moved to General panel
+- Documentation links point to versioned instructions and changelog on GitHub
+
+**Why — Nicknames:**
+WhatsApp messages used the client's full name ("Hi Ahmad Khalil!") which felt impersonal. The PT knows clients by first name. Auto-populating the nickname with the first name means zero extra work for the PT, but he can customize it if a client goes by something else.
+
+**Why — General panel:**
+The backup section in Clients felt out of place — it's not client-specific, it's app-wide. Moving it behind a ⋮ menu keeps Clients focused on client management. The panel also houses documentation links so the PT can find instructions without Pierre.
+
+**Why — Name capitalization:**
+The PT typed names inconsistently (some lowercase, some mixed). Auto-capitalizing on blur and migrating existing names ensures everything looks clean.
+
+**Files changed:** `src/components/General.jsx` (new), `src/App.jsx`, `src/components/Clients.jsx`, `src/utils.js`
+
+---
+
 ## v1.9.2 — Restore Cancelled Sessions (2026-04-02)
 
 **What changed:**

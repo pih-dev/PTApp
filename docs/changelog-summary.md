@@ -4,6 +4,18 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.0 — Nicknames, General Panel, Backup & Docs (Apr 2, 2026)
+
+**Nicknames:** Clients now have a nickname field that auto-fills with their first name. The nickname is used in WhatsApp messages instead of the full name — "Hi Ahmad!" instead of "Hi Ahmad Khalil!". Existing client names were auto-capitalized and nicknames populated during migration.
+
+**General panel (⋮ button):** The backup/restore section was moved out of the Clients tab and into its own panel, accessible from the ⋮ button in the header. The panel also includes links to the app's documentation (instructions and changelog) on GitHub.
+
+**Backup improvements:** Four options now available — local Backup, Cloud Backup (GitHub snapshots), local Restore, and Cloud Restore. Restore always merges by ID: adds missing records without overwriting existing ones.
+
+**Data schema v2:** Migration auto-capitalizes all existing client names and populates the nickname field with the first name.
+
+---
+
 ## v1.9.2 — Restore Cancelled Sessions, Sessions Default to Scheduled (Apr 2, 2026)
 
 Two fixes driven by real use:
