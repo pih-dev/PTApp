@@ -123,8 +123,6 @@ button:active { transform: scale(0.97); }
   padding: 0 16px 24px;
   padding-bottom: calc(80px + env(safe-area-inset-bottom));
   -webkit-overflow-scrolling: touch;
-  /* Disable browser's native overscroll — our JS handles rubber band */
-  overscroll-behavior: none;
 }
 
 /* ─── Bottom Nav ─── */
