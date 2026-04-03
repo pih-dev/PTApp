@@ -78,7 +78,7 @@ export default function Clients({ state, dispatch, lang }) {
   return (
     <div>
       <div className="section-title section-header" style={{ marginTop: 16 }}>
-        <span>👥 {t(lang, 'myClients')} ({state.clients.length})</span>
+        <span>{t(lang, 'myClients')} ({state.clients.length})</span>
         <button className="btn-sm" onClick={openAdd}>{'+ ' + t(lang, 'add')}</button>
       </div>
 
