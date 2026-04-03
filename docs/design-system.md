@@ -202,8 +202,13 @@ Rubber-band bounce when scrolling past the top or bottom of any page.
 - Touch handlers on `.content` div detect overscroll (scrollTop at 0 or at max)
 - Pull curve: `sqrt(distance) × 4`, capped at 120px — stronger initial response, diminishing at extremes
 - Bounce-back with overshoot: `0.5s cubic-bezier(0.34, 1.56, 0.64, 1)` — same spring curve as modal, content overshoots past zero and settles
-- Works on all tabs, both themes
+- Uses **passive** touch listeners — coexists with browser's native overscroll
 - `initElasticScroll()` in utils.js, wired via `useRef`/`useEffect` in App.jsx
+- Works on all tabs, both themes
+
+**Lesson learned:** Attempted non-passive `touchmove` + `preventDefault()` + `overscroll-behavior: none` to prevent browser native overscroll from doubling up. This broke the elastic effect entirely on Android Chrome. Passive listeners with the browser's native behavior intact are the working approach.
+
+**Pending:** iPhone Safari likely handles rubber-band natively. May need to conditionally disable on iOS to avoid doubling. Pierre checking on 2026-04-04.
 
 ---
 

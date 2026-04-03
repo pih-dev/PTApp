@@ -74,14 +74,16 @@ Version history with context, decisions, and the reasoning behind each change.
 - `onBlur` handler toggles `.has-content` class via `classList.toggle()`
 
 *Elastic overscroll:*
-- `initElasticScroll()` in utils.js: touch event handlers on `.content` div
+- `initElasticScroll()` in utils.js: passive touch event handlers on `.content` div
 - Pull curve: `sqrt(absDistance) * 4`, capped at 120px — stronger initial response than linear
 - Bounce-back: `0.5s cubic-bezier(0.34, 1.56, 0.64, 1)` — same spring as modal, visible overshoot
 - Wired in App.jsx via `useEffect` + `useRef` on the content container
+- **Reverted:** non-passive `touchmove` + `preventDefault()` + `overscroll-behavior: none` broke the effect on Android Chrome. Passive listeners with browser native overscroll intact are the working approach.
+- Notes textareas also have `key={session.sessionNotes}` to fix the `defaultValue` stale DOM trap on external sync updates
 
 *Session notes expand/collapse:*
 - All `.focus-notes` textareas: `readOnly` + `max-height: 32px` + `overflow: hidden` by default
-- `onFocus`: removes `readOnly`, adds `.editing` class → `max-height: 120px` + `overflow-y: auto`
+- `onFocus`: removes `readOnly`, adds `.editing` class → `min-height: 80px` + `max-height: 120px` + `overflow-y: auto`
 - `onBlur`: restores `readOnly`, removes `.editing` → collapses back to single line
 - Transition: `max-height 0.25s ease` for smooth expand/collapse
 - Applied in Dashboard.jsx, Schedule.jsx, Sessions.jsx
