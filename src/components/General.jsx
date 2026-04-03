@@ -278,9 +278,24 @@ export default function General({ state, dispatch, onClose, lang }) {
 
         {(state.todos || []).map(todo => (
           <div key={todo.id} style={{
-            display: 'flex', alignItems: 'flex-start', gap: 8,
+            display: 'flex', alignItems: 'center', gap: 8,
             padding: '8px 0', borderBottom: '1px solid var(--sep)'
           }}>
+            {/* Done toggle — checkbox */}
+            <button onClick={() => dispatch({ type: 'TOGGLE_TODO', payload: todo.id })}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: 2,
+                color: todo.done ? '#10B981' : 'var(--t4)' }}>
+              {todo.done ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="3" fill="currentColor" opacity="0.15"/>
+                  <polyline points="9 12 11.5 14.5 15.5 9.5"/>
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="3"/>
+                </svg>
+              )}
+            </button>
             {editingTodo === todo.id ? (
               <input className="input" style={{ flex: 1, fontSize: 13, padding: '6px 10px' }}
                 autoFocus
@@ -296,7 +311,8 @@ export default function General({ state, dispatch, onClose, lang }) {
                 }}
               />
             ) : (
-              <div style={{ flex: 1, fontSize: 13, color: 'var(--t2)', lineHeight: 1.5, cursor: 'pointer' }}
+              <div style={{ flex: 1, fontSize: 13, color: 'var(--t2)', lineHeight: 1.5, cursor: 'pointer',
+                textDecoration: todo.done ? 'line-through' : 'none', opacity: todo.done ? 0.5 : 1 }}
                 onClick={() => setEditingTodo(todo.id)}>{todo.text}</div>
             )}
             <button onClick={() => dispatch({ type: 'DELETE_TODO', payload: todo.id })}

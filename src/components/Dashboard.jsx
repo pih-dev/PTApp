@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import SessionNotes from './SessionNotes';
 import { today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getSessionOrdinal, timeToMinutes } from '../utils';
 import { t } from '../i18n';
 
@@ -162,7 +161,14 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                       onClick={() => toggleFocus(tag)}>{tag}</button>
                   ))}
                 </div>
-                <SessionNotes session={session} dispatch={dispatch} lang={lang} />
+                <textarea className="focus-notes" rows="1" placeholder={t(lang, 'notesPlaceholder')}
+                  defaultValue={session.sessionNotes || ''}
+                  onBlur={e => {
+                    if (e.target.value !== (session.sessionNotes || '')) {
+                      dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, sessionNotes: e.target.value } });
+                    }
+                  }}
+                />
               </div>
             );
           })

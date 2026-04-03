@@ -539,7 +539,7 @@ button:active { transform: scale(0.97); }
 /* ─── Light Theme ─── */
 /* Swap: dark bg → white, red accent → blue, white text → dark text */
 .theme-light {
-  background: linear-gradient(145deg, #ECEEF2 0%, #E4E7ED 50%, #DFE3EB 100%); color: #1A1A2E;
+  background: linear-gradient(145deg, #E8E6E1 0%, #E0DDD7 50%, #D8D4CD 100%); color: #1A1A2E;
   --t1: rgba(0,0,0,0.85);
   --t2: rgba(0,0,0,0.6);
   --t3: rgba(0,0,0,0.5);
@@ -551,11 +551,11 @@ button:active { transform: scale(0.97); }
 .theme-light .logo-text { background: linear-gradient(135deg, #1A1A2E, #444); -webkit-background-clip: text; }
 .theme-light .logo-sub { color: rgba(0,0,0,0.45); }
 .theme-light .app-version { color: rgba(0,0,0,0.35); }
-.theme-light .nav { background: rgba(236,238,242,0.97); border-top-color: rgba(0,0,0,0.08); }
+.theme-light .nav { background: rgba(232,230,225,0.97); border-top-color: rgba(0,0,0,0.08); }
 .theme-light .nav-btn { color: rgba(0,0,0,0.45); }
 .theme-light .nav-btn.active { color: #2563EB; }
 
-.theme-light .card { background: rgba(255,255,255,0.65); border-color: rgba(0,0,0,0.08); }
+.theme-light .card { background: rgba(255,255,255,0.35); border-color: rgba(0,0,0,0.06); }
 .theme-light .card.card-now { background: rgba(37,99,235,0.08); border-color: rgba(37,99,235,0.4); box-shadow: 0 0 20px rgba(37,99,235,0.15); }
 .theme-light .card.card-tap:active { background: rgba(0,0,0,0.06); }
 
@@ -566,8 +566,8 @@ button:active { transform: scale(0.97); }
 .theme-light .btn-icon { color: rgba(0,0,0,0.35); }
 .theme-light .btn-confirm { background: linear-gradient(135deg, #10B981, #059669); }
 
-.theme-light .input, .theme-light .select { border-color: rgba(0,0,0,0.12); background: rgba(0,0,0,0.03); color: #1A1A2E; }
-.theme-light .select { background: rgba(245,245,250,0.95); }
+.theme-light .input, .theme-light .select { border-color: rgba(0,0,0,0.1); background: rgba(255,255,255,0.4); color: #1A1A2E; }
+.theme-light .select { background: rgba(255,255,255,0.5); }
 .theme-light .field-label { color: rgba(0,0,0,0.55); }
 
 .theme-light .badge { }
@@ -598,7 +598,7 @@ button:active { transform: scale(0.97); }
 
 .theme-light .focus-tag { border-color: rgba(0,0,0,0.1); background: rgba(0,0,0,0.03); color: rgba(0,0,0,0.45); }
 .theme-light .focus-tag.active { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.25); color: #2563EB; }
-.theme-light .focus-notes { border-color: rgba(0,0,0,0.08); background: rgba(0,0,0,0.03); color: rgba(0,0,0,0.6); }
+.theme-light .focus-notes { border-color: rgba(0,0,0,0.08); background: rgba(255,255,255,0.35); color: rgba(0,0,0,0.6); }
 .theme-light .focus-notes::placeholder { color: rgba(0,0,0,0.25); }
 .theme-light .inline-type-select { border-color: rgba(0,0,0,0.12); }
 
@@ -606,12 +606,12 @@ button:active { transform: scale(0.97); }
 .theme-light .filter-btn.active { border-color: #2563EB; background: rgba(37,99,235,0.08); color: #2563EB; }
 
 .theme-light .modal-bg { background: rgba(0,0,0,0.3); }
-.theme-light .modal-content { background: linear-gradient(180deg, #F5F5FA, #EBEBF0); }
+.theme-light .modal-content { background: linear-gradient(180deg, #E8E6E1, #DEDBD5); }
 .theme-light .modal-title { color: #1A1A2E; }
 .theme-light .modal-close { color: rgba(0,0,0,0.4); }
 
 .theme-light .success-detail { color: rgba(0,0,0,0.5); }
-.theme-light .setup-card { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
+.theme-light .setup-card { background: rgba(255,255,255,0.35); border-color: rgba(0,0,0,0.06); }
 .theme-light .setup-sub { color: rgba(0,0,0,0.45); }
 .theme-light .setup-spinner { border-color: rgba(0,0,0,0.1); border-top-color: #2563EB; }
 
@@ -620,32 +620,6 @@ button:active { transform: scale(0.97); }
 .theme-light .lang-toggle .lang-active { background: rgba(37,99,235,0.15); color: #2563EB; }
 
 .theme-light ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); }
-
-/* ─── Session Notes Checklist ─── */
-.note-item {
-  display: flex; align-items: center; gap: 6px;
-  padding: 4px 0;
-  border-bottom: 1px solid var(--sep);
-}
-.note-item:last-of-type { border-bottom: none; }
-.note-check {
-  flex-shrink: 0; padding: 2px;
-  display: flex; align-items: center; justify-content: center;
-}
-.note-text {
-  flex: 1; font-size: 12px; color: var(--t3);
-  font-family: inherit; word-break: break-word;
-}
-.note-delete {
-  flex-shrink: 0; padding: 4px;
-  color: var(--t5); border-radius: 4px;
-}
-.note-delete:active { background: rgba(239,68,68,0.1); color: #EF4444; }
-.note-add-btn {
-  flex-shrink: 0; padding: 4px 8px;
-  color: #2563EB; border-radius: 8px;
-  background: rgba(37,99,235,0.1);
-}
 
 /* ─── RTL overrides (Arabic) ─── */
 [dir="rtl"] .logo { direction: ltr; } /* Keep logo LTR — "PTApp" is a brand name */

@@ -108,24 +108,25 @@ export default function App() {
             <div className="logo-text">PTApp</div>
             <div className="logo-sub">{t(lang, 'personalTrainer')}</div>
           </div>
-          {/* Language toggle — Ar/En */}
-          <button className="lang-toggle" onClick={() => {
-            const next = lang === 'en' ? 'ar' : 'en';
-            setLang(next);
-            localStorage.setItem('ptapp-lang', next);
-          }}>
-            <span className={lang === 'ar' ? 'lang-active' : ''}>Ar</span>
-            <span className={lang === 'en' ? 'lang-active' : ''}>En</span>
-          </button>
-          {/* Theme toggle — Lit/Drk */}
-          <button className="lang-toggle" onClick={() => {
-            const next = theme === 'dark' ? 'light' : 'dark';
-            setTheme(next);
-            localStorage.setItem('ptapp-theme', next);
-          }}>
-            <span className={theme === 'light' ? 'lang-active' : ''}>Lit</span>
-            <span className={theme === 'dark' ? 'lang-active' : ''}>Drk</span>
-          </button>
+          {/* Language + Theme toggles — stacked to save horizontal space */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginLeft: 'auto' }}>
+            <button className="lang-toggle" onClick={() => {
+              const next = lang === 'en' ? 'ar' : 'en';
+              setLang(next);
+              localStorage.setItem('ptapp-lang', next);
+            }}>
+              <span className={lang === 'ar' ? 'lang-active' : ''}>Ar</span>
+              <span className={lang === 'en' ? 'lang-active' : ''}>En</span>
+            </button>
+            <button className="lang-toggle" onClick={() => {
+              const next = theme === 'dark' ? 'light' : 'dark';
+              setTheme(next);
+              localStorage.setItem('ptapp-theme', next);
+            }}>
+              <span className={theme === 'light' ? 'lang-active' : ''}>Lit</span>
+              <span className={theme === 'dark' ? 'lang-active' : ''}>Drk</span>
+            </button>
+          </div>
           <button onClick={() => setShowGeneral(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}>
             <span className="app-version" style={{ margin: 0 }}>v2.3</span>

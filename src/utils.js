@@ -34,7 +34,7 @@ export const phoneMatchesQuery = (storedPhone, query) => {
 
 // ─── Session Types ───
 export const SESSION_TYPES = [
-  { label: 'Strength', color: '#E8453C', emoji: '💪' },
+  { label: 'Strength', color: '#6366F1', emoji: '💪' },
   { label: 'Cardio', color: '#3B82F6', emoji: '🏃' },
   { label: 'Flexibility', color: '#8B5CF6', emoji: '🧘' },
   { label: 'HIIT', color: '#F59E0B', emoji: '⚡' },
@@ -222,6 +222,8 @@ export function reducer(state, action) {
       return { ...state, messageTemplates: action.payload };
     case 'EDIT_TODO':
       return { ...state, todos: (state.todos || []).map(t => t.id === action.payload.id ? { ...t, text: action.payload.text } : t) };
+    case 'TOGGLE_TODO':
+      return { ...state, todos: (state.todos || []).map(t => t.id === action.payload ? { ...t, done: !t.done } : t) };
     case 'DELETE_TODO':
       return { ...state, todos: (state.todos || []).filter(t => t.id !== action.payload) };
     case 'REPLACE_ALL':
