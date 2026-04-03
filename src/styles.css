@@ -11,8 +11,8 @@ body {
 
 input, select, button, textarea { font-family: inherit; }
 input:focus, select:focus {
-  border-color: #E8453C !important;
-  box-shadow: 0 0 0 3px rgba(232,69,60,0.15) !important;
+  border-color: #2563EB !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.15) !important;
   outline: none;
 }
 button { cursor: pointer; border: none; background: none; }
@@ -61,10 +61,10 @@ button:active { transform: scale(0.97); }
 
 .logo-icon {
   width: 42px; height: 42px; border-radius: 12px;
-  background: linear-gradient(135deg, #E8453C, #FF6B6B);
+  background: linear-gradient(135deg, #2563EB, #60A5FA);
   display: flex; align-items: center; justify-content: center;
   color: #fff;
-  box-shadow: 0 4px 20px rgba(232,69,60,0.3);
+  box-shadow: 0 4px 20px rgba(37,99,235,0.3);
 }
 
 .logo-text {
@@ -100,8 +100,8 @@ button:active { transform: scale(0.97); }
   transition: all 0.2s;
 }
 .lang-toggle .lang-active {
-  background: rgba(232,69,60,0.2);
-  color: #FF6B6B;
+  background: rgba(37,99,235,0.2);
+  color: #60A5FA;
 }
 
 .content {
@@ -139,7 +139,7 @@ button:active { transform: scale(0.97); }
   font-size: 11px; font-weight: 500;
   transition: color 0.2s;
 }
-.nav-btn.active { color: #E8453C; font-weight: 700; }
+.nav-btn.active { color: #2563EB; font-weight: 700; }
 .nav-btn svg { width: 22px; height: 22px; }
 
 /* ─── Cards ─── */
@@ -152,9 +152,9 @@ button:active { transform: scale(0.97); }
   transition: background 0.2s;
 }
 .card.card-now {
-  background: rgba(232,69,60,0.15);
-  border: 1px solid rgba(232,69,60,0.5);
-  box-shadow: 0 0 20px rgba(232,69,60,0.3), inset 0 0 30px rgba(232,69,60,0.05);
+  background: rgba(37,99,235,0.15);
+  border: 1px solid rgba(37,99,235,0.5);
+  box-shadow: 0 0 20px rgba(37,99,235,0.3), inset 0 0 30px rgba(37,99,235,0.05);
 }
 .card.card-tap:active {
   background: rgba(255,255,255,0.08);
@@ -164,14 +164,14 @@ button:active { transform: scale(0.97); }
 .btn-primary {
   padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 15px;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  background: linear-gradient(135deg, #E8453C, #FF6B6B); color: #fff;
-  box-shadow: 0 4px 16px rgba(232,69,60,0.3);
+  background: linear-gradient(135deg, #2563EB, #60A5FA); color: #fff;
+  box-shadow: 0 4px 16px rgba(37,99,235,0.3);
   width: 100%;
 }
 .btn-sm {
   padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 13px;
   display: inline-flex; align-items: center; gap: 6px;
-  background: linear-gradient(135deg, #E8453C, #FF6B6B); color: #fff;
+  background: linear-gradient(135deg, #2563EB, #60A5FA); color: #fff;
 }
 .btn-secondary {
   padding: 8px 14px; border-radius: 10px; font-weight: 600; font-size: 13px;
@@ -315,16 +315,16 @@ button:active { transform: scale(0.97); }
   text-align: center; font-family: inherit;
 }
 .week-day.selected {
-  border: 2px solid #E8453C;
-  background: rgba(232,69,60,0.15);
-  color: #FF6B6B;
+  border: 2px solid #2563EB;
+  background: rgba(37,99,235,0.15);
+  color: #60A5FA;
 }
 .week-day.is-today { color: #fff; }
 .week-day-label { font-size: 11px; font-weight: 600; text-transform: uppercase; }
 .week-day-num { font-size: 20px; font-weight: 800; margin-top: 2px; }
 .week-day-dot {
   width: 6px; height: 6px; border-radius: 50%;
-  background: #E8453C; margin: 4px auto 0;
+  background: #2563EB; margin: 4px auto 0;
 }
 
 /* ─── Week Nav ─── */
@@ -357,9 +357,9 @@ button:active { transform: scale(0.97); }
   display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 10px 6px 12px;
   border-radius: 10px;
-  background: rgba(232,69,60,0.15);
-  border: 1px solid rgba(232,69,60,0.3);
-  color: #FF6B6B;
+  background: rgba(37,99,235,0.15);
+  border: 1px solid rgba(37,99,235,0.3);
+  color: #60A5FA;
   font-size: 13px; font-weight: 600;
 }
 .client-chip-x {
@@ -399,9 +399,9 @@ button:active { transform: scale(0.97); }
   gap: 1px;
 }
 .time-slot.selected {
-  border: 2px solid #E8453C;
-  background: rgba(232,69,60,0.15);
-  color: #FF6B6B;
+  border: 2px solid #2563EB;
+  background: rgba(37,99,235,0.15);
+  color: #60A5FA;
 }
 .time-slot.occupied {
   background: rgba(239,68,68,0.12);
@@ -409,7 +409,7 @@ button:active { transform: scale(0.97); }
   color: rgba(239,68,68,0.8);
 }
 .time-slot.occupied.selected {
-  border: 2px solid #E8453C;
+  border: 2px solid #2563EB;
   background: rgba(239,68,68,0.2);
 }
 .time-slot-name {
@@ -436,9 +436,9 @@ button:active { transform: scale(0.97); }
   font-family: inherit;
 }
 .focus-tag.active {
-  background: rgba(232,69,60,0.15);
-  border-color: rgba(232,69,60,0.3);
-  color: #FF6B6B;
+  background: rgba(37,99,235,0.15);
+  border-color: rgba(37,99,235,0.3);
+  color: #60A5FA;
 }
 .focus-tag.readonly {
   cursor: default;
@@ -484,9 +484,9 @@ button:active { transform: scale(0.97); }
   font-family: inherit; white-space: nowrap;
 }
 .filter-btn.active {
-  border: 2px solid #E8453C;
-  background: rgba(232,69,60,0.15);
-  color: #FF6B6B;
+  border: 2px solid #2563EB;
+  background: rgba(37,99,235,0.15);
+  color: #60A5FA;
 }
 
 /* ─── Success Modal ─── */
@@ -523,12 +523,12 @@ button:active { transform: scale(0.97); }
   font-size: 14px; margin-bottom: 24px;
 }
 .setup-error {
-  color: #E8453C; font-size: 13px; margin-top: 8px;
+  color: #EF4444; font-size: 13px; margin-top: 8px;
 }
 .setup-spinner {
   width: 32px; height: 32px; margin: 0 auto;
   border: 3px solid rgba(255,255,255,0.1);
-  border-top-color: #E8453C;
+  border-top-color: #2563EB;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -539,7 +539,7 @@ button:active { transform: scale(0.97); }
 /* ─── Light Theme ─── */
 /* Swap: dark bg → white, red accent → blue, white text → dark text */
 .theme-light {
-  background: linear-gradient(145deg, #F8F9FA 0%, #EEF0F4 50%, #E8ECF2 100%); color: #1A1A2E;
+  background: linear-gradient(145deg, #ECEEF2 0%, #E4E7ED 50%, #DFE3EB 100%); color: #1A1A2E;
   --t1: rgba(0,0,0,0.85);
   --t2: rgba(0,0,0,0.6);
   --t3: rgba(0,0,0,0.5);
@@ -548,15 +548,14 @@ button:active { transform: scale(0.97); }
   --sep: rgba(0,0,0,0.06);
 }
 .theme-light .header { border-bottom-color: rgba(0,0,0,0.08); }
-.theme-light .logo-icon { background: linear-gradient(135deg, #2563EB, #60A5FA); box-shadow: 0 4px 20px rgba(37,99,235,0.3); }
 .theme-light .logo-text { background: linear-gradient(135deg, #1A1A2E, #444); -webkit-background-clip: text; }
 .theme-light .logo-sub { color: rgba(0,0,0,0.45); }
 .theme-light .app-version { color: rgba(0,0,0,0.35); }
-.theme-light .nav { background: rgba(248,249,250,0.97); border-top-color: rgba(0,0,0,0.08); }
+.theme-light .nav { background: rgba(236,238,242,0.97); border-top-color: rgba(0,0,0,0.08); }
 .theme-light .nav-btn { color: rgba(0,0,0,0.45); }
 .theme-light .nav-btn.active { color: #2563EB; }
 
-.theme-light .card { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
+.theme-light .card { background: rgba(255,255,255,0.65); border-color: rgba(0,0,0,0.08); }
 .theme-light .card.card-now { background: rgba(37,99,235,0.08); border-color: rgba(37,99,235,0.4); box-shadow: 0 0 20px rgba(37,99,235,0.15); }
 .theme-light .card.card-tap:active { background: rgba(0,0,0,0.06); }
 
@@ -621,6 +620,32 @@ button:active { transform: scale(0.97); }
 .theme-light .lang-toggle .lang-active { background: rgba(37,99,235,0.15); color: #2563EB; }
 
 .theme-light ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); }
+
+/* ─── Session Notes Checklist ─── */
+.note-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--sep);
+}
+.note-item:last-of-type { border-bottom: none; }
+.note-check {
+  flex-shrink: 0; padding: 2px;
+  display: flex; align-items: center; justify-content: center;
+}
+.note-text {
+  flex: 1; font-size: 12px; color: var(--t3);
+  font-family: inherit; word-break: break-word;
+}
+.note-delete {
+  flex-shrink: 0; padding: 4px;
+  color: var(--t5); border-radius: 4px;
+}
+.note-delete:active { background: rgba(239,68,68,0.1); color: #EF4444; }
+.note-add-btn {
+  flex-shrink: 0; padding: 4px 8px;
+  color: #2563EB; border-radius: 8px;
+  background: rgba(37,99,235,0.1);
+}
 
 /* ─── RTL overrides (Arabic) ─── */
 [dir="rtl"] .logo { direction: ltr; } /* Keep logo LTR — "PTApp" is a brand name */

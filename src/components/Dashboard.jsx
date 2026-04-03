@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
+import SessionNotes from './SessionNotes';
 import { today, formatDate, formatDateLong, SESSION_TYPES, STATUS_MAP, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getSessionOrdinal, timeToMinutes } from '../utils';
 import { t } from '../i18n';
 
@@ -67,7 +68,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
     <div>
       <div className="section-title" style={{ marginTop: 16 }}>{t(lang, 'overview')}</div>
       <div className="stat-row">
-        <div className="stat-card" style={{ background: 'linear-gradient(135deg, #E8453C15, #E8453C08)', border: '1px solid #E8453C25' }}>
+        <div className="stat-card" style={{ background: 'linear-gradient(135deg, #6366F115, #6366F108)', border: '1px solid #6366F125' }}>
           <div className="stat-num">{state.clients.length}</div>
           <div className="stat-label">{t(lang, 'statClients')}</div>
         </div>
@@ -114,7 +115,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
             };
             return (
               <div key={session.id}
-                className={`card${isNext ? ' card-now' : ''}`} style={{ borderInlineStart: `3px solid ${isNext ? '#E8453C' : st.color}` }}>
+                className={`card${isNext ? ' card-now' : ''}`} style={{ borderInlineStart: `3px solid ${isNext ? '#2563EB' : st.color}` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                   <div>
                     <div className="client-name">{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--t4)' }}>#{monthCount}</span></div>
@@ -161,14 +162,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                       onClick={() => toggleFocus(tag)}>{tag}</button>
                   ))}
                 </div>
-                <textarea className="focus-notes" rows="1" placeholder={t(lang, 'notesPlaceholder')}
-                  defaultValue={session.sessionNotes || ''}
-                  onBlur={e => {
-                    if (e.target.value !== (session.sessionNotes || '')) {
-                      dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, sessionNotes: e.target.value } });
-                    }
-                  }}
-                />
+                <SessionNotes session={session} dispatch={dispatch} lang={lang} />
               </div>
             );
           })
@@ -220,7 +214,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
         return (
           <Modal title={getClientName(session.clientId)} onClose={() => setActiveSession(null)}
             action={
-              <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15, color: '#E8453C' }}
+              <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15, color: '#EF4444' }}
                 onClick={() => cancelSession(session)}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 {t(lang, 'cancelSession')}

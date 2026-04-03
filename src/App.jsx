@@ -128,7 +128,7 @@ export default function App() {
           </button>
           <button onClick={() => setShowGeneral(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}>
-            <span className="app-version" style={{ margin: 0 }}>v2.2</span>
+            <span className="app-version" style={{ margin: 0 }}>v2.3</span>
             <span style={{ color: 'var(--t4)', fontSize: 28, lineHeight: 1 }}>⋮</span>
           </button>
         </div>
