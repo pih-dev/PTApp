@@ -16,6 +16,7 @@ export default function App() {
   const [connected, setConnected] = useState(!!getToken());
   const [initialLoad, setInitialLoad] = useState(!!getToken());
   const [lang, setLang] = useState(() => localStorage.getItem('ptapp-lang') || 'en');
+  const [theme, setTheme] = useState(() => localStorage.getItem('ptapp-theme') || 'dark');
   const skipSync = useRef(true);
 
   // On first load with token, fetch remote data
@@ -92,7 +93,7 @@ export default function App() {
   ];
 
   return (
-    <div className="app-container" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className={`app-container${theme === 'light' ? ' theme-light' : ''}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="header">
         <div className="logo">
           <div className="logo-icon">
@@ -116,9 +117,18 @@ export default function App() {
             <span className={lang === 'ar' ? 'lang-active' : ''}>Ar</span>
             <span className={lang === 'en' ? 'lang-active' : ''}>En</span>
           </button>
+          {/* Theme toggle — Lit/Drk */}
+          <button className="lang-toggle" onClick={() => {
+            const next = theme === 'dark' ? 'light' : 'dark';
+            setTheme(next);
+            localStorage.setItem('ptapp-theme', next);
+          }}>
+            <span className={theme === 'light' ? 'lang-active' : ''}>Lit</span>
+            <span className={theme === 'dark' ? 'lang-active' : ''}>Drk</span>
+          </button>
           <button onClick={() => setShowGeneral(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}>
-            <span className="app-version" style={{ margin: 0 }}>v2.1</span>
+            <span className="app-version" style={{ margin: 0 }}>v2.2</span>
             <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 28, lineHeight: 1 }}>⋮</span>
           </button>
         </div>
