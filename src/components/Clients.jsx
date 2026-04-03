@@ -212,13 +212,13 @@ export default function Clients({ state, dispatch }) {
 
       {/* Data backup section */}
       <div style={{ marginTop: 24, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 16 }}>
-        <div className="section-title" style={{ fontSize: 14, marginBottom: 8 }}>💾 Data Backup</div>
+        <div className="section-title" style={{ fontSize: 14, marginBottom: 8 }}>💾 Clients/Sessions Backup</div>
 
         {/* Save buttons */}
         <div className="flex-row" style={{ gap: 8, marginBottom: 8 }}>
           <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
             onClick={() => exportBackup(state)}>
-            📱 Save to Phone
+            Backup
           </button>
           {getToken() && (
             <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
@@ -233,7 +233,7 @@ export default function Clients({ state, dispatch }) {
                 } catch (e) { setSnapshotMsg('Failed: ' + e.message); }
                 setSnapshotLoading(false);
               }}>
-              ☁️ Save to GitHub
+              Cloud Backup
             </button>
           )}
         </div>
@@ -264,7 +264,7 @@ export default function Clients({ state, dispatch }) {
               };
               input.click();
             }}>
-            📱 Restore from Phone
+            Restore
           </button>
           {getToken() && (
             <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
@@ -279,7 +279,7 @@ export default function Clients({ state, dispatch }) {
                 } catch (e) { setSnapshotMsg('Failed: ' + e.message); }
                 setSnapshotLoading(false);
               }}>
-              ☁️ Restore from GitHub
+              Cloud Restore
             </button>
           )}
         </div>
