@@ -14,7 +14,11 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 
 ## Current Version: v2.3
 - Blue accent color (both themes)
-- Warm stone light theme
+- Warm stone light theme with indigo-tinted text
+- Solid status badges (blue/green/red on white)
+- Solid blue active filter tabs
+- Red delete buttons (solid, white icon)
+- Card shadows for depth in both themes
 - i18n (English + Arabic)
 - Todo list with checkboxes in General panel
 
@@ -136,13 +140,17 @@ Auto-complete used to dispatch N separate `UPDATE_SESSION` actions for N lapsed 
 
 ### Color system
 - **Accent color**: `#2563EB` (blue) / `#60A5FA` (light blue). Used in both themes.
-- **Error/danger**: `#EF4444` (red). Only for destructive actions and error messages.
-- **Success**: `#10B981` (green). Confirmed status, todo checkmarks.
+- **Error/danger**: `#EF4444` (red). Delete buttons are solid red with white icon. Cancel badge is red.
+- **Success**: `#10B981` (green). Confirmed status badge, todo checkmarks.
 - **Session type colors**: Indigo `#6366F1` (Strength), Blue `#3B82F6` (Cardio), Purple `#8B5CF6` (Flexibility), Amber `#F59E0B` (HIIT), Green `#10B981` (Recovery), Grey `#6B7280` (Custom).
-- **Theme-aware CSS vars**: `--t1` to `--t5` for text opacity levels, `--sep` for separators. Use these in inline styles — never hardcode `rgba(255,255,255,...)` or `rgba(0,0,0,...)`.
+- **Status badges**: Use CSS classes `badge-scheduled` (blue), `badge-completed` (blue), `badge-confirmed` (green), `badge-cancelled` (red). All solid fill with white text. Do NOT use inline `style={{ color, background }}` on badges — use `className={`badge badge-${status}`}`.
+- **Filter tabs**: Active filter is solid blue `#2563EB` with white text. Inactive is subtle outline.
+- **Light theme text**: Indigo-tinted `#1E1B4B` (indigo-950) as base color. CSS vars use `rgba(30,27,75,...)` instead of `rgba(0,0,0,...)`. Logo gradient: `#1E1B4B` → `#3730A3`.
+- **Theme-aware CSS vars**: `--t1` to `--t5` for text opacity levels, `--sep` for separators. Dark theme uses `rgba(255,255,255,...)`, light theme uses `rgba(30,27,75,...)`. Use these in inline styles — never hardcode raw rgba values.
+- **Card depth**: Cards have `box-shadow` in both themes. Light theme nav has top shadow.
 
 ### Status labels (i18n)
-Use `getStatus(status, lang, t)` to get a translated status object `{color, bg, label}`. Don't use `STATUS_MAP` directly in components — it returns English-only labels. The `STATUS_MAP` export still exists for backward compatibility but components should use `getStatus`.
+Use `getStatus(status, lang, t)` to get a translated status object with `label` for display text. Badge colors are handled by CSS classes (`badge-scheduled`, `badge-completed`, etc.) — don't use inline color/bg styles on badges. Components render: `<span className={`badge badge-${session.status}`}>{status.label}</span>`. The `STATUS_MAP` export still exists for backward compatibility but is not used in components.
 
 ### Sync
 - Sync is debounced (1s) via `debouncedSync()` in App.jsx. Every state change saves to localStorage immediately but GitHub push waits 1s for more changes.

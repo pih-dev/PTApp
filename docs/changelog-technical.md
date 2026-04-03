@@ -4,6 +4,49 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.3.2 — Visual Polish: Solid Badges, Indigo Light Theme, Depth (2026-04-03)
+
+**What changed:**
+
+*Status badges — CSS classes replace inline styles:*
+- New CSS classes: `.badge-scheduled` (blue), `.badge-completed` (blue), `.badge-confirmed` (green), `.badge-cancelled` (red) — all solid fill, white text
+- All 6 badge instances across Dashboard.jsx, Sessions.jsx, Clients.jsx, Schedule.jsx changed from `style={{ color: status.color, background: status.bg }}` to `className={`badge badge-${session.status}`}`
+- `getStatus()` still used for translated label text, but its color/bg fields are no longer used in rendering
+
+*Filter tabs:*
+- `.filter-btn.active` changed from blue outline + tinted bg to solid `#2563EB` bg + white text (both themes)
+
+*Delete buttons:*
+- `.btn-danger-sm` changed from faint red tint (`rgba(239,68,68,0.1)` bg, red border, red icon) to solid `#EF4444` bg + white icon
+- Dashboard.jsx and Schedule.jsx trash icons changed from `btn-icon` to `btn-danger-sm` (matches Clients.jsx)
+
+*Light theme — indigo text:*
+- Base text color: `#1A1A2E` → `#1E1B4B` (Tailwind indigo-950)
+- All `rgba(0,0,0,...)` in `.theme-light` rules → `rgba(30,27,75,...)` for indigo tint (except `.modal-bg` which stays black for overlay effect)
+- CSS vars: `--t1` through `--t5` and `--sep` all use indigo base
+- Logo gradient: `#1A1A2E, #444` → `#1E1B4B, #3730A3` (indigo gradient)
+
+*Card depth:*
+- Base `.card` gets `box-shadow: 0 2px 8px rgba(0,0,0,0.15)` (dark theme)
+- `.theme-light .card` gets `box-shadow: 0 2px 8px rgba(30,27,75,0.06)` (light theme)
+- `.theme-light .card.card-now` shadow updated to `0 2px 12px rgba(37,99,235,0.15)`
+- `.theme-light .nav` gets `box-shadow: 0 -2px 8px rgba(0,0,0,0.05)` for top shadow
+- Light theme card bg: `rgba(255,255,255,0.35)` → `rgba(255,255,255,0.4)` (slightly more opaque)
+- Light theme card border: `rgba(0,0,0,0.06)` → `rgba(30,27,75,0.07)` (slightly stronger)
+
+**Why — Solid badges:**
+The old "colored text on pastel background" badges (e.g., grey `#6B7280` on `#F3F4F6` for Completed) washed out completely in the warm stone light theme. The pastel backgrounds were nearly invisible against the warm grey app background. Solid fills with white text provide consistent contrast in both themes. CSS classes rather than inline styles allow theme-specific overrides without passing theme to utility functions.
+
+**Why — Indigo text:**
+Pierre found the light theme "bland" compared to the dark theme which has good contrast and character. Pure black text on warm stone is flat. The indigo tint (`#1E1B4B` / `rgba(30,27,75,...)`) adds a subtle blue-purple warmth that complements the warm stone background and creates visual identity. The effect is most noticeable on headings and bold text; body text at lower opacity reads as a warm grey.
+
+**Why — Card shadows:**
+The dark theme naturally has depth because lighter cards float on a dark background. The light theme lacked this — cards blended into the background. Adding `box-shadow` creates the layered "3D" effect Pierre wanted. Dark theme gets a stronger shadow (higher opacity) since it's on a dark bg; light theme gets a softer one using the indigo base for color consistency.
+
+**Files changed:** `src/styles.css`, `src/components/Dashboard.jsx`, `src/components/Sessions.jsx`, `src/components/Clients.jsx`, `src/components/Schedule.jsx`
+
+---
+
 ## v2.3.1 — Bug Fix Round + Code Review (2026-04-03)
 
 **What changed:**

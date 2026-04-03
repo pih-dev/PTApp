@@ -4,6 +4,20 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.3.2 — Visual Polish: Solid Badges, Indigo Light Theme, Depth (Apr 3, 2026)
+
+**Light theme no longer bland:** The light theme got a personality upgrade. All text now has an indigo tint instead of plain black — headings, labels, meta text all carry a subtle purple-blue warmth. The logo gradient matches. Cards have soft shadows for a layered "3D" feel similar to the dark theme. The nav bar has a top shadow for visual separation.
+
+**Status badges pop:** Scheduled and Completed badges are now solid blue with white text (both themes). Confirmed is solid green, Cancelled is solid red. The old "colored text on pastel background" approach washed out in light theme — these solid fills are visible everywhere.
+
+**Filter tabs are clickable-looking:** The active filter tab (Active, All, Scheduled, etc.) is now solid blue with white text instead of a subtle blue outline. Makes it obvious which filter is selected.
+
+**Delete buttons are unmistakable:** All trash/delete buttons across the app (Clients, Dashboard, Schedule) are now solid red with a white icon. Previously they were faint red outlines that blended into the background.
+
+**Cards have depth:** Both themes now have subtle box-shadows on cards. The dark theme gets a deeper shadow, the light theme gets a softer one. Combined with the slightly more opaque card backgrounds in light theme, this creates the layered look that makes the dark theme feel "3D."
+
+---
+
 ## v2.3.1 — Bug Fix Round + Code Review (Apr 3, 2026)
 
 **Timezone bug (toISOString → local helpers):** The app was using `toISOString()` to format dates in several places. This converts to UTC, so midnight in Beirut (UTC+3) becomes 9 PM the previous day. Result: the Clients month navigator jumped by 2 months instead of 1, the Schedule week strip could show wrong dates, and the "This Week" dashboard stat miscounted sessions. The `today()` function had already been fixed in an earlier version, but the same bug existed in 8 other places. All fixed now using new `localDateStr()` and `localMonthStr()` helpers.
