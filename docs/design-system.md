@@ -193,6 +193,15 @@ Small 4px blue dot appears below the active tab label. Adds to the "you are here
 - **Has content + blurred:** Blue hue persists (signals "this session has notes")
 - **Empty + blurred:** Returns to default neutral
 - Uses `.has-content` CSS class toggled via `classList.toggle()` on blur
+- **Scroll-locked by default:** `readOnly` + `overflow: hidden` — prevents notes from stealing page scroll. Tap to focus enables editing.
+
+### Elastic Overscroll
+Rubber-band bounce when scrolling past the top or bottom of any page.
+- Touch handlers on `.content` div detect overscroll (scrollTop at 0 or at max)
+- Applies `translateY` with diminishing resistance (0.35x of finger movement, capped at 100px)
+- Spring-back: `transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)` — quick snap with gentle deceleration
+- Works on all tabs, both themes
+- `initElasticScroll()` in utils.js, wired via `useRef`/`useEffect` in App.jsx
 
 ---
 

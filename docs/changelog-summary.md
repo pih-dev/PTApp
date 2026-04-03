@@ -24,6 +24,10 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 **Active tab dot.** A small blue dot appears under the active nav tab icon — an extra "you are here" signal beyond the color change.
 
+**Pages bounce like rubber.** Scrolling past the top or bottom of any page triggers an elastic rubber-band effect — the content stretches slightly and springs back. Feels physical and premium, like a native app.
+
+**Notes don't steal your scroll.** Session notes fields used to capture scroll events, making it hard to scroll past them on the Home tab. Now they're locked (read-only) by default — the page scrolls freely over them. Tap a notes field to edit it, tap away to lock it again.
+
 ---
 
 ## v2.3.2 — Visual Polish: Solid Badges, Indigo Light Theme, Depth (Apr 3, 2026)

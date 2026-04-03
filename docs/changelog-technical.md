@@ -73,6 +73,19 @@ Version history with context, decisions, and the reasoning behind each change.
 - Dashboard.jsx, Schedule.jsx, Sessions.jsx: `className` includes conditional `has-content`
 - `onBlur` handler toggles `.has-content` class via `classList.toggle()`
 
+*Elastic overscroll:*
+- `initElasticScroll()` in utils.js: touch event handlers on `.content` div
+- On overscroll (top or bottom), applies `translateY` with 0.35x resistance, capped at 100px
+- Spring-back via CSS transition `0.4s cubic-bezier(0.25, 1, 0.5, 1)`
+- Wired in App.jsx via `useEffect` + `useRef` on the content container
+
+*Session notes scroll lock:*
+- All `.focus-notes` textareas: `readOnly` attribute set by default
+- `onFocus`: removes `readOnly`, enables editing
+- `onBlur`: restores `readOnly`, saves changes
+- CSS: `overflow: hidden` + `touch-action: pan-y` prevents textarea from capturing page scroll
+- Applied in Dashboard.jsx, Schedule.jsx, Sessions.jsx
+
 *Haptic feedback:*
 - New `haptic()` helper in utils.js: `navigator.vibrate?.(ms)` with try/catch
 - Wired into: App.jsx (nav tabs), Dashboard.jsx (complete, cancel, focus tags), Schedule.jsx (complete, cancel, focus tags), Sessions.jsx (focus tags, filter tabs), Clients.jsx (delete), General.jsx (todo checkbox)
