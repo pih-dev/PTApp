@@ -93,7 +93,7 @@ export default function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
             <div className="app-version" style={{ margin: 0 }}>v2.0</div>
             <button onClick={() => setShowGeneral(true)}
-              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 20, padding: '4px 8px', cursor: 'pointer', lineHeight: 1 }}>
+              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 28, padding: '4px 10px', cursor: 'pointer', lineHeight: 1 }}>
               ⋮
             </button>
           </div>

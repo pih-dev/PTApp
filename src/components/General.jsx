@@ -3,10 +3,32 @@ import Modal from './Modal';
 import { exportBackup, mergeBackup } from '../utils';
 import { getToken, saveSnapshot, listSnapshots, fetchSnapshot } from '../sync';
 
+// Raw GitHub URLs for docs — renders as plain text, no GitHub UI
+const DOCS = {
+  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.0.md',
+  changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
+};
+
 export default function General({ state, dispatch, onClose }) {
   const [snapshots, setSnapshots] = useState(null);
   const [snapshotLoading, setSnapshotLoading] = useState(false);
   const [snapshotMsg, setSnapshotMsg] = useState('');
+  const [docContent, setDocContent] = useState(null); // { title, text }
+  const [docLoading, setDocLoading] = useState(false);
+
+  // Fetch and display a markdown doc in-app
+  const openDoc = async (url, title) => {
+    setDocLoading(true);
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to load');
+      const text = await res.text();
+      setDocContent({ title, text });
+    } catch {
+      alert('Could not load document. Check your connection.');
+    }
+    setDocLoading(false);
+  };
 
   return (
     <Modal title="General" onClose={onClose}>
@@ -119,20 +141,35 @@ export default function General({ state, dispatch, onClose }) {
         </div>
       </div>
 
-      {/* Documentation links */}
+      {/* Documentation — opens in-app */}
       <div>
         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'rgba(255,255,255,0.7)' }}>📖 Documentation</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <a href="https://github.com/pih-dev/PTApp/blob/master/docs/instructions-v2.0.md" target="_blank" rel="noopener noreferrer"
-            className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px', textDecoration: 'none', textAlign: 'center' }}>
+          <button className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px' }}
+            disabled={docLoading}
+            onClick={() => openDoc(DOCS.instructions, 'App Instructions')}>
             App Instructions
-          </a>
-          <a href="https://github.com/pih-dev/PTApp/blob/master/docs/changelog-summary.md" target="_blank" rel="noopener noreferrer"
-            className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px', textDecoration: 'none', textAlign: 'center' }}>
+          </button>
+          <button className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px' }}
+            disabled={docLoading}
+            onClick={() => openDoc(DOCS.changelog, 'What Changed')}>
             What Changed (Changelog)
-          </a>
+          </button>
         </div>
       </div>
+
+      {/* In-app document viewer */}
+      {docContent && (
+        <Modal title={docContent.title} onClose={() => setDocContent(null)}>
+          <pre style={{
+            whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+            fontSize: 13, lineHeight: 1.6, color: 'rgba(255,255,255,0.75)',
+            fontFamily: 'inherit', margin: 0
+          }}>
+            {docContent.text}
+          </pre>
+        </Modal>
+      )}
     </Modal>
   );
 }
