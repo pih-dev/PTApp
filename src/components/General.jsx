@@ -3,11 +3,135 @@ import Modal from './Modal';
 import { exportBackup, mergeBackup } from '../utils';
 import { getToken, saveSnapshot, listSnapshots, fetchSnapshot } from '../sync';
 
-// Raw GitHub URLs for docs — renders as plain text, no GitHub UI
+// Raw GitHub URLs for docs — fetched at runtime, not bundled
 const DOCS = {
   instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.0.md',
   changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
 };
+
+// Lightweight markdown→React renderer for our docs (no library needed)
+// Handles: headings, bold, tables, lists, horizontal rules, paragraphs
+function renderMarkdown(text) {
+  const lines = text.split('\n');
+  const elements = [];
+  let i = 0;
+  let key = 0;
+
+  // Inline formatting: **bold** and `code`
+  const inline = (str) => {
+    const parts = [];
+    let lastIdx = 0;
+    // Match **bold** and `code` spans
+    str.replace(/(\*\*(.+?)\*\*)|(`(.+?)`)/g, (match, boldFull, boldText, codeFull, codeText, offset) => {
+      if (offset > lastIdx) parts.push(str.slice(lastIdx, offset));
+      if (boldText) parts.push(<strong key={offset} style={{ color: 'rgba(255,255,255,0.95)' }}>{boldText}</strong>);
+      if (codeText) parts.push(<code key={offset} style={{ background: 'rgba(255,255,255,0.08)', padding: '1px 5px', borderRadius: 3, fontSize: '0.9em' }}>{codeText}</code>);
+      lastIdx = offset + match.length;
+    });
+    if (lastIdx < str.length) parts.push(str.slice(lastIdx));
+    return parts.length ? parts : str;
+  };
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Skip the top-level title (# Title) — already shown in modal header
+    if (i === 0 && line.startsWith('# ')) { i++; continue; }
+
+    // Horizontal rule
+    if (/^---+$/.test(line.trim())) {
+      elements.push(<hr key={key++} style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '16px 0' }} />);
+      i++; continue;
+    }
+
+    // Headings
+    if (line.startsWith('### ')) {
+      elements.push(<div key={key++} style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.8)', marginTop: 14, marginBottom: 6 }}>{inline(line.slice(4))}</div>);
+      i++; continue;
+    }
+    if (line.startsWith('## ')) {
+      elements.push(<div key={key++} style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginTop: 18, marginBottom: 8 }}>{inline(line.slice(3))}</div>);
+      i++; continue;
+    }
+
+    // Table — collect all | rows, render as a styled grid
+    if (line.trim().startsWith('|')) {
+      const rows = [];
+      while (i < lines.length && lines[i].trim().startsWith('|')) {
+        const row = lines[i].trim();
+        // Skip separator rows (|---|---|)
+        if (!/^\|[\s\-:|]+\|$/.test(row)) {
+          rows.push(row.split('|').filter(Boolean).map(c => c.trim()));
+        }
+        i++;
+      }
+      elements.push(
+        <div key={key++} style={{ fontSize: 12, marginBottom: 10, overflowX: 'auto' }}>
+          {rows.map((row, ri) => (
+            <div key={ri} style={{
+              display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.06)',
+              padding: '6px 0', fontWeight: ri === 0 ? 600 : 400,
+              color: ri === 0 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.55)'
+            }}>
+              {row.map((cell, ci) => (
+                <div key={ci} style={{ flex: 1, padding: '0 4px', minWidth: 0 }}>{inline(cell)}</div>
+              ))}
+            </div>
+          ))}
+        </div>
+      );
+      continue;
+    }
+
+    // Ordered list item (1. item)
+    if (/^\d+\.\s/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
+        items.push(lines[i].replace(/^\d+\.\s/, ''));
+        i++;
+        // Collect continuation lines (indented sub-items like "   - detail")
+        while (i < lines.length && /^\s{2,}-\s/.test(lines[i])) {
+          items[items.length - 1] += '\n' + lines[i].trim();
+          i++;
+        }
+      }
+      elements.push(
+        <ol key={key++} style={{ margin: '6px 0', paddingLeft: 20, fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7 }}>
+          {items.map((item, idx) => <li key={idx}>{inline(item)}</li>)}
+        </ol>
+      );
+      continue;
+    }
+
+    // Unordered list item (- item)
+    if (/^-\s/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^-\s/.test(lines[i])) {
+        items.push(lines[i].slice(2));
+        i++;
+      }
+      elements.push(
+        <ul key={key++} style={{ margin: '6px 0', paddingLeft: 20, fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7 }}>
+          {items.map((item, idx) => <li key={idx}>{inline(item)}</li>)}
+        </ul>
+      );
+      continue;
+    }
+
+    // Empty line — skip
+    if (!line.trim()) { i++; continue; }
+
+    // Paragraph — collect consecutive non-empty, non-special lines
+    const para = [];
+    while (i < lines.length && lines[i].trim() && !lines[i].startsWith('#') && !lines[i].startsWith('|') && !/^---+$/.test(lines[i].trim()) && !/^-\s/.test(lines[i]) && !/^\d+\.\s/.test(lines[i])) {
+      para.push(lines[i]);
+      i++;
+    }
+    elements.push(<p key={key++} style={{ margin: '6px 0', fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7 }}>{inline(para.join(' '))}</p>);
+  }
+
+  return elements;
+}
 
 export default function General({ state, dispatch, onClose }) {
   const [snapshots, setSnapshots] = useState(null);
@@ -158,16 +282,10 @@ export default function General({ state, dispatch, onClose }) {
         </div>
       </div>
 
-      {/* In-app document viewer */}
+      {/* In-app document viewer — renders markdown natively */}
       {docContent && (
         <Modal title={docContent.title} onClose={() => setDocContent(null)}>
-          <pre style={{
-            whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-            fontSize: 13, lineHeight: 1.6, color: 'rgba(255,255,255,0.75)',
-            fontFamily: 'inherit', margin: 0
-          }}>
-            {docContent.text}
-          </pre>
+          {renderMarkdown(docContent.text)}
         </Modal>
       )}
     </Modal>
