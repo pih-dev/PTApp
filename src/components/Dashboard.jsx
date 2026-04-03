@@ -67,15 +67,15 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
     <div>
       <div className="section-title" style={{ marginTop: 16 }}>{t(lang, 'overview')}</div>
       <div className="stat-row">
-        <div className="stat-card" style={{ background: 'linear-gradient(135deg, #6366F115, #6366F108)', border: '1px solid #6366F125' }}>
+        <div className="stat-card" style={{ background: 'linear-gradient(135deg, #6366F130, #6366F118)', border: '1px solid #6366F135' }}>
           <div className="stat-num">{state.clients.length}</div>
           <div className="stat-label">{t(lang, 'statClients')}</div>
         </div>
-        <div className="stat-card" style={{ background: 'linear-gradient(135deg, #3B82F615, #3B82F608)', border: '1px solid #3B82F625' }}>
+        <div className="stat-card" style={{ background: 'linear-gradient(135deg, #3B82F630, #3B82F618)', border: '1px solid #3B82F635' }}>
           <div className="stat-num">{todaySessions.length}</div>
           <div className="stat-label">{t(lang, 'statToday')}</div>
         </div>
-        <div className="stat-card" style={{ background: 'linear-gradient(135deg, #8B5CF615, #8B5CF608)', border: '1px solid #8B5CF625' }}>
+        <div className="stat-card" style={{ background: 'linear-gradient(135deg, #10B98130, #10B98118)', border: '1px solid #10B98135' }}>
           <div className="stat-num">{weekSessions.length}</div>
           <div className="stat-label">{t(lang, 'statWeek')}</div>
         </div>
