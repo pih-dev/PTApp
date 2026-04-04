@@ -6,6 +6,42 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (2026-04-03/04)
 
+**Light theme contrast + glossy nav (Apr 4):**
+
+*Nav/header glass - glossier, more transparent:*
+- `.theme-light .header` / `.nav`: `rgba(30,64,175,0.25)` -> `rgba(30,64,175,0.15)` (more transparent)
+- `backdrop-filter: blur(20px)` -> `blur(28px) saturate(1.4)` (stronger frosted glass effect)
+- Border alpha reduced `0.15` -> `0.12` to match lighter glass
+
+*Stat cards - more solid accent fills:*
+- `.stat-clients`: gradient `0.15/0.08` -> `0.3/0.18`, border `0.2` -> `0.35`
+- `.stat-today`: gradient `0.15/0.08` -> `0.3/0.18`, border `0.2` -> `0.35`
+- `.stat-week`: gradient `0.15/0.08` -> `0.3/0.18`, border `0.2` -> `0.35`
+- Base `.stat-card` also boosted `0.5/0.3` -> `0.6/0.4`
+- `.stat-label` color `0.55` -> `0.65`
+
+*Muted text - stronger contrast across the board:*
+- CSS vars: `--t4` `0.4` -> `0.5`, `--t5` `0.3` -> `0.42`, `--sep` `0.06` -> `0.08`
+- `.logo-sub` `0.55` -> `0.65`
+- `.app-version` `0.35` -> `0.45`
+- `.nav-btn` `0.6` -> `0.7`
+- `.meta` `0.5` -> `0.6`
+- `.client-phone` `0.45` -> `0.55`
+- `.client-notes` `0.4` -> `0.5`
+- `.session-count` `0.4` -> `0.5`
+- `.empty` `0.4` -> `0.5`
+- `.success-detail` `0.5` -> `0.6`
+- `.setup-sub` `0.45` -> `0.55`
+- `.field-label` `0.55` -> `0.65`
+- `.focus-notes::placeholder` `0.25` -> `0.35`
+- `.modal-close` `0.4` -> `0.5`
+- `.week-nav-label` `0.65` -> `0.7`
+
+*Toggle buttons (Ar/En, Lit/Drk) - more visible:*
+- Background: `rgba(255,255,255,0.15)` -> `rgba(255,255,255,0.25)` + added `border: 1px solid rgba(30,27,75,0.08)`
+- Inactive text: `rgba(30,27,75,0.35)` -> `rgba(30,27,75,0.55)`
+- Active: `color: #2563EB` -> `color: #1D4ED8` (deeper), `background: rgba(37,99,235,0.15)` -> `0.2`
+
 **Code review cleanup (Apr 4):**
 
 *Shared components extracted:*

@@ -14,7 +14,7 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 
 ## Current Version: v2.4
 - Blue accent color (both themes)
-- Light theme redesigned: deep steel blue background (#94A8C8→#788DB4), opaque white-blue cards, darker blue glass header/nav (rgba(30,64,175,0.25)), blue-tinted modals
+- Light theme redesigned: deep steel blue background (#94A8C8→#788DB4), opaque white-blue cards, glossy frosted glass header/nav (rgba(30,64,175,0.15) + blur 28px + saturate 1.4), blue-tinted modals
 - Dark theme: blue-tinted header/nav glass, nav buttons 0.75 opacity (readable), active tab #3B82F6, micro-polished with transitions, button press feel, spring modals
 - Solid status badges (blue/green/red on white)
 - Solid blue active filter tabs with smooth transitions
@@ -80,7 +80,7 @@ PTApp/
 │   ├── App.jsx         # Main app with routing/tabs, sync, auto-complete
 │   ├── sync.js         # GitHub API sync (makdissi-dev/ptapp-data)
 │   ├── i18n.js         # Translations (en/ar) + t() lookup + dateLocale()
-│   ├── styles.css      # All styles (dark + light themes, ~630 lines)
+│   ├── styles.css      # All styles (dark + light themes, ~710 lines)
 │   ├── utils.js        # Helpers, constants, storage, reducer, date helpers
 │   └── components/
 │       ├── Dashboard.jsx    # Home tab: stats, today's sessions, expanded/compact
@@ -154,7 +154,7 @@ Auto-complete used to dispatch N separate `UPDATE_SESSION` actions for N lapsed 
 - **Session type colors**: Indigo `#6366F1` (Strength), Blue `#3B82F6` (Cardio), Purple `#8B5CF6` (Flexibility), Amber `#F59E0B` (HIIT), Green `#10B981` (Recovery), Grey `#6B7280` (Custom).
 - **Status badges**: Use CSS classes `badge-scheduled` (blue), `badge-completed` (blue), `badge-confirmed` (green), `badge-cancelled` (red). All solid fill with white text. Do NOT use inline `style={{ color, background }}` on badges — use `className={`badge badge-${status}`}`.
 - **Filter tabs**: Active filter is solid blue `#2563EB` with white text. Inactive is subtle outline.
-- **Light theme canvas**: Deep steel blue gradient `#94A8C8 → #788DB4`. Cards are opaque white-blue `rgba(210,228,255,0.55)`. Header/nav: darker blue glass `rgba(30,64,175,0.25)` with blur. Not bright — just lighter than dark.
+- **Light theme canvas**: Deep steel blue gradient `#94A8C8 → #788DB4`. Cards are opaque white-blue `rgba(210,228,255,0.55)`. Header/nav: glossy frosted glass `rgba(30,64,175,0.15)` with `blur(28px) saturate(1.4)`. Not bright — just lighter than dark.
 - **Light theme text**: Indigo-tinted `#1E1B4B` (indigo-950) as base color. CSS vars use `rgba(30,27,75,...)` instead of `rgba(0,0,0,...)`. Logo gradient: `#1E1B4B` → `#3730A3`.
 - **Dark theme nav**: Inactive buttons at `rgba(255,255,255,0.75)`, active tab `#3B82F6` (blue-500). Active dot matches.
 - **Theme-aware CSS vars**: `--t1` to `--t5` for text opacity levels, `--sep` for separators. Dark theme uses `rgba(255,255,255,...)`, light theme uses `rgba(30,27,75,...)`. Use these in inline styles — never hardcode raw rgba values.

@@ -97,6 +97,14 @@ First round: deepened light theme, darker blue glass bars.
 
 ---
 
+## v2.4 — Glossy Nav + Text Contrast (Apr 4, 2026 ~7:40am)
+
+| File | Description |
+|------|-------------|
+| `v2.4-light-glossy-contrast-apr04.jpg` | Light theme after glossier nav + contrast pass. Header/nav glass more transparent (0.25→0.15 alpha) with stronger blur (28px + saturate 1.4) — frosted look. Stat cards more solid accent fills (doubled opacity). All muted text darkened (~+0.1 opacity across --t4/--t5 and specific classes). Toggle buttons (Ar/En, Lit/Drk) have stronger background, border, and darker inactive text. "PERSONAL TRAINER" subtitle visibly darker. |
+
+---
+
 ## Not Yet Captured
 
 - Other tabs (Clients, Schedule, Sessions) in current theme
