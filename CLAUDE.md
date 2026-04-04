@@ -140,6 +140,11 @@ Bottom elements need `env(safe-area-inset-bottom)`. Nav bar is z-index 100, moda
 ### TRAP: Inline styles and RTL
 Inline `marginLeft: 'auto'` doesn't flip in RTL mode. Use `marginInlineStart: 'auto'` instead. Similarly, use `borderInlineStart` not `borderLeft` for session card left borders. CSS class rules with `.theme-light` or `[dir="rtl"]` selectors DO flip correctly.
 
+### TRAP: Billing period gate field
+**What happened:** `getClientPeriod` originally checked `!client.periodStart` to decide whether to use calendar month. But `periodStart` is a date input — hard to clear on mobile once set. When the PT changed the dropdown back to "Default (calendar month)", `periodLength` became `""` but `periodStart` still had a value, so the function treated it as a custom period.
+
+**Rule:** `periodLength` is the master switch. Gate on `!client.periodLength`, never on `periodStart`. When `periodLength` is falsy, return calendar month regardless of `periodStart`. The Clients.jsx form also auto-clears `periodStart` when the dropdown resets, but the function must not depend on that.
+
 ### TRAP: Single dispatches in loops
 Auto-complete used to dispatch N separate `UPDATE_SESSION` actions for N lapsed sessions. Each dispatch triggers a re-render + a sync push. Now uses `BATCH_COMPLETE` to mark all in one dispatch. Apply the same pattern whenever you need to update multiple records.
 
@@ -245,6 +250,7 @@ Every commit should be followed by appropriate documentation:
 - Auto-complete: lapsed sessions are batch-marked completed on app load
 - Sync: debounced 1s, retry up to 3 on conflict, errors silently caught
 - UX simplicity is the priority — the PT adopted the app because it's simple. Don't add friction.
+- Billing periods: `periodLength` is the master switch (not `periodStart`). When empty, calendar month is used regardless of any `periodStart` value. This ensures the dropdown "Default (calendar month)" is the single control needed to reset.
 
 ## How to Run (Development)
 ```bash

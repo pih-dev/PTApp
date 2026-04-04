@@ -98,6 +98,8 @@ Manage your client list. Shows all clients with a search bar.
    - **Gender** (optional) — Male or Female
    - **Birthdate** (optional)
    - **Notes** (optional) — e.g. "Bad knee", "Prefers mornings"
+   - **Period Start** (optional) — the date this client's billing period begins. Leave empty to use the 1st of each month (default).
+   - **Period Length** — how long each billing period lasts. Options: Default (calendar month), 1 Month (custom start), 4 Weeks, 2 Weeks, 1 Week. The default calendar month resets session counts on the 1st. Custom periods repeat from the start date — e.g. "2 Weeks from Apr 1" means Apr 1-14, Apr 15-28, etc.
 3. Tap **Add Client**
 
 ### Client Card — Tap to Expand
@@ -106,7 +108,7 @@ Tap any client card to expand it and see their session history:
 
 - **Month navigator** — browse through months with the < > arrows
 - **Monthly summary** — total sessions, completed, and cancelled counts for the selected month
-- **Session list** — every session that month showing date, time, type, focus tags, notes, and status
+- **Session list** — every session that month showing date, time, type, focus tags, notes, and status. Completed sessions show editable focus tags and notes — tap a tag to toggle it, tap the notes field to edit.
 
 Tap the card again to collapse it. The arrow icon rotates to show expanded/collapsed state.
 
@@ -358,6 +360,8 @@ Use these placeholders in your templates — they get replaced with real values 
 | `{date}` | Full date (e.g. "Thursday, April 3, 2026") |
 | `{time}` | Session time (e.g. "09:00") |
 | `{duration}` | Duration in minutes (e.g. "45") |
+| `{number}` | Session number in the client's current billing period (e.g. "4") |
+| `{periodEnd}` | End date of the client's current billing period (e.g. "April 30, 2026") |
 
 Templates sync between devices. When the language is set to Arabic, the default templates switch to Arabic automatically. Custom templates (your edits) are used regardless of language.
 
@@ -376,6 +380,27 @@ Tap **Reset to Defaults** to restore the original messages.
 | **Cancelled** | Session was cancelled | Restore to Scheduled, or mark Complete |
 
 **Auto-complete:** When a session's end time passes (start time + duration), it is automatically marked as completed. No need to tap Complete after every session.
+
+---
+
+## Billing Periods
+
+By default, session counts reset on the 1st of every month. So if a client has 4 sessions in April, the WhatsApp message says "Session #4 (until April 30, 2026)."
+
+Some clients have contracts that don't follow the calendar month — for example, a 2-week plan starting mid-month. You can customize this per client:
+
+1. Open the client's edit form (pencil icon)
+2. Set **Period Start** to the date their billing cycle begins
+3. Set **Period Length** to how long each period lasts:
+   - **Default (calendar month)** — 1st to last day of each month
+   - **1 Month** — monthly from the start date (e.g. 15th to 14th)
+   - **4 Weeks** — 28-day rolling periods from start date
+   - **2 Weeks** — 14-day rolling periods from start date
+   - **1 Week** — 7-day rolling periods from start date
+
+**To reset back to default:** Just change the Period Length dropdown back to "Default (calendar month)." The start date field doesn't need to be cleared — the app ignores it when the period length is set to default.
+
+Session numbers (#1, #2...) shown on session cards and in WhatsApp messages follow the client's billing period.
 
 ---
 

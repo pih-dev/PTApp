@@ -291,7 +291,11 @@ export default function Clients({ state, dispatch, lang }) {
             </div>
             <div className="field" style={{ flex: 1 }}>
               <label className="field-label">{t(lang, 'periodLength')}</label>
-              <select className="select" value={form.periodLength} onChange={e => setForm(p => ({ ...p, periodLength: e.target.value }))}>
+              <select className="select" value={form.periodLength} onChange={e => {
+                const v = e.target.value;
+                // Clearing periodLength (back to default) also clears periodStart for clean data
+                setForm(p => v ? { ...p, periodLength: v } : { ...p, periodLength: '', periodStart: '' });
+              }}>
                 <option value="">{t(lang, 'periodDefault')}</option>
                 {PERIOD_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </select>

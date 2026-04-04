@@ -6,6 +6,10 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (Apr 3–4, 2026)
 
+**Per-client billing periods.** (Apr 4) Session counts (#1, #2, #3...) and WhatsApp messages now follow each client's billing period instead of always resetting on the 1st of the month. By default nothing changes — it's still calendar month. But the PT can set a custom start date and period length (1 month, 4 weeks, 2 weeks, 1 week) per client. WhatsApp messages include `{number}` (session count) and `{periodEnd}` (period end date) placeholders. Switching the dropdown back to "Default" resets everything cleanly — even if the start date field still has a value, the app ignores it.
+
+**Client session history is editable.** (Apr 4) In the Clients tab, expanding a client's session history now shows focus tags and notes — same as the Sessions tab. The PT can edit past sessions directly from the client view instead of hunting through the full session log.
+
 **Active sessions glow amber now.** (Apr 4) Sessions currently in progress used to have a blue glow — same blue as everything else. Now they glow amber/yellow, which makes "happening right now" visually distinct from "selected" or "active UI element." Works in both dark and light themes.
 
 **Glossier glass, punchier colors, readable text.** (Apr 4) The nav bar and header glass went more transparent with stronger blur — they feel frosted now instead of painted on. The three stat cards (Clients, Today, This Week) have more solid accent fills so the indigo/blue/green actually reads as color. All the small gray text across the app — "PERSONAL TRAINER," phone numbers, session counts, meta info, notes placeholders — got noticeably darker so nothing washes out on the blue canvas. The Ar/En and Lit/Drk toggle buttons have a visible background and border now, with darker inactive text so you can actually read both options.

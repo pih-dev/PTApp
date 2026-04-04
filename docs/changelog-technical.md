@@ -6,6 +6,32 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (2026-04-03/04)
 
+**Per-client billing periods (Apr 4):**
+
+*New fields on client: `periodStart` (date), `periodLength` (enum):*
+- `PERIOD_OPTIONS` in utils.js: `1month`, `4weeks`, `2weeks`, `1week`
+- `getClientPeriod(client, dateStr)` returns `{start, end}` for the period containing `dateStr`
+- `periodLength` is the master switch — when empty/falsy, function returns calendar month regardless of `periodStart`
+- If `periodLength` set but `periodStart` empty, anchors to today (fallback for PT forgetting to set start date)
+- `1month` periods: anchored to day-of-month from `periodStart`, with day clamping (e.g. 31st → 28th in Feb)
+- Fixed-day periods: `4weeks`=28d, `2weeks`=14d, `1week`=7d — repeating windows from anchor
+- `getSessionOrdinal` signature changed: `(sessions, id, clientId, month)` → `(sessions, id, clientId, periodStart, periodEnd)` — now filters by date range instead of month prefix
+- New `getPeriodSessionCount(sessions, clientId, periodStart, periodEnd)` — replaces month-based counting in Schedule booking chips
+- `getMonthlySessionCount` kept for backward compatibility (Clients.jsx month view)
+- Clients.jsx: form includes `periodStart` (date input) + `periodLength` (select dropdown)
+- Clients.jsx: changing dropdown to "Default" auto-clears `periodStart` for clean data
+- WhatsApp `fillTemplate`: `{number}` placeholder → session ordinal in billing period, `{periodEnd}` → formatted period end date
+- Default templates updated: includes `#️⃣ Session #{number} (until {periodEnd})`
+- i18n: added `periodStart`, `periodLength`, `periodDefault`, `periodOptional` keys (en + ar)
+- All consumers updated: Dashboard, Schedule, Sessions, Clients all use `getClientPeriod` for ordinals
+- Bug fix: `getClientPeriod` originally gated on `!client.periodStart` — meant PT couldn't reset to default by dropdown alone (date input hard to clear on mobile). Fixed to gate on `!client.periodLength`.
+- Bug fix: redundant ternary `diffDays >= 0 ? Math.floor(x) : Math.floor(x)` simplified to `Math.floor(x)`
+
+*Client session history now editable (Apr 4):*
+- Clients.jsx expanded view: added `EditableFocus` component (imported from Sessions.jsx pattern)
+- Focus tags and session notes visible and editable in client month history
+- Imports added: `FOCUS_TAGS` from utils.js
+
 **Active session glow: blue to amber (Apr 4):**
 
 *card-now hue changed from blue to amber/yellow:*

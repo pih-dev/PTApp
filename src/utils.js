@@ -182,15 +182,18 @@ export const PERIOD_OPTIONS = [
 export const getClientPeriod = (client, dateStr) => {
   const ref = new Date(dateStr + 'T00:00:00');
 
-  // Default: calendar month
-  if (!client || !client.periodStart) {
+  // Default: calendar month (periodLength is the master switch — ignore periodStart if no length set)
+  if (!client || !client.periodLength) {
     const start = new Date(ref.getFullYear(), ref.getMonth(), 1);
     const end = new Date(ref.getFullYear(), ref.getMonth() + 1, 0); // last day of month
     return { start: localDateStr(start), end: localDateStr(end) };
   }
 
-  const anchor = new Date(client.periodStart + 'T00:00:00');
-  const len = client.periodLength || '1month';
+  // If periodLength is set but no start date, anchor to today (PT forgot to pick a date)
+  const anchor = client.periodStart
+    ? new Date(client.periodStart + 'T00:00:00')
+    : new Date(today() + 'T00:00:00');
+  const len = client.periodLength;
 
   if (len === '1month') {
     // Monthly periods anchored to anchor's day-of-month
@@ -214,7 +217,7 @@ export const getClientPeriod = (client, dateStr) => {
   const days = len === '4weeks' ? 28 : len === '2weeks' ? 14 : len === '1week' ? 7 : Number(len) || 30;
   const diffMs = ref.getTime() - anchor.getTime();
   const diffDays = Math.floor(diffMs / 86400000);
-  const idx = diffDays >= 0 ? Math.floor(diffDays / days) : Math.floor(diffDays / days);
+  const idx = Math.floor(diffDays / days);
   const pStart = new Date(anchor.getTime() + idx * days * 86400000);
   const pEnd = new Date(pStart.getTime() + (days - 1) * 86400000);
   return { start: localDateStr(pStart), end: localDateStr(pEnd) };
