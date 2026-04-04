@@ -67,6 +67,28 @@ Visual evolution of the app, organized chronologically. All screenshots taken on
 
 ---
 
+## v2.4 — Deep Blue Canvas (Apr 4, 2026 ~6:35am)
+
+First round: deepened light theme, darker blue glass bars.
+
+| File | Description |
+|------|-------------|
+| `v2.4-light-deep-blue-before.jpg` | Light theme, deep blue canvas (#8B9FC0 gradient). Too monotone — "darker filter" look, cards don't separate from background. Glass bars transparent but everything blends together. |
+| `v2.4-dark-deep-blue-before.jpg` | Dark theme before nav fix. Nav buttons barely readable (0.55 opacity grey), active "Home" too dim against dark glass. |
+
+---
+
+## v2.4 — Contrast Fix + Nav Readability (Apr 4, 2026 ~6:43am)
+
+| File | Description |
+|------|-------------|
+| `v2.4-light-contrast-fix.jpg` | Light theme with contrast fix. Background lighter (#94A8C8), cards opaque white-blue, breaks the monotone. Nav buttons readable. |
+| `v2.4-dark-nav-fix.jpg` | Dark theme with nav fix. Inactive buttons brighter (0.75 opacity), active "Home" now #60A5FA. Pierre: "navigation look great" but active blue "looks pale in contrast with the rest." |
+
+**Feedback:** Dark nav active needs stronger/deeper blue — #60A5FA is too pale against the page.
+
+---
+
 ## Not Yet Captured
 
 - Other tabs (Clients, Schedule, Sessions) in current theme
