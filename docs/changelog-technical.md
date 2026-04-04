@@ -4,9 +4,9 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
-## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (2026-04-03)
+## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (2026-04-03/04)
 
-**Post-deploy refinement (same day, 3 rounds):**
+**Post-deploy refinement (Apr 3, 3 rounds + Apr 4, 3 rounds):**
 
 *Round 1 — visual feedback fixes:*
 - Light theme cards: `rgba(255,255,255,0.72)` white → `rgba(219,234,254,0.55)` soft blue (white hurt eyes)
@@ -29,6 +29,26 @@ Version history with context, decisions, and the reasoning behind each change.
 - Light theme header/nav border: `rgba(37,99,235,0.1)` → `rgba(37,99,235,0.12)`
 - Dark theme nav: `rgba(15,15,15,0.97)` near-black → `rgba(37,99,235,0.06)` blue glass (matched header)
 - Stat cards: opacity boosted again (hex `30/18` → `50/30`, borders `35` → `55`) to stand out on blue canvas
+
+*Round 4 — deep blue canvas (Apr 4):*
+- Light theme background: `#C7D2E4 → #ADBDD4` → `#8B9FC0 → #6F87AC` deep steel blue
+- Light theme header/nav: `rgba(171,205,252,0.7)` → `rgba(30,64,175,0.3)` darker blue, more transparent glass
+- Light theme cards: `rgba(219,234,254,0.55)` → `rgba(96,165,250,0.3)` #60A5FA-based blue
+- All light theme elements adjusted for darker canvas (inputs, tags, filters use white+blue glass)
+- Modal: white → blue-tinted `rgba(220,232,250,0.97)`
+
+*Round 5 — contrast fix (Apr 4):*
+- Light theme background: `#8B9FC0 → #6F87AC` → `#94A8C8 → #788DB4` (slightly lighter to break monotone)
+- Light theme cards: `rgba(96,165,250,0.3)` → `rgba(210,228,255,0.55)` opaque white-blue (breaks monotone)
+- Light theme stat cards: matched card treatment
+- Light theme nav buttons: boosted from `0.45` → `0.6` opacity
+- Light theme nav active: `#2563EB` → `#1D4ED8` (deeper for light canvas)
+- Dark theme nav inactive: `0.55` → `0.75` opacity (much more readable)
+- Dark theme nav active: `#2563EB` → `#60A5FA` (brighter on dark)
+
+*Round 6 — dark nav active strength (Apr 4):*
+- Dark theme nav active: `#60A5FA` → `#3B82F6` (blue-500, not pale, not invisible — just right)
+- Active dot matches `#3B82F6`
 
 **What changed:**
 

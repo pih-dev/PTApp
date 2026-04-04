@@ -89,6 +89,14 @@ First round: deepened light theme, darker blue glass bars.
 
 ---
 
+## v2.4 — Dark Nav Final (Apr 4, 2026 ~6:51am)
+
+| File | Description |
+|------|-------------|
+| `v2.4-dark-nav-final-apr04.jpg` | Dark theme, final nav state. Active "Home" now #3B82F6 (blue-500) — strong, visible, holds its own against page content. Inactive buttons at 0.75 opacity. Pierre: "Perfect." |
+
+---
+
 ## Not Yet Captured
 
 - Other tabs (Clients, Schedule, Sessions) in current theme

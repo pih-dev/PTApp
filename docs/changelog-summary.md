@@ -4,7 +4,7 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
-## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (Apr 3, 2026)
+## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (Apr 3–4, 2026)
 
 **Light theme feels like its own app now.** The background is a blue-toned gradient (the old beige clashed), cards are **soft blue** (not white — white was too harsh) with shadows that make them float, the header and nav bar are **stronger blue frosted glass** that frames the content, and modals are clean white overlays. Everything has clear visual layers — background (blue-grey) < cards (soft blue) < header/nav strips (stronger blue) < modals (white).
 
@@ -25,6 +25,10 @@ A plain English summary of each version for anyone who wants the big picture wit
 **Active tab dot.** A small blue dot appears under the active nav tab icon — an extra "you are here" signal beyond the color change.
 
 **Pages bounce like rubber.** Scrolling past the top or bottom of any page triggers an elastic rubber-band effect — the content stretches slightly and springs back. Feels physical and premium, like a native app.
+
+**Light theme deepened into a "blue theme."** (Apr 4) The background shifted from light blue-grey to a deeper steel blue gradient. Cards became opaque white-blue so they separate clearly from the canvas. Header and nav bars use darker blue glass that's more see-through. The theme no longer needs to be bright — just lighter than dark. Switching between themes doesn't hurt the eyes.
+
+**Dark theme nav buttons are readable now.** (Apr 4) Inactive nav labels went from grey (0.55 opacity) to near-white (0.75). The active tab uses mid-blue #3B82F6 instead of the too-pale #60A5FA — strong enough to stand out against the page.
 
 **Notes expand when you tap them.** Session notes show as a single collapsed line by default — the page scrolls freely over them. Tap a notes field and it smoothly expands downward (the session card and tags stay visible above), becomes scrollable for editing. Tap outside to collapse it back. No more accidentally scrolling notes when you meant to scroll the page.
 

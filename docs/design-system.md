@@ -123,32 +123,32 @@ The v2.3 light theme had no layer separation. Background, cards, nav, and modals
 
 ### Background
 ```css
-background: linear-gradient(145deg, #C7D2E4 0%, #B8C5DA 50%, #ADBDD4 100%);
+background: linear-gradient(145deg, #94A8C8 0%, #8699BE 50%, #788DB4 100%);
 ```
-Blue-toned gradient. Earlier iterations used warm beige (`#E8E6E1`) then cooler grey (`#E2E0DB`), but both clashed with the blue card system. The blue-toned canvas provides coherent contrast — cards (soft blue) float above it, while header/nav strips (stronger blue) frame the content.
+Deep steel blue gradient. The journey: warm beige → cooler grey → light blue-toned → deep blue. Pierre's philosophy: "it's called light theme but we don't have to have it bright — lighter than dark would suffice." The deep canvas means switching between themes doesn't hurt the eyes.
 
 ### Cards
 ```css
-background: rgba(219,234,254,0.55);
-border-color: rgba(37,99,235,0.08);
-box-shadow: 0 2px 12px rgba(30,27,75,0.08);
+background: rgba(210,228,255,0.55);
+border-color: rgba(37,99,235,0.12);
+box-shadow: 0 2px 12px rgba(30,27,75,0.1);
 ```
-Soft blue tint (Tailwind blue-100 at 55% opacity). Initially used near-opaque white (`rgba(255,255,255,0.72)`) but Pierre found it hurt the eyes — white cards on a grey background are too contrasty in bright environments. The blue tint is softer while still clearly floating above the background, and ties into the blue accent color system.
+Opaque white-blue — clearly separates from the deep canvas without being monotone. Earlier `rgba(96,165,250,0.3)` was too transparent and everything looked like a "darker filter was applied." The white infusion breaks the monotone while staying in the blue family.
 
 ### Header & Nav Bar
 ```css
-/* Both header and nav use the same stronger blue glass */
-background: rgba(171,205,252,0.7);
+/* Both header and nav use darker blue glass, more see-through */
+background: rgba(30,64,175,0.25);
 backdrop-filter: blur(20px);
 -webkit-backdrop-filter: blur(20px);
 ```
-Blue frosted glass — stronger blue than the cards, clearly distinct from the background. Header and nav match each other, framing the content area. Earlier iterations used white glass (`rgba(255,255,255,0.82)`) but the white strips clashed with the blue cards and grabbed too much attention.
+Darker blue glass — uses a deeper blue base (`30,64,175` vs the old `171,205,252`) at lower opacity (0.25 vs 0.7). More transparent/see-through but the color itself is richer. Nav buttons boosted to `rgba(30,27,75,0.6)` for readability, active is `#1D4ED8`.
 
 ### Modals
 ```css
-background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(248,247,245,0.97));
+background: linear-gradient(180deg, rgba(220,232,250,0.97), rgba(200,218,240,0.98));
 ```
-White gradient — clearly an overlay on top of the page, not part of it.
+Blue-tinted gradient — harmonizes with the page instead of jarring white.
 
 ### Text
 All text uses indigo-tinted values (`rgba(30,27,75,...)`) instead of pure black. This gives the light theme visual warmth and identity without being muddy. The effect is most visible on headings; body text reads as warm grey.
@@ -293,15 +293,17 @@ Light theme uses lower opacity: `rgba(37,99,235,0.04)` → `rgba(37,99,235,0.01)
 - Card shadows for depth
 
 ### v2.4: Visual Polish + Light Theme Redesign
-- **Light theme redesign:** Blue-toned background, blue-tinted cards, blue glass header/nav, white modals
-- **Light theme background:** `#C7D2E4 → #B8C5DA → #ADBDD4` blue-toned gradient (was beige, then grey)
-- **Light theme cards:** `rgba(219,234,254,0.55)` — soft blue, easier on eyes than white
-- **Light theme header/nav:** `rgba(171,205,252,0.7)` blue frosted glass (was white, clashed)
-- **Light theme inputs:** Blue-tinted `rgba(237,244,254,0.6)` to match cards
-- **Dark theme bars:** Header and nav both use `rgba(37,99,235,0.06)` blue-tinted glass (were transparent/near-black, looked identical)
+- **Light theme redesign:** Deep steel blue background, opaque white-blue cards, darker blue glass header/nav, blue-tinted modals
+- **Light theme background:** `#94A8C8 → #8699BE → #788DB4` deep steel blue (was beige → grey → light blue → deep blue)
+- **Light theme cards:** `rgba(210,228,255,0.55)` — opaque white-blue, breaks monotone on deep canvas
+- **Light theme header/nav:** `rgba(30,64,175,0.25)` darker blue glass, more see-through (was `rgba(171,205,252,0.7)`)
+- **Light theme modals:** Blue-tinted `rgba(220,232,250,0.97)` (was white)
+- **Light theme inputs:** Blue-tinted `rgba(96,165,250,0.2)` to match canvas
+- **Dark theme bars:** Header and nav both use `rgba(37,99,235,0.06)` blue-tinted glass
+- **Dark theme nav:** Inactive buttons `0.75` opacity (was `0.55`), active `#3B82F6` (was `#2563EB`)
 - **Micro-polish:** Transitions on all interactive elements, spring modal, nav dot
 - **Button feel:** Brightness darken + shadow reduction on press, card push-down
-- **Session notes:** Blue hue on focus/has-content, **blue text** when has content
+- **Session notes:** Blue hue on focus/has-content, expand/collapse on tap
 - **Haptic feedback:** Vibration on Android for key interactions
 - **Logo:** Horizontal dumbbell (was vertical/water-jug)
 - **Auto-complete:** 1hr buffer after session end
@@ -329,6 +331,21 @@ Deployed and iterated on Android throughout the session. Each round refined base
 - Boosted stat card opacity (hex `50/30` vs `30/18`) for the same reason
 - Dark theme nav matched to header's blue glass for cohesion
 - **Pierre's verdict:** "amazing stuff, perfect"
+
+**Round 4** (Apr 4) — Deep blue canvas:
+- Pierre: "it's called light theme but we don't have to have it bright, lighter than dark would suffice"
+- → Deepened background to `#8B9FC0 → #6F87AC`, cards to `rgba(96,165,250,0.3)`, header/nav to `rgba(30,64,175,0.3)`
+- Result: too monotone — "looks like a darker filter was applied on it"
+
+**Round 5** (Apr 4) — Contrast fix:
+- → Background slightly lighter `#94A8C8 → #788DB4`, cards switched to opaque white-blue `rgba(210,228,255,0.55)`
+- The white infusion in cards breaks the monotone while staying in the blue family
+- Dark theme nav: inactive `0.55` → `0.75` opacity, active `#2563EB` → `#60A5FA`
+- Pierre: "nav looks great" but active blue "looks pale in contrast"
+
+**Round 6** (Apr 4) — Nav active strength:
+- Dark nav active: `#60A5FA` → `#3B82F6` (blue-500) — midway, holds its own
+- **Pierre's verdict:** "Perfect"
 
 **Key insight:** The web stack (CSS-only, GitHub Pages) has a ceiling for premium feel. The enhanced *experience* (transitions, press feedback, spring modals, haptic) matters more than pixel-level visual changes. Save ambitious visual work for the native app stage.
 
