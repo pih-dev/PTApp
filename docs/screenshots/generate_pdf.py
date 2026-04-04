@@ -83,7 +83,43 @@ SECTIONS = [
         "title": "v2.4 -Glossy Nav + Text Contrast (Apr 4, 2026 ~7:40am)",
         "desc": "Glossier glass, solid stat cards, stronger muted text, toggle visibility.",
         "images": [
-            ("v2.4-light-glossy-contrast-apr04.jpg", "Light: glossier nav, solid stats, darker text"),
+            ("v2.4-light-glossy-contrast-apr04.jpg", "Light: glossier nav, solid stats, darker text (Android)"),
+        ],
+    },
+    {
+        "title": "v2.4 -Contrast + Nav Before/After (Apr 4, ~6:35-6:44am, iPhone)",
+        "desc": "Before and after the glossy nav + text contrast pass, from PT's iPhone.",
+        "images": [
+            ("v2.4-iphone-light-before-contrast-apr04.jpg", "Light BEFORE: faded stat cards, light text, glass less defined"),
+            ("v2.4-iphone-light-after-contrast-apr04.jpg", "Light AFTER: punchier stats, darker text, frosted glass"),
+            ("v2.4-iphone-dark-before-nav-apr04.jpg", "Dark BEFORE: dim nav labels (0.55 opacity)"),
+            ("v2.4-iphone-dark-after-nav-apr04.jpg", "Dark AFTER: brighter nav (0.75 opacity), visible active tab"),
+        ],
+    },
+    {
+        "title": "v2.4 -Expanded Dashboard + Focus Tags (Apr 4, ~9:19am, iPhone)",
+        "desc": "Dashboard expanded view with focus tags and notes on session cards.",
+        "images": [
+            ("v2.4-iphone-dark-expanded-focus-apr04.jpg", "Dark: Pierre #3 + Danny #2, focus tags, Notes field"),
+            ("v2.4-iphone-light-expanded-dashboard-apr04.jpg", "Light: same view on blue canvas, frosted glass"),
+            ("v2.4-iphone-dark-expanded-dashboard-apr04.jpg", "Dark: expanded sessions with type-colored borders"),
+            ("v2.4-iphone-light-glossy-overview-apr04.jpg", "Light: overview, stat cards 8/4/4, Violette session"),
+        ],
+    },
+    {
+        "title": "v2.4 -Client History Editable (Apr 4, ~9:39am, Android)",
+        "desc": "Clients tab expanded: session history with editable focus tags + notes.",
+        "images": [
+            ("v2.4-dark-client-history-editable-apr04.jpg", "Pierre's client card expanded, Apr 2026: 2 Completed + 1 Scheduled, focus tags + notes inline"),
+        ],
+    },
+    {
+        "title": "v2.4 -Billing Period Form (Apr 4, ~10:52am, Android)",
+        "desc": "New per-client billing period fields in Edit Client modal.",
+        "images": [
+            ("v2.4-dark-period-fields-apr04.jpg", "Edit Client form: Period Start (empty) + Period Length (Default)"),
+            ("v2.4-dark-period-datepicker-apr04.jpg", "Android date picker for Period Start, April 2026"),
+            ("v2.4-dark-period-length-dropdown-apr04.jpg", "Period Length options: Default, 1 Month, 4 Weeks, 2 Weeks, 1 Week"),
         ],
     },
 ]
@@ -154,7 +190,7 @@ def main():
     pdf.ln(16)
     pdf.set_font("Helvetica", "I", 10)
     pdf.set_text_color(120, 120, 140)
-    pdf.cell(0, 8, "Generated Apr 4, 2026 -Samsung S25 Ultra screenshots", align="C")
+    pdf.cell(0, 8, "Generated Apr 4, 2026 -Samsung S25 Ultra + iPhone screenshots", align="C")
 
     # Content sections
     for section in SECTIONS:

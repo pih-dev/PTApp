@@ -105,8 +105,56 @@ First round: deepened light theme, darker blue glass bars.
 
 ---
 
+## v2.4 — Contrast + Nav Before/After (Apr 4, 2026 ~6:35-6:44am, PT's iPhone)
+
+Before and after the glossy nav + text contrast pass, captured on the PT's iPhone.
+
+| File | Description |
+|------|-------------|
+| `v2.4-iphone-light-before-contrast-apr04.jpg` | Light theme BEFORE contrast fix (6:35am). Stat cards faded, text light, glass less defined. Stat cards readable but washed out. |
+| `v2.4-iphone-dark-before-nav-apr04.jpg` | Dark theme BEFORE nav fix (6:36am). Nav button labels dim (0.55 opacity grey), active "Home" barely distinguishable from inactive tabs. |
+| `v2.4-iphone-light-after-contrast-apr04.jpg` | Light theme AFTER contrast fix (6:43am). Stat cards punchier, text darker, glass frosted with blur(28px)+saturate(1.4). Toggle buttons have visible background+border. |
+| `v2.4-iphone-dark-after-nav-apr04.jpg` | Dark theme AFTER nav fix (6:44am). Nav labels brighter (0.75 opacity), active tab visible. Still uses #60A5FA (later changed to #3B82F6). |
+
+---
+
+## v2.4 — Expanded Dashboard + Focus Tags (Apr 4, 2026 ~9:19-9:26am, PT's iPhone)
+
+Dashboard expanded view showing session cards with focus tags and notes fields.
+
+| File | Description |
+|------|-------------|
+| `v2.4-iphone-dark-expanded-focus-apr04.jpg` | Dark theme (9:19am). Two sessions: Pierre Ghorra #3 and Danny Mallat #2, both Scheduled. Complete/Remind/Edit/Delete buttons, 7 focus tags (Chest, Back, Shoulders, Arms, Legs, Core, Glutes, Full Body), Notes field. |
+| `v2.4-iphone-light-expanded-dashboard-apr04.jpg` | Light theme (9:19am). Same view on light canvas. Soft blue cards with focus tags, frosted glass header. Buttons clearly colored. |
+| `v2.4-iphone-dark-expanded-dashboard-apr04.jpg` | Dark theme (9:26am). Same expanded view at slightly different time. Session cards with type-colored left borders. |
+| `v2.4-iphone-light-glossy-overview-apr04.jpg` | Light theme overview (7:40am). Full dashboard: 3 stat cards (8/4/4), "Today's Sessions (4)" heading, Violette Ghorra session with focus tags. Frosted glass header/nav. From PT's iPhone. |
+
+---
+
+## v2.4 — Client History Editable (Apr 4, 2026 ~9:39am, Android)
+
+| File | Description |
+|------|-------------|
+| `v2.4-dark-client-history-editable-apr04.jpg` | Clients tab, Pierre's card expanded. April 2026 month view showing 3 sessions (2 Completed, 1 Scheduled). Completed sessions show focus tags (Strength: Legs with notes, Strength: Chest/Arms/Core with notes). Session notes visible inline. This is the new editable session history feature. |
+
+---
+
+## v2.4 — Billing Period Form (Apr 4, 2026 ~10:52am, Android)
+
+The new per-client billing period fields in the Edit Client modal.
+
+| File | Description |
+|------|-------------|
+| `v2.4-dark-period-fields-apr04.jpg` | Edit Client form bottom section. Shows Period Start (empty date input, labeled "optional - defaults to 1st of month") and Period Length dropdown (set to "Default (calendar month)"). Below existing fields: nickname (Pierre), phone (+961), gender (Male), birthdate, notes ("Lazy"). |
+| `v2.4-dark-period-datepicker-apr04.jpg` | Android date picker overlay for Period Start. Shows April 2026 calendar with Apr 4 selected. Clear/Cancel/Set buttons at bottom. Edit Client form visible behind the overlay. |
+| `v2.4-dark-period-length-dropdown-apr04.jpg` | Period Length dropdown expanded. Shows all 5 options: Default (calendar month) [selected], 1 Month, 4 Weeks, 2 Weeks, 1 Week. Radio button UI. Edit Client modal visible behind. |
+
+---
+
 ## Not Yet Captured
 
-- Other tabs (Clients, Schedule, Sessions) in current theme
+- Amber active session glow (card-now) — no in-progress sessions at screenshot time
 - Arabic/RTL mode
 - Modal/booking flow
+- Sessions tab
+- Schedule tab week view
