@@ -6,6 +6,37 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (2026-04-03/04)
 
+**Code review cleanup (Apr 4):**
+
+*Shared components extracted:*
+- New `Icons.jsx`: 7 shared SVG icons (WhatsApp, Edit, Trash, Clock, Phone, Chevron, Close) — eliminates 20+ inline SVG duplications across Dashboard, Schedule, Clients, Modal
+- New `CancelPrompt.jsx`: shared cancel session modal (count/forgive) — removes identical copy-paste from Dashboard.jsx and Schedule.jsx
+- Modal.jsx: inline close SVG → `<CloseIcon />` import
+
+*Native dialogs replaced with themed UI:*
+- Clients.jsx: `confirm('Delete this client...')` → in-app modal with `deletePrompt` state, translated strings, styled danger button
+- General.jsx: all 5 `alert()` calls → `notification` state with auto-dismiss banner (4s timeout), success (green) / error (red) styling
+- `restoredInfo` i18n key now includes `{clients}` and `{sessions}` placeholders for dynamic restore counts
+
+*i18n gaps closed:*
+- TokenSetup.jsx: fully i18n'd (was entirely English) — added `tokenSubtitle`, `tokenPlaceholder`, `tokenConnect`, `tokenConnecting`, `tokenInvalid`, `tokenFailed` keys
+- "at" date-time connector: hardcoded English "at" → `t(lang, 'at')` in Dashboard and Schedule action sheet modals
+- App.jsx: passes `lang` prop to TokenSetup
+
+*Variable shadowing fixed (documented trap):*
+- utils.js: 5 instances of `.map(t =>` / `.filter(t =>` / `.find(t =>` renamed to `todo` / `stype`
+- Sessions.jsx: 3 instances of `SESSION_TYPES.find(st =>` and `.map(st =>` renamed to `stype`
+- All components now use `stype` for session types, `todo` for todo items, `tm` for times, `tb` for tabs
+
+*RTL and theme fixes:*
+- Clients.jsx chevron icon: `marginLeft: 6` → `marginInlineStart: 6` (fixes RTL)
+- Dashboard.jsx stat cards: removed inline `style={{ background, border }}`, added CSS classes (`stat-clients`, `stat-today`, `stat-week`) so light theme overrides work
+- styles.css: added `.stat-clients`, `.stat-today`, `.stat-week` with per-card accent colors + `.theme-light` overrides
+
+*Docs:*
+- instructions-v2.4.md: fixed "v2.3 button" → "v2.4 button"
+- CLAUDE.md: marked 5 fixed issues, added Icons.jsx + CancelPrompt.jsx to project structure, updated variable shadowing trap description
+
 **Post-deploy refinement (Apr 3, 3 rounds + Apr 4, 3 rounds):**
 
 *Round 1 — visual feedback fixes:*
