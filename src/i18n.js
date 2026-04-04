@@ -138,6 +138,12 @@ const T = {
     tokenInvalid: 'Invalid token — check and try again',
     tokenFailed: 'Connection failed — check your internet',
 
+    // Billing period
+    periodStart: 'Period Start',
+    periodLength: 'Period Length',
+    periodDefault: 'Default (calendar month)',
+    periodOptional: 'optional — defaults to 1st of month',
+
     // Notifications (replacing native alert/confirm)
     invalidBackup: 'Invalid backup file',
     backupReadError: 'Could not read backup file',
@@ -278,6 +284,12 @@ const T = {
     tokenConnecting: 'جارٍ الاتصال...',
     tokenInvalid: 'رمز غير صالح — تحقق وحاول مرة أخرى',
     tokenFailed: 'فشل الاتصال — تحقق من الإنترنت',
+
+    // Billing period
+    periodStart: 'بداية الفترة',
+    periodLength: 'مدة الفترة',
+    periodDefault: 'افتراضي (شهر تقويمي)',
+    periodOptional: 'اختياري — الافتراضي أول الشهر',
 
     // Notifications
     invalidBackup: 'ملف نسخ احتياطي غير صالح',

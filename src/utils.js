@@ -167,7 +167,60 @@ export const getOccupiedSlots = (sessions, clients, date) => {
 };
 
 // ─── Monthly session count ───
-// Count sessions for a client in a given month (YYYY-MM)
+// ─── Billing Period ───
+// Each client can have a custom billing period (periodStart + periodLength).
+// Default (no fields set): calendar month (1st to last day of month).
+// periodLength options: '1month', '4weeks', '2weeks', '1week', or number of days.
+export const PERIOD_OPTIONS = [
+  { value: '1month', label: '1 Month' },
+  { value: '4weeks', label: '4 Weeks' },
+  { value: '2weeks', label: '2 Weeks' },
+  { value: '1week', label: '1 Week' },
+];
+
+// Compute the billing period that contains a given date for a client
+export const getClientPeriod = (client, dateStr) => {
+  const ref = new Date(dateStr + 'T00:00:00');
+
+  // Default: calendar month
+  if (!client || !client.periodStart) {
+    const start = new Date(ref.getFullYear(), ref.getMonth(), 1);
+    const end = new Date(ref.getFullYear(), ref.getMonth() + 1, 0); // last day of month
+    return { start: localDateStr(start), end: localDateStr(end) };
+  }
+
+  const anchor = new Date(client.periodStart + 'T00:00:00');
+  const len = client.periodLength || '1month';
+
+  if (len === '1month') {
+    // Monthly periods anchored to anchor's day-of-month
+    const day = anchor.getDate();
+    // Clamp day to valid range for each month (e.g. 31 → 28 in Feb)
+    const clamp = (y, m) => Math.min(day, new Date(y, m + 1, 0).getDate());
+    const thisStart = new Date(ref.getFullYear(), ref.getMonth(), clamp(ref.getFullYear(), ref.getMonth()));
+    if (ref >= thisStart) {
+      const nextMonth = new Date(ref.getFullYear(), ref.getMonth() + 1, 1);
+      const endDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), clamp(nextMonth.getFullYear(), nextMonth.getMonth()) - 1);
+      return { start: localDateStr(thisStart), end: localDateStr(endDate) };
+    } else {
+      const prevMonth = new Date(ref.getFullYear(), ref.getMonth() - 1, 1);
+      const pStart = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), clamp(prevMonth.getFullYear(), prevMonth.getMonth()));
+      const pEnd = new Date(ref.getFullYear(), ref.getMonth(), clamp(ref.getFullYear(), ref.getMonth()) - 1);
+      return { start: localDateStr(pStart), end: localDateStr(pEnd) };
+    }
+  }
+
+  // Fixed-day periods (4weeks=28, 2weeks=14, 1week=7)
+  const days = len === '4weeks' ? 28 : len === '2weeks' ? 14 : len === '1week' ? 7 : Number(len) || 30;
+  const diffMs = ref.getTime() - anchor.getTime();
+  const diffDays = Math.floor(diffMs / 86400000);
+  const idx = diffDays >= 0 ? Math.floor(diffDays / days) : Math.floor(diffDays / days);
+  const pStart = new Date(anchor.getTime() + idx * days * 86400000);
+  const pEnd = new Date(pStart.getTime() + (days - 1) * 86400000);
+  return { start: localDateStr(pStart), end: localDateStr(pEnd) };
+};
+
+// Count sessions for a client in a given month (YYYY-MM) — used for calendar month views
 // Includes: scheduled, confirmed, completed, and cancelled-but-counted sessions
 export const getMonthlySessionCount = (sessions, clientId, month) => {
   return sessions.filter(s =>
@@ -177,12 +230,21 @@ export const getMonthlySessionCount = (sessions, clientId, month) => {
   ).length;
 };
 
-// Sequential position of a session within the client's month (1st, 2nd, 3rd...)
-export const getSessionOrdinal = (sessions, sessionId, clientId, month) => {
-  const monthSessions = sessions
-    .filter(s => s.clientId === clientId && s.date.startsWith(month) && (s.status !== 'cancelled' || s.cancelCounted))
+// Count sessions for a client within a date range (billing period)
+export const getPeriodSessionCount = (sessions, clientId, periodStart, periodEnd) => {
+  return sessions.filter(s =>
+    s.clientId === clientId &&
+    s.date >= periodStart && s.date <= periodEnd &&
+    (s.status !== 'cancelled' || s.cancelCounted)
+  ).length;
+};
+
+// Sequential position of a session within the client's billing period (1st, 2nd, 3rd...)
+export const getSessionOrdinal = (sessions, sessionId, clientId, periodStart, periodEnd) => {
+  const periodSessions = sessions
+    .filter(s => s.clientId === clientId && s.date >= periodStart && s.date <= periodEnd && (s.status !== 'cancelled' || s.cancelCounted))
     .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-  return monthSessions.findIndex(s => s.id === sessionId) + 1;
+  return periodSessions.findIndex(s => s.id === sessionId) + 1;
 };
 
 // ─── Date helpers ───
@@ -312,24 +374,24 @@ export function reducer(state, action) {
 const friendly = (client) => client.nickname || client.name.split(' ')[0];
 
 // Default message templates — editable by PT in General panel
-// Placeholders: {name} {type} {emoji} {date} {time} {duration}
+// Placeholders: {name} {type} {emoji} {date} {time} {duration} {number} {periodEnd}
 export const DEFAULT_TEMPLATES = {
   en: {
-    booking: `Hi {name}! 👋\n\n{emoji} Your *{type}* session is booked:\n📅 {date}\n⏰ {time} ({duration} min)\n#️⃣ Session #{number} this month\n\n👍 Like this message to confirm\n❌ Reply to cancel/reschedule\n\nSee you at the gym! 💪`,
-    reminder: `Reminder! 🔔\n\nHey {name}, just a reminder about your session:\n{emoji} {type}\n📅 {date}\n⏰ {time}\n#️⃣ Session #{number} this month\n\nSee you soon! 💪`,
+    booking: `Hi {name}! 👋\n\n{emoji} Your *{type}* session is booked:\n📅 {date}\n⏰ {time} ({duration} min)\n#️⃣ Session #{number} (until {periodEnd})\n\n👍 Like this message to confirm\n❌ Reply to cancel/reschedule\n\nSee you at the gym! 💪`,
+    reminder: `Reminder! 🔔\n\nHey {name}, just a reminder about your session:\n{emoji} {type}\n📅 {date}\n⏰ {time}\n#️⃣ Session #{number} (until {periodEnd})\n\nSee you soon! 💪`,
   },
   ar: {
-    booking: `مرحبا {name}! 👋\n\n{emoji} تمّ حجز جلسة *{type}*:\n📅 {date}\n⏰ {time} ({duration} دقيقة)\n#️⃣ الجلسة #{number} هالشهر\n\n👍 أعجبني للتأكيد\n❌ ردّ للإلغاء أو تغيير الموعد\n\nمنشوفك بالنادي! 💪`,
-    reminder: `تذكير! 🔔\n\nمرحبا {name}، تذكير بجلستك:\n{emoji} {type}\n📅 {date}\n⏰ {time}\n#️⃣ الجلسة #{number} هالشهر\n\nمنشوفك قريباً! 💪`,
+    booking: `مرحبا {name}! 👋\n\n{emoji} تمّ حجز جلسة *{type}*:\n📅 {date}\n⏰ {time} ({duration} دقيقة)\n#️⃣ الجلسة #{number} (حتى {periodEnd})\n\n👍 أعجبني للتأكيد\n❌ ردّ للإلغاء أو تغيير الموعد\n\nمنشوفك بالنادي! 💪`,
+    reminder: `تذكير! 🔔\n\nمرحبا {name}، تذكير بجلستك:\n{emoji} {type}\n📅 {date}\n⏰ {time}\n#️⃣ الجلسة #{number} (حتى {periodEnd})\n\nمنشوفك قريباً! 💪`,
   },
 };
 
 // Replace placeholders in a template with actual session values
-// sessions array needed to calculate {number} (session ordinal in the month)
+// Uses client's billing period to calculate {number} and {periodEnd}
 const fillTemplate = (template, client, session, sessions) => {
   const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
-  const month = session.date.slice(0, 7);
-  const number = sessions ? getSessionOrdinal(sessions, session.id, session.clientId, month) : '';
+  const period = getClientPeriod(client, session.date);
+  const number = sessions ? getSessionOrdinal(sessions, session.id, session.clientId, period.start, period.end) : '';
   return template
     .replace(/\{name\}/g, friendly(client))
     .replace(/\{type\}/g, session.type)
@@ -337,7 +399,8 @@ const fillTemplate = (template, client, session, sessions) => {
     .replace(/\{date\}/g, formatDateLong(session.date))
     .replace(/\{time\}/g, session.time)
     .replace(/\{duration\}/g, String(session.duration || 45))
-    .replace(/\{number\}/g, String(number));
+    .replace(/\{number\}/g, String(number))
+    .replace(/\{periodEnd\}/g, formatDateLong(period.end));
 };
 
 export const sendBookingWhatsApp = (client, session, templates, lang = 'en', sessions = []) => {

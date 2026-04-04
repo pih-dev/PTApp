@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon, ChevronIcon } from './Icons';
-import { today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getSessionOrdinal, timeToMinutes, localDateStr, getStatus, haptic } from '../utils';
+import { today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getSessionOrdinal, getClientPeriod, timeToMinutes, localDateStr, getStatus, haptic } from '../utils';
 import { t } from '../i18n';
 
 export default function Dashboard({ state, dispatch, setTab, lang }) {
@@ -98,7 +98,8 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
             const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
             const status = getStatus(session.status, lang, t);
             const client = state.clients.find(c => c.id === session.clientId);
-            const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
+            const period = getClientPeriod(client, session.date);
+            const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, period.start, period.end);
             const tags = FOCUS_TAGS[session.type] || FOCUS_TAGS.Custom;
             const focus = session.focus || [];
             const isNext = isNowSession(session);
@@ -186,7 +187,9 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
           upcomingSessions.map(session => {
             const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
             const status = getStatus(session.status, lang, t);
-            const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
+            const client = state.clients.find(c => c.id === session.clientId);
+            const period = getClientPeriod(client, session.date);
+            const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, period.start, period.end);
             return (
               <div key={session.id} className="card card-tap" style={{ borderInlineStart: `3px solid ${st.color}`, cursor: 'pointer' }}
                 onClick={() => setActiveSession(session)}>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { formatDate, SESSION_TYPES, getSessionOrdinal, FOCUS_TAGS, DURATIONS, TIMES, getStatus, haptic } from '../utils';
+import { formatDate, SESSION_TYPES, getSessionOrdinal, getClientPeriod, FOCUS_TAGS, DURATIONS, TIMES, getStatus, haptic } from '../utils';
 import { t } from '../i18n';
 
 // Editable focus tags + notes for completed sessions
@@ -76,7 +76,9 @@ export default function Sessions({ state, dispatch, lang }) {
         sorted.map(session => {
           const stype = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
           const status = getStatus(session.status, lang, t);
-          const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
+          const client = state.clients.find(c => c.id === session.clientId);
+          const period = getClientPeriod(client, session.date);
+          const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, period.start, period.end);
           return (
             <div key={session.id} className="card" style={{ borderInlineStart: `3px solid ${stype.color}`, padding: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
 import { WhatsAppIcon, EditIcon, TrashIcon, PhoneIcon, ChevronIcon } from './Icons';
-import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, FOCUS_TAGS, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic } from '../utils';
+import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, FOCUS_TAGS, PERIOD_OPTIONS, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic } from '../utils';
 import { t, dateLocale } from '../i18n';
 
 export default function Clients({ state, dispatch, lang }) {
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
-  const [form, setForm] = useState({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '' });
+  const [form, setForm] = useState({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '', periodStart: '', periodLength: '' });
   const [search, setSearch] = useState('');
   const [countryCode, setCountryCode] = useState(getDefaultCountryCode);
   const [expandedId, setExpandedId] = useState(null);
@@ -15,13 +15,13 @@ export default function Clients({ state, dispatch, lang }) {
   const [deletePrompt, setDeletePrompt] = useState(null); // client to confirm delete
 
   const openAdd = () => {
-    setForm({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '' });
+    setForm({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '', periodStart: '', periodLength: '' });
     setEditingClient(null);
     setShowForm(true);
   };
 
   const openEdit = (c) => {
-    setForm({ name: c.name, nickname: c.nickname || '', phone: c.phone, gender: c.gender || '', birthdate: c.birthdate || '', notes: c.notes || '' });
+    setForm({ name: c.name, nickname: c.nickname || '', phone: c.phone, gender: c.gender || '', birthdate: c.birthdate || '', notes: c.notes || '', periodStart: c.periodStart || '', periodLength: c.periodLength || '' });
     setEditingClient(c);
     setShowForm(true);
   };
@@ -281,6 +281,21 @@ export default function Clients({ state, dispatch, lang }) {
             <label className="field-label">{t(lang, 'notesOpt')}</label>
             <input className="input" placeholder="e.g. Bad knee, prefers mornings" value={form.notes}
               onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
+          </div>
+          {/* Billing period — optional, defaults to calendar month */}
+          <div className="flex-row-12">
+            <div className="field" style={{ flex: 1 }}>
+              <label className="field-label">{t(lang, 'periodStart')} <span style={{ fontWeight: 400, color: 'var(--t4)' }}>{t(lang, 'periodOptional')}</span></label>
+              <input type="date" className="input" value={form.periodStart}
+                onChange={e => setForm(p => ({ ...p, periodStart: e.target.value }))} />
+            </div>
+            <div className="field" style={{ flex: 1 }}>
+              <label className="field-label">{t(lang, 'periodLength')}</label>
+              <select className="select" value={form.periodLength} onChange={e => setForm(p => ({ ...p, periodLength: e.target.value }))}>
+                <option value="">{t(lang, 'periodDefault')}</option>
+                {PERIOD_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </select>
+            </div>
           </div>
         </Modal>
       )}

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon } from './Icons';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getMonthlySessionCount, getSessionOrdinal, currentMonth, localDateStr, getStatus, haptic } from '../utils';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getPeriodSessionCount, getSessionOrdinal, getClientPeriod, currentMonth, localDateStr, getStatus, haptic } from '../utils';
 import { t, dateLocale } from '../i18n';
 
 export default function Schedule({ state, dispatch, lang }) {
@@ -131,7 +131,8 @@ export default function Schedule({ state, dispatch, lang }) {
           const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
           const status = getStatus(session.status, lang, t);
           const client = state.clients.find(c => c.id === session.clientId);
-          const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
+          const period = getClientPeriod(client, session.date);
+          const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, period.start, period.end);
           return (
             <div key={session.id} className="card" style={{ borderInlineStart: `3px solid ${st.color}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
@@ -224,7 +225,8 @@ export default function Schedule({ state, dispatch, lang }) {
                 {form.clientIds.map(id => {
                   const c = state.clients.find(cl => cl.id === id);
                   if (!c) return null;
-                  const monthCount = getMonthlySessionCount(state.sessions, id, currentMonth());
+                  const chipPeriod = getClientPeriod(c, today());
+                  const monthCount = getPeriodSessionCount(state.sessions, id, chipPeriod.start, chipPeriod.end);
                   return (
                     <span key={id} className="client-chip">
                       {c.name} <span style={{ opacity: 0.6, fontSize: 11 }}>({monthCount})</span>
