@@ -602,8 +602,8 @@ button:active { transform: scale(0.97); }
 /* ─── Light Theme ─── */
 /* Indigo-tinted text on warm stone, depth via shadows */
 .theme-light {
-  /* Blue-toned canvas — darker than cards so they float, cooler than beige */
-  background: linear-gradient(145deg, #C7D2E4 0%, #B8C5DA 50%, #ADBDD4 100%); color: #1E1B4B;
+  /* Deep blue canvas — "blue theme" that's just lighter than dark, not bright */
+  background: linear-gradient(145deg, #8B9FC0 0%, #7D93B6 50%, #6F87AC 100%); color: #1E1B4B;
   --t1: rgba(30,27,75,0.9);
   --t2: rgba(30,27,75,0.65);
   --t3: rgba(30,27,75,0.55);
@@ -611,34 +611,34 @@ button:active { transform: scale(0.97); }
   --t5: rgba(30,27,75,0.3);
   --sep: rgba(30,27,75,0.06);
 }
-.theme-light .header { background: rgba(171,205,252,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom-color: rgba(37,99,235,0.12); }
+.theme-light .header { background: rgba(30,64,175,0.3); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom-color: rgba(37,99,235,0.2); }
 .theme-light .logo-text { background: linear-gradient(135deg, #1E1B4B, #3730A3); -webkit-background-clip: text; }
 .theme-light .logo-sub { color: rgba(30,27,75,0.45); }
 .theme-light .app-version { color: rgba(30,27,75,0.35); }
-.theme-light .nav { background: rgba(171,205,252,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top-color: rgba(37,99,235,0.12); box-shadow: 0 -2px 12px rgba(30,27,75,0.08); }
+.theme-light .nav { background: rgba(30,64,175,0.3); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top-color: rgba(37,99,235,0.2); box-shadow: 0 -2px 12px rgba(30,27,75,0.12); }
 .theme-light .nav-btn { color: rgba(30,27,75,0.45); }
 .theme-light .nav-btn.active { color: #2563EB; }
 
-.theme-light .card { background: rgba(219,234,254,0.55); border-color: rgba(37,99,235,0.08); box-shadow: 0 2px 12px rgba(30,27,75,0.08); }
-.theme-light .card.card-now { background: rgba(37,99,235,0.08); border-color: rgba(37,99,235,0.4); box-shadow: 0 2px 16px rgba(37,99,235,0.2); }
+.theme-light .card { background: rgba(96,165,250,0.3); border-color: rgba(37,99,235,0.15); box-shadow: 0 2px 12px rgba(30,27,75,0.12); }
+.theme-light .card.card-now { background: rgba(37,99,235,0.25); border-color: rgba(37,99,235,0.5); box-shadow: 0 2px 16px rgba(37,99,235,0.3); }
 .theme-light .card.card-tap:active { transform: translateY(1px); box-shadow: 0 1px 4px rgba(30,27,75,0.06); }
 
 .theme-light .btn-primary { background: linear-gradient(135deg, #2563EB, #60A5FA); box-shadow: 0 4px 16px rgba(37,99,235,0.3); }
 .theme-light .btn-sm { background: linear-gradient(135deg, #2563EB, #60A5FA); }
-.theme-light .btn-secondary { background: rgba(30,27,75,0.05); color: #1E1B4B; border-color: rgba(30,27,75,0.1); }
+.theme-light .btn-secondary { background: rgba(255,255,255,0.2); color: #1E1B4B; border-color: rgba(37,99,235,0.15); }
 .theme-light .btn-ghost { background: rgba(30,27,75,0.04); border-color: rgba(30,27,75,0.08); color: rgba(30,27,75,0.5); }
 .theme-light .btn-icon { color: rgba(30,27,75,0.35); }
 .theme-light .btn-confirm { background: linear-gradient(135deg, #10B981, #059669); }
 
-.theme-light .input, .theme-light .select { border-color: rgba(30,27,75,0.1); background: rgba(237,244,254,0.6); color: #1E1B4B; }
-.theme-light .select { background: rgba(237,244,254,0.7); }
+.theme-light .input, .theme-light .select { border-color: rgba(37,99,235,0.15); background: rgba(96,165,250,0.2); color: #1E1B4B; }
+.theme-light .select { background: rgba(96,165,250,0.25); }
 .theme-light .field-label { color: rgba(30,27,75,0.55); }
 
 .theme-light .badge-completed { background: #2563EB; }
 .theme-light .section-title { color: #1E1B4B; }
 .theme-light .empty { color: rgba(30,27,75,0.4); }
 
-.theme-light .stat-card { background: linear-gradient(135deg, rgba(37,99,235,0.04), rgba(37,99,235,0.01)); border: 1px solid rgba(30,27,75,0.06); color: #1E1B4B; }
+.theme-light .stat-card { background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(37,99,235,0.06)); border: 1px solid rgba(37,99,235,0.15); color: #1E1B4B; }
 .theme-light .stat-label { color: rgba(30,27,75,0.55); }
 
 .theme-light .meta { color: rgba(30,27,75,0.5); }
@@ -647,41 +647,41 @@ button:active { transform: scale(0.97); }
 .theme-light .client-notes { color: rgba(30,27,75,0.4); }
 .theme-light .session-count { color: rgba(30,27,75,0.4); }
 
-.theme-light .week-day { border-color: rgba(30,27,75,0.08); background: rgba(30,27,75,0.02); color: rgba(30,27,75,0.5); }
-.theme-light .week-day.selected { border-color: #2563EB; background: rgba(37,99,235,0.08); color: #2563EB; }
+.theme-light .week-day { border-color: rgba(37,99,235,0.12); background: rgba(255,255,255,0.15); color: rgba(30,27,75,0.6); }
+.theme-light .week-day.selected { border-color: #2563EB; background: rgba(37,99,235,0.25); color: #fff; }
 .theme-light .week-day.is-today { color: #1E1B4B; }
 .theme-light .week-day-dot { background: #2563EB; }
 .theme-light .week-nav-label { color: rgba(30,27,75,0.65); }
 
-.theme-light .type-btn { border-color: rgba(30,27,75,0.1); background: rgba(30,27,75,0.03); color: rgba(30,27,75,0.55); }
+.theme-light .type-btn { border-color: rgba(37,99,235,0.12); background: rgba(255,255,255,0.15); color: rgba(30,27,75,0.6); }
 .theme-light .client-chip { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.25); color: #2563EB; }
 .theme-light .client-chip-x { background: rgba(30,27,75,0.08); color: rgba(30,27,75,0.5); }
 
-.theme-light .time-slot { border-color: rgba(30,27,75,0.08); background: rgba(30,27,75,0.02); color: rgba(30,27,75,0.5); }
-.theme-light .time-slot.selected { border-color: #2563EB; background: rgba(37,99,235,0.08); color: #2563EB; }
+.theme-light .time-slot { border-color: rgba(37,99,235,0.12); background: rgba(255,255,255,0.15); color: rgba(30,27,75,0.6); }
+.theme-light .time-slot.selected { border-color: #2563EB; background: rgba(37,99,235,0.25); color: #fff; }
 
-.theme-light .focus-tag { border-color: rgba(30,27,75,0.1); background: rgba(30,27,75,0.03); color: rgba(30,27,75,0.45); }
+.theme-light .focus-tag { border-color: rgba(37,99,235,0.12); background: rgba(255,255,255,0.15); color: rgba(30,27,75,0.55); }
 .theme-light .focus-tag.active { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.25); color: #2563EB; }
-.theme-light .focus-notes { border-color: rgba(30,27,75,0.08); background: rgba(255,255,255,0.6); color: rgba(30,27,75,0.6); }
+.theme-light .focus-notes { border-color: rgba(37,99,235,0.12); background: rgba(255,255,255,0.35); color: rgba(30,27,75,0.6); }
 .theme-light .focus-notes:focus { background: rgba(37,99,235,0.12); border-color: rgba(37,99,235,0.3); color: #2563EB; }
 .theme-light .focus-notes.has-content { background: rgba(37,99,235,0.08); border-color: rgba(37,99,235,0.2); color: #2563EB; }
 .theme-light .focus-notes::placeholder { color: rgba(30,27,75,0.25); }
 .theme-light .inline-type-select { border-color: rgba(30,27,75,0.12); }
 
-.theme-light .filter-btn { border-color: rgba(30,27,75,0.1); color: rgba(30,27,75,0.5); }
+.theme-light .filter-btn { border-color: rgba(37,99,235,0.12); background: rgba(255,255,255,0.15); color: rgba(30,27,75,0.6); }
 .theme-light .filter-btn.active { border-color: #2563EB; background: #2563EB; color: #fff; }
 
-.theme-light .modal-bg { background: rgba(0,0,0,0.3); }
-.theme-light .modal-content { background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(248,247,245,0.97)); }
+.theme-light .modal-bg { background: rgba(0,0,0,0.4); }
+.theme-light .modal-content { background: linear-gradient(180deg, rgba(220,232,250,0.97), rgba(200,218,240,0.98)); }
 .theme-light .modal-title { color: #1E1B4B; }
 .theme-light .modal-close { color: rgba(30,27,75,0.4); }
 
 .theme-light .success-detail { color: rgba(30,27,75,0.5); }
-.theme-light .setup-card { background: rgba(255,255,255,0.7); border-color: rgba(30,27,75,0.06); }
+.theme-light .setup-card { background: rgba(255,255,255,0.35); border-color: rgba(37,99,235,0.12); }
 .theme-light .setup-sub { color: rgba(30,27,75,0.45); }
 .theme-light .setup-spinner { border-color: rgba(30,27,75,0.1); border-top-color: #2563EB; }
 
-.theme-light .lang-toggle { background: rgba(30,27,75,0.06); }
+.theme-light .lang-toggle { background: rgba(255,255,255,0.15); }
 .theme-light .lang-toggle span { color: rgba(30,27,75,0.35); }
 .theme-light .lang-toggle .lang-active { background: rgba(37,99,235,0.15); color: #2563EB; }
 
