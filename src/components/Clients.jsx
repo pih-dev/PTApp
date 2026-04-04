@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
 import { WhatsAppIcon, EditIcon, TrashIcon, PhoneIcon, ChevronIcon } from './Icons';
-import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic } from '../utils';
+import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, FOCUS_TAGS, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic } from '../utils';
 import { t, dateLocale } from '../i18n';
 
 export default function Clients({ state, dispatch, lang }) {
@@ -174,26 +174,48 @@ export default function Clients({ state, dispatch, lang }) {
                   monthSessions.map(s => {
                     const st = SESSION_TYPES.find(stype => stype.label === s.type) || SESSION_TYPES[5];
                     const status = getStatus(s.status, lang, t);
+                    const tags = FOCUS_TAGS[s.type] || FOCUS_TAGS.Custom;
+                    const focus = s.focus || [];
+                    const toggleFocus = (tag) => {
+                      const updated = focus.includes(tag) ? focus.filter(f => f !== tag) : [...focus, tag];
+                      dispatch({ type: 'UPDATE_SESSION', payload: { id: s.id, focus: updated } });
+                    };
                     return (
                       <div key={s.id} style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        padding: '8px 0', borderBottom: '1px solid var(--sep)', fontSize: 13
+                        padding: '10px 0', borderBottom: '1px solid var(--sep)', fontSize: 13
                       }}>
-                        <div>
-                          <div style={{ color: 'var(--t2)' }}>
-                            {formatDate(s.date, lang)} · {s.time} · {s.duration}{t(lang, 'min')}
-                          </div>
-                          <div style={{ fontSize: 12, color: 'var(--t5)', marginTop: 2 }}>
-                            {st.emoji} {s.type}
-                            {s.focus && s.focus.length > 0 && ` · ${s.focus.join(', ')}`}
-                          </div>
-                          {s.sessionNotes && (
-                            <div style={{ fontSize: 11, color: 'var(--t4)', marginTop: 2, fontStyle: 'italic' }}>
-                              {s.sessionNotes}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <div style={{ color: 'var(--t2)' }}>
+                              {formatDate(s.date, lang)} · {s.time} · {s.duration}{t(lang, 'min')}
                             </div>
-                          )}
+                            <div style={{ fontSize: 12, color: 'var(--t5)', marginTop: 2 }}>
+                              {st.emoji} {s.type}
+                            </div>
+                          </div>
+                          <span className={`badge badge-${s.status}`} style={{ fontSize: 11 }}>{status.label}</span>
                         </div>
-                        <span className={`badge badge-${s.status}`} style={{ fontSize: 11 }}>{status.label}</span>
+                        {/* Editable focus tags */}
+                        <div className="focus-row" style={{ marginTop: 6 }}>
+                          {tags.map(tag => (
+                            <button key={tag} className={`focus-tag${focus.includes(tag) ? ' active' : ''}`}
+                              onClick={() => { haptic(); toggleFocus(tag); }}>{tag}</button>
+                          ))}
+                        </div>
+                        {/* Editable session notes */}
+                        <textarea key={s.sessionNotes || ''} className={`focus-notes${s.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
+                          defaultValue={s.sessionNotes || ''}
+                          readOnly
+                          onFocus={e => { e.target.readOnly = false; e.target.classList.add('editing'); }}
+                          onBlur={e => {
+                            e.target.readOnly = true;
+                            e.target.classList.remove('editing');
+                            e.target.classList.toggle('has-content', e.target.value.trim() !== '');
+                            if (e.target.value !== (s.sessionNotes || '')) {
+                              dispatch({ type: 'UPDATE_SESSION', payload: { id: s.id, sessionNotes: e.target.value } });
+                            }
+                          }}
+                        />
                       </div>
                     );
                   })
