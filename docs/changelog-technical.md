@@ -6,6 +6,14 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (2026-04-03/04)
 
+**Active session glow: blue to amber (Apr 4):**
+
+*card-now hue changed from blue to amber/yellow:*
+- Dark: `background: rgba(37,99,235,0.15)` -> `rgba(245,158,11,0.12)`, border `rgba(37,99,235,0.5)` -> `rgba(245,158,11,0.45)`, `box-shadow` blue -> amber
+- Light: `background: rgba(37,99,235,0.25)` -> `rgba(245,158,11,0.18)`, border/shadow same amber treatment
+- Dashboard.jsx: `borderInlineStart` active color `#2563EB` -> `#F59E0B`
+- **Why:** Pierre requested yellow for active sessions. Amber (#F59E0B) distinguishes "happening now" from the blue accent system used everywhere else -- blue means "selected/active UI element," amber means "this session is in progress right now."
+
 **Light theme contrast + glossy nav (Apr 4):**
 
 *Nav/header glass - glossier, more transparent:*

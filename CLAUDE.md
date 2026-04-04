@@ -151,6 +151,7 @@ Auto-complete used to dispatch N separate `UPDATE_SESSION` actions for N lapsed 
 - **Accent color**: `#2563EB` (blue) / `#60A5FA` (light blue). Used in both themes.
 - **Error/danger**: `#EF4444` (red). Delete buttons are solid red with white icon. Cancel badge is red.
 - **Success**: `#10B981` (green). Confirmed status badge, todo checkmarks.
+- **Active session glow**: Amber `#F59E0B`. Sessions currently in progress get an amber tint, border, and glow (`card-now` class). Distinct from blue accent to signal "happening now" vs "selected."
 - **Session type colors**: Indigo `#6366F1` (Strength), Blue `#3B82F6` (Cardio), Purple `#8B5CF6` (Flexibility), Amber `#F59E0B` (HIIT), Green `#10B981` (Recovery), Grey `#6B7280` (Custom).
 - **Status badges**: Use CSS classes `badge-scheduled` (blue), `badge-completed` (blue), `badge-confirmed` (green), `badge-cancelled` (red). All solid fill with white text. Do NOT use inline `style={{ color, background }}` on badges — use `className={`badge badge-${status}`}`.
 - **Filter tabs**: Active filter is solid blue `#2563EB` with white text. Inactive is subtle outline.
