@@ -381,7 +381,7 @@ Tap **Reset to Defaults** to restore the original messages.
 
 ## General Panel (Three-Dot Menu)
 
-Tap the **v2.3** button with the three dots in the header to open the General panel.
+Tap the **v2.4** button with the three dots in the header to open the General panel.
 
 ### Backup & Restore
 

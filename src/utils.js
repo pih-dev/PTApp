@@ -294,11 +294,11 @@ export function reducer(state, action) {
     case 'SET_TEMPLATES':
       return { ...state, messageTemplates: action.payload };
     case 'EDIT_TODO':
-      return { ...state, todos: (state.todos || []).map(t => t.id === action.payload.id ? { ...t, text: action.payload.text } : t) };
+      return { ...state, todos: (state.todos || []).map(todo => todo.id === action.payload.id ? { ...todo, text: action.payload.text } : todo) };
     case 'TOGGLE_TODO':
-      return { ...state, todos: (state.todos || []).map(t => t.id === action.payload ? { ...t, done: !t.done } : t) };
+      return { ...state, todos: (state.todos || []).map(todo => todo.id === action.payload ? { ...todo, done: !todo.done } : todo) };
     case 'DELETE_TODO':
-      return { ...state, todos: (state.todos || []).filter(t => t.id !== action.payload) };
+      return { ...state, todos: (state.todos || []).filter(todo => todo.id !== action.payload) };
     case 'REPLACE_ALL':
       // Ensure all fields exist after replacing state (remote data may lack new fields)
       return { todos: [], messageTemplates: {}, ...action.payload };
@@ -326,7 +326,7 @@ export const DEFAULT_TEMPLATES = {
 
 // Replace placeholders in a template with actual session values
 const fillTemplate = (template, client, session) => {
-  const st = SESSION_TYPES.find(t => t.label === session.type) || SESSION_TYPES[5];
+  const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
   return template
     .replace(/\{name\}/g, friendly(client))
     .replace(/\{type\}/g, session.type)
@@ -373,8 +373,8 @@ export const mergeBackup = (live, backup) => {
   const restoredSessions = backup.sessions.filter(s => !liveSessionIds.has(s.id));
   merged.sessions = [...live.sessions, ...restoredSessions];
   // Merge todos by ID
-  const liveTodoIds = new Set((live.todos || []).map(t => t.id));
-  const restoredTodos = (backup.todos || []).filter(t => !liveTodoIds.has(t.id));
+  const liveTodoIds = new Set((live.todos || []).map(todo => todo.id));
+  const restoredTodos = (backup.todos || []).filter(todo => !liveTodoIds.has(todo.id));
   merged.todos = [...(live.todos || []), ...restoredTodos];
   // Keep whichever has custom templates (live wins if both have them)
   merged.messageTemplates = live.messageTemplates || backup.messageTemplates || {};

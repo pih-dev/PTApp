@@ -74,16 +74,16 @@ export default function Sessions({ state, dispatch, lang }) {
         </div>
       ) : (
         sorted.map(session => {
-          const st = SESSION_TYPES.find(st => st.label === session.type) || SESSION_TYPES[5];
+          const stype = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
           const status = getStatus(session.status, lang, t);
           const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
           return (
-            <div key={session.id} className="card" style={{ borderInlineStart: `3px solid ${st.color}`, padding: 14 }}>
+            <div key={session.id} className="card" style={{ borderInlineStart: `3px solid ${stype.color}`, padding: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 15 }}>{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--t4)' }}>#{monthCount}</span></div>
                   <div style={{ fontSize: 12, color: 'var(--t5)', marginTop: 2 }}>
-                    {formatDate(session.date, lang)} · {session.time} · {session.duration}{t(lang, 'min')} · {st.emoji} {session.type}
+                    {formatDate(session.date, lang)} · {session.time} · {session.duration}{t(lang, 'min')} · {stype.emoji} {session.type}
                   </div>
                 </div>
                 <span className={`badge badge-${session.status}`}>{status.label}</span>
@@ -121,7 +121,7 @@ export default function Sessions({ state, dispatch, lang }) {
           <div className="field">
             <label className="field-label">{t(lang, 'sessionType')}</label>
             <select className="select" value={editForm.type} onChange={e => setEditForm(p => ({ ...p, type: e.target.value }))}>
-              {SESSION_TYPES.map(st => <option key={st.label} value={st.label}>{st.emoji} {st.label}</option>)}
+              {SESSION_TYPES.map(stype => <option key={stype.label} value={stype.label}>{stype.emoji} {stype.label}</option>)}
             </select>
           </div>
           <div className="field">

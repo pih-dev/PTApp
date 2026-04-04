@@ -83,13 +83,15 @@ PTApp/
 │   ├── styles.css      # All styles (dark + light themes, ~630 lines)
 │   ├── utils.js        # Helpers, constants, storage, reducer, date helpers
 │   └── components/
-│       ├── Dashboard.jsx  # Home tab: stats, today's sessions, expanded/compact
-│       ├── Clients.jsx    # Client list, search, add/edit/delete, month history
-│       ├── Schedule.jsx   # Week view, booking flow, day sessions
-│       ├── Sessions.jsx   # All sessions log with filters
-│       ├── General.jsx    # Backup, todos, WhatsApp templates, docs
-│       ├── Modal.jsx      # Bottom-sheet modal wrapper
-│       └── TokenSetup.jsx # GitHub token setup (first-run)
+│       ├── Dashboard.jsx    # Home tab: stats, today's sessions, expanded/compact
+│       ├── Clients.jsx      # Client list, search, add/edit/delete, month history
+│       ├── Schedule.jsx     # Week view, booking flow, day sessions
+│       ├── Sessions.jsx     # All sessions log with filters
+│       ├── General.jsx      # Backup, todos, WhatsApp templates, docs
+│       ├── Modal.jsx        # Bottom-sheet modal wrapper
+│       ├── Icons.jsx        # Shared SVG icon components (WhatsApp, Edit, Trash, etc.)
+│       ├── CancelPrompt.jsx # Cancel session modal (count/forgive)
+│       └── TokenSetup.jsx   # GitHub token setup (first-run)
 └── docs/               # Versioned instructions, changelogs, guides
 ```
 
@@ -120,9 +122,9 @@ These are patterns that have caused real bugs. Read these before writing any cod
 **When fixing a bug, audit EVERY file for the same pattern.** The `today()` function was already fixed in a prior session but nobody checked the other 8 places that used `toISOString()`.
 
 ### TRAP: Variable shadowing of `t` (i18n function)
-The `t()` function from `i18n.js` is used everywhere for translations. Many `.find()` and `.map()` callbacks used `t` as their parameter name, silently shadowing the i18n function. This hasn't caused a visible crash yet but will the moment anyone adds a `t(lang, ...)` call inside one of those callbacks.
+The `t()` function from `i18n.js` is used everywhere for translations. Callbacks must never use `t` as a parameter name — it silently shadows the i18n function. **Fixed in v2.4 review** — all instances renamed across utils.js and all components.
 
-**Rule:** Never use `t` as a callback parameter. Use `st` for session types, `tm` for times, `f` for focus tags, `tb` for tabs, `stype` for generic type lookups.
+**Rule:** Never use `t` as a callback parameter. Use `stype` for session types, `tm` for times, `f` for focus tags, `tb` for tabs, `todo` for todo items.
 
 ### TRAP: `defaultValue` on uncontrolled inputs
 Textareas using `defaultValue` won't re-render when state changes externally (e.g., cloud sync, template reset). The textarea keeps its internal DOM state until the component unmounts.
@@ -190,15 +192,18 @@ Use `getStatus(status, lang, t)` to get a translated status object with `label` 
 These are identified but not yet fixed. Check before starting related work.
 
 ### Should fix soon
-- **`confirm()` for client delete** — English-only, blocks iOS thread, not styled. Should use an in-app modal like the cancel prompt. (`Clients.jsx:38`)
-- **Hardcoded English strings** — TokenSetup.jsx is entirely English. `alert()` messages in General.jsx and Clients.jsx are English. The "at" connector between date and time is English. (`Dashboard.jsx:235`, `Schedule.jsx:335,353`)
 - **No sync status indicator** — User can't tell if sync is working, broken, or in progress. Errors are silently swallowed.
 - **No error boundary** — If any component throws (e.g., corrupted localStorage), the entire app crashes to a white screen. A top-level error boundary would let the user access backup/export.
 
+### Fixed in v2.4 review
+- ~~`confirm()` for client delete~~ — Replaced with in-app modal (Clients.jsx `deletePrompt` state)
+- ~~Hardcoded English strings~~ — TokenSetup.jsx fully i18n'd, `alert()` → notification state in General.jsx, "at" connector translated
+- ~~Inline SVG duplication~~ — Extracted to shared `Icons.jsx` (WhatsAppIcon, EditIcon, TrashIcon, ClockIcon, PhoneIcon, ChevronIcon, CloseIcon)
+- ~~Duplicated cancel prompt~~ — Extracted to shared `CancelPrompt.jsx` component
+- ~~Variable shadowing of `t`~~ — All instances renamed across utils.js and all components
+
 ### Structural debt (address in a larger session)
 - **Duplicated session card rendering** — Dashboard, Schedule, Sessions all render session cards independently (~50-80 lines each). A shared `SessionCard` component would eliminate this.
-- **Duplicated cancel prompt** — The count/forgive modal is copy-pasted in Dashboard.jsx and Schedule.jsx.
-- **Inline SVG duplication** — The WhatsApp icon SVG path is duplicated 6+ times. Other icons (edit, trash, clock) similarly. Should extract to a shared Icons module.
 - **Stale closure in initial sync** — `App.jsx:34` captures `state` from mount time. If the "no remote data" branch runs, it pushes stale state. Low risk (only on first load with empty remote).
 
 ---

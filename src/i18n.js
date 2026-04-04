@@ -121,6 +121,28 @@ const T = {
 
     // Select placeholders
     selectClient: 'Select a client...',
+
+    // Date/time connector
+    at: 'at',
+
+    // Delete confirmation
+    deleteClient: 'Delete Client',
+    deleteConfirmMsg: 'Delete this client and all their sessions?',
+    confirmDelete: 'Delete',
+
+    // Token setup
+    tokenSubtitle: 'Enter your sync token to connect to the cloud',
+    tokenPlaceholder: 'Paste your sync token here',
+    tokenConnect: 'Connect',
+    tokenConnecting: 'Connecting...',
+    tokenInvalid: 'Invalid token — check and try again',
+    tokenFailed: 'Connection failed — check your internet',
+
+    // Notifications (replacing native alert/confirm)
+    invalidBackup: 'Invalid backup file',
+    backupReadError: 'Could not read backup file',
+    docLoadError: 'Could not load document. Check your connection.',
+    restoredInfo: 'Restored: +{clients} client(s), +{sessions} session(s)',
   },
   ar: {
     // App
@@ -240,6 +262,28 @@ const T = {
 
     // Select placeholders
     selectClient: 'اختر عميلاً...',
+
+    // Date/time connector
+    at: 'الساعة',
+
+    // Delete confirmation
+    deleteClient: 'حذف العميل',
+    deleteConfirmMsg: 'حذف هذا العميل وجميع جلساته؟',
+    confirmDelete: 'حذف',
+
+    // Token setup
+    tokenSubtitle: 'أدخل رمز المزامنة للاتصال بالسحابة',
+    tokenPlaceholder: 'الصق رمز المزامنة هنا',
+    tokenConnect: 'اتصال',
+    tokenConnecting: 'جارٍ الاتصال...',
+    tokenInvalid: 'رمز غير صالح — تحقق وحاول مرة أخرى',
+    tokenFailed: 'فشل الاتصال — تحقق من الإنترنت',
+
+    // Notifications
+    invalidBackup: 'ملف نسخ احتياطي غير صالح',
+    backupReadError: 'تعذّر قراءة ملف النسخ الاحتياطي',
+    docLoadError: 'تعذّر تحميل المستند. تحقق من اتصالك.',
+    restoredInfo: 'تمت الاستعادة: +{clients} عميل، +{sessions} جلسة',
   },
 };
 

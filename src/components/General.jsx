@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { exportBackup, mergeBackup, genId, DEFAULT_TEMPLATES, haptic } from '../utils';
 import { getToken, saveSnapshot, listSnapshots, fetchSnapshot } from '../sync';
@@ -142,6 +142,14 @@ export default function General({ state, dispatch, onClose, lang }) {
   const [docLoading, setDocLoading] = useState(false);
   const [newTodo, setNewTodo] = useState('');
   const [editingTodo, setEditingTodo] = useState(null); // id of todo being edited
+  const [notification, setNotification] = useState(null); // { text, type: 'success'|'error' }
+
+  // Auto-dismiss notification after 4 seconds
+  useEffect(() => {
+    if (!notification) return;
+    const timer = setTimeout(() => setNotification(null), 4000);
+    return () => clearTimeout(timer);
+  }, [notification]);
 
   // Fetch and display a markdown doc in-app
   const openDoc = async (url, title) => {
@@ -152,13 +160,25 @@ export default function General({ state, dispatch, onClose, lang }) {
       const text = await res.text();
       setDocContent({ title, text });
     } catch {
-      alert('Could not load document. Check your connection.');
+      setNotification({ text: t(lang, 'docLoadError'), type: 'error' });
     }
     setDocLoading(false);
   };
 
   return (
     <Modal title={t(lang, 'general')} onClose={onClose}>
+      {/* In-app notification banner — replaces native alert() */}
+      {notification && (
+        <div style={{
+          padding: '10px 14px', marginBottom: 12, borderRadius: 8, fontSize: 13, fontWeight: 500,
+          background: notification.type === 'error' ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)',
+          color: notification.type === 'error' ? '#EF4444' : '#10B981',
+          border: `1px solid ${notification.type === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`,
+        }}>
+          {notification.text}
+        </div>
+      )}
+
       {/* Backup section */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'var(--t2)' }}>{t(lang, 'backupTitle')}</div>
@@ -199,13 +219,13 @@ export default function General({ state, dispatch, onClose, lang }) {
                 reader.onload = (ev) => {
                   try {
                     const backup = JSON.parse(ev.target.result);
-                    if (!backup.clients || !backup.sessions) { alert('Invalid backup file'); return; }
+                    if (!backup.clients || !backup.sessions) { setNotification({ text: t(lang, 'invalidBackup'), type: 'error' }); return; }
                     const merged = mergeBackup(state, backup);
                     const added = merged.clients.length - state.clients.length;
                     const restored = merged.sessions.length - state.sessions.length;
                     dispatch({ type: 'REPLACE_ALL', payload: merged });
-                    alert(`Restored: +${added} client(s), +${restored} session(s)`);
-                  } catch { alert('Could not read backup file'); }
+                    setNotification({ text: t(lang, 'restoredInfo').replace('{clients}', added).replace('{sessions}', restored), type: 'success' });
+                  } catch { setNotification({ text: t(lang, 'backupReadError'), type: 'error' }); }
                 };
                 reader.readAsText(file);
               };
@@ -376,7 +396,7 @@ export default function General({ state, dispatch, onClose, lang }) {
         <button className="btn-ghost" style={{ fontSize: 11, padding: '6px 10px' }}
           onClick={() => {
             dispatch({ type: 'SET_TEMPLATES', payload: {} });
-            alert(t(lang, 'templatesReset'));
+            setNotification({ text: t(lang, 'templatesReset'), type: 'success' });
           }}>
           {t(lang, 'resetDefaults')}
         </button>

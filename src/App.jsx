@@ -85,7 +85,7 @@ export default function App() {
   useEffect(() => initElasticScroll(contentRef.current), []);
 
   if (!connected) {
-    return <TokenSetup onConnected={() => setConnected(true)} />;
+    return <TokenSetup onConnected={() => setConnected(true)} lang={lang} />;
   }
 
   if (initialLoad) {

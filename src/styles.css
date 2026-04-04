@@ -323,6 +323,10 @@ button:active { transform: scale(0.97); }
 }
 .stat-num { font-size: 28px; font-weight: 900; }
 .stat-label { font-size: 12px; color: rgba(255,255,255,0.65); font-weight: 600; }
+/* Per-stat-card accent colors — dark theme defaults, light theme overrides below */
+.stat-clients { background: linear-gradient(135deg, rgba(99,102,241,0.31), rgba(99,102,241,0.19)); border-color: rgba(99,102,241,0.33); }
+.stat-today { background: linear-gradient(135deg, rgba(59,130,246,0.31), rgba(59,130,246,0.19)); border-color: rgba(59,130,246,0.33); }
+.stat-week { background: linear-gradient(135deg, rgba(16,185,129,0.31), rgba(16,185,129,0.19)); border-color: rgba(16,185,129,0.33); }
 
 /* ─── Helpers ─── */
 .flex-row { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -640,6 +644,9 @@ button:active { transform: scale(0.97); }
 
 .theme-light .stat-card { background: linear-gradient(135deg, rgba(210,228,255,0.5), rgba(210,228,255,0.3)); border: 1px solid rgba(37,99,235,0.12); color: #1E1B4B; }
 .theme-light .stat-label { color: rgba(30,27,75,0.55); }
+.theme-light .stat-clients { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(99,102,241,0.08)); border-color: rgba(99,102,241,0.2); }
+.theme-light .stat-today { background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.08)); border-color: rgba(59,130,246,0.2); }
+.theme-light .stat-week { background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.08)); border-color: rgba(16,185,129,0.2); }
 
 .theme-light .meta { color: rgba(30,27,75,0.5); }
 .theme-light .client-name { color: #1E1B4B; }

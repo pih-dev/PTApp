@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
+import CancelPrompt from './CancelPrompt';
+import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon } from './Icons';
 import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getMonthlySessionCount, getSessionOrdinal, currentMonth, localDateStr, getStatus, haptic } from '../utils';
 import { t, dateLocale } from '../i18n';
 
@@ -9,7 +11,7 @@ export default function Schedule({ state, dispatch, lang }) {
   const [selectedDate, setSelectedDate] = useState(today());
   const [form, setForm] = useState({ clientIds: [], type: 'Strength', date: today(), time: '09:00', duration: 45 });
   const [confirmMsg, setConfirmMsg] = useState(null);
-  const [cancelPrompt, setCancelPrompt] = useState(null); // session to cancel
+  const [cancelPrompt, setCancelPrompt] = useState(null);
 
   const daySessions = state.sessions
     .filter(s => s.date === selectedDate)
@@ -53,13 +55,8 @@ export default function Schedule({ state, dispatch, lang }) {
     dispatch({ type: 'UPDATE_SESSION', payload: { id, status } });
   };
 
-  // Cancel flow: show prompt to count or forgive (keeps the session record)
   const cancelSession = (session) => {
     setCancelPrompt(session);
-  };
-  const confirmCancel = (counted) => {
-    dispatch({ type: 'UPDATE_SESSION', payload: { id: cancelPrompt.id, status: 'cancelled', cancelCounted: counted } });
-    setCancelPrompt(null);
   };
 
   // Generate week dates
@@ -131,7 +128,7 @@ export default function Schedule({ state, dispatch, lang }) {
         </div>
       ) : (
         daySessions.map(session => {
-          const st = SESSION_TYPES.find(st => st.label === session.type) || SESSION_TYPES[5];
+          const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
           const status = getStatus(session.status, lang, t);
           const client = state.clients.find(c => c.id === session.clientId);
           const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, session.date.slice(0, 7));
@@ -141,13 +138,13 @@ export default function Schedule({ state, dispatch, lang }) {
                 <div>
                   <div className="client-name">{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--t5)' }}>#{monthCount}</span></div>
                   <div className="meta">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <ClockIcon />
                     {session.time} · {session.duration}{t(lang, 'min')} ·{' '}
                     {/* Inline type selector — change type, auto-clear focus tags */}
                     <select className="inline-type-select" value={session.type} onChange={e => {
                       dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value, focus: [] } });
                     }}>
-                      {SESSION_TYPES.map(st => <option key={st.label} value={st.label}>{st.emoji} {st.label}</option>)}
+                      {SESSION_TYPES.map(stype => <option key={stype.label} value={stype.label}>{stype.emoji} {stype.label}</option>)}
                     </select>
                   </div>
                 </div>
@@ -161,12 +158,12 @@ export default function Schedule({ state, dispatch, lang }) {
                 {client && (
                   <button className="btn-whatsapp" style={{ fontSize: 12, padding: '6px 12px' }}
                     onClick={() => sendReminderWhatsApp(client, session, state.messageTemplates, lang)}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    <WhatsAppIcon size={14} />
                     {t(lang, 'remind')}
                   </button>
                 )}
                 <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }} onClick={() => openEdit(session)}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  <EditIcon size={14} />
                   {t(lang, 'edit')}
                 </button>
                 {session.status === 'cancelled' ? (
@@ -174,7 +171,7 @@ export default function Schedule({ state, dispatch, lang }) {
                     onClick={() => updateStatus(session.id, 'scheduled')}>{t(lang, 'restore')}</button>
                 ) : (
                   <button className="btn-danger-sm" onClick={() => { haptic(); cancelSession(session); }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <TrashIcon />
                   </button>
                 )}
               </div>
@@ -254,12 +251,12 @@ export default function Schedule({ state, dispatch, lang }) {
           <div className="field">
             <label className="field-label">{t(lang, 'sessionType')}</label>
             <div className="flex-row">
-              {SESSION_TYPES.map(st => (
-                <button key={st.label}
-                  className={`type-btn${form.type === st.label ? ' selected' : ''}`}
-                  style={form.type === st.label ? { borderColor: st.color, background: `${st.color}20`, color: st.color } : {}}
-                  onClick={() => setForm(p => ({ ...p, type: st.label }))}>
-                  {st.emoji} {st.label}
+              {SESSION_TYPES.map(stype => (
+                <button key={stype.label}
+                  className={`type-btn${form.type === stype.label ? ' selected' : ''}`}
+                  style={form.type === stype.label ? { borderColor: stype.color, background: `${stype.color}20`, color: stype.color } : {}}
+                  onClick={() => setForm(p => ({ ...p, type: stype.label }))}>
+                  {stype.emoji} {stype.label}
                 </button>
               ))}
             </div>
@@ -328,7 +325,7 @@ export default function Schedule({ state, dispatch, lang }) {
                 sendBookingWhatsApp(client, session, state.messageTemplates, lang);
                 advance();
               }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                <WhatsAppIcon size={20} />
                 {t(lang, 'sendConfirmWA')}
               </button>
               <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
@@ -337,7 +334,7 @@ export default function Schedule({ state, dispatch, lang }) {
             <div className="success-center">
               <div className="success-icon">✅</div>
               <div className="success-name">{client.name}</div>
-              <div className="success-detail">{formatDate(session.date, lang)} at {session.time}</div>
+              <div className="success-detail">{formatDate(session.date, lang)} {t(lang, 'at')} {session.time}</div>
             </div>
           </Modal>
         );
@@ -345,29 +342,16 @@ export default function Schedule({ state, dispatch, lang }) {
 
       {/* Cancel Prompt — Count or Forgive */}
       {cancelPrompt && (
-        <Modal title={t(lang, 'cancelSession')} onClose={() => setCancelPrompt(null)}
-          action={
-            <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
-              onClick={() => setCancelPrompt(null)}>
-              {t(lang, 'keepSession')}
-            </button>
-          }>
-          <div className="success-center">
-            <div className="success-icon" style={{ fontSize: 40 }}>❌</div>
-            <div className="success-name">{getClientName(cancelPrompt.clientId)}</div>
-            <div className="success-detail">{formatDate(cancelPrompt.date, lang)} at {cancelPrompt.time}</div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
-            <button className="btn-primary" style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}
-              onClick={() => confirmCancel(true)}>
-              {t(lang, 'countNoShow')}
-            </button>
-            <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
-              onClick={() => confirmCancel(false)}>
-              {t(lang, 'forgive')}
-            </button>
-          </div>
-        </Modal>
+        <CancelPrompt
+          session={cancelPrompt}
+          clientName={getClientName(cancelPrompt.clientId)}
+          lang={lang}
+          onConfirm={(counted) => {
+            dispatch({ type: 'UPDATE_SESSION', payload: { id: cancelPrompt.id, status: 'cancelled', cancelCounted: counted } });
+            setCancelPrompt(null);
+          }}
+          onClose={() => setCancelPrompt(null)}
+        />
       )}
     </div>
   );

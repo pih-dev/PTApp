@@ -1,26 +1,27 @@
 import React, { useState } from 'react';
 import { validateToken, saveToken } from '../sync';
+import { t } from '../i18n';
 
-export default function TokenSetup({ onConnected }) {
+export default function TokenSetup({ onConnected, lang }) {
   const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleConnect = async () => {
-    const t = token.trim();
-    if (!t) return;
+    const trimmed = token.trim();
+    if (!trimmed) return;
     setLoading(true);
     setError('');
     try {
-      const valid = await validateToken(t);
+      const valid = await validateToken(trimmed);
       if (valid) {
-        saveToken(t);
+        saveToken(trimmed);
         onConnected();
       } else {
-        setError('Invalid token — check and try again');
+        setError(t(lang, 'tokenInvalid'));
       }
     } catch {
-      setError('Connection failed — check your internet');
+      setError(t(lang, 'tokenFailed'));
     }
     setLoading(false);
   };
@@ -37,12 +38,12 @@ export default function TokenSetup({ onConnected }) {
           </svg>
         </div>
         <h2 className="setup-title">PTApp</h2>
-        <p className="setup-sub">Enter your sync token to connect to the cloud</p>
+        <p className="setup-sub">{t(lang, 'tokenSubtitle')}</p>
         <input
           type="text"
           value={token}
           onChange={e => setToken(e.target.value)}
-          placeholder="Paste your sync token here"
+          placeholder={t(lang, 'tokenPlaceholder')}
           className="input"
           autoComplete="off"
           autoCorrect="off"
@@ -55,7 +56,7 @@ export default function TokenSetup({ onConnected }) {
           className="btn-primary"
           style={{ marginTop: 12, opacity: loading || !token.trim() ? 0.5 : 1 }}
         >
-          {loading ? 'Connecting...' : 'Connect'}
+          {loading ? t(lang, 'tokenConnecting') : t(lang, 'tokenConnect')}
         </button>
       </div>
     </div>
