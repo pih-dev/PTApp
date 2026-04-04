@@ -157,7 +157,7 @@ export default function Schedule({ state, dispatch, lang }) {
                 )}
                 {client && (
                   <button className="btn-whatsapp" style={{ fontSize: 12, padding: '6px 12px' }}
-                    onClick={() => sendReminderWhatsApp(client, session, state.messageTemplates, lang)}>
+                    onClick={() => sendReminderWhatsApp(client, session, state.messageTemplates, lang, state.sessions)}>
                     <WhatsAppIcon size={14} />
                     {t(lang, 'remind')}
                   </button>
@@ -322,7 +322,7 @@ export default function Schedule({ state, dispatch, lang }) {
           <Modal title={total > 1 ? `${t(lang, 'sessionBooked')} (${index + 1}/${total})` : t(lang, 'sessionBooked')} onClose={() => setConfirmMsg(null)}
             action={<>
               <button className="btn-whatsapp-lg mb-10" onClick={() => {
-                sendBookingWhatsApp(client, session, state.messageTemplates, lang);
+                sendBookingWhatsApp(client, session, state.messageTemplates, lang, state.sessions);
                 advance();
               }}>
                 <WhatsAppIcon size={20} />

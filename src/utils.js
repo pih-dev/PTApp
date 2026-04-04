@@ -315,38 +315,42 @@ const friendly = (client) => client.nickname || client.name.split(' ')[0];
 // Placeholders: {name} {type} {emoji} {date} {time} {duration}
 export const DEFAULT_TEMPLATES = {
   en: {
-    booking: `Hi {name}! 👋\n\n{emoji} Your *{type}* session is booked:\n📅 {date}\n⏰ {time} ({duration} min)\n\n👍 Like this message to confirm\n❌ Reply to cancel/reschedule\n\nSee you at the gym! 💪`,
-    reminder: `Reminder! 🔔\n\nHey {name}, just a reminder about your session:\n{emoji} {type}\n📅 {date}\n⏰ {time}\n\nSee you soon! 💪`,
+    booking: `Hi {name}! 👋\n\n{emoji} Your *{type}* session is booked:\n📅 {date}\n⏰ {time} ({duration} min)\n#️⃣ Session #{number} this month\n\n👍 Like this message to confirm\n❌ Reply to cancel/reschedule\n\nSee you at the gym! 💪`,
+    reminder: `Reminder! 🔔\n\nHey {name}, just a reminder about your session:\n{emoji} {type}\n📅 {date}\n⏰ {time}\n#️⃣ Session #{number} this month\n\nSee you soon! 💪`,
   },
   ar: {
-    booking: `مرحبا {name}! 👋\n\n{emoji} تمّ حجز جلسة *{type}*:\n📅 {date}\n⏰ {time} ({duration} دقيقة)\n\n👍 أعجبني للتأكيد\n❌ ردّ للإلغاء أو تغيير الموعد\n\nمنشوفك بالنادي! 💪`,
-    reminder: `تذكير! 🔔\n\nمرحبا {name}، تذكير بجلستك:\n{emoji} {type}\n📅 {date}\n⏰ {time}\n\nمنشوفك قريباً! 💪`,
+    booking: `مرحبا {name}! 👋\n\n{emoji} تمّ حجز جلسة *{type}*:\n📅 {date}\n⏰ {time} ({duration} دقيقة)\n#️⃣ الجلسة #{number} هالشهر\n\n👍 أعجبني للتأكيد\n❌ ردّ للإلغاء أو تغيير الموعد\n\nمنشوفك بالنادي! 💪`,
+    reminder: `تذكير! 🔔\n\nمرحبا {name}، تذكير بجلستك:\n{emoji} {type}\n📅 {date}\n⏰ {time}\n#️⃣ الجلسة #{number} هالشهر\n\nمنشوفك قريباً! 💪`,
   },
 };
 
 // Replace placeholders in a template with actual session values
-const fillTemplate = (template, client, session) => {
+// sessions array needed to calculate {number} (session ordinal in the month)
+const fillTemplate = (template, client, session, sessions) => {
   const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
+  const month = session.date.slice(0, 7);
+  const number = sessions ? getSessionOrdinal(sessions, session.id, session.clientId, month) : '';
   return template
     .replace(/\{name\}/g, friendly(client))
     .replace(/\{type\}/g, session.type)
     .replace(/\{emoji\}/g, st.emoji)
     .replace(/\{date\}/g, formatDateLong(session.date))
     .replace(/\{time\}/g, session.time)
-    .replace(/\{duration\}/g, String(session.duration || 45));
+    .replace(/\{duration\}/g, String(session.duration || 45))
+    .replace(/\{number\}/g, String(number));
 };
 
-export const sendBookingWhatsApp = (client, session, templates, lang = 'en') => {
+export const sendBookingWhatsApp = (client, session, templates, lang = 'en', sessions = []) => {
   const phone = formatPhone(client.phone);
   const tpl = (templates && templates.booking) || DEFAULT_TEMPLATES[lang].booking;
-  const msg = fillTemplate(tpl, client, session);
+  const msg = fillTemplate(tpl, client, session, sessions);
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
-export const sendReminderWhatsApp = (client, session, templates, lang = 'en') => {
+export const sendReminderWhatsApp = (client, session, templates, lang = 'en', sessions = []) => {
   const phone = formatPhone(client.phone);
   const tpl = (templates && templates.reminder) || DEFAULT_TEMPLATES[lang].reminder;
-  const msg = fillTemplate(tpl, client, session);
+  const msg = fillTemplate(tpl, client, session, sessions);
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 };
 

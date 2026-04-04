@@ -366,7 +366,7 @@ export default function General({ state, dispatch, onClose, lang }) {
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'var(--t2)' }}>{t(lang, 'waTitle')}</div>
         <div style={{ fontSize: 11, color: 'var(--t4)', marginBottom: 10 }}>
-          {t(lang, 'waPlaceholders')} {'{name}'} {'{type}'} {'{emoji}'} {'{date}'} {'{time}'} {'{duration}'}
+          {t(lang, 'waPlaceholders')} {'{name}'} {'{type}'} {'{emoji}'} {'{date}'} {'{time}'} {'{duration}'} {'{number}'}
         </div>
 
         <div style={{ marginBottom: 12 }}>

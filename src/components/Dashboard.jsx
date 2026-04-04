@@ -132,7 +132,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                   )}
                   {client && (
                     <button className="btn-whatsapp" style={{ fontSize: 12, padding: '6px 12px' }}
-                      onClick={() => sendReminderWhatsApp(client, session, state.messageTemplates, lang)}>
+                      onClick={() => sendReminderWhatsApp(client, session, state.messageTemplates, lang, state.sessions)}>
                       <WhatsAppIcon size={14} />
                       {t(lang, 'remind')}
                     </button>
@@ -243,7 +243,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
               )}
               {client && (
                 <button className="btn-whatsapp" style={{ width: '100%', justifyContent: 'center', padding: '14px 24px', fontSize: 15 }}
-                  onClick={() => { sendReminderWhatsApp(client, session, state.messageTemplates, lang); setActiveSession(null); }}>
+                  onClick={() => { sendReminderWhatsApp(client, session, state.messageTemplates, lang, state.sessions); setActiveSession(null); }}>
                   <WhatsAppIcon />
                   {t(lang, 'remind')}
                 </button>
