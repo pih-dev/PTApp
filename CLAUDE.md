@@ -289,3 +289,12 @@ git checkout master
 - The `fixForFileProtocol` plugin in vite.config.js uses a function replacement (`() =>`). Never change this to a string replacement — `$&` in React's minified code will corrupt the bundle.
 - The `vite-plugin-singlefile` plugin inlines all JS and CSS into one HTML file.
 - Google Fonts (DM Sans) still loads from the internet — device needs connectivity.
+
+## Sibling Projects
+
+PTApp is the most mature web app in Pierre's project ecosystem. Its UI/UX patterns serve as reference for other projects:
+
+- **Alerts** (`C:/projects/Alerts`) — Safety alert dashboard. References PTApp's design system (dark theme, mobile-first, RTL, vanilla JS, card layouts) but uses its own zone-colored design language for urgency.
+- **HomeLab** (`C:/projects/HomeLab`) — Infrastructure/HA project. Has its own ticker overlay (HTML+JS on TV). No PTApp dependency.
+- **Career** (`C:/projects/Career`) — Resume and job search. No PTApp dependency.
+- **CCHealth** (`C:/projects/CCHealth`) — Meta/advisory project that monitors all projects including this one.
