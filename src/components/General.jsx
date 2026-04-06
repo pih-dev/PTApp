@@ -134,7 +134,7 @@ function renderMarkdown(text) {
   return elements;
 }
 
-export default function General({ state, dispatch, onClose, lang }) {
+export default function General({ state, dispatch, onClose, lang, setLang, theme, setTheme }) {
   const [snapshots, setSnapshots] = useState(null);
   const [snapshotLoading, setSnapshotLoading] = useState(false);
   const [snapshotMsg, setSnapshotMsg] = useState('');
@@ -167,6 +167,26 @@ export default function General({ state, dispatch, onClose, lang }) {
 
   return (
     <Modal title={t(lang, 'general')} onClose={onClose}>
+      {/* Language + Theme toggles — moved from header for iPhone reachability */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+        <button className="lang-toggle" onClick={() => {
+          const next = lang === 'en' ? 'ar' : 'en';
+          setLang(next);
+          localStorage.setItem('ptapp-lang', next);
+        }}>
+          <span className={lang === 'ar' ? 'lang-active' : ''}>Ar</span>
+          <span className={lang === 'en' ? 'lang-active' : ''}>En</span>
+        </button>
+        <button className="lang-toggle" onClick={() => {
+          const next = theme === 'dark' ? 'light' : 'dark';
+          setTheme(next);
+          localStorage.setItem('ptapp-theme', next);
+        }}>
+          <span className={theme === 'light' ? 'lang-active' : ''}>Lit</span>
+          <span className={theme === 'dark' ? 'lang-active' : ''}>Drk</span>
+        </button>
+      </div>
+
       {/* In-app notification banner — replaces native alert() */}
       {notification && (
         <div style={{
