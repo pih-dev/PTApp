@@ -202,13 +202,11 @@ export default function Clients({ state, dispatch, lang }) {
                               onClick={() => { haptic(); toggleFocus(tag); }}>{tag}</button>
                           ))}
                         </div>
-                        {/* Editable session notes */}
+                        {/* Editable session notes — see Dashboard.jsx comment, no readOnly (iOS bug) */}
                         <textarea key={s.sessionNotes || ''} className={`focus-notes${s.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
                           defaultValue={s.sessionNotes || ''}
-                          readOnly
-                          onFocus={e => { e.target.readOnly = false; e.target.classList.add('editing'); }}
+                          onFocus={e => { e.target.classList.add('editing'); }}
                           onBlur={e => {
-                            e.target.readOnly = true;
                             e.target.classList.remove('editing');
                             e.target.classList.toggle('has-content', e.target.value.trim() !== '');
                             if (e.target.value !== (s.sessionNotes || '')) {

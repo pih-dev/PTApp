@@ -192,12 +192,11 @@ export default function Schedule({ state, dispatch, lang }) {
                           onClick={() => { haptic(); toggleFocus(tag); }}>{tag}</button>
                       ))}
                     </div>
+                    {/* See Dashboard.jsx comment — no readOnly, iOS Safari bug */}
                     <textarea key={session.sessionNotes || ''} className={`focus-notes${session.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
                       defaultValue={session.sessionNotes || ''}
-                      readOnly
-                      onFocus={e => { e.target.readOnly = false; e.target.classList.add('editing'); }}
+                      onFocus={e => { e.target.classList.add('editing'); }}
                       onBlur={e => {
-                        e.target.readOnly = true;
                         e.target.classList.remove('editing');
                         e.target.classList.toggle('has-content', e.target.value.trim() !== '');
                         if (e.target.value !== (session.sessionNotes || '')) {

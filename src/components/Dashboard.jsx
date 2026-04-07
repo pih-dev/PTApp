@@ -156,12 +156,14 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                       onClick={() => { haptic(); toggleFocus(tag); }}>{tag}</button>
                   ))}
                 </div>
+                {/* NOTE: Do NOT add `readOnly` here. On iOS Safari, tapping a readonly
+                    textarea decides "no keyboard" before onFocus can run — even if onFocus
+                    sets readOnly=false. The collapsed/expanded behavior is handled entirely
+                    by the .editing CSS class, not by readOnly. */}
                 <textarea key={session.sessionNotes || ''} className={`focus-notes${session.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
                   defaultValue={session.sessionNotes || ''}
-                  readOnly
-                  onFocus={e => { e.target.readOnly = false; e.target.classList.add('editing'); }}
+                  onFocus={e => { e.target.classList.add('editing'); }}
                   onBlur={e => {
-                    e.target.readOnly = true;
                     e.target.classList.remove('editing');
                     e.target.classList.toggle('has-content', e.target.value.trim() !== '');
                     if (e.target.value !== (session.sessionNotes || '')) {
