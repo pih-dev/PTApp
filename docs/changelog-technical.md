@@ -6,6 +6,40 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (2026-04-03/07)
 
+**Client list session count excludes cancelled (Apr 7):**
+
+*Problem:* The Clients tab card showed `state.sessions.filter(s => s.clientId === clientId).length` — total count including cancelled. The expanded month view showed e.g. "5 sessions, 4 completed, 1 cancelled" — so the same card displayed "5" in the header AND "4 + 1 cancelled" in the breakdown, which is confusing math.
+
+*Fix in `Clients.jsx:39`:* Added `&& s.status !== 'cancelled'` to the filter. The header now matches the PT's mental model (cancelled = "didn't happen") and is internally consistent with the expanded breakdown.
+
+*Why not surface cancelled separately on the card header?* The expanded view already does that. The card header is a glance-value — it should show the number that matters operationally. Cancelled sessions are still in the data and visible when expanded.
+
+*No data changes, no migration.* Pure display fix.
+
+---
+
+**iOS keyboard not appearing on session notes — two-layer fix (Apr 7):**
+
+*Problem:* PT (iPhone) couldn't get the keyboard to appear when tapping session notes anywhere in the app. Pierre tested on Android — worked fine. Worked on iPhone after the fix below — but the bug had two independent layers and required two separate fixes deployed across two iterations.
+
+*Layer 1 — React synthetic touch event interference (caused by Modal swipe gesture):*
+- The new `Modal.jsx` swipe-to-dismiss handlers used React's `onTouchStart/Move/End` props, which attach via React's synthetic event delegation at the document root.
+- On iOS, when a textarea is inside a modal that has root-level touch listeners, the touch sequence sometimes triggers a synthetic click that fights with the focus event. Focus fires, the textarea is technically focused, but the keyboard never appears.
+- *Fix:* Switched `Modal.jsx` to native `addEventListener` with `{ passive: true }` inside a `useEffect`. Bound directly to the modal content element, not via React. Added a tap-target dead zone — `onTouchStart` checks `e.target.closest('input, textarea, select, button, a, [contenteditable]')` and bails out without setting `dragging = true` if the touch began on a form element. Also added a 10px finger-jitter dead zone before any drag movement is registered.
+
+*Layer 2 — readOnly + onFocus pattern (pre-existing bug, unknown duration):*
+- All four files with session-notes textareas (`Dashboard.jsx`, `Schedule.jsx`, `Sessions.jsx`, `Clients.jsx`) used the same copy-pasted pattern: `<textarea readOnly onFocus={e => e.target.readOnly = false} onBlur={e => e.target.readOnly = true}>`. The intent was to prevent accidental edits while the PT scrolls past the textarea — only enable editing on tap.
+- On iOS Safari, when you tap a `readOnly` field, iOS decides "no keyboard" BEFORE the focus event fires. By the time `onFocus` runs and removes the readOnly attribute, iOS has already committed to not showing the keyboard. Focus completes, the field becomes editable in the DOM, but the keyboard stays hidden. There is no recovery — the field is now broken until the user navigates away and back.
+- Android has no such restriction, which is why this pattern lived in the codebase undetected.
+- *Fix:* Removed `readOnly` from all four textareas entirely. Removed the readOnly manipulation from `onFocus`/`onBlur`. The collapse/expand visual behavior is handled entirely by the `.editing` CSS class toggle, which still works perfectly without readOnly. Added a comment in each file referencing the iOS bug to prevent regression.
+- *Files changed:* `Dashboard.jsx`, `Schedule.jsx`, `Sessions.jsx`, `Clients.jsx` — same surgical change in each.
+
+*Lesson saved to memory:* `feedback_ios_readonly_bug.md`. Added to CLAUDE.md TRAPS section. The PT's primary daily workflow is recording session notes — anything that breaks notes on iPhone is a P0 bug.
+
+*Why both fixes were necessary:* Layer 1 alone wouldn't have fixed it (readOnly would still block the keyboard even with native listeners). Layer 2 alone wouldn't have fixed it (the synthetic event interference would still race with focus even on a non-readOnly field, in some sequences). Both layers had to be removed.
+
+---
+
 **iPhone reachability — toggles relocated + swipe-to-dismiss modals (Apr 7):**
 
 *Problem:* On tall iPhones, the Ar/En and Lit/Drk stacked toggles in the header top-right were unreachable one-handed. Same for the × button on the General modal when the sheet filled the screen. Android screens are shorter so Pierre hadn't hit it in testing.

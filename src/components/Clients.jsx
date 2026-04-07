@@ -36,7 +36,9 @@ export default function Clients({ state, dispatch, lang }) {
     setShowForm(false);
   };
 
-  const sessionCount = (clientId) => state.sessions.filter(s => s.clientId === clientId).length;
+  // Excludes cancelled — matches the PT's mental model (cancelled = "didn't happen")
+  // and avoids the confusing mismatch with the expanded view (which shows cancelled separately).
+  const sessionCount = (clientId) => state.sessions.filter(s => s.clientId === clientId && s.status !== 'cancelled').length;
 
   // Month navigation helpers
   const shiftMonth = (dir) => {

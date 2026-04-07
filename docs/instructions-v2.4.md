@@ -143,7 +143,7 @@ Each client card shows:
 - Phone number
 - Gender and birthdate (if provided)
 - Notes (if any)
-- Total session count (all time)
+- Total session count (all time, **excluding cancelled** — matches the count shown in the expanded month breakdown)
 
 ---
 
