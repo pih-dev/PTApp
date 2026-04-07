@@ -14,15 +14,23 @@ The app has four tabs at the bottom: **Home**, **Clients**, **Schedule**, and **
 
 ### Header Controls
 
-The header shows the PTApp logo, the app title, and controls on the right:
+The header shows the PTApp logo, the app title, and one control on the right:
 
 | Control | What it does |
 |---------|-------------|
-| **Ar / En** | Switches the entire UI between Arabic (RTL) and English (LTR). Defaults to English. |
-| **Lit / Drk** | Switches between Light theme and Dark theme. Defaults to Dark. |
-| **v2.4 :** | Opens the General panel (backup, todos, WhatsApp templates, docs). |
+| **v2.4 :** | Opens the General panel (language, theme, backup, todos, WhatsApp templates, docs). |
 
-The language and theme toggles are stacked vertically for a clean layout. Both choices are saved — they persist when you close and reopen the app.
+Language (**Ar / En**) and theme (**Lit / Drk**) toggles live at the top of the General panel — tap the **v2.4 :** button to open it. They were moved out of the header so you can reach them with your thumb on taller phones (iPhones in particular). Both choices are saved and persist across sessions.
+
+### Closing Modals
+
+Any panel that slides up from the bottom (General, booking, editing, docs, etc.) can be closed three ways:
+
+- **Swipe down** anywhere on the panel — fastest, works from anywhere on the sheet
+- **Tap the × button** in the top-right corner
+- **Tap outside** the panel (the dimmed area)
+
+A small grey drag handle at the top of every panel is a visual cue that swipe-down works. If the panel's contents are long enough to scroll, you have to scroll to the top first before the swipe-to-dismiss gesture activates (so normal scrolling isn't interrupted).
 
 ### Color Scheme
 

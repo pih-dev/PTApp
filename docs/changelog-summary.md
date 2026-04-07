@@ -4,7 +4,9 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
-## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (Apr 3–4, 2026)
+## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (Apr 3–7, 2026)
+
+**iPhone reachability fix — toggles and modal close.** (Apr 7) On tall iPhones, the Ar/En and Lit/Drk toggles in the top-right of the header were impossible to reach one-handed, and the × button on the General panel was out of reach too. Fixed by moving both toggles into the General panel (top of the sheet, easy thumb reach) and adding a swipe-down-to-dismiss gesture with a visible drag handle to every modal. The header is now cleaner — just logo and the v2.4 ⋮ button. Swipe only activates when the modal content is scrolled to the top, so normal scrolling still works.
 
 **Per-client billing periods.** (Apr 4) Session counts (#1, #2, #3...) and WhatsApp messages now follow each client's billing period instead of always resetting on the 1st of the month. By default nothing changes — it's still calendar month. But the PT can set a custom start date and period length (1 month, 4 weeks, 2 weeks, 1 week) per client. WhatsApp messages include `{number}` (session count) and `{periodEnd}` (period end date) placeholders. Switching the dropdown back to "Default" resets everything cleanly — even if the start date field still has a value, the app ignores it.
 

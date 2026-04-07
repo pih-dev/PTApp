@@ -4,7 +4,33 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
-## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (2026-04-03/04)
+## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (2026-04-03/07)
+
+**iPhone reachability — toggles relocated + swipe-to-dismiss modals (Apr 7):**
+
+*Problem:* On tall iPhones, the Ar/En and Lit/Drk stacked toggles in the header top-right were unreachable one-handed. Same for the × button on the General modal when the sheet filled the screen. Android screens are shorter so Pierre hadn't hit it in testing.
+
+*Fix A — Toggles moved from header to General panel:*
+- `App.jsx`: removed the vertical toggle stack (old lines 127-144), header now shows just logo + version/⋮ button. `setShowGeneral` button gets `marginInlineStart: 'auto'` directly instead of inheriting from the toggle container.
+- `General.jsx`: added `setLang`, `theme`, `setTheme` props. New toggle strip rendered as the first child of the modal body (above notification banner and backup section). Same `.lang-toggle` CSS, just relocated.
+- `App.jsx`: passes `setLang`/`theme`/`setTheme` through to `<General>`.
+
+*Fix B — Swipe-down-to-dismiss + drag handle on all modals:*
+- `Modal.jsx`: added `bodyRef` on the scrollable `.modal-body` and a `dragState` ref (no useState — avoids re-renders during the gesture).
+- `onTouchStart`: only initiates drag if `bodyRef.current.scrollTop === 0`. This is the key to not conflicting with normal content scrolling — if the user is mid-scroll, we never hijack the gesture.
+- `onTouchMove`: translates `.modal-content` downward with `transform: translateY(Nx * 0.7)` (0.7x resistance for feel). Downward-only — negative dy is clamped to 0. `transition: none` during drag so it tracks the finger 1:1.
+- `onTouchEnd`: if `currentY > 80`, slide fully off with a 200ms ease-out then call `onClose()`. Otherwise spring back with the same `cubic-bezier(0.34, 1.56, 0.64, 1)` curve the modal uses to slide up (visual consistency with the open animation).
+- Handlers bound via `useCallback` to keep them stable across re-renders.
+- Drag handle: new `<div className="modal-handle" />` rendered above `.modal-header`. Pure visual — the gesture works on the whole modal content, not just the handle.
+
+*CSS additions in `styles.css`:*
+- `.modal-handle`: 36x4px pill, `rgba(255,255,255,0.25)`, `border-radius: 2px`, `margin: 10px auto 0`. Sits above the header inside the modal content.
+- `.modal-header` top padding reduced `24px → 16px` to compensate for the handle's 10px margin (visual balance).
+- `.theme-light .modal-handle`: `rgba(30,27,75,0.2)` (indigo-tinted for light theme consistency).
+
+*Why scrollTop gate matters:* Without it, swiping down on a scrolled modal body would fight the native scroll — you'd either dismiss the modal when trying to scroll back up, or scrolling would feel sluggish because the transform was fighting the scroll position. Checking `scrollTop === 0` at touch-start is the standard iOS bottom-sheet pattern.
+
+*Affects every modal:* General, booking/edit session, edit client, delete confirm, cancel prompt, token setup, doc viewer (nested modal inside General). All get the handle and swipe behavior automatically since it lives in the shared `Modal` component.
 
 **Per-client billing periods (Apr 4):**
 

@@ -27,6 +27,8 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - Auto-complete 1hr after session end (was immediate)
 - i18n (English + Arabic)
 - Todo list with checkboxes in General panel
+- Language/theme toggles live in General panel (moved from header Apr 7 for iPhone reachability)
+- All modals have drag handle + swipe-down-to-dismiss gesture (Apr 7, standard bottom-sheet pattern)
 - See `docs/design-system.md` for comprehensive visual design documentation
 
 ## Roadmap
@@ -136,6 +138,26 @@ The `fixForFileProtocol` plugin in `vite.config.js` uses a function replacement 
 
 ### TRAP: iPhone safe areas
 Bottom elements need `env(safe-area-inset-bottom)`. Nav bar is z-index 100, modals must be 200+. Modal action buttons go in `modal-footer` (sticky), never in scrollable body. iOS keyboard shrinks `visualViewport` — modals handle this via resize listener.
+
+### TRAP: iPhone reachability for top-of-screen controls
+**What happened:** Ar/En and Lit/Drk toggles were in the top-right of the header. Worked fine on Pierre's Android but the PT (iPhone) couldn't reach them one-handed. Same problem with the × button on tall modals — unreachable at the top of a 90vh bottom sheet.
+
+**Rule:** Anything tappable that should be reachable with a thumb must live in the bottom 60% of the screen. Move settings/toggles into the General panel (bottom sheet). For modals, provide swipe-down-to-dismiss AND a drag handle as a visual cue — the × button stays as a fallback but isn't the primary close method.
+
+**Test on actual iPhone ergonomics, not just Android.** iPhones (especially Pro Max) are taller; top-corner controls that feel fine on a Samsung are out of reach. Pierre's dev phone is not the target device.
+
+### TRAP: Swipe-to-dismiss vs content scrolling
+**What happened:** Adding a swipe-down-to-close gesture to `Modal.jsx` initially conflicted with scrolling the modal body — swiping up to scroll then down would accidentally dismiss, and swipe-down-while-scrolled-mid-content was ambiguous.
+
+**Rule:** Only initiate the dismiss drag when `modalBodyRef.current.scrollTop === 0`. Check at `touchstart`, not `touchmove`. This is the iOS bottom-sheet convention — user must scroll to the very top before swipe-down dismisses.
+
+**Implementation details** (Modal.jsx):
+- Use refs for drag state, never useState — gesture tracking at 60fps must not trigger React re-renders
+- Use `transform: translateY()` not `top` — GPU-accelerated, smooth
+- Resistance factor (0.7x) makes the drag feel natural, not 1:1 rubber
+- Downward-only: clamp negative dy to 0
+- Dismiss threshold: 80px, then animate to `translateY(100%)` before calling `onClose`
+- Snap-back uses the same spring curve as the modal's open animation for consistency
 
 ### TRAP: Inline styles and RTL
 Inline `marginLeft: 'auto'` doesn't flip in RTL mode. Use `marginInlineStart: 'auto'` instead. Similarly, use `borderInlineStart` not `borderLeft` for session card left borders. CSS class rules with `.theme-light` or `[dir="rtl"]` selectors DO flip correctly.
