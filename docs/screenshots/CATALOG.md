@@ -197,4 +197,4 @@ Data loss incident led to sync architecture rework. Header simplified: version r
 - Sessions tab
 - Schedule tab week view
 - Sync failed state (red dot)
-- Mother's iPhone after PWA manifest fix (standalone mode)
+- Mother's iPhone after PWA manifest fix — confirmed working at 2:18pm (standalone mode, no Safari bar, token persists). Screenshot shared in chat, needs to be sent via Telegram for file cataloging.
