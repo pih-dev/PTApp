@@ -4,6 +4,24 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.5 — Sync Safety, Status Indicator, PWA Fix (Apr 13, 2026)
+
+**Data loss incident fixed.** On Apr 13, the PT lost all of today's sessions, focus tags, and notes. Root cause: Pierre's Android had stale localStorage from Apr 11. When he opened the app at the gym, the initial fetch to GitHub may have failed — but the failure was silently swallowed (`.catch(() => {})`). The auto-complete effect triggered a state change, which pushed the stale 35-session data to GitHub, overwriting the correct 40-session remote. When the PT reopened his PWA, it loaded the corrupted remote data via REPLACE_ALL, wiping his local data too.
+
+**Three guards prevent stale pushes.** The sync effect now requires ALL three conditions before pushing to GitHub: (1) `initialLoad` must be complete, (2) `syncReady` ref must be true (only set when the initial fetch succeeds — stays false on failure), (3) `skipSync` ref must be false (one-time skip for the REPLACE_ALL echo). If the initial fetch fails, no push can happen — the data is safe in localStorage and the user sees a red indicator.
+
+**Timestamp-based conflict resolution.** Every local change stamps `_lastModified` on the data (via a reducer wrapper). On startup, if local is newer than remote, local pushes up. If remote is newer, remote replaces local. This prevents both stale-push (Pierre's device) and stale-replace (PT's device) scenarios.
+
+**Sync status indicator.** A colored dot in the header shows sync state: green = synced, blue pulse = syncing, red pulse = failed. Tapping the red dot retries. All silent `.catch(() => {})` on sync operations have been replaced with visible error handling.
+
+**Debug panel.** Long-press the ⋮ menu button to toggle a diagnostic overlay showing: version, sync state, syncReady flag, session count, client count, last modified timestamp, and token snippet. Useful for troubleshooting without browser DevTools.
+
+**Header simplified.** The version label was removed from the header — it was crammed against the ⋮ dots and barely visible on the PT's iPhone. Now the header right side shows just the sync dot and the ⋮ button, well-spaced. Version lives in the debug panel and the General panel.
+
+**PWA standalone mode fixed.** The app was missing `apple-mobile-web-app-capable` meta tag and a `manifest.json`. Without these, iOS "Add to Home Screen" creates a Safari bookmark instead of a standalone app — the token doesn't persist between opens, and Safari's URL bar shows at the bottom. Pierre's mother hit this setting up the app on her iPhone. Fixed by adding the meta tag, a manifest with `display: standalone`, and an SVG dumbbell icon. The deploy process now copies `manifest.json` to gh-pages alongside `index.html` and `sw.js`.
+
+---
+
 ## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (Apr 3–7, 2026)
 
 **Client session count excludes cancelled.** (Apr 7) On the Clients tab, each card showed a total session count that included cancelled sessions — so it could say "5 sessions" while the expanded month view broke it down as "4 + 1 cancelled". Confusing. Now the header count excludes cancelled sessions, matching the PT's mental model (cancelled = "didn't happen") and matching the expanded breakdown.

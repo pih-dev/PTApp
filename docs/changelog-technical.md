@@ -4,6 +4,89 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.5 — Sync Safety, Status Indicator, PWA Fix (2026-04-13)
+
+**Critical: stale device overwriting remote data (DATA LOSS — Apr 13):**
+
+*Incident:* PT lost all Apr 13 sessions + focus tags + notes. Forensic analysis of makdissi-dev/ptapp-data git history showed: 40 sessions at 09:57 → 35 sessions at 10:12 (exact match to Apr 11 state + 4 auto-completed). Pierre's Android had stale localStorage.
+
+*Root cause — TWO interlinked flaws:*
+1. **skipSync race condition** — The sync effect `[state]` dependency fires on first render, consuming the `skipSync.current = true` flag. When `fetchRemoteData` failed silently, auto-complete changed state, triggering `debouncedSync` which pushed stale data.
+2. **Silent failure** — `.catch(() => {})` on debouncedSync swallowed all push errors. No indicator told anyone sync was broken.
+
+*Fix — three-guard system in App.jsx:*
+- `syncReady` ref (new): stays false until initial fetch SUCCEEDS. Blocks ALL pushes if fetch fails.
+- `initialLoad` state: blocks during startup fetch.
+- `skipSync` ref: one-time skip for REPLACE_ALL echo (was already there but consumed by first-render).
+- `stateRef` ref (new): tracks current state to avoid stale closures in async callbacks.
+
+*Reducer wrapper in utils.js:*
+```javascript
+export function reducer(state, action) {
+  const newState = baseReducer(state, action);
+  if (action.type !== 'REPLACE_ALL' && newState !== state) {
+    return { ...newState, _lastModified: new Date().toISOString() };
+  }
+  return newState;
+}
+```
+REPLACE_ALL preserves remote's `_lastModified` (with fallback if absent). All other actions stamp a new timestamp. On startup, timestamps are compared: local-newer → push up, remote-newer → replace local.
+
+*debouncedSync rewritten (App.jsx module-level):*
+- Accepts `onStatus` callback instead of swallowing errors
+- Status surfaces to UI via `setSyncStatus` state
+- Green dot (synced), blue pulse (syncing), red pulse (failed — tap to retry)
+
+*Files changed:* `App.jsx` (sync logic, UI), `utils.js` (reducer wrapper, migrateData fallback), `i18n.js` (sync status translations), `styles.css` (sync-dot, debug-panel, header-right).
+
+*Design spec:* `docs/superpowers/specs/2026-04-13-sync-fix-design.md`
+
+---
+
+**Header UX — version removed, sync indicator added:**
+
+*Problem:* On PT's iPhone, the version label ("v2.4") was crammed next to the ⋮ dots in the header. Three iterations of increasing spacing weren't enough — the small space between the logo and the right side of a 480px-max container didn't leave room.
+
+*Fix:* Removed version text from header entirely. Header right side now contains only:
+- Sync status dot (10px colored circle, 36px tap target wrapper)
+- ⋮ menu button (32px, 0.75 opacity, 700 weight)
+- 8px gap between elements
+
+Version relocated to debug panel (long-press ⋮) and General panel.
+
+*CSS:* `.header-right` with `margin-inline-start: auto`, `.header-menu-btn` with padding 10px 8px for tap target, `.header-dots` at 32px font-size.
+
+---
+
+**Debug panel (long-press ⋮ button):**
+
+*Implementation:* `longPressTimer` ref in App.jsx. `onTouchStart`/`onMouseDown` sets 600ms timeout → toggles `showDebug` state. `onTouchEnd`/`onMouseUp`/`onTouchCancel`/`onMouseLeave` clears timeout.
+
+*Panel shows:* Version, syncStatus, syncReady.current, sessions count, clients count, `_lastModified` formatted, token first/last 4 chars.
+
+*CSS:* Fixed position, top 60px, z-index 300, dark glass background, monospace font. RTL: `right: auto; left: 12px`. Light theme: white bg with blue accents.
+
+---
+
+**PWA manifest + apple-mobile-web-app-capable:**
+
+*Problem:* Pierre's mother added app to Home Screen on her iPhone. Token didn't persist between opens. Safari URL bar visible at bottom = not standalone mode.
+
+*Root cause:* `index.html` lacked:
+- `<meta name="apple-mobile-web-app-capable" content="yes">`
+- `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">`
+- `<link rel="manifest" href="/manifest.json">`
+
+Without these, iOS "Add to Home Screen" creates a Safari bookmark, not a standalone app. Each open = new Safari context = localStorage not shared reliably.
+
+*Fix:* Added all three tags to `index.html`. Created `public/manifest.json` with `display: standalone`, app name, theme colors, and inline SVG dumbbell icon. Deploy process updated to copy `manifest.json` to gh-pages.
+
+*PT's phone unaffected:* His setup was cached from a previous version. New setups (mother's phone) needed the manifest.
+
+*After deploying:* Users must delete old Home Screen icon and re-add from Safari for the new manifest to take effect.
+
+---
+
 ## v2.4 — Visual Polish, Light Theme Redesign, Haptic Feedback (2026-04-03/07)
 
 **Client list session count excludes cancelled (Apr 7):**
