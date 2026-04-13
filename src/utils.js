@@ -368,10 +368,14 @@ function baseReducer(state, action) {
       return { ...state, todos: (state.todos || []).map(todo => todo.id === action.payload ? { ...todo, done: !todo.done } : todo) };
     case 'DELETE_TODO':
       return { ...state, todos: (state.todos || []).filter(todo => todo.id !== action.payload) };
-    case 'REPLACE_ALL':
+    case 'REPLACE_ALL': {
       // Ensure all fields exist after replacing state (remote data may lack new fields).
-      // Preserves remote's _lastModified — NOT stamped by the wrapper.
-      return { todos: [], messageTemplates: {}, ...action.payload };
+      // Preserves remote's _lastModified if it exists; sets it if remote is legacy data
+      // without timestamps (prevents "Modified: none" in debug panel).
+      const replaced = { todos: [], messageTemplates: {}, ...action.payload };
+      replaced._lastModified = replaced._lastModified || new Date().toISOString();
+      return replaced;
+    }
     default:
       return state;
   }
