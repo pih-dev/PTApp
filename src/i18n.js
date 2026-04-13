@@ -144,6 +144,12 @@ const T = {
     periodDefault: 'Default (calendar month)',
     periodOptional: 'optional — defaults to 1st of month',
 
+    // Sync status
+    syncSynced: 'Synced',
+    syncSyncing: 'Syncing...',
+    syncFailed: 'Sync failed — tap to retry',
+    syncOffline: 'Offline — changes saved locally',
+
     // Notifications (replacing native alert/confirm)
     invalidBackup: 'Invalid backup file',
     backupReadError: 'Could not read backup file',
@@ -290,6 +296,12 @@ const T = {
     periodLength: 'مدة الفترة',
     periodDefault: 'افتراضي (شهر تقويمي)',
     periodOptional: 'اختياري — الافتراضي أول الشهر',
+
+    // Sync status
+    syncSynced: 'متزامن',
+    syncSyncing: 'جارٍ المزامنة...',
+    syncFailed: 'فشل المزامنة — انقر للمحاولة',
+    syncOffline: 'غير متصل — التغييرات محفوظة محلياً',
 
     // Notifications
     invalidBackup: 'ملف نسخ احتياطي غير صالح',

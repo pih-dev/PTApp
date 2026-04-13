@@ -305,6 +305,8 @@ function migrateData(data) {
   data.sessions = data.sessions || [];
   data.todos = data.todos || [];
   data.messageTemplates = data.messageTemplates || {};
+  // Ensure _lastModified exists — used for stale-push prevention (see sync fix, Apr 13 2026)
+  data._lastModified = data._lastModified || new Date().toISOString();
   data._dataVersion = DATA_VERSION;
   return data;
 }
@@ -331,7 +333,9 @@ export const saveData = (data) => {
 };
 
 // ─── Reducer ───
-export function reducer(state, action) {
+// Base reducer handles all state transitions. Wrapped by reducer() which
+// stamps _lastModified on local changes (not REPLACE_ALL from remote sync).
+function baseReducer(state, action) {
   switch (action.type) {
     case 'ADD_CLIENT':
       return { ...state, clients: [...state.clients, action.payload] };
@@ -365,11 +369,22 @@ export function reducer(state, action) {
     case 'DELETE_TODO':
       return { ...state, todos: (state.todos || []).filter(todo => todo.id !== action.payload) };
     case 'REPLACE_ALL':
-      // Ensure all fields exist after replacing state (remote data may lack new fields)
+      // Ensure all fields exist after replacing state (remote data may lack new fields).
+      // Preserves remote's _lastModified — NOT stamped by the wrapper.
       return { todos: [], messageTemplates: {}, ...action.payload };
     default:
       return state;
   }
+}
+
+// Wrapper: stamps _lastModified on every LOCAL change so we can detect
+// stale data before pushing. REPLACE_ALL and no-op (default) are excluded.
+export function reducer(state, action) {
+  const newState = baseReducer(state, action);
+  if (action.type !== 'REPLACE_ALL' && newState !== state) {
+    return { ...newState, _lastModified: new Date().toISOString() };
+  }
+  return newState;
 }
 
 // ─── WhatsApp helpers ───

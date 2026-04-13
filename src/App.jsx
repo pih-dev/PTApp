@@ -10,11 +10,20 @@ import { getToken, fetchRemoteData, pushRemoteData } from './sync';
 import { t } from './i18n';
 
 // Debounce timer for GitHub sync — prevents burst of API calls when multiple
-// dispatches fire in quick succession (e.g. auto-completing several sessions)
+// dispatches fire in quick succession (e.g. auto-completing several sessions).
+// Status callback surfaces sync state to the UI instead of swallowing errors.
 let syncTimer = null;
-const debouncedSync = (token, data) => {
+const debouncedSync = (token, data, onStatus) => {
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => pushRemoteData(token, data).catch(() => {}), 1000);
+  if (onStatus) onStatus('syncing');
+  syncTimer = setTimeout(() => {
+    pushRemoteData(token, data)
+      .then(() => { if (onStatus) onStatus('synced'); })
+      .catch((err) => {
+        console.error('Sync push failed:', err.message);
+        if (onStatus) onStatus('failed');
+      });
+  }, 1000);
 };
 
 export default function App() {
@@ -25,28 +34,59 @@ export default function App() {
   const [initialLoad, setInitialLoad] = useState(!!getToken());
   const [lang, setLang] = useState(() => localStorage.getItem('ptapp-lang') || 'en');
   const [theme, setTheme] = useState(() => localStorage.getItem('ptapp-theme') || 'dark');
+  const [syncStatus, setSyncStatus] = useState('idle');
+  const [showDebug, setShowDebug] = useState(false);
   const skipSync = useRef(true);
+  // syncReady: true only after a successful remote fetch. Prevents stale localStorage
+  // from being pushed to GitHub when the initial fetch fails (see data loss incident Apr 13).
+  const syncReady = useRef(false);
   const contentRef = useRef(null);
+  // Stable ref for current state — avoids stale closure in async callbacks
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  // Long-press timer for debug panel
+  const longPressTimer = useRef(null);
 
-  // On first load with token, fetch remote data
+  // On first load with token, fetch remote data.
+  // CRITICAL: syncReady stays false until fetch succeeds — this prevents stale
+  // localStorage from being pushed to GitHub if the fetch fails (Apr 13 incident).
   useEffect(() => {
     const token = getToken();
     if (!token) { setInitialLoad(false); return; }
 
+    setSyncStatus('syncing');
     fetchRemoteData(token)
       .then(remoteData => {
+        syncReady.current = true;
         if (remoteData) {
-          skipSync.current = true;
-          dispatch({ type: 'REPLACE_ALL', payload: remoteData });
+          // Compare timestamps: if local has unsync'd changes newer than remote,
+          // push local instead of overwriting it with older remote data
+          const localTs = stateRef.current._lastModified;
+          const remoteTs = remoteData._lastModified;
+          if (localTs && remoteTs && localTs > remoteTs) {
+            // Local is newer — push it up (e.g. PT added data offline, remote is stale)
+            pushRemoteData(token, stateRef.current).catch(() => {});
+            setSyncStatus('synced');
+          } else {
+            // Remote is newer or equal — replace local with remote
+            skipSync.current = true;
+            dispatch({ type: 'REPLACE_ALL', payload: remoteData });
+            setSyncStatus('synced');
+          }
         } else {
-          // No remote data yet — push local data up
-          pushRemoteData(token, state).catch(() => {});
+          // No remote data yet — push current local data up (uses ref to avoid stale closure)
+          pushRemoteData(token, stateRef.current).catch(() => {});
+          setSyncStatus('synced');
         }
       })
-      .catch(() => {})
+      .catch((err) => {
+        // Fetch failed — syncReady stays false, blocking all automatic pushes.
+        // Data is safe in localStorage; user sees the red indicator.
+        console.error('Initial sync failed:', err.message);
+        setSyncStatus('failed');
+      })
       .finally(() => {
         setInitialLoad(false);
-        // Allow syncing after initial load settles
         setTimeout(() => { skipSync.current = false; }, 500);
       });
   }, [connected]);
@@ -68,21 +108,58 @@ export default function App() {
     }
   }, [state.sessions, initialLoad]);
 
-  // Save to localStorage + debounced sync to GitHub on every state change
+  // Save to localStorage + debounced sync to GitHub on every state change.
+  // THREE guards prevent stale pushes (Apr 13 incident fix):
+  //   1. initialLoad — blocks during startup fetch
+  //   2. syncReady — blocks if initial fetch FAILED (stays false)
+  //   3. skipSync — blocks the REPLACE_ALL echo (one-time skip)
   useEffect(() => {
     saveData(state);
-    if (skipSync.current) {
+    if (initialLoad || !syncReady.current || skipSync.current) {
       skipSync.current = false;
       return;
     }
     const token = getToken();
     if (token) {
-      debouncedSync(token, state);
+      debouncedSync(token, state, setSyncStatus);
     }
-  }, [state]);
+  }, [state, initialLoad]);
 
   // Rubber-band overscroll on the main content area
   useEffect(() => initElasticScroll(contentRef.current), []);
+
+  // Retry sync — called when user taps the failed indicator
+  const handleRetrySync = () => {
+    const token = getToken();
+    if (!token) return;
+    setSyncStatus('syncing');
+    fetchRemoteData(token)
+      .then(remoteData => {
+        syncReady.current = true;
+        if (remoteData) {
+          const localTs = stateRef.current._lastModified;
+          const remoteTs = remoteData._lastModified;
+          if (localTs && remoteTs && localTs > remoteTs) {
+            pushRemoteData(token, stateRef.current).catch(() => {});
+          } else {
+            skipSync.current = true;
+            dispatch({ type: 'REPLACE_ALL', payload: remoteData });
+          }
+        } else {
+          pushRemoteData(token, stateRef.current).catch(() => {});
+        }
+        setSyncStatus('synced');
+      })
+      .catch(() => setSyncStatus('failed'));
+  };
+
+  // Long-press on version badge → debug panel
+  const onVersionTouchStart = () => {
+    longPressTimer.current = setTimeout(() => setShowDebug(d => !d), 600);
+  };
+  const onVersionTouchEnd = () => {
+    clearTimeout(longPressTimer.current);
+  };
 
   if (!connected) {
     return <TokenSetup onConnected={() => setConnected(true)} lang={lang} />;
@@ -125,7 +202,23 @@ export default function App() {
           </div>
           <button onClick={() => setShowGeneral(true)}
             style={{ marginInlineStart: 'auto', display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}>
-            <span className="app-version" style={{ margin: 0 }}>v2.4</span>
+            {/* Sync status dot — green (synced), blue pulse (syncing), red pulse (failed, tap to retry) */}
+            {syncStatus !== 'idle' && (
+              <span
+                className={`sync-dot ${syncStatus}`}
+                onClick={syncStatus === 'failed' ? (e) => { e.stopPropagation(); handleRetrySync(); } : undefined}
+                title={t(lang, `sync${syncStatus.charAt(0).toUpperCase() + syncStatus.slice(1)}`)}
+              />
+            )}
+            {/* Version badge — long-press for debug panel */}
+            <span className="app-version" style={{ margin: 0 }}
+              onTouchStart={onVersionTouchStart}
+              onTouchEnd={onVersionTouchEnd}
+              onTouchCancel={onVersionTouchEnd}
+              onMouseDown={onVersionTouchStart}
+              onMouseUp={onVersionTouchEnd}
+              onMouseLeave={onVersionTouchEnd}
+            >v2.5</span>
             <span style={{ color: 'var(--t4)', fontSize: 28, lineHeight: 1 }}>⋮</span>
           </button>
         </div>
@@ -140,6 +233,19 @@ export default function App() {
 
       {showGeneral && <General state={state} dispatch={dispatch} onClose={() => setShowGeneral(false)}
           lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} />}
+
+      {/* Debug panel — long-press version badge to toggle */}
+      {showDebug && (
+        <div className="debug-panel">
+          <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
+          <div><strong>Sync:</strong> {syncStatus}</div>
+          <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
+          <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>
+          <div><strong>Clients:</strong> {state.clients?.length || 0}</div>
+          <div><strong>Modified:</strong> {state._lastModified ? new Date(state._lastModified).toLocaleString() : 'none'}</div>
+          <div><strong>Token:</strong> {getToken() ? `${getToken().slice(0,4)}...${getToken().slice(-4)}` : 'none'}</div>
+        </div>
+      )}
 
       <div className="nav">
         {tabs.map(tb => (
