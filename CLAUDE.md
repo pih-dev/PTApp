@@ -12,7 +12,7 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.4
+## Current Version: v2.5
 - Blue accent color (both themes)
 - Light theme redesigned: deep steel blue background (#94A8C8→#788DB4), opaque white-blue cards, glossy frosted glass header/nav (rgba(30,64,175,0.15) + blur 28px + saturate 1.4), blue-tinted modals
 - Dark theme: blue-tinted header/nav glass, nav buttons 0.75 opacity (readable), active tab #3B82F6, micro-polished with transitions, button press feel, spring modals
@@ -29,6 +29,10 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - Todo list with checkboxes in General panel
 - Language/theme toggles live in General panel (moved from header Apr 7 for iPhone reachability)
 - All modals have drag handle + swipe-down-to-dismiss gesture (Apr 7, standard bottom-sheet pattern)
+- Sync status indicator (green dot = synced, blue pulse = syncing, red pulse = failed — tap to retry)
+- Three-guard stale-push prevention with `_lastModified` timestamps (Apr 13 data loss fix)
+- Debug panel (long-press ⋮): version, sync state, session/client count, token snippet
+- PWA manifest + apple-mobile-web-app-capable for iOS standalone mode
 - See `docs/design-system.md` for comprehensive visual design documentation
 
 ## Roadmap
@@ -76,7 +80,8 @@ PTApp/
 ├── .gitattributes      # LF line ending normalization
 ├── CLAUDE.md           # This file
 ├── public/
-│   └── sw.js           # Service worker for offline support
+│   ├── sw.js           # Service worker for offline support
+│   └── manifest.json   # PWA manifest (standalone mode, icon, theme)
 ├── src/
 │   ├── main.jsx        # React mount point + SW registration
 │   ├── App.jsx         # Main app with routing/tabs, sync, auto-complete
@@ -176,8 +181,35 @@ Inline `marginLeft: 'auto'` doesn't flip in RTL mode. Use `marginInlineStart: 'a
 
 **Rule:** `periodLength` is the master switch. Gate on `!client.periodLength`, never on `periodStart`. When `periodLength` is falsy, return calendar month regardless of `periodStart`. The Clients.jsx form also auto-clears `periodStart` when the dropdown resets, but the function must not depend on that.
 
+### TRAP: iOS PWA standalone mode requires manifest + meta tag
+**What happened:** Pierre's mother added the app to her iPhone Home Screen. Every time she opened it, Safari showed its URL bar at the bottom and the app asked for the token again — localStorage wasn't persisting between opens.
+
+**Root cause:** The `index.html` lacked `<meta name="apple-mobile-web-app-capable" content="yes">` and a `manifest.json` with `"display": "standalone"`. Without these, iOS "Add to Home Screen" creates a Safari bookmark, not a standalone app. Each open is a new Safari context.
+
+**Rule:** Any PWA targeting iOS must have BOTH:
+1. `<meta name="apple-mobile-web-app-capable" content="yes">` in HTML head
+2. A `manifest.json` with `"display": "standalone"` linked via `<link rel="manifest">`
+
+**Deploy process:** `manifest.json` lives in `public/` (Vite copies to dist), and must be copied to gh-pages alongside index.html and sw.js.
+
+**After deploying a manifest change:** Users must delete the old Home Screen icon and re-add from Safari for the new manifest to take effect. The PT's phone worked because he set up when standalone mode was cached; new setups need the manifest.
+
 ### TRAP: Single dispatches in loops
 Auto-complete used to dispatch N separate `UPDATE_SESSION` actions for N lapsed sessions. Each dispatch triggers a re-render + a sync push. Now uses `BATCH_COMPLETE` to mark all in one dispatch. Apply the same pattern whenever you need to update multiple records.
+
+### TRAP: Stale device overwriting remote sync data (DATA LOSS — Apr 13 2026)
+**What happened:** Pierre's Android had localStorage frozen at an Apr 11 state (35 sessions). When he opened the app at the gym, `fetchRemoteData` may have failed silently. The sync effect's `[state]` dependency fired on first render, consuming the `skipSync.current = true` flag. Auto-complete then changed state, which triggered `debouncedSync` — pushing the stale 35-session data to GitHub, overwriting 40 sessions (5 sessions lost). PT's focus tags and notes were also never in remote (his pushes failed silently too). When PT reopened his PWA, `REPLACE_ALL` loaded the corrupted remote data and wiped his local data.
+
+**Rule:** THREE guards must ALL pass before any push to GitHub (App.jsx sync effect):
+1. `initialLoad` must be false (startup fetch is complete)
+2. `syncReady.current` must be true (initial fetch SUCCEEDED — stays false on failure)
+3. `skipSync.current` must be false (one-time skip for REPLACE_ALL echo)
+
+**Never use `.catch(() => {})` on sync operations.** The debouncedSync status callback now surfaces errors to the UI via `syncStatus` state (green/blue/red indicator dot).
+
+**`_lastModified` timestamp** is set by the reducer wrapper on every local change (not REPLACE_ALL). On startup, if local is newer than remote, local pushes up. If remote is newer, REPLACE_ALL replaces local. This prevents both stale-push AND stale-replace scenarios.
+
+**Where it bit us:** App.jsx sync effect, debouncedSync `.catch(() => {})`, initial load REPLACE_ALL flow. All three had to be fixed together. See `docs/superpowers/specs/2026-04-13-sync-fix-design.md` for full forensic analysis.
 
 ---
 
@@ -229,8 +261,13 @@ Use `getStatus(status, lang, t)` to get a translated status object with `label` 
 These are identified but not yet fixed. Check before starting related work.
 
 ### Should fix soon
-- **No sync status indicator** — User can't tell if sync is working, broken, or in progress. Errors are silently swallowed.
 - **No error boundary** — If any component throws (e.g., corrupted localStorage), the entire app crashes to a white screen. A top-level error boundary would let the user access backup/export.
+
+### Fixed in v2.5
+- ~~No sync status indicator~~ — Green/blue/red dot in header. Failed state is tappable to retry. Errors surfaced to UI.
+- ~~Silent sync errors~~ — `.catch(() => {})` replaced with status callbacks.
+- ~~Stale device overwriting remote~~ — Three-guard sync protection + `_lastModified` timestamps.
+- ~~iOS PWA not standalone~~ — Added `apple-mobile-web-app-capable` meta tag + `manifest.json`.
 
 ### Fixed in v2.4 review
 - ~~`confirm()` for client delete~~ — Replaced with in-app modal (Clients.jsx `deletePrompt` state)
@@ -241,7 +278,7 @@ These are identified but not yet fixed. Check before starting related work.
 
 ### Structural debt (address in a larger session)
 - **Duplicated session card rendering** — Dashboard, Schedule, Sessions all render session cards independently (~50-80 lines each). A shared `SessionCard` component would eliminate this.
-- **Stale closure in initial sync** — `App.jsx:34` captures `state` from mount time. If the "no remote data" branch runs, it pushes stale state. Low risk (only on first load with empty remote).
+- ~~Stale closure in initial sync~~ — Fixed with `stateRef` (useRef tracking current state).
 
 ---
 
@@ -306,10 +343,12 @@ git add <files> && git commit -m "message" && git push origin master
 # 5. Deploy built files to gh-pages (THIS IS WHAT MAKES IT LIVE)
 cp dist/index.html /tmp/ptapp-deploy.html
 cp dist/sw.js /tmp/ptapp-deploy-sw.js
+cp dist/manifest.json /tmp/ptapp-deploy-manifest.json
 git checkout gh-pages
 cp /tmp/ptapp-deploy.html index.html
 cp /tmp/ptapp-deploy-sw.js sw.js
-git add index.html sw.js && git commit -m "Deploy vX.Y: description" && git push origin gh-pages
+cp /tmp/ptapp-deploy-manifest.json manifest.json
+git add index.html sw.js manifest.json && git commit -m "Deploy vX.Y: description" && git push origin gh-pages
 git checkout master
 
 # 6. Tell Pierre the version number so he can verify on his phone

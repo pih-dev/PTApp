@@ -151,6 +151,44 @@ The new per-client billing period fields in the Edit Client modal.
 
 ---
 
+## v2.5 — Sync Fix + Header Cleanup (Apr 13, 2026)
+
+Data loss incident led to sync architecture rework. Header simplified: version removed, just sync dot + ⋮. Debug panel added (long-press ⋮).
+
+### PT's iPhone — Before & After Header Fix
+
+| File | Description |
+|------|-------------|
+| `v2.4-iphone-dark-header-crammed-apr13.jpg` | PT's iPhone, v2.4 (12:24pm). Version "v2.4" crammed next to ⋮ dots in header. No sync indicator. This was the state before the update. |
+| `v2.5-iphone-dark-header-fixed-apr13.jpg` | PT's iPhone, v2.5 (12:46pm). Green sync dot visible, ⋮ clearly visible, version removed from header. First screenshot after PT updated to v2.5. |
+| `v2.5-iphone-dark-header-clean-apr13.jpg` | PT's iPhone, v2.5 (12:52pm). Clean header: green dot + ⋮, well-spaced. 11 Clients, 3 Today, 4 This Week. Expanded dashboard with focus tags on Violette + Pierre sessions. |
+| `v2.5-iphone-dark-header-final-apr13.jpg` | PT's iPhone, v2.5 (12:55pm). Final header state confirmed working. Same clean layout, green sync dot, ⋮ visible. |
+
+### PT's iPhone — Dashboard & General Panel
+
+| File | Description |
+|------|-------------|
+| `v2.5-iphone-dark-dashboard-confirmed-apr13.jpg` | PT's iPhone, v2.5 (1:19pm). Dashboard with green sync dot. 11 Clients, 3 Today, 4 This Week. Violette #5 Completed with focus tags (Back, Shoulders active), notes "Front pull down". Pierre #6 Completed. ⋮ clearly visible. |
+| `v2.5-iphone-general-panel-apr13.jpg` | PT's iPhone, v2.5 (1:19pm). General panel showing: Ar/En toggle (En active), Lit/Drk toggle (Drk active), Backup section, To Do list with 9 items (3 completed: "Edit the completed", "Hide the confirmation", "Todo editing"). |
+
+### Pierre's Android — v2.5 Dashboard + Debug Panel
+
+| File | Description |
+|------|-------------|
+| `v2.5-android-dashboard-synced-apr13.jpg` | Android Chrome, v2.5 (12:52pm). Dashboard with URL bar visible. Green sync dot, "v2.5" text still showing (this was the iteration before version text was removed). |
+| `v2.5-android-dashboard-synced-2-apr13.jpg` | Android Chrome, v2.5 (12:52pm). Same view, slightly different crop. Shows the header still had "v2.5" cramped next to ⋮. |
+| `v2.5-android-dashboard-synced-3-apr13.jpg` | Android Chrome, v2.5 (12:55pm). After version removal. Just green dot + ⋮ in header. Clean. |
+| `v2.5-android-debug-panel-apr13.jpg` | Android Chrome, v2.5 (1:06pm). Debug panel open (long-press ⋮). Shows: Version v2.5, Sync: synced, Ready: yes, Sessions: 38, Clients: 11, Modified: none, Token: gith_...HBK. |
+
+### Mother's iPhone — PWA Setup Issue
+
+| File | Description |
+|------|-------------|
+| `v2.5-mother-iphone-safari-bar-apr13.jpg` | Mother's iPhone, Safari (1:19pm). Dashboard loads correctly but **Safari URL bar visible at bottom** ("pih-dev.github.io"). Not running in standalone PWA mode. Same data as PT (11 clients, 3 today). |
+| `v2.5-mother-iphone-token-setup-apr13.jpg` | Mother's iPhone, Safari (1:20pm). Token setup screen asking for sync token. Safari URL bar visible at bottom. **Token doesn't persist between opens** because app lacks PWA manifest + apple-mobile-web-app-capable meta tag. Fixed in commit 760452d. |
+
+---
+
 ## Not Yet Captured
 
 - Amber active session glow (card-now) — no in-progress sessions at screenshot time
@@ -158,3 +196,5 @@ The new per-client billing period fields in the Edit Client modal.
 - Modal/booking flow
 - Sessions tab
 - Schedule tab week view
+- Sync failed state (red dot)
+- Mother's iPhone after PWA manifest fix (standalone mode)
