@@ -99,22 +99,22 @@ button:active { transform: scale(0.97); }
   margin-inline-start: auto;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 8px;
 }
-/* Menu button (version + three dots) — generous tap target */
+/* Menu button (version + three dots) — generous tap target, extra right padding for iPhone edge */
 .header-menu-btn {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px 4px 8px 8px;
+  padding: 10px 8px;
   -webkit-tap-highlight-color: transparent;
 }
-/* Three-dots icon — prominent so it's clearly tappable */
+/* Three-dots icon — prominent so it's clearly tappable on iPhone */
 .header-dots {
-  color: rgba(255,255,255,0.7);
+  color: rgba(255,255,255,0.75);
   font-size: 32px;
   font-weight: 700;
   line-height: 1;
