@@ -1,4 +1,5 @@
-"""Generate CATALOG.pdf with embedded screenshots from CATALOG.md structure."""
+"""Generate CATALOG.pdf with embedded screenshots from CATALOG.md structure.
+Run: py docs/screenshots/generate_pdf.py"""
 import os
 from fpdf import FPDF
 from PIL import Image
@@ -122,6 +123,41 @@ SECTIONS = [
             ("v2.4-dark-period-length-dropdown-apr04.jpg", "Period Length options: Default, 1 Month, 4 Weeks, 2 Weeks, 1 Week"),
         ],
     },
+    {
+        "title": "v2.5 - Sync Fix + Header Cleanup (Apr 13, 2026)",
+        "desc": "Data loss incident fix: three-guard sync, status indicator, debug panel. Header simplified.",
+        "images": [
+            ("v2.4-iphone-dark-header-crammed-apr13.jpg", "PT iPhone v2.4 BEFORE: version crammed next to dots"),
+            ("v2.5-iphone-dark-header-fixed-apr13.jpg", "PT iPhone v2.5 AFTER: green sync dot, clean header"),
+            ("v2.5-iphone-dark-header-clean-apr13.jpg", "PT iPhone v2.5: well-spaced header, expanded dashboard"),
+            ("v2.5-iphone-dark-header-final-apr13.jpg", "PT iPhone v2.5: final header confirmed working"),
+        ],
+    },
+    {
+        "title": "v2.5 - Dashboard + General Panel (Apr 13, 2026, iPhone)",
+        "desc": "PT's iPhone after sync fix deployment. Green dot = synced.",
+        "images": [
+            ("v2.5-iphone-dark-dashboard-confirmed-apr13.jpg", "Dashboard: 11 clients, 3 today, green sync dot"),
+            ("v2.5-iphone-general-panel-apr13.jpg", "General panel: Ar/En, Lit/Drk, Backup, To Do list"),
+        ],
+    },
+    {
+        "title": "v2.5 - Android Debug Panel (Apr 13, 2026)",
+        "desc": "New debug panel (long-press menu button). Sync status, session count, token snippet.",
+        "images": [
+            ("v2.5-android-dashboard-synced-apr13.jpg", "Android v2.5: dashboard with green sync dot"),
+            ("v2.5-android-dashboard-synced-3-apr13.jpg", "Android v2.5: after version text removed from header"),
+            ("v2.5-android-debug-panel-apr13.jpg", "Debug panel: v2.5, synced, 38 sessions, 11 clients"),
+        ],
+    },
+    {
+        "title": "v2.5 - Mother's iPhone PWA Issue (Apr 13, 2026)",
+        "desc": "Token lost between opens. Safari URL bar visible = not standalone mode. Fixed with manifest.json.",
+        "images": [
+            ("v2.5-mother-iphone-safari-bar-apr13.jpg", "Mother's iPhone: Safari bar visible, not standalone"),
+            ("v2.5-mother-iphone-token-setup-apr13.jpg", "Mother's iPhone: token setup prompt (keeps reappearing)"),
+        ],
+    },
 ]
 
 
@@ -186,11 +222,11 @@ def main():
     pdf.cell(0, 10, "Screenshot Catalog", align="C")
     pdf.ln(8)
     pdf.set_font("Helvetica", "", 11)
-    pdf.cell(0, 8, "Visual evolution from v1.x to v2.4", align="C")
+    pdf.cell(0, 8, "Visual evolution from v1.x to v2.5", align="C")
     pdf.ln(16)
     pdf.set_font("Helvetica", "I", 10)
     pdf.set_text_color(120, 120, 140)
-    pdf.cell(0, 8, "Generated Apr 4, 2026 -Samsung S25 Ultra + iPhone screenshots", align="C")
+    pdf.cell(0, 8, "Generated Apr 13, 2026 - Samsung S25 Ultra + iPhone screenshots", align="C")
 
     # Content sections
     for section in SECTIONS:
@@ -216,7 +252,14 @@ def main():
             path = os.path.join(SCRIPT_DIR, filename)
             add_image_fitted(pdf, path, caption, min(page_w, 90), min(max_img_h, 200))
 
+    # Try default path; fall back to temp path if locked by another process
     output_path = os.path.join(SCRIPT_DIR, "CATALOG.pdf")
+    try:
+        with open(output_path, 'wb') as _:
+            pass
+    except PermissionError:
+        output_path = os.path.join(SCRIPT_DIR, "CATALOG-new.pdf")
+        print(f"CATALOG.pdf locked, writing to {os.path.basename(output_path)}")
     pdf.output(output_path)
     print(f"PDF saved: {output_path}")
     print(f"Pages: {pdf.page_no()}")
