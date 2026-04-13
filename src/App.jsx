@@ -200,27 +200,28 @@ export default function App() {
             <div className="logo-text">PTApp</div>
             <div className="logo-sub">{t(lang, 'personalTrainer')}</div>
           </div>
-          <button onClick={() => setShowGeneral(true)}
-            style={{ marginInlineStart: 'auto', display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}>
-            {/* Sync status dot — green (synced), blue pulse (syncing), red pulse (failed, tap to retry) */}
+          {/* Right side: sync dot (own tap target) + menu button (version + dots) */}
+          <div className="header-right">
+            {/* Sync indicator — 44px tap target for iOS, separate from menu button */}
             {syncStatus !== 'idle' && (
-              <span
-                className={`sync-dot ${syncStatus}`}
-                onClick={syncStatus === 'failed' ? (e) => { e.stopPropagation(); handleRetrySync(); } : undefined}
-                title={t(lang, `sync${syncStatus.charAt(0).toUpperCase() + syncStatus.slice(1)}`)}
-              />
+              <button className={`sync-btn ${syncStatus}`}
+                onClick={syncStatus === 'failed' ? handleRetrySync : undefined}>
+                <span className={`sync-dot ${syncStatus}`} />
+              </button>
             )}
-            {/* Version badge — long-press for debug panel */}
-            <span className="app-version" style={{ margin: 0 }}
+            {/* Menu button — opens General panel, long-press for debug */}
+            <button className="header-menu-btn"
+              onClick={() => setShowGeneral(true)}
               onTouchStart={onVersionTouchStart}
               onTouchEnd={onVersionTouchEnd}
               onTouchCancel={onVersionTouchEnd}
               onMouseDown={onVersionTouchStart}
               onMouseUp={onVersionTouchEnd}
-              onMouseLeave={onVersionTouchEnd}
-            >v2.5</span>
-            <span style={{ color: 'var(--t4)', fontSize: 28, lineHeight: 1 }}>⋮</span>
-          </button>
+              onMouseLeave={onVersionTouchEnd}>
+              <span className="app-version" style={{ margin: 0 }}>v2.5</span>
+              <span className="header-dots">⋮</span>
+            </button>
+          </div>
         </div>
       </div>
 

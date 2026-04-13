@@ -89,24 +89,63 @@ button:active { transform: scale(0.97); }
   font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
 }
 .app-version {
-  margin-left: auto;
   font-size: 11px;
   color: rgba(255,255,255,0.4);
   font-weight: 500;
 }
 
-/* ─── Sync status indicator ─── */
+/* ─── Header right side: sync indicator + menu button ─── */
+.header-right {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+/* Menu button (version + three dots) — generous tap target */
+.header-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 4px 8px 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Three-dots icon — prominent so it's clearly tappable */
+.header-dots {
+  color: rgba(255,255,255,0.7);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+/* Sync dot wrapper — 36px tap target (close to Apple's 44px HIG) */
+.sync-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: default;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.sync-btn.failed { cursor: pointer; }
 .sync-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  display: inline-block;
+  display: block;
   flex-shrink: 0;
   transition: background 0.3s ease;
 }
 .sync-dot.synced { background: #10B981; }
 .sync-dot.syncing { background: #3B82F6; animation: sync-pulse 1.2s ease-in-out infinite; }
-.sync-dot.failed { background: #EF4444; cursor: pointer; animation: sync-pulse 2s ease-in-out infinite; }
+.sync-dot.failed { background: #EF4444; animation: sync-pulse 2s ease-in-out infinite; }
 @keyframes sync-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(0.85); }
@@ -672,6 +711,7 @@ button:active { transform: scale(0.97); }
 .theme-light .logo-text { background: linear-gradient(135deg, #1E1B4B, #3730A3); -webkit-background-clip: text; }
 .theme-light .logo-sub { color: rgba(30,27,75,0.65); }
 .theme-light .app-version { color: rgba(30,27,75,0.45); }
+.theme-light .header-dots { color: rgba(30,27,75,0.6); }
 .theme-light .debug-panel { background: rgba(255,255,255,0.95); color: #1e1b4b; box-shadow: 0 8px 24px rgba(30,27,75,0.2); }
 .theme-light .debug-panel strong { color: #2563eb; }
 .theme-light .debug-panel .debug-close { color: #6b7280; }
