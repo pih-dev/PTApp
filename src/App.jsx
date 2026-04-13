@@ -200,16 +200,14 @@ export default function App() {
             <div className="logo-text">PTApp</div>
             <div className="logo-sub">{t(lang, 'personalTrainer')}</div>
           </div>
-          {/* Right side: sync dot (own tap target) + menu button (version + dots) */}
+          {/* Right side: sync dot + menu button. Version removed from header (lives in debug panel + General). */}
           <div className="header-right">
-            {/* Sync indicator — 44px tap target for iOS, separate from menu button */}
             {syncStatus !== 'idle' && (
               <button className={`sync-btn ${syncStatus}`}
                 onClick={syncStatus === 'failed' ? handleRetrySync : undefined}>
                 <span className={`sync-dot ${syncStatus}`} />
               </button>
             )}
-            {/* Menu button — opens General panel, long-press for debug */}
             <button className="header-menu-btn"
               onClick={() => setShowGeneral(true)}
               onTouchStart={onVersionTouchStart}
@@ -218,7 +216,6 @@ export default function App() {
               onMouseDown={onVersionTouchStart}
               onMouseUp={onVersionTouchEnd}
               onMouseLeave={onVersionTouchEnd}>
-              <span className="app-version" style={{ margin: 0 }}>v2.5</span>
               <span className="header-dots">⋮</span>
             </button>
           </div>
@@ -239,6 +236,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
+          <div><strong>Version:</strong> v2.5</div>
           <div><strong>Sync:</strong> {syncStatus}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>
