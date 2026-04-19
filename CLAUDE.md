@@ -12,16 +12,26 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.6
+## Current Version: v2.7
+- Dashboard home screen now shows "Upcoming Sessions" instead of "Today's Sessions"
+  - Single `upcoming` filter: `status !== 'cancelled' && date >= today()`, sorted date+time asc
+  - Both Expanded and Compact views iterate the same array — Compact's 5-session cap is gone
+  - Section title: "📅 Upcoming Sessions (N)" with count in both views
+  - Expanded cards gain a date line ("Today" or formatted date like "Apr 20") so cards are distinguishable across days
+  - Today's completed sessions stay visible (day-progress useful); roll off at midnight
+  - Stat card "Today" unchanged (workload-density metric, not an action queue)
+- New i18n key `today` (en: "Today", ar: "اليوم")
+- Debug panel shows v2.7
+
+## Previous Version: v2.6
 - Bulletproof multi-device sync (Apr 19 Hala Mouzanar data loss fix)
   - Per-record `_modified` timestamps stamped by reducer on every add/edit
   - `mergeData()` union-by-ID merge: PT's fresher edits always win over stale devices
   - `pushRemoteData` merges on 409 conflict instead of blind-overwriting
   - All four silent `.catch(() => {})` in App.jsx replaced with proper error surfacing
   - Single `reconcile()` function for initial load + retry handler
-- Debug panel shows v2.6
 
-## Previous Version: v2.5
+## Older Version: v2.5
 - Blue accent color (both themes)
 - Light theme redesigned: deep steel blue background (#94A8C8→#788DB4), opaque white-blue cards, glossy frosted glass header/nav (rgba(30,64,175,0.15) + blur 28px + saturate 1.4), blue-tinted modals
 - Dark theme: blue-tinted header/nav glass, nav buttons 0.75 opacity (readable), active tab #3B82F6, micro-polished with transitions, button press feel, spring modals

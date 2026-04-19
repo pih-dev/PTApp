@@ -4,6 +4,22 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.7 — Upcoming Sessions on Home Screen (Apr 20, 2026)
+
+**The home screen went blind at night.** The main section was labeled "Today's Sessions" and only showed sessions dated today. So at 8pm on Apr 19, a session booked for Apr 20 at 7am wasn't visible at all until midnight crossed. The PT couldn't glance at his home screen to see what tomorrow's morning looked like — he had to open the Schedule tab. Uncomfortable for a day-ahead workflow.
+
+**Replaced with "Upcoming Sessions" — all future non-cancelled sessions, closest first.** The section title now shows "📅 Upcoming Sessions (N)" with the count in both Expanded and Compact views. Tomorrow's 7am session appears tonight, below today's remaining sessions. Sessions booked further out (next week, next month) appear below those. Today's completed sessions stay visible so the PT still sees his day-progress ("3 done, 2 to go"), but they roll off at midnight when they become "past". Cancelled sessions are hidden in both views.
+
+**Each card shows its date.** Today's cards say "Today" under the time/type meta row. Future cards show the formatted date (e.g. "Apr 20"). A quick glance tells the PT which day a card belongs to without mental math.
+
+**Compact view's old 5-session limit is gone.** Compact and Expanded now show the same list — the only difference is interaction style (Compact = tap for action sheet, Expanded = inline controls).
+
+**What stays unchanged:** the three stat cards (Clients, Today, This Week) — "Today" still counts only today's sessions because that's a workload-density metric, not an action queue. The in-progress amber glow still fires on sessions currently running. The Compact/Expanded toggle still works. The Schedule and Sessions tabs are untouched.
+
+**Small change, big day-to-day improvement.** ~20-line diff in `Dashboard.jsx` plus one new i18n key (`today` in en + ar). No data migration, no sync impact, no visual redesign.
+
+---
+
 ## v2.6 — Bulletproof Multi-Device Sync (Apr 19, 2026)
 
 **Second data loss — "Hala Mouzanar" session vanished.** The PT booked a new client, Hala Mouzanar, for a session on Apr 17 at 10:00. The WhatsApp confirmation went out (saying "Session #3"). The next day, the session was gone — not under her client history, not in remote on GitHub, not in any snapshot going back weeks. Same pattern as the Apr 13 incident: a push silently failed on one device, then another device pushed stale state that didn't include the session, and REPLACE_ALL wiped the original local copy on next open.

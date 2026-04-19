@@ -4,6 +4,67 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.7 — Upcoming Sessions on Dashboard (2026-04-20)
+
+**Problem:** The Dashboard's main section was labeled "Today's Sessions" and filtered on `s.date === today()`. At 8pm on Apr 19, a session scheduled for Apr 20 07:00 was not visible on the home screen until midnight crossed. The PT's day-ahead planning window was blind. The Compact view already showed upcoming sessions (filtered `s.date >= today()`, limited to 5) but it was the secondary view most users don't switch to.
+
+**Design:** Single unified `upcoming` array consumed by both views:
+
+```js
+const todayStr = today();
+const upcoming = state.sessions
+  .filter(s => {
+    if (s.status === 'cancelled') return false;
+    if (s.date < todayStr) return false;
+    return true;
+  })
+  .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+```
+
+Filter rules:
+- `cancelled` → hidden always
+- `date < today` → hidden always (covers stale scheduled AND past completed)
+- Everything else (scheduled, confirmed, today's completed, today's cancelled-but-not-yet-counted) → shown
+
+String comparison on `YYYY-MM-DD` gives correct lexicographic ordering — no `new Date()` parsing needed. Sort by date ascending then time ascending puts the closest session at the top.
+
+**Changes in `src/components/Dashboard.jsx`:**
+
+1. Kept `todaySessions` calc (still feeds the "Today" stat card — different concept from the list).
+2. Kept `isNowSession` + `nowMinutes` helpers (still drives the amber `card-now` glow on in-progress sessions).
+3. Removed `upcomingSessions` variable (its filter + slice was obsolete).
+4. Added `upcoming` array and `todayStr` constant.
+5. Replaced conditional section title (`todaySessions` count in expanded / no-count label in compact) with unified `📅 Upcoming Sessions (${upcoming.length})` shown in both views.
+6. Expanded branch now iterates `upcoming` instead of `todaySessions`. Empty state uses `noUpcoming` instead of `noSessionsToday`.
+7. Added a date line inside each expanded card's left column, below the time/type meta:
+   ```jsx
+   <div style={{ fontSize: 13, color: 'var(--t5)', marginTop: 4 }}>
+     {session.date === todayStr ? t(lang, 'today') : formatDate(session.date, lang)}
+   </div>
+   ```
+   Today's cards show "Today"; others show formatted date. `var(--t5)` is the theme-aware low-emphasis text color so it works in dark + light without hardcoding.
+8. Compact branch now iterates `upcoming` instead of `upcomingSessions.slice(0,5)` — cap removed. Compact cards already rendered a date line so no additional change there.
+
+**New i18n key:** `today: 'Today'` (en) / `today: 'اليوم'` (ar), added to the Dashboard section in both blocks of `src/i18n.js`. `statToday` already existed but is semantically a stat label — keeping them separate lets translators differentiate if needed. The Arabic string happens to match `statToday` by coincidence of language.
+
+**Preserved:** `noSessionsToday` i18n key stays in both blocks for forward compatibility even though it's no longer referenced. `todaySessions` i18n key stays for the same reason.
+
+**Version string:** `src/App.jsx:232` bumped from `v2.6` to `v2.7` in the debug panel. Only on-screen version display.
+
+**Why the "Today" stat card stays:** it's a count, not a list. The stat gives the PT a workload-density glance ("heavy today vs light today"). The list is his action queue. Combining them would mean either the stat becomes "N upcoming" (misleading — he might have 20 scheduled next month) or the list becomes "only today" again (reverts the feature). Different purposes, keep separate.
+
+**Deploy:**
+- Source: `src/i18n.js`, `src/components/Dashboard.jsx`, `src/App.jsx` → master commit `b9fe047`.
+- Built: `dist/index.html` → gh-pages commit `7168304`.
+- Bundle syntax-checked with `node --check` on the inlined script before deploy. Clean.
+
+**Verification:** Manual on dev server per project convention (no test framework). Scenarios in `docs/superpowers/plans/2026-04-19-upcoming-sessions-dashboard.md` Task 4. Deployed for on-device verification.
+
+**Spec:** [`docs/superpowers/specs/2026-04-19-upcoming-sessions-dashboard-design.md`](superpowers/specs/2026-04-19-upcoming-sessions-dashboard-design.md)
+**Plan:** [`docs/superpowers/plans/2026-04-19-upcoming-sessions-dashboard.md`](superpowers/plans/2026-04-19-upcoming-sessions-dashboard.md)
+
+---
+
 ## v2.6 — Bulletproof Multi-Device Sync (2026-04-19)
 
 **Hala Mouzanar data loss — second sync incident:**
