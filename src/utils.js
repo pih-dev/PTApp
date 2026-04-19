@@ -329,6 +329,54 @@ export const loadData = () => {
   return migrateData({ clients: [], sessions: [] });
 };
 
+// ─── Merge (sync conflict resolution) ───
+// Last-write-wins merge, per-record by `_modified` timestamp. Union by ID.
+// Ran after every 409 and at initial load so no record is ever blindly discarded
+// by a stale-device push — bulletproofs the 3-device setup (PT iPhone, Pierre
+// Android, mother iPhone) against the unstable Beirut internet. Apr 19 incident:
+// Hala Mouzanar's Apr 17 session lost because a stale device overwrote remote.
+const mergeById = (localArr, remoteArr) => {
+  const map = new Map();
+  for (const r of (remoteArr || [])) map.set(r.id, r);
+  for (const l of (localArr || [])) {
+    const existing = map.get(l.id);
+    if (!existing) { map.set(l.id, l); continue; }
+    // Prefer record with newer `_modified`. Missing timestamp = legacy record
+    // = treat as "oldest" so the stamped side wins. ISO-8601 strings sort lexicographically.
+    const lMod = l._modified || '';
+    const eMod = existing._modified || '';
+    if (lMod >= eMod) map.set(l.id, l);
+  }
+  return Array.from(map.values());
+};
+
+export function mergeData(local, remote) {
+  if (!remote) return local;
+  if (!local) return remote;
+  const localTs = local._lastModified || '';
+  const remoteTs = remote._lastModified || '';
+  const preferLocal = localTs > remoteTs;
+  return {
+    clients: mergeById(local.clients, remote.clients),
+    sessions: mergeById(local.sessions, remote.sessions),
+    todos: mergeById(local.todos, remote.todos),
+    // Templates don't have per-record timestamps — prefer side with newer _lastModified
+    messageTemplates: preferLocal
+      ? (local.messageTemplates || remote.messageTemplates || {})
+      : (remote.messageTemplates || local.messageTemplates || {}),
+    _dataVersion: Math.max(local._dataVersion || 0, remote._dataVersion || 0),
+    _lastModified: preferLocal ? localTs : remoteTs,
+  };
+}
+
+// Decides if two data blobs are equivalent enough to skip a push/replace.
+// JSON compare is ~O(n) on size — fine for hundreds of records.
+export function dataEquals(a, b) {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 export const saveData = (data) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -340,12 +388,16 @@ export const saveData = (data) => {
 // ─── Reducer ───
 // Base reducer handles all state transitions. Wrapped by reducer() which
 // stamps _lastModified on local changes (not REPLACE_ALL from remote sync).
+// Per-record `_modified` timestamps are stamped by each case that adds/edits
+// a record — enables last-write-wins merge across multiple devices (Apr 19
+// bulletproofing after the Hala Mouzanar session was lost to a sync race).
 function baseReducer(state, action) {
+  const now = () => new Date().toISOString();
   switch (action.type) {
     case 'ADD_CLIENT':
-      return { ...state, clients: [...state.clients, action.payload] };
+      return { ...state, clients: [...state.clients, { ...action.payload, _modified: now() }] };
     case 'EDIT_CLIENT':
-      return { ...state, clients: state.clients.map(c => c.id === action.payload.id ? action.payload : c) };
+      return { ...state, clients: state.clients.map(c => c.id === action.payload.id ? { ...action.payload, _modified: now() } : c) };
     case 'DELETE_CLIENT':
       return {
         ...state,
@@ -353,24 +405,25 @@ function baseReducer(state, action) {
         sessions: state.sessions.filter(s => s.clientId !== action.payload),
       };
     case 'ADD_SESSION':
-      return { ...state, sessions: [...state.sessions, action.payload] };
+      return { ...state, sessions: [...state.sessions, { ...action.payload, _modified: now() }] };
     case 'UPDATE_SESSION':
-      return { ...state, sessions: state.sessions.map(s => s.id === action.payload.id ? { ...s, ...action.payload } : s) };
+      return { ...state, sessions: state.sessions.map(s => s.id === action.payload.id ? { ...s, ...action.payload, _modified: now() } : s) };
     case 'BATCH_COMPLETE': {
       // Mark multiple sessions as completed in a single dispatch (avoids N re-renders)
       const ids = new Set(action.payload);
-      return { ...state, sessions: state.sessions.map(s => ids.has(s.id) ? { ...s, status: 'completed' } : s) };
+      const stamp = now();
+      return { ...state, sessions: state.sessions.map(s => ids.has(s.id) ? { ...s, status: 'completed', _modified: stamp } : s) };
     }
     case 'DELETE_SESSION':
       return { ...state, sessions: state.sessions.filter(s => s.id !== action.payload) };
     case 'ADD_TODO':
-      return { ...state, todos: [...(state.todos || []), action.payload] };
+      return { ...state, todos: [...(state.todos || []), { ...action.payload, _modified: now() }] };
     case 'SET_TEMPLATES':
       return { ...state, messageTemplates: action.payload };
     case 'EDIT_TODO':
-      return { ...state, todos: (state.todos || []).map(todo => todo.id === action.payload.id ? { ...todo, text: action.payload.text } : todo) };
+      return { ...state, todos: (state.todos || []).map(todo => todo.id === action.payload.id ? { ...todo, text: action.payload.text, _modified: now() } : todo) };
     case 'TOGGLE_TODO':
-      return { ...state, todos: (state.todos || []).map(todo => todo.id === action.payload ? { ...todo, done: !todo.done } : todo) };
+      return { ...state, todos: (state.todos || []).map(todo => todo.id === action.payload ? { ...todo, done: !todo.done, _modified: now() } : todo) };
     case 'DELETE_TODO':
       return { ...state, todos: (state.todos || []).filter(todo => todo.id !== action.payload) };
     case 'REPLACE_ALL': {

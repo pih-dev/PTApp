@@ -1,3 +1,5 @@
+import { mergeData } from './utils.js';
+
 const REPO_OWNER = 'makdissi-dev';
 const REPO_NAME = 'ptapp-data';
 const DATA_FILE = 'data.json';
@@ -59,8 +61,12 @@ export async function pushRemoteData(token, data, _retries = 0) {
 
   if (res.status === 409) {
     if (_retries >= 3) throw new Error('Sync conflict persists after 3 retries');
-    await fetchRemoteData(token);
-    return pushRemoteData(token, data, _retries + 1);
+    // Another device pushed between our fetch and push. Merge records (last-write-wins
+    // per record by `_modified`) so we never blind-overwrite their additions.
+    // This is the bulletproofing for the unstable-connectivity 3-device setup.
+    const remote = await fetchRemoteData(token);
+    const merged = remote ? mergeData(data, remote) : data;
+    return pushRemoteData(token, merged, _retries + 1);
   }
   if (res.status === 401) throw new Error('TOKEN_EXPIRED');
   if (!res.ok) throw new Error(`Sync failed (${res.status})`);

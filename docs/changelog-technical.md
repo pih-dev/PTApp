@@ -4,6 +4,132 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.6 — Bulletproof Multi-Device Sync (2026-04-19)
+
+**Hala Mouzanar data loss — second sync incident:**
+
+*Symptom:* The PT booked a new client (Hala Mouzanar) for Apr 17 at 10:00. WhatsApp confirmation went out with "Session #3". Next day the session was absent from Hala's client history, absent from remote `data.json`, absent from every GitHub snapshot (2026-04-10 through 2026-04-19-2009). Four other sessions for Hala exist (Apr 2, 9, 15, 20) with consistent IDs. The Apr 17 session's ID has vanished entirely — not renamed, not mis-clientId'd, just gone.
+
+*Investigation:*
+1. Pulled remote via `gh api repos/makdissi-dev/ptapp-data/contents/data.json` — 66 sessions, no Hala Apr 17.
+2. Pulled snapshot `2026-04-19-2009.json` — 62 sessions, no Hala Apr 17.
+3. Pulled older snapshots back to Apr 10 — all had Hala the client but no Apr 17 session.
+4. Checked for duplicate "Hala" clients — only one: `d28tvs3`.
+5. Grepped `.catch(() => {})` in `src/` — found FOUR still alive in `App.jsx` beyond the Apr 13 fix in `debouncedSync`.
+
+*Root cause — combination of two pre-existing hazards:*
+
+**Hazard A — four silent catches in App.jsx:**
+```js
+// Line 68 (initial load, local newer than remote):
+pushRemoteData(token, stateRef.current).catch(() => {});
+setSyncStatus('synced');   // ← LIES about success before promise resolves
+
+// Line 78 (initial load, remote null):
+pushRemoteData(token, stateRef.current).catch(() => {});
+setSyncStatus('synced');
+
+// Line 143, 149 (handleRetrySync): same pattern
+```
+These four paths had the exact `.catch(() => {})` + premature `'synced'` pattern that caused the Apr 13 incident. The Apr 13 fix only patched `debouncedSync`. A push failure here (network blip, 401, 409-retry-exhausted) becomes invisible.
+
+**Hazard B — blind-overwrite on 409 in `pushRemoteData`:**
+```js
+// Original — sync.js:60-64
+if (res.status === 409) {
+  if (_retries >= 3) throw new Error('Sync conflict persists after 3 retries');
+  await fetchRemoteData(token);   // refresh SHA
+  return pushRemoteData(token, data, _retries + 1);   // retry with SAME local data
+}
+```
+On 409 (remote changed since our last fetch), this fetches the new remote only to get a fresh SHA — then pushes local data on top, overwriting any records the other device added. For the PT's iPhone pushing Hala while Pierre's Android is also pushing, this means whichever loses the race silently loses their records.
+
+*Most likely sequence for Hala:*
+1. PT books Hala at Apr 17 10:00 on his iPhone. Local state stamped with new session. WhatsApp fires.
+2. `debouncedSync` sets a 1s timer, fires, hits 409 (another device pushed in parallel).
+3. 409 handler fetches remote, retries push with local data → succeeds → remote now has Hala. OR the retry also fails and the session never reaches remote.
+4. Either way, a subsequent push from another device (which never saw Hala's session) overwrites remote without her.
+5. PT reopens → REPLACE_ALL with remote → Hala's local copy wiped.
+
+*Fix — three layers:*
+
+**Layer 1 — per-record `_modified` timestamps in `baseReducer` (`utils.js`):**
+Every case that adds or edits a record now stamps `_modified: new Date().toISOString()` on the record itself. Covers `ADD_CLIENT`, `EDIT_CLIENT`, `ADD_SESSION`, `UPDATE_SESSION`, `BATCH_COMPLETE`, `ADD_TODO`, `EDIT_TODO`, `TOGGLE_TODO`. Deletes don't stamp (records vanish). Template changes rely on the whole-state `_lastModified` that the reducer wrapper still stamps.
+
+**Layer 2 — `mergeData(local, remote)` in `utils.js`:**
+```js
+const mergeById = (localArr, remoteArr) => {
+  const map = new Map();
+  for (const r of (remoteArr || [])) map.set(r.id, r);
+  for (const l of (localArr || [])) {
+    const existing = map.get(l.id);
+    if (!existing) { map.set(l.id, l); continue; }
+    const lMod = l._modified || '';
+    const eMod = existing._modified || '';
+    if (lMod >= eMod) map.set(l.id, l);
+  }
+  return Array.from(map.values());
+};
+```
+Union by ID. When both sides have a record with the same ID, pick the one with the newer `_modified`. ISO-8601 strings sort lexicographically. Legacy records without `_modified` default to `''` (treated as oldest), so the stamped side wins. **No record is ever discarded.** PT's fresh edit on his iPhone always wins over mother's stale device because his `_modified` is newer. Tested with 5 scenarios (Hala addition, edit conflict, tie, reducer stamping, legacy record handling) — all pass.
+
+**Layer 3 — merge instead of blind-retry on 409 in `pushRemoteData` (`sync.js`):**
+```js
+if (res.status === 409) {
+  if (_retries >= 3) throw new Error('Sync conflict persists after 3 retries');
+  const remote = await fetchRemoteData(token);
+  const merged = remote ? mergeData(data, remote) : data;
+  return pushRemoteData(token, merged, _retries + 1);
+}
+```
+Now a concurrent push from another device gets merged into ours before we push again. Neither side loses records.
+
+**Layer 4 — `reconcile()` function in `App.jsx`:**
+Consolidates the initial-load effect and `handleRetrySync` into a single async function with one real try/catch:
+```js
+const reconcile = async () => {
+  const token = getToken();
+  if (!token) return;
+  try {
+    const remote = await fetchRemoteData(token);
+    syncReady.current = true;
+    if (!remote) {
+      await pushRemoteData(token, stateRef.current);
+      setSyncStatus('synced');
+      return;
+    }
+    const merged = mergeData(stateRef.current, remote);
+    if (!dataEquals(merged, stateRef.current)) {
+      skipSync.current = true;
+      dispatch({ type: 'REPLACE_ALL', payload: merged });
+    }
+    if (!dataEquals(merged, remote)) {
+      await pushRemoteData(token, merged);
+    }
+    setSyncStatus('synced');   // only after push actually resolves
+  } catch (err) {
+    console.error('Sync reconcile failed:', err.message);
+    setSyncStatus('failed');
+  }
+};
+```
+Eliminates all four `.catch(() => {})` paths. Never sets `'synced'` before the promise resolves. `syncReady.current` stays false if the fetch throws (Apr 13 guard preserved).
+
+*Why this bulletproofs the 3-device setup:*
+- **Mother's stale iPhone** opens after weeks: merges with remote (doesn't replace) → her device updates to current remote + any records she still has locally → pushes merged → no data loss.
+- **PT edits Hala's notes** while Pierre is viewing the same session on Android: PT's edit has newer `_modified` → wins the merge on Pierre's next fetch → Pierre's screen updates on next open.
+- **Two devices book simultaneously:** both dispatch ADD_SESSION with different IDs → both sessions survive the merge → no lost session.
+- **Unstable Beirut internet:** failed pushes stay visible (red dot) until retry. When one succeeds, merge logic means nothing is clobbered.
+
+*Trade-off — deletes don't use tombstones:*
+If a device has a stale copy of a client the PT deleted, the merge will resurrect the client on next sync. This is intentional for data safety (aligns with CLAUDE.md's "NEVER lose user data" rule). Adding tombstones later is straightforward if it becomes a problem: `DELETE_CLIENT` would set `{ _deleted: true, _modified: now() }` on the record, the merge logic would respect the tombstone by timestamp, and a filter in consumers would hide `_deleted: true` records.
+
+*Where it bit us:* `src/App.jsx` (initial-load effect and retry handler rewritten), `src/sync.js` (409 handler), `src/utils.js` (reducer cases + new `mergeData`/`dataEquals` helpers). Test coverage: 5 unit scenarios validated via Node script.
+
+*Hala's Apr 17 session is not recoverable from any snapshot.* Pierre re-booked her manually.
+
+---
+
 ## v2.5 — Sync Safety, Status Indicator, PWA Fix (2026-04-13)
 
 **WhatsApp "Session #0" bug (Apr 19):**

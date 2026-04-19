@@ -4,6 +4,24 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.6 — Bulletproof Multi-Device Sync (Apr 19, 2026)
+
+**Second data loss — "Hala Mouzanar" session vanished.** The PT booked a new client, Hala Mouzanar, for a session on Apr 17 at 10:00. The WhatsApp confirmation went out (saying "Session #3"). The next day, the session was gone — not under her client history, not in remote on GitHub, not in any snapshot going back weeks. Same pattern as the Apr 13 incident: a push silently failed on one device, then another device pushed stale state that didn't include the session, and REPLACE_ALL wiped the original local copy on next open.
+
+**Root cause was four more silent `.catch(() => {})` patterns** in App.jsx that the Apr 13 fix missed. Only `debouncedSync` was hardened then. The initial-load path and the retry-button handler still had the same "pretend it worked, swallow the error" pattern in four separate places. They also set the sync indicator to green (`synced`) BEFORE the push promise actually resolved — lying to the user.
+
+**The real problem with "timestamp wins".** The Apr 13 fix used one `_lastModified` timestamp for the whole state. If mother's phone had an old state and then made any change, her timestamp became "newest" and she'd overwrite everyone's work — even records she had never seen. That's still a data-loss hazard.
+
+**New approach: per-record last-write-wins merge.** Every session, client, and todo now carries its own `_modified` timestamp, stamped by the reducer on every add or edit. On sync, the app unions records by ID — if both sides have the same record, the one with the newer `_modified` wins. **No record is ever discarded** — the worst case is a "tie" where both sides keep their copy of a brand-new record. The PT's fresh edit on his iPhone will always win over mother's stale device because his timestamp is newer. This works even if pushes keep failing for hours — once any push gets through, all three devices converge on the same data.
+
+**Why this is bulletproof for the 3-device setup** (PT iPhone, Pierre Android, mother iPhone, unstable Beirut internet): (1) mother's phone opening after weeks merges-not-replaces, so her stale data can't clobber PT's; (2) PT's fresh session from his iPhone is preserved through any combination of failed pushes, 409 conflicts, or cross-device races; (3) 409 conflicts in `pushRemoteData` now fetch remote, merge, and push merged — no more blind-overwrite of newer remote data; (4) every sync error is visible (red dot) — no more silent swallowing.
+
+**Deletes trade safety for simplicity.** If mother's phone has a client PT deleted, the client will resurrect on next sync. Intentional — this aligns with the project's "never lose user data" rule. The PT can re-delete in a few taps; the alternative (blind deletion winning) could lose real business records.
+
+**Hala's Apr 17 session was NOT auto-restored** by this fix — the data is gone from every snapshot. Pierre re-booked it manually.
+
+---
+
 ## v2.5 — Sync Safety, Status Indicator, PWA Fix (Apr 13, 2026)
 
 **Session #0 in WhatsApp fixed.** (Apr 19) The PT reported that booking a brand-new client's first session sent a WhatsApp message saying "Session #0" instead of "#1". Root cause: at the moment the user tapped "Send WhatsApp" right after booking, the React state hadn't finished updating to include the newly-dispatched session. `getSessionOrdinal` then called `findIndex` on a sessions array that didn't contain the new session yet, which returned `-1`, plus the `+1` gave `0`. Fixed in two places for safety: (1) the booking modal in Schedule.jsx now explicitly includes the new session in the list it passes to `sendBookingWhatsApp`, and (2) `getSessionOrdinal` itself falls back to `length + 1` when the session isn't found — treating it as if being appended. Either fix alone would solve it; both make it impossible to leak "#0" into a message. Not platform-specific — the timing quirk can happen on Android, iOS, or desktop.

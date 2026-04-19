@@ -5,7 +5,7 @@ import Schedule from './components/Schedule';
 import Sessions from './components/Sessions';
 import TokenSetup from './components/TokenSetup';
 import General from './components/General';
-import { reducer, loadData, saveData, today, timeToMinutes, haptic, initElasticScroll } from './utils';
+import { reducer, loadData, saveData, today, timeToMinutes, haptic, initElasticScroll, mergeData, dataEquals } from './utils';
 import { getToken, fetchRemoteData, pushRemoteData } from './sync';
 import { t } from './i18n';
 
@@ -47,48 +47,58 @@ export default function App() {
   // Long-press timer for debug panel
   const longPressTimer = useRef(null);
 
-  // On first load with token, fetch remote data.
+  // Reconcile local ↔ remote via per-record last-write-wins merge.
+  // Called at app startup and from the retry button. Bulletproof design:
+  //   - fetch remote first → if it fails, syncReady stays false (no push will fire)
+  //   - merge records by id using their `_modified` timestamps (PT's fresh edits win)
+  //   - only dispatch REPLACE_ALL if merged differs from local (avoids wasted re-render)
+  //   - only push if merged differs from remote (avoids wasted API call)
+  //   - setSyncStatus('synced') ONLY after the push promise resolves — never prematurely
+  //   - on any error: setSyncStatus('failed'), red dot, user can tap to retry
+  // This replaces four silent `.catch(() => {})` paths that caused the Apr 19 Hala
+  // Mouzanar data loss (stale device overwrote remote, newer session vanished).
+  const reconcile = async () => {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const remote = await fetchRemoteData(token);
+      syncReady.current = true;
+      if (!remote) {
+        // First-ever sync — just push local
+        await pushRemoteData(token, stateRef.current);
+        setSyncStatus('synced');
+        return;
+      }
+      const merged = mergeData(stateRef.current, remote);
+      const localDiffers = !dataEquals(merged, stateRef.current);
+      const remoteDiffers = !dataEquals(merged, remote);
+      if (localDiffers) {
+        skipSync.current = true;
+        dispatch({ type: 'REPLACE_ALL', payload: merged });
+      }
+      if (remoteDiffers) {
+        await pushRemoteData(token, merged);
+      }
+      setSyncStatus('synced');
+    } catch (err) {
+      // Fetch OR push failed. If fetch failed, syncReady stays false (Apr 13 guard).
+      // Data safe in localStorage, red dot shown, tap to retry.
+      console.error('Sync reconcile failed:', err.message);
+      setSyncStatus('failed');
+    }
+  };
+
+  // On first load with token, reconcile with remote.
   // CRITICAL: syncReady stays false until fetch succeeds — this prevents stale
   // localStorage from being pushed to GitHub if the fetch fails (Apr 13 incident).
   useEffect(() => {
     const token = getToken();
     if (!token) { setInitialLoad(false); return; }
-
     setSyncStatus('syncing');
-    fetchRemoteData(token)
-      .then(remoteData => {
-        syncReady.current = true;
-        if (remoteData) {
-          // Compare timestamps: if local has unsync'd changes newer than remote,
-          // push local instead of overwriting it with older remote data
-          const localTs = stateRef.current._lastModified;
-          const remoteTs = remoteData._lastModified;
-          if (localTs && remoteTs && localTs > remoteTs) {
-            // Local is newer — push it up (e.g. PT added data offline, remote is stale)
-            pushRemoteData(token, stateRef.current).catch(() => {});
-            setSyncStatus('synced');
-          } else {
-            // Remote is newer or equal — replace local with remote
-            skipSync.current = true;
-            dispatch({ type: 'REPLACE_ALL', payload: remoteData });
-            setSyncStatus('synced');
-          }
-        } else {
-          // No remote data yet — push current local data up (uses ref to avoid stale closure)
-          pushRemoteData(token, stateRef.current).catch(() => {});
-          setSyncStatus('synced');
-        }
-      })
-      .catch((err) => {
-        // Fetch failed — syncReady stays false, blocking all automatic pushes.
-        // Data is safe in localStorage; user sees the red indicator.
-        console.error('Initial sync failed:', err.message);
-        setSyncStatus('failed');
-      })
-      .finally(() => {
-        setInitialLoad(false);
-        setTimeout(() => { skipSync.current = false; }, 500);
-      });
+    reconcile().finally(() => {
+      setInitialLoad(false);
+      setTimeout(() => { skipSync.current = false; }, 500);
+    });
   }, [connected]);
 
   // Auto-complete lapsed sessions — batch into a single dispatch to avoid N re-renders + N API pushes
@@ -128,29 +138,12 @@ export default function App() {
   // Rubber-band overscroll on the main content area
   useEffect(() => initElasticScroll(contentRef.current), []);
 
-  // Retry sync — called when user taps the failed indicator
+  // Retry sync — called when user taps the failed indicator.
+  // Uses the same reconcile() path as initial load — merge not overwrite.
   const handleRetrySync = () => {
-    const token = getToken();
-    if (!token) return;
+    if (!getToken()) return;
     setSyncStatus('syncing');
-    fetchRemoteData(token)
-      .then(remoteData => {
-        syncReady.current = true;
-        if (remoteData) {
-          const localTs = stateRef.current._lastModified;
-          const remoteTs = remoteData._lastModified;
-          if (localTs && remoteTs && localTs > remoteTs) {
-            pushRemoteData(token, stateRef.current).catch(() => {});
-          } else {
-            skipSync.current = true;
-            dispatch({ type: 'REPLACE_ALL', payload: remoteData });
-          }
-        } else {
-          pushRemoteData(token, stateRef.current).catch(() => {});
-        }
-        setSyncStatus('synced');
-      })
-      .catch(() => setSyncStatus('failed'));
+    reconcile();
   };
 
   // Long-press on version badge → debug panel
@@ -236,7 +229,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.5</div>
+          <div><strong>Version:</strong> v2.6</div>
           <div><strong>Sync:</strong> {syncStatus}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>
