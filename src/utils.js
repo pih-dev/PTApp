@@ -243,11 +243,16 @@ export const getPeriodSessionCount = (sessions, clientId, periodStart, periodEnd
 };
 
 // Sequential position of a session within the client's billing period (1st, 2nd, 3rd...)
+// Defensive: if sessionId isn't found in the filtered list (e.g. caller passed a stale
+// sessions array right after dispatching ADD_SESSION, before React applied the update),
+// fall back to length + 1 — treat it as if we're appending. This prevents "Session #0"
+// from leaking into WhatsApp messages.
 export const getSessionOrdinal = (sessions, sessionId, clientId, periodStart, periodEnd) => {
   const periodSessions = sessions
     .filter(s => s.clientId === clientId && s.date >= periodStart && s.date <= periodEnd && (s.status !== 'cancelled' || s.cancelCounted))
     .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-  return periodSessions.findIndex(s => s.id === sessionId) + 1;
+  const idx = periodSessions.findIndex(s => s.id === sessionId);
+  return idx === -1 ? periodSessions.length + 1 : idx + 1;
 };
 
 // ─── Date helpers ───

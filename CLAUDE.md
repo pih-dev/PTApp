@@ -176,6 +176,25 @@ Bottom elements need `env(safe-area-inset-bottom)`. Nav bar is z-index 100, moda
 ### TRAP: Inline styles and RTL
 Inline `marginLeft: 'auto'` doesn't flip in RTL mode. Use `marginInlineStart: 'auto'` instead. Similarly, use `borderInlineStart` not `borderLeft` for session card left borders. CSS class rules with `.theme-light` or `[dir="rtl"]` selectors DO flip correctly.
 
+### TRAP: Using `state.sessions` from a closure right after `dispatch(ADD_SESSION)` — "Session #0" bug
+**What happened (Apr 19):** The PT booked a brand-new client's first-ever session. The confirmation modal's "Send WhatsApp" button fired `sendBookingWhatsApp(..., state.sessions)`. The message template rendered `Session #0` instead of `#1`. For the developer's own account, a cancelled-but-forgiven session caused a separate off-by-one in the PT's perception — that one was working as designed (the app counts sessions in the billing period, forgiven cancellations don't count).
+
+**Root cause of the #0:** Schedule.jsx `saveSession` dispatches `ADD_SESSION` then immediately `setConfirmMsg`. React 18 batching normally makes `state.sessions` fresh by the time the modal's onClick runs — but real-world timing (StrictMode, fast taps, device variations) can produce a render where `confirmMsg` is set but the ADD hasn't reached the closure yet. `getSessionOrdinal` then calls `findIndex` on a stale array, returns `-1`, and `-1 + 1 = 0`.
+
+**Rule:** Never rely on React's re-render to include a freshly-dispatched item in an array that's passed to a callback in the SAME event cycle. If you need the new item guaranteed present, merge it into a local copy at the call site:
+```jsx
+const sessions = state.sessions.some(s => s.id === session.id)
+  ? state.sessions
+  : [...state.sessions, session];
+sendBookingWhatsApp(client, session, ..., sessions);
+```
+
+**Defense in depth:** `getSessionOrdinal` now returns `length + 1` (not `-1 + 1 = 0`) when the session isn't found in the filtered list. Future callers can't leak `#0` into user-facing text even if they forget the call-site merge.
+
+**Where it bit us:** `Schedule.jsx:325-334` (booking modal onClick) and `utils.js:246-255` (`getSessionOrdinal` fallback). Reminder-path calls (Dashboard.jsx, Schedule.jsx reminder button) don't have this issue because they fire on sessions that already exist in state.
+
+**Not platform-specific.** Works the same on iOS Safari, Android Chrome, and desktop. The timing window is small but reliably triggered by fast tapping during booking.
+
 ### TRAP: Billing period gate field
 **What happened:** `getClientPeriod` originally checked `!client.periodStart` to decide whether to use calendar month. But `periodStart` is a date input — hard to clear on mobile once set. When the PT changed the dropdown back to "Default (calendar month)", `periodLength` became `""` but `periodStart` still had a value, so the function treated it as a custom period.
 

@@ -323,7 +323,14 @@ export default function Schedule({ state, dispatch, lang }) {
           <Modal title={total > 1 ? `${t(lang, 'sessionBooked')} (${index + 1}/${total})` : t(lang, 'sessionBooked')} onClose={() => setConfirmMsg(null)}
             action={<>
               <button className="btn-whatsapp-lg mb-10" onClick={() => {
-                sendBookingWhatsApp(client, session, state.messageTemplates, lang, state.sessions);
+                // Guarantee the just-booked session is in the list passed to WhatsApp.
+                // Without this, an edge case in React's state-update timing could leave
+                // state.sessions stale at click time → findIndex=-1 → "Session #0" in the
+                // message. Belt-and-braces with the defense in getSessionOrdinal.
+                const sessions = state.sessions.some(s => s.id === session.id)
+                  ? state.sessions
+                  : [...state.sessions, session];
+                sendBookingWhatsApp(client, session, state.messageTemplates, lang, sessions);
                 advance();
               }}>
                 <WhatsAppIcon size={20} />

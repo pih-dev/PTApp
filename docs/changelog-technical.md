@@ -6,6 +6,39 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ## v2.5 — Sync Safety, Status Indicator, PWA Fix (2026-04-13)
 
+**WhatsApp "Session #0" bug (Apr 19):**
+
+*Symptom:* PT booked a brand-new client's first session. Tapped "Send WhatsApp" in the booking confirmation modal. The message template's `{number}` placeholder rendered as `0` instead of `1`.
+
+*Reproduction path — Schedule.jsx booking flow:*
+1. `saveSession()` creates `session = { id: genId(), ... }`, dispatches `ADD_SESSION`, pushes `{ client, session }` into `created`, then calls `setConfirmMsg({ items: created, index: 0 })`.
+2. React re-renders; the confirmation modal mounts.
+3. User taps WhatsApp → `onClick` closure runs `sendBookingWhatsApp(client, session, state.messageTemplates, lang, state.sessions)`.
+4. `fillTemplate` calls `getSessionOrdinal(state.sessions, session.id, ...)`.
+5. In the failure case, `state.sessions` at click time does NOT contain the new session → `findIndex` returns `-1` → `-1 + 1 = 0`.
+
+*Why `state.sessions` could be stale:* React 18 auto-batching normally merges the `dispatch` + `setConfirmMsg` into a single re-render with the new session present. But real-world timing (StrictMode double-invocation in dev, slow devices, Safari event-loop quirks, concurrent state updates) can produce a render where confirmMsg is set but the ADD_SESSION hasn't yet been applied to the closure visible to this component. The symptom only appears if the user taps *very fast*, which the PT does while onboarding a client live.
+
+*Fix — belt and braces, in two layers:*
+1. **Call site (`Schedule.jsx:325-334`):** Before passing `state.sessions` to `sendBookingWhatsApp`, check whether the new session is present. If not, append it to a local copy. This guarantees the array is complete regardless of React's timing.
+   ```jsx
+   const sessions = state.sessions.some(s => s.id === session.id)
+     ? state.sessions
+     : [...state.sessions, session];
+   sendBookingWhatsApp(client, session, state.messageTemplates, lang, sessions);
+   ```
+2. **Function body (`utils.js:246-255`):** `getSessionOrdinal` now returns `periodSessions.length + 1` when `findIndex` returns `-1`, treating an absent `sessionId` as "being appended." This is defensive in depth — any other caller that hits the same stale-array problem also gets a sensible answer.
+   ```javascript
+   const idx = periodSessions.findIndex(s => s.id === sessionId);
+   return idx === -1 ? periodSessions.length + 1 : idx + 1;
+   ```
+
+*Verified:* Node test reproduces the bug pre-fix (returns `0` with empty sessions) and passes post-fix (returns `1`).
+
+*Why not just one fix?* The call-site guard handles the known booking path. The function-level defense handles any future caller or unknown code path that might pass a stale array — including someone reusing `getSessionOrdinal` elsewhere without remembering to pre-merge the session. Cheap to add, eliminates the class of bug.
+
+*Not platform-specific.* The PT hit it on iOS Safari but the root cause is React state-update timing, which applies to any browser. The fix is universal.
+
 **Critical: stale device overwriting remote data (DATA LOSS — Apr 13):**
 
 *Incident:* PT lost all Apr 13 sessions + focus tags + notes. Forensic analysis of makdissi-dev/ptapp-data git history showed: 40 sessions at 09:57 → 35 sessions at 10:12 (exact match to Apr 11 state + 4 auto-completed). Pierre's Android had stale localStorage.
