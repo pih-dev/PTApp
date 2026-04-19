@@ -12,6 +12,8 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
   const [expanded, setExpanded] = useState(true); // true = full cards, false = compact list
   const [form, setForm] = useState({ clientId: '', type: 'Strength', date: today(), time: '09:00', duration: 45 });
 
+  // todaySessions still feeds the "Today" stat card (middle of stat row).
+  // It is NOT used as the section list anymore — `upcoming` is.
   const todaySessions = state.sessions
     .filter(s => s.date === today() && s.status !== 'cancelled')
     .sort((a, b) => a.time.localeCompare(b.time));
@@ -21,10 +23,18 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
     const start = timeToMinutes(s.time);
     return nowMinutes >= start && nowMinutes < start + (s.duration || 45);
   };
-  const upcomingSessions = state.sessions
-    .filter(s => s.date >= today() && s.status !== 'cancelled')
-    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
-    .slice(0, 5);
+  // Upcoming Sessions: everything from today onward that isn't cancelled.
+  // Keep today's completed visible (day-progress is useful) but hide past-day
+  // completed so the list doesn't grow with stale "done" cards. The `date < todayStr`
+  // check also acts as a defensive stale guard against any past-dated scheduled session.
+  const todayStr = today();
+  const upcoming = state.sessions
+    .filter(s => {
+      if (s.status === 'cancelled') return false;
+      if (s.date < todayStr) return false;
+      return true;
+    })
+    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
   // Compare date strings to avoid fractional day math errors near midnight
   const weekSessions = state.sessions.filter(s => {
     const todayStr = today();
@@ -76,25 +86,25 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
       </div>
 
       <div className="section-title section-header">
-        <span>{expanded ? `📅 ${t(lang, 'todaySessions')} (${todaySessions.length})` : '📅 ' + t(lang, 'upcomingSessions')}</span>
+        <span>📅 {t(lang, 'upcomingSessions')} ({upcoming.length})</span>
         <button className="btn-secondary" style={{ fontSize: 11, padding: '5px 10px' }}
           onClick={() => setExpanded(e => !e)}>
           {expanded ? t(lang, 'compact') : t(lang, 'expanded')}
         </button>
       </div>
 
-      {/* Expanded view: today's sessions with full functionality */}
+      {/* Expanded view: upcoming sessions with full inline functionality */}
       {expanded ? (
-        todaySessions.length === 0 ? (
+        upcoming.length === 0 ? (
           <div className="empty">
             <div className="empty-icon">🏋️</div>
-            <div>{t(lang, 'noSessionsToday')}</div>
+            <div>{t(lang, 'noUpcoming')}</div>
             <button onClick={() => setTab('schedule')} className="btn-primary mt-16" style={{ width: 'auto', display: 'inline-flex' }}>
               {t(lang, 'bookSession')}
             </button>
           </div>
         ) : (
-          todaySessions.map((session, idx) => {
+          upcoming.map((session, idx) => {
             const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
             const status = getStatus(session.status, lang, t);
             const client = state.clients.find(c => c.id === session.clientId);
@@ -122,6 +132,10 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                       }}>
                         {SESSION_TYPES.map(stype => <option key={stype.label} value={stype.label}>{stype.emoji} {stype.label}</option>)}
                       </select>
+                    </div>
+                    {/* Date line — lets the PT distinguish today/tomorrow/later cards at a glance */}
+                    <div style={{ fontSize: 13, color: 'var(--t5)', marginTop: 4 }}>
+                      {session.date === todayStr ? t(lang, 'today') : formatDate(session.date, lang)}
                     </div>
                   </div>
                   <span className={`badge badge-${session.status}`}>{status.label}</span>
@@ -176,8 +190,8 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
           })
         )
       ) : (
-        /* Compact view: upcoming sessions, tap for action sheet */
-        upcomingSessions.length === 0 ? (
+        /* Compact view: all upcoming, tap for action sheet */
+        upcoming.length === 0 ? (
           <div className="empty">
             <div className="empty-icon">🏋️</div>
             <div>{t(lang, 'noUpcoming')}</div>
@@ -186,7 +200,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
             </button>
           </div>
         ) : (
-          upcomingSessions.map(session => {
+          upcoming.map(session => {
             const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
             const status = getStatus(session.status, lang, t);
             const client = state.clients.find(c => c.id === session.clientId);
