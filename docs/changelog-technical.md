@@ -4,6 +4,64 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.8 — Manual Session Count Override (2026-04-20)
+
+**Problem:** The period session count was computed purely from session records (scheduled + completed in the current billing period). When the app's count disagreed with the PT's paper records, his only recovery options were destructive: add a fake retroactive session or cancel-without-count an existing one. Both pollute history permanently and compound over time.
+
+### Data model
+- `client.sessionCountOverride: { type: 'absolute' | 'delta', value: number } | null` — new optional field.
+- `client.overridePeriodStart: 'YYYY-MM-DD' | null` — the `period.start` at the time the override was saved. Used to gate whether the override is "active" (matches current period).
+- No migration. `DATA_VERSION` stays at 2. Pre-v2.8 client records load with both fields absent → treated as null.
+
+### New utilities (`src/utils.js`)
+- `parseSessionCountOverride(raw)` — parses user input into `{ type, value }` or null. Handles `"10"` (absolute), `"+1"`/`"-1"` (delta), `""` / `"+0"` / `"-0"` / junk (null).
+- `getEffectiveSessionCount(client, session, sessions) → { auto, effective, override }` — per-session effective count. Gates override on `overridePeriodStart === period.start`; falls through to auto when expired.
+- `getEffectiveClientCount(client, sessions) → { auto, effective, override }` — client-scoped (as of today). Uses `getPeriodSessionCount` instead of `getSessionOrdinal` since there's no session anchor.
+- `fillTemplate` now calls `getEffectiveSessionCount` instead of `getSessionOrdinal` for the `{number}` placeholder in WhatsApp templates.
+
+### New components
+- `SessionCountPair` (`src/components/SessionCountPair.jsx`) — shared renderer. Solo `#N` when no override active; pair `#N → M` when override active. Reused on Dashboard (expanded + compact), Schedule day view, Sessions list, and as the preview in the Clients form + Schedule booking confirm popup. Prefix defaulted to `#` for session sites, set to `""` for the chip/preview contexts.
+- `OverrideHelpPopup` (`src/components/OverrideHelpPopup.jsx`) — shared long-press help modal. Explains parsing rules (absolute vs delta vs empty) with a conditional Clear button (only rendered when `onClear` prop is provided). Reused in Clients form and Schedule booking confirm popup.
+
+### Modified components
+- `Clients.jsx` — edit form gains override input + live preview + long-press help. Draft string stored in form state (`sessionOverride`), parsed on save via `parseSessionCountOverride`. `overridePeriodStart` stamped with `getClientPeriod(rest, today()).start` at commit time. Stale overrides (`overridePeriodStart !== currentPeriod.start`) are not prefilled on edit, so the PT sees a blank field in a new period.
+- `Schedule.jsx` — day-view session card uses `SessionCountPair` via `getEffectiveSessionCount`. Client chip in the booking form uses `getEffectiveClientCount` (renders `(12)` solo or `(12→13)` paired). Booking confirm popup adds a pencil button that toggles an inline input; onBlur dispatches `EDIT_CLIENT` with the parsed override + stamped period. Fresh-session merge pattern (same as the v2.5 Session #0 fix) ensures the just-booked session is visible to the count helpers even if `state.sessions` hasn't updated yet in the closure.
+- `Dashboard.jsx` — both session-card render sites (expanded lines 107+, compact lines 207+) use `SessionCountPair` via `getEffectiveSessionCount`. Replaced the previous `getSessionOrdinal` inline span.
+- `Sessions.jsx` — session-row render uses `SessionCountPair` via `getEffectiveSessionCount`. Replaced the previous `getSessionOrdinal` inline span.
+
+### Styles (`src/styles.css`)
+- New classes: `.count-pair`, `.count-auto`, `.count-arrow`, `.count-effective`, `.count-auto-solo`, `.period-override-row`, `.period-count-preview`, `.override-input`, `.override-edit-btn`, `.override-help-body`.
+- Theme-specific overrides under `.theme-light` keep the arrow and effective pill legible against the steel-blue canvas.
+- Existing `.session-count` bumped from 0.5 → 0.72 alpha in both themes (the client list card readability fix the PT explicitly asked for).
+
+### i18n keys (en + ar)
+- `countAuto` (en: "Auto", ar: "تلقائي")
+- `overridePlaceholder` (hint shown in the input field)
+- `overrideHelpTitle` (popup title)
+- `overrideHelpBody` (popup body explaining syntax)
+- `overrideClear` (button label on the help popup)
+
+### UX decisions
+- **Long-press instead of hint text.** The initial design had a second row with syntax examples. Pierre pushed back — too much visual weight for a rarely-used feature. Long-press (500ms) on the input opens the help popup on mobile; right-click (onContextMenu) does the same on desktop. 500ms matches the existing debug-panel long-press in App.jsx.
+- **Pencil toggle in booking popup.** The confirm popup's job is "confirm this thing, then dispatch a WhatsApp message". Adding a permanent input would crowd the success-center visual. A pencil button that swaps the SessionCountPair for an input is a compromise between discoverability and restraint.
+- **Live preview computed inline in the Clients form.** An IIFE that reads form state + sessions + computes effective. Not ideal architecturally — a custom hook would be cleaner — but scoped tightly enough that the duplication with Schedule.jsx isn't worth abstracting yet.
+- **`.type` not `.mode`.** Parser contract is `{ type, value }`. During implementation, the first draft of Clients.jsx and Schedule.jsx consumer code read `.mode` instead of `.type` — would have silently misread saved deltas as absolutes. Caught during static verification (Task 12) before deploy.
+
+### Sync impact
+- Both new fields ride the existing `EDIT_CLIENT` path → reducer stamps `_modified` → v2.6 per-record merge preserves the later write. No changes to `sync.js` or `reconcile()`.
+- On initial load, if two devices set different overrides on the same client within seconds, the later `_modified` wins. If mother's phone pushes a stale override from an expired period, the field sits inert in storage (period mismatch → not applied). Acceptable trade-off per "never lose user data" — deleting the stale field would be silently destructive.
+
+### Version bumps
+- `src/App.jsx` debug badge: v2.7 → v2.8.
+- `src/components/General.jsx` instructions URL: corrected from the long-drifted `instructions-v2.4.md` to `instructions-v2.8.md`.
+
+### Known trade-offs
+- The client list card shows lifetime count (unchanged), not period count. The override doesn't apply there because it's period-scoped. Documented in instructions-v2.8.md.
+- Negative delta results clamp at 0 via `Math.max(0, auto + value)`. Negative session counts aren't meaningful and would look wrong in WhatsApp messages.
+- Non-numeric input is silently cleared on save rather than showing a validation error. The live preview reflects this (reverts to solo auto when input doesn't parse), so the PT gets immediate visual feedback without a formal error state.
+
+---
+
 ## v2.7 — Upcoming Sessions on Dashboard (2026-04-20)
 
 **Problem:** The Dashboard's main section was labeled "Today's Sessions" and filtered on `s.date === today()`. At 8pm on Apr 19, a session scheduled for Apr 20 07:00 was not visible on the home screen until midnight crossed. The PT's day-ahead planning window was blind. The Compact view already showed upcoming sessions (filtered `s.date >= today()`, limited to 5) but it was the secondary view most users don't switch to.

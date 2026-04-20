@@ -4,6 +4,26 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.8 — Manual Session Count Override (Apr 20, 2026)
+
+**The auto count was the only voice in the room.** The session count for each billing period was computed by looking at all scheduled + completed sessions dated inside the period. That's usually right — but when it's wrong, there was no clean way to correct it. If the PT's paper records said the client was on session 10 but the app said 12, his only options were destructive: book a retroactive fake session (pollutes history) or cancel-without-count an existing one (pollutes history). Both leave permanent record-keeping garbage.
+
+**v2.8 adds a per-client manual override for the current billing period.** On the Clients tab → Edit, there's a new small field at the bottom of the form. Type a whole number (`10`) to set the count directly, or a signed number (`+1`, `-1`) to adjust the auto count. A live preview next to the field shows the result: `Auto 12 → 13`. Tap Save.
+
+**You can also edit it right before sending a WhatsApp confirmation.** The booking success popup now shows the pair `#12 → 13` with a pencil (`✎`) next to it. Tap the pencil to change the override on the spot, then tap Send WhatsApp — the outgoing message uses the new value. No need to bounce to the Clients tab mid-booking.
+
+**The override shows up everywhere the period count is shown.** Home tab session cards, Schedule day view, Sessions tab rows — all render `#12 → 13` instead of just `#12` when an override is active. Client chips in the booking popup show `(12→13)`. Every WhatsApp template with the `{number}` placeholder uses the effective value. The only place unchanged is the client list card itself, which shows the lifetime count (not period-scoped) — overrides don't apply there by design.
+
+**It clears itself when the billing period rolls over.** The override is stamped with the period it was set in. When that period ends, the app just stops applying it — no cleanup job, no alert, no migration. The stored value sits inert in storage until the next save sweeps it out, so nothing is lost and there's no ceremony for the PT. If he wants the override to persist into the new period, he just re-enters it (takes a second).
+
+**Small visibility polish alongside.** The session count text on client list cards was too dim in both themes — you had to squint. v2.8 bumps it up a notch so it's readable at a glance.
+
+**Long-press the override field** (hold for 500ms) or right-click on desktop → a help popup appears explaining the syntax with a one-tap Clear button. Input validation handles `+0`/`-0` (null, no-op), non-numeric junk (null), and clamps negative results to zero.
+
+**Two new optional client fields** (`sessionCountOverride`, `overridePeriodStart`). No data migration needed — pre-v2.8 clients load with both fields absent, which reads as "no override", which is the status quo. The fields ride the existing v2.6 per-record merge for sync, so overrides set on one device propagate cleanly without clobbering other edits.
+
+---
+
 ## v2.7 — Upcoming Sessions on Home Screen (Apr 20, 2026)
 
 **The home screen went blind at night.** The main section was labeled "Today's Sessions" and only showed sessions dated today. So at 8pm on Apr 19, a session booked for Apr 20 at 7am wasn't visible at all until midnight crossed. The PT couldn't glance at his home screen to see what tomorrow's morning looked like — he had to open the Schedule tab. Uncomfortable for a day-ahead workflow.

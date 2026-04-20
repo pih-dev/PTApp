@@ -12,8 +12,23 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.7
-- Dashboard home screen now shows "Upcoming Sessions" instead of "Today's Sessions"
+## Current Version: v2.8
+- Per-client manual session count override for the current billing period
+  - Absolute (`10`) or delta (`+1`, `-1`) values. Empty / `+0` / `-0` / junk → null.
+  - Authored on the client edit form AND inline in the booking confirm popup (pencil toggle).
+  - Clears automatically on billing period rollover — no cleanup job; display logic just ignores stale `overridePeriodStart`.
+  - Displayed as `#12 → 13` on every session card (Dashboard expanded+compact, Schedule day view, Sessions list) and `(12→13)` on booking client chips.
+  - Applied to every WhatsApp template with the `{number}` placeholder via `fillTemplate`.
+  - New fields: `sessionCountOverride` (`{ type: 'absolute' | 'delta', value }`), `overridePeriodStart` — both optional, no migration.
+  - Parser contract: `parseSessionCountOverride` returns `{ type, value }`. Consumers MUST read `.type`, not `.mode` (the first implementation pass used `.mode` and silently mis-read saved deltas — caught during static review).
+  - Long-press (500ms) the override input or right-click on desktop → help popup with Clear.
+  - Existing `.session-count` class on client list cards bumped from 0.5 → 0.72 alpha for readability.
+- New utils: `parseSessionCountOverride`, `getEffectiveSessionCount`, `getEffectiveClientCount`
+- New shared components: `SessionCountPair`, `OverrideHelpPopup`
+- Debug panel shows v2.8
+
+## Previous Version: v2.7
+- Dashboard home screen shows "Upcoming Sessions" instead of "Today's Sessions"
   - Single `upcoming` filter: `status !== 'cancelled' && date >= today()`, sorted date+time asc
   - Both Expanded and Compact views iterate the same array — Compact's 5-session cap is gone
   - Section title: "📅 Upcoming Sessions (N)" with count in both views
@@ -21,9 +36,8 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
   - Today's completed sessions stay visible (day-progress useful); roll off at midnight
   - Stat card "Today" unchanged (workload-density metric, not an action queue)
 - New i18n key `today` (en: "Today", ar: "اليوم")
-- Debug panel shows v2.7
 
-## Previous Version: v2.6
+## Older Version: v2.6
 - Bulletproof multi-device sync (Apr 19 Hala Mouzanar data loss fix)
   - Per-record `_modified` timestamps stamped by reducer on every add/edit
   - `mergeData()` union-by-ID merge: PT's fresher edits always win over stale devices
