@@ -526,11 +526,15 @@ function migrateData(data) {
 
       // Preserve override only if it was ACTIVE for legacy current period.
       // Stale overrides (from prior period) were inert in v2 and stay so in v3.
+      //
+      // Anchor note: legacy getClientPeriod used today() as anchor when periodStart was absent
+      // (see utils.js:193 pre-v2.9). We reuse that exact rule ONLY for the override check, so
+      // a live override set against that legacy window still matches. pkgStart itself uses
+      // firstSessionDate as a better long-term anchor — the two anchors only diverge here.
       let override = null;
       if (c.sessionCountOverride && c.overridePeriodStart) {
-        // Compute what legacy getClientPeriod would have returned for today — using the unit/value
-        // we just derived. If legacyCurrentPeriodStart === c.overridePeriodStart, override was live.
-        const legacyCurrent = computeSlidingWindow(pkgStart, unit, value, today());
+        const legacyAnchor = c.periodStart || today();
+        const legacyCurrent = computeSlidingWindow(legacyAnchor, unit, value, today());
         if (c.overridePeriodStart === legacyCurrent.start) {
           override = { ...c.sessionCountOverride, periodStart: legacyCurrent.start };
         }
@@ -799,6 +803,10 @@ export const mergeBackup = (live, backup) => {
   const liveTodoIds = new Set((live.todos || []).map(todo => todo.id));
   const restoredTodos = (backup.todos || []).filter(todo => !liveTodoIds.has(todo.id));
   merged.todos = [...(live.todos || []), ...restoredTodos];
+  // Merge auditLog by ID — append-only forensic log; keep all entries from both sides
+  const liveAuditIds = new Set((live.auditLog || []).map(e => e.id));
+  const restoredAudit = (backup.auditLog || []).filter(e => !liveAuditIds.has(e.id));
+  merged.auditLog = [...(live.auditLog || []), ...restoredAudit];
   // Keep whichever has custom templates (live wins if both have them)
   merged.messageTemplates = live.messageTemplates || backup.messageTemplates || {};
   return migrateData(merged);

@@ -310,11 +310,14 @@ In `src/utils.js`, inside `migrateData` (around line 369), after the existing v1
 
       // Preserve override only if it was ACTIVE for legacy current period.
       // Stale overrides (from prior period) were inert in v2 and stay so in v3.
+      //
+      // Anchor note: legacy getClientPeriod used today() as anchor when periodStart was absent.
+      // Reuse that exact rule ONLY for the override check so live overrides still match.
+      // pkgStart itself uses firstSessionDate (a better long-term anchor); the two only diverge here.
       let override = null;
       if (c.sessionCountOverride && c.overridePeriodStart) {
-        // Compute what legacy getClientPeriod would have returned for today — using the unit/value
-        // we just derived. If legacyCurrentPeriodStart === c.overridePeriodStart, override was live.
-        const legacyCurrent = computeSlidingWindow(pkgStart, unit, value, today());
+        const legacyAnchor = c.periodStart || today();
+        const legacyCurrent = computeSlidingWindow(legacyAnchor, unit, value, today());
         if (c.overridePeriodStart === legacyCurrent.start) {
           override = { ...c.sessionCountOverride, periodStart: legacyCurrent.start };
         }
