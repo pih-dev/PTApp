@@ -145,6 +145,13 @@ const T = {
     periodDefault: 'Default (calendar month)',
     periodOptional: 'optional — defaults to 1st of month',
 
+    // Session count override (v2.8) — lets PT correct auto count per period
+    countAuto: 'Auto',
+    overridePlaceholder: '±',
+    overrideHelpTitle: 'Manual count override',
+    overrideHelpBody: 'Type a whole number (like 10) to set the count directly for this period.\nType +1 or -1 (or any +N / -N) to adjust the automatic count.\nLeave empty to use the automatic count.\nThe override clears when the next billing period starts.',
+    overrideClear: 'Clear override',
+
     // Sync status
     syncSynced: 'Synced',
     syncSyncing: 'Syncing...',
@@ -298,6 +305,13 @@ const T = {
     periodLength: 'مدة الفترة',
     periodDefault: 'افتراضي (شهر تقويمي)',
     periodOptional: 'اختياري — الافتراضي أول الشهر',
+
+    // Session count override (v2.8)
+    countAuto: 'تلقائي',
+    overridePlaceholder: '±',
+    overrideHelpTitle: 'تعديل يدوي للعدد',
+    overrideHelpBody: 'اكتب رقمًا صحيحًا (مثل 10) لتحديد العدد مباشرة لهذه الفترة.\nاكتب +1 أو -1 (أو أي +N / -N) لتعديل العدد التلقائي.\nاتركه فارغًا لاستخدام العدد التلقائي.\nيتم مسح التعديل اليدوي تلقائيًا عند بدء فترة جديدة.',
+    overrideClear: 'مسح التعديل',
 
     // Sync status
     syncSynced: 'متزامن',
