@@ -1,39 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Modal from './Modal';
 import { WhatsAppIcon, EditIcon, TrashIcon, PhoneIcon, ChevronIcon } from './Icons';
-import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, FOCUS_TAGS, PERIOD_OPTIONS, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic } from '../utils';
+import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, FOCUS_TAGS, PERIOD_OPTIONS, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic, parseSessionCountOverride, getClientPeriod, getPeriodSessionCount, today } from '../utils';
+import OverrideHelpPopup from './OverrideHelpPopup';
+import SessionCountPair from './SessionCountPair';
 import { t, dateLocale } from '../i18n';
 
 export default function Clients({ state, dispatch, lang }) {
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
-  const [form, setForm] = useState({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '', periodStart: '', periodLength: '' });
+  const [form, setForm] = useState({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '', periodStart: '', periodLength: '', sessionOverride: '' });
   const [search, setSearch] = useState('');
   const [countryCode, setCountryCode] = useState(getDefaultCountryCode);
   const [expandedId, setExpandedId] = useState(null);
   const [viewMonth, setViewMonth] = useState(() => localMonthStr(new Date()));
   const [deletePrompt, setDeletePrompt] = useState(null); // client to confirm delete
+  const [overrideHelp, setOverrideHelp] = useState(false); // long-press or right-click on override input
+  // long-press timer ref — 500ms hold opens the help popup (same pattern as debug panel)
+  const overrideHoldRef = useRef(null);
 
   const openAdd = () => {
-    setForm({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '', periodStart: '', periodLength: '' });
+    setForm({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '', periodStart: '', periodLength: '', sessionOverride: '' });
     setEditingClient(null);
     setShowForm(true);
   };
 
   const openEdit = (c) => {
-    setForm({ name: c.name, nickname: c.nickname || '', phone: c.phone, gender: c.gender || '', birthdate: c.birthdate || '', notes: c.notes || '', periodStart: c.periodStart || '', periodLength: c.periodLength || '' });
+    // Only pre-fill sessionOverride if the stored override is for the CURRENT period.
+    // Stale overrides (from a prior month/period) are ignored — they'll be overwritten
+    // on save, or left inert if the PT doesn't touch the field. This mirrors read-side
+    // behaviour in getEffectiveSessionCount.
+    const nowPeriod = getClientPeriod(c, today());
+    const overrideIsCurrent = c.sessionCountOverride && c.overridePeriodStart === nowPeriod.start;
+    const overrideStr = overrideIsCurrent
+      ? (c.sessionCountOverride.mode === 'delta'
+          ? (c.sessionCountOverride.value >= 0 ? '+' : '') + c.sessionCountOverride.value
+          : String(c.sessionCountOverride.value))
+      : '';
+    setForm({
+      name: c.name, nickname: c.nickname || '', phone: c.phone, gender: c.gender || '',
+      birthdate: c.birthdate || '', notes: c.notes || '',
+      periodStart: c.periodStart || '', periodLength: c.periodLength || '',
+      sessionOverride: overrideStr,
+    });
     setEditingClient(c);
     setShowForm(true);
   };
 
   const save = () => {
     if (!form.name.trim() || !form.phone.trim()) return;
-    if (editingClient) {
-      dispatch({ type: 'EDIT_CLIENT', payload: { ...editingClient, ...form } });
+    // Parse override + stamp period so we can detect rollover on read.
+    // Empty input → clear stored override fields (set to null, not undefined, so they
+    // serialise through JSON.stringify and overwrite any remote stale value).
+    const { sessionOverride, ...rest } = form;
+    const parsed = parseSessionCountOverride(sessionOverride);
+    let overrideFields;
+    if (parsed) {
+      const periodForStamp = getClientPeriod({ ...rest }, today());
+      overrideFields = { sessionCountOverride: parsed, overridePeriodStart: periodForStamp.start };
     } else {
-      dispatch({ type: 'ADD_CLIENT', payload: { id: genId(), ...form } });
+      overrideFields = { sessionCountOverride: null, overridePeriodStart: null };
+    }
+    if (editingClient) {
+      dispatch({ type: 'EDIT_CLIENT', payload: { ...editingClient, ...rest, ...overrideFields } });
+    } else {
+      dispatch({ type: 'ADD_CLIENT', payload: { id: genId(), ...rest, ...overrideFields } });
     }
     setShowForm(false);
+  };
+
+  // Long-press / right-click handlers for the override input → open help popup.
+  // touchmove/touchend cancel the timer so scrolling doesn't trigger it.
+  const startOverrideHold = () => {
+    if (overrideHoldRef.current) clearTimeout(overrideHoldRef.current);
+    overrideHoldRef.current = setTimeout(() => { haptic(); setOverrideHelp(true); }, 500);
+  };
+  const cancelOverrideHold = () => {
+    if (overrideHoldRef.current) { clearTimeout(overrideHoldRef.current); overrideHoldRef.current = null; }
   };
 
   // Excludes cancelled — matches the PT's mental model (cancelled = "didn't happen")
@@ -301,8 +344,59 @@ export default function Clients({ state, dispatch, lang }) {
               </select>
             </div>
           </div>
+          {/* v2.8 Manual session count override — long-press opens help, right-click on desktop.
+              Live preview shows auto→effective so the PT sees the result before saving. */}
+          {(() => {
+            // Preview context: use today's period and auto count for the client-in-progress.
+            // For a new client, sessions array is empty so auto is 0 — fine.
+            const clientForPeriod = editingClient
+              ? { ...editingClient, periodStart: form.periodStart, periodLength: form.periodLength }
+              : { periodStart: form.periodStart, periodLength: form.periodLength };
+            const period = getClientPeriod(clientForPeriod, today());
+            const auto = editingClient
+              ? getPeriodSessionCount(state.sessions, editingClient.id, period.start, period.end)
+              : 0;
+            const parsed = parseSessionCountOverride(form.sessionOverride);
+            const effective = parsed
+              ? (parsed.mode === 'absolute' ? parsed.value : Math.max(0, auto + parsed.value))
+              : auto;
+            return (
+              <div className="field period-override-row">
+                <label className="field-label">{t(lang, 'countAuto')}</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div className="period-count-preview" style={{ flex: '0 0 auto', minWidth: 72 }}>
+                    <SessionCountPair auto={auto} effective={effective} override={parsed} prefix="" />
+                  </div>
+                  <input
+                    className="input override-input"
+                    style={{ flex: 1 }}
+                    placeholder={t(lang, 'overridePlaceholder')}
+                    value={form.sessionOverride}
+                    inputMode="text"
+                    onChange={e => setForm(p => ({ ...p, sessionOverride: e.target.value }))}
+                    onTouchStart={startOverrideHold}
+                    onTouchEnd={cancelOverrideHold}
+                    onTouchMove={cancelOverrideHold}
+                    onTouchCancel={cancelOverrideHold}
+                    onMouseDown={startOverrideHold}
+                    onMouseUp={cancelOverrideHold}
+                    onMouseLeave={cancelOverrideHold}
+                    onContextMenu={e => { e.preventDefault(); setOverrideHelp(true); }}
+                  />
+                </div>
+              </div>
+            );
+          })()}
         </Modal>
       )}
+
+      <OverrideHelpPopup
+        show={overrideHelp}
+        onClose={() => setOverrideHelp(false)}
+        onClear={() => setForm(p => ({ ...p, sessionOverride: '' }))}
+        lang={lang}
+      />
+
 
       {/* Delete confirmation modal — replaces native confirm() */}
       {deletePrompt && (
