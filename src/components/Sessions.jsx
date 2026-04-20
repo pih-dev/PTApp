@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { formatDate, SESSION_TYPES, getSessionOrdinal, getClientPeriod, FOCUS_TAGS, DURATIONS, TIMES, getStatus, haptic } from '../utils';
+import { formatDate, SESSION_TYPES, getEffectiveSessionCount, FOCUS_TAGS, DURATIONS, TIMES, getStatus, haptic } from '../utils';
+import SessionCountPair from './SessionCountPair';
 import { t } from '../i18n';
 
 // Editable focus tags + notes for completed sessions
@@ -76,13 +77,16 @@ export default function Sessions({ state, dispatch, lang }) {
           const stype = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
           const status = getStatus(session.status, lang, t);
           const client = state.clients.find(c => c.id === session.clientId);
-          const period = getClientPeriod(client, session.date);
-          const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, period.start, period.end);
+          // v2.8: effective count honours the PT's manual override for this period
+          const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
           return (
             <div key={session.id} className="card" style={{ borderInlineStart: `3px solid ${stype.color}`, padding: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--t4)' }}>#{monthCount}</span></div>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>
+                    {getClientName(session.clientId)}{' '}
+                    <SessionCountPair auto={monthAuto} effective={monthCount} override={monthOverride} />
+                  </div>
                   <div style={{ fontSize: 12, color: 'var(--t5)', marginTop: 2 }}>
                     {formatDate(session.date, lang)} · {session.time} · {session.duration}{t(lang, 'min')} · {stype.emoji} {session.type}
                   </div>
