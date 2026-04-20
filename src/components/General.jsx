@@ -6,7 +6,7 @@ import { t } from '../i18n';
 
 // Raw GitHub URLs for docs — fetched at runtime, not bundled
 const DOCS = {
-  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.4.md',
+  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.8.md',
   changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
 };
 
