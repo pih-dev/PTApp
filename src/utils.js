@@ -644,13 +644,67 @@ export const saveData = (data) => {
 // Per-record `_modified` timestamps are stamped by each case that adds/edits
 // a record — enables last-write-wins merge across multiple devices (Apr 19
 // bulletproofing after the Hala Mouzanar session was lost to a sync race).
-function baseReducer(state, action) {
+// Exported for unit testing (sanity scripts in tmp/).
+export function baseReducer(state, action) {
   const now = () => new Date().toISOString();
   switch (action.type) {
     case 'ADD_CLIENT':
       return { ...state, clients: [...state.clients, { ...action.payload, _modified: now() }] };
-    case 'EDIT_CLIENT':
-      return { ...state, clients: state.clients.map(c => c.id === action.payload.id ? { ...action.payload, _modified: now() } : c) };
+    case 'EDIT_CLIENT': {
+      const stamp = now();
+      const oldClient = state.clients.find(c => c.id === action.payload.id);
+      const newClient = { ...action.payload, _modified: stamp };
+      const logEntries = [];
+
+      // Detect changes to the current (last) package and append audit log entries.
+      // Only runs when old and new clients share the same last package ID (edit, not renewal).
+      const oldPkg = oldClient && oldClient.packages && oldClient.packages[oldClient.packages.length - 1];
+      const newPkg = newClient.packages && newClient.packages[newClient.packages.length - 1];
+      if (oldPkg && newPkg && oldPkg.id === newPkg.id) {
+        // Detect tracked package field changes → package_edited
+        const tracked = ['start', 'periodUnit', 'periodValue', 'contractSize'];
+        const changed = tracked.some(f => oldPkg[f] !== newPkg[f]);
+        if (changed) {
+          logEntries.push({
+            id: 'log_' + genId(),
+            ts: stamp,
+            clientId: newClient.id,
+            clientName: newClient.name,
+            event: 'package_edited',
+            packageId: newPkg.id,
+            newPackageId: null,
+            before: oldPkg,
+            after: newPkg,
+            trigger: null,
+          });
+        }
+        // Detect override change → override_set or override_cleared
+        const oldOv = oldPkg.sessionCountOverride;
+        const newOv = newPkg.sessionCountOverride;
+        if (JSON.stringify(oldOv) !== JSON.stringify(newOv)) {
+          logEntries.push({
+            id: 'log_' + genId(),
+            ts: stamp,
+            clientId: newClient.id,
+            clientName: newClient.name,
+            event: newOv ? 'override_set' : 'override_cleared',
+            packageId: newPkg.id,
+            newPackageId: null,
+            before: { sessionCountOverride: oldOv },
+            after: { sessionCountOverride: newOv },
+            trigger: null,
+          });
+        }
+      }
+
+      return {
+        ...state,
+        clients: state.clients.map(c => c.id === newClient.id ? newClient : c),
+        auditLog: logEntries.length
+          ? [...(state.auditLog || []), ...logEntries]
+          : (state.auditLog || []),
+      };
+    }
     case 'DELETE_CLIENT':
       return {
         ...state,
@@ -679,6 +733,68 @@ function baseReducer(state, action) {
       return { ...state, todos: (state.todos || []).map(todo => todo.id === action.payload ? { ...todo, done: !todo.done, _modified: now() } : todo) };
     case 'DELETE_TODO':
       return { ...state, todos: (state.todos || []).filter(todo => todo.id !== action.payload) };
+    case 'RENEW_PACKAGE': {
+      // Atomic: close current package, append new, log one renewal entry.
+      // Payload: { clientId, newPackageStart, newContractSize, newPeriodUnit, newPeriodValue,
+      //            newNotes, closedBy: 'manual'|'auto', trigger }
+      // The reducer only enforces: can't renew when current package is already closed.
+      // It's the UI's responsibility to determine when renewal is appropriate.
+      const stamp = now();
+      const {
+        clientId, newPackageStart,
+        newContractSize, newPeriodUnit, newPeriodValue, newNotes,
+        closedBy, trigger,
+      } = action.payload;
+      const client = state.clients.find(c => c.id === clientId);
+      if (!client || !client.packages || client.packages.length === 0) return state;
+      const oldPkg = client.packages[client.packages.length - 1];
+      if (oldPkg.end != null) return state;  // already closed; shouldn't happen but defensive
+
+      // Compute day before new period start using local time to avoid UTC/DST bugs.
+      // e.g. newPackageStart '2026-04-15' → oldEnd '2026-04-14'
+      const d = new Date(newPackageStart + 'T00:00:00');
+      d.setDate(d.getDate() - 1);
+      const oldEnd = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+      const closedOld = { ...oldPkg, end: oldEnd, closedAt: stamp, closedBy };
+      const newPkg = {
+        id: 'pkg_' + genId(),
+        start: newPackageStart,
+        end: null,
+        periodUnit: newPeriodUnit,
+        periodValue: newPeriodValue,
+        contractSize: newContractSize,
+        sessionCountOverride: null,  // fresh period = no carry-over override
+        notes: newNotes || '',
+        closedAt: null,
+        closedBy: null,
+      };
+
+      const updatedClient = {
+        ...client,
+        packages: [...client.packages.slice(0, -1), closedOld, newPkg],
+        _modified: stamp,
+      };
+
+      const logEntry = {
+        id: 'log_' + genId(),
+        ts: stamp,
+        clientId,
+        clientName: client.name,
+        event: closedBy === 'auto' ? 'package_renewed_auto' : 'package_renewed_manual',
+        packageId: oldPkg.id,
+        newPackageId: newPkg.id,
+        before: oldPkg,
+        after: closedOld,
+        trigger: trigger || null,
+      };
+
+      return {
+        ...state,
+        clients: state.clients.map(c => c.id === clientId ? updatedClient : c),
+        auditLog: [...(state.auditLog || []), logEntry],
+      };
+    }
     case 'REPLACE_ALL': {
       // Ensure all fields exist after replacing state (remote data may lack new fields).
       // Preserves remote's _lastModified if it exists; sets it if remote is legacy data
