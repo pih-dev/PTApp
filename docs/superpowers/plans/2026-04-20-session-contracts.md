@@ -79,19 +79,23 @@ export const computeSlidingWindow = (anchorDateStr, unit, value, refDate) => {
                      + (ref.getMonth() - anchor.getMonth());
     // Number of full N-month steps elapsed since anchor
     let steps = Math.floor(monthsDiff / value);
-    // Candidate start: anchor + steps*value months, clamped day
-    const candStart = new Date(
-      anchor.getFullYear(),
-      anchor.getMonth() + steps * value,
-      1
-    );
-    candStart.setDate(clamp(candStart.getFullYear(), candStart.getMonth()));
+    // Candidate start: anchor + steps*value months, clamped day.
+    // Build by day-1-of-month + setDate — never mutate month on a clamped date,
+    // because setMonth on day 31 → Feb rolls over into March (Date overflow gotcha).
+    const buildStart = (s) => {
+      const d = new Date(
+        anchor.getFullYear(),
+        anchor.getMonth() + s * value,
+        1
+      );
+      d.setDate(clamp(d.getFullYear(), d.getMonth()));
+      return d;
+    };
+    let candStart = buildStart(steps);
     // If ref is before candidate start within its month, we're actually in the previous step
     if (ref < candStart) {
       steps -= 1;
-      candStart.setFullYear(anchor.getFullYear());
-      candStart.setMonth(anchor.getMonth() + steps * value);
-      candStart.setDate(clamp(candStart.getFullYear(), candStart.getMonth()));
+      candStart = buildStart(steps);
     }
     const nextStart = new Date(
       anchor.getFullYear(),
@@ -195,7 +199,9 @@ const cases = [
   { anchor: '2026-03-02', unit: 'month', value: 1, ref: '2026-03-02',
     expected: { start: '2026-03-02', end: '2026-04-01' }, label: 'Month/1 anchor Mar 2, ref Mar 2 (exact anchor)' },
   { anchor: '2026-01-31', unit: 'month', value: 1, ref: '2026-02-15',
-    expected: { start: '2026-02-28', end: '2026-03-30' }, label: 'Month/1 anchor Jan 31 (clamps in Feb)' },
+    expected: { start: '2026-01-31', end: '2026-02-27' }, label: 'Month/1 anchor Jan 31, ref Feb 15 (still in Jan 31 window)' },
+  { anchor: '2026-01-31', unit: 'month', value: 1, ref: '2026-03-01',
+    expected: { start: '2026-02-28', end: '2026-03-30' }, label: 'Month/1 anchor Jan 31, ref Mar 1 (clamped Feb 28 window)' },
   { anchor: '2026-03-02', unit: 'month', value: 2, ref: '2026-04-15',
     expected: { start: '2026-03-02', end: '2026-05-01' }, label: 'Month/2 anchor Mar 2, ref Apr 15' },
   { anchor: '2026-03-02', unit: 'month', value: 2, ref: '2026-05-10',

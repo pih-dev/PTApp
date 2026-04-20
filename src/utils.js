@@ -255,6 +255,110 @@ export const getSessionOrdinal = (sessions, sessionId, clientId, periodStart, pe
   return idx === -1 ? periodSessions.length + 1 : idx + 1;
 };
 
+// ─── Sliding window math (v2.9) ───
+// Generalized anchored-period calculator. Replaces the inline month/week/day logic
+// in the old getClientPeriod. Returns {start, end} for the window containing refDate,
+// anchored at anchorDateStr and stepped by `value` units.
+//
+// Month: anchored day-of-month, day clamped for short months (Jan 31 anchor in Feb → Feb 28/29).
+// Week : fixed 7 × value days from anchor.
+// Day  : fixed value days from anchor.
+export const computeSlidingWindow = (anchorDateStr, unit, value, refDate) => {
+  const anchor = new Date(anchorDateStr + 'T00:00:00');
+  const ref = refDate instanceof Date ? refDate : new Date(refDate + 'T00:00:00');
+
+  if (unit === 'month') {
+    const day = anchor.getDate();
+    const clamp = (y, m) => Math.min(day, new Date(y, m + 1, 0).getDate());
+    // Find monthsDiff from anchor to ref
+    const monthsDiff = (ref.getFullYear() - anchor.getFullYear()) * 12
+                     + (ref.getMonth() - anchor.getMonth());
+    // Number of full N-month steps elapsed since anchor
+    let steps = Math.floor(monthsDiff / value);
+    // Candidate start: anchor + steps*value months, clamped day.
+    // Build by day-1-of-month + setDate — never mutate month on a clamped date,
+    // because setMonth on day 31 → Feb rolls over into March (Date overflow gotcha).
+    const buildStart = (s) => {
+      const d = new Date(
+        anchor.getFullYear(),
+        anchor.getMonth() + s * value,
+        1
+      );
+      d.setDate(clamp(d.getFullYear(), d.getMonth()));
+      return d;
+    };
+    let candStart = buildStart(steps);
+    // If ref is before candidate start within its month, we're actually in the previous step
+    if (ref < candStart) {
+      steps -= 1;
+      candStart = buildStart(steps);
+    }
+    const nextStart = new Date(
+      anchor.getFullYear(),
+      anchor.getMonth() + (steps + 1) * value,
+      1
+    );
+    nextStart.setDate(clamp(nextStart.getFullYear(), nextStart.getMonth()));
+    const windowEnd = new Date(nextStart.getTime() - 86400000);
+    return { start: localDateStr(candStart), end: localDateStr(windowEnd) };
+  }
+
+  // 'week' or 'day' — fixed-length windows in days
+  const days = unit === 'week' ? value * 7 : value;
+  const diffMs = ref.getTime() - anchor.getTime();
+  const diffDays = Math.floor(diffMs / 86400000);
+  const idx = Math.floor(diffDays / days);
+  const start = new Date(anchor.getTime() + idx * days * 86400000);
+  const end = new Date(start.getTime() + (days - 1) * 86400000);
+  return { start: localDateStr(start), end: localDateStr(end) };
+};
+
+// Maps v2 periodLength enum to v3 {unit, value} pair. Used by migration only.
+export const parseLegacyPeriodLength = (legacyValue) => {
+  switch (legacyValue) {
+    case '1month':  return { unit: 'month', value: 1 };
+    case '4weeks':  return { unit: 'week',  value: 4 };
+    case '2weeks':  return { unit: 'week',  value: 2 };
+    case '1week':   return { unit: 'week',  value: 1 };
+    default:        return { unit: 'month', value: 1 };  // '' or undefined → calendar month
+  }
+};
+
+// Returns the current open package (last with end: null) or a synthetic default.
+// Defensive — if called on an un-migrated client (packages missing/empty), returns
+// a default-shape package so downstream math doesn't crash. Migration (v2→v3) runs
+// at loadData, so in practice this fallback is only hit for literal edge cases.
+export const getCurrentPackage = (client) => {
+  const pkgs = client && client.packages;
+  if (pkgs && pkgs.length > 0) {
+    const last = pkgs[pkgs.length - 1];
+    if (last && last.end == null) return last;
+  }
+  return {
+    id: null,
+    start: today(),
+    end: null,
+    periodUnit: 'month',
+    periodValue: 1,
+    contractSize: null,
+    sessionCountOverride: null,
+    notes: '',
+    closedAt: null,
+    closedBy: null,
+  };
+};
+
+// Returns {start, end} window used for session counting/display.
+//   Contract package    → { start: pkg.start, end: null }  (open-ended until renewal)
+//   No-contract package → sliding time window anchored at pkg.start, stepped by unit*value
+export const getEffectivePeriod = (pkg, refDateStr = today()) => {
+  if (!pkg) return { start: refDateStr, end: null };
+  if (pkg.contractSize != null) {
+    return { start: pkg.start, end: null };
+  }
+  return computeSlidingWindow(pkg.start, pkg.periodUnit, pkg.periodValue, refDateStr);
+};
+
 // ─── Session count override (v2.8) ───
 // PT can manually override the session count per client for the current billing period.
 // Motivation: when the app's auto count disagrees with his paper records or the client's
