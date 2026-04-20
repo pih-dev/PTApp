@@ -27,6 +27,16 @@ const cases = [
   // Day N
   { anchor: '2026-04-01', unit: 'day', value: 15, ref: '2026-04-20',
     expected: { start: '2026-04-16', end: '2026-04-30' }, label: 'Day/15 anchor Apr 1, ref Apr 20' },
+
+  // DST boundary cases (Beirut: spring-forward last Sun of March 2026-03-29, fall-back last Sun of Oct 2026-10-25)
+  { anchor: '2026-03-01', unit: 'week', value: 1, ref: '2026-04-05',
+    expected: { start: '2026-04-05', end: '2026-04-11' }, label: 'Week/1 crosses spring-forward (anchor pre-DST, ref post-DST)' },
+  { anchor: '2026-03-01', unit: 'day', value: 7, ref: '2026-04-05',
+    expected: { start: '2026-04-05', end: '2026-04-11' }, label: 'Day/7 crosses spring-forward' },
+  { anchor: '2026-09-25', unit: 'month', value: 1, ref: '2026-10-20',
+    expected: { start: '2026-09-25', end: '2026-10-24' }, label: 'Month/1 end lands on fall-back day (windowEnd via calendar-day math)' },
+  { anchor: '2026-04-20', unit: 'week', value: 1, ref: '2026-04-20',
+    expected: { start: '2026-04-20', end: '2026-04-26' }, label: 'Week/1 ref equals anchor' },
 ];
 
 let passed = 0, failed = 0;

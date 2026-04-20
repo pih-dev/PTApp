@@ -103,17 +103,35 @@ export const computeSlidingWindow = (anchorDateStr, unit, value, refDate) => {
       1
     );
     nextStart.setDate(clamp(nextStart.getFullYear(), nextStart.getMonth()));
-    const windowEnd = new Date(nextStart.getTime() - 86400000);
+    // Use calendar-day subtraction (not ms) so Beirut DST fall-back doesn't land
+    // the prior midnight at 23:00 of two days earlier.
+    const windowEnd = new Date(
+      nextStart.getFullYear(),
+      nextStart.getMonth(),
+      nextStart.getDate() - 1
+    );
     return { start: localDateStr(candStart), end: localDateStr(windowEnd) };
   }
 
-  // 'week' or 'day' — fixed-length windows in days
+  // 'week' or 'day' — fixed-length windows in days.
+  // Use Date.UTC for day-index math so DST transitions (Beirut spring-forward
+  // in late March, fall-back in late October) don't skew the floor() by one day.
   const days = unit === 'week' ? value * 7 : value;
-  const diffMs = ref.getTime() - anchor.getTime();
-  const diffDays = Math.floor(diffMs / 86400000);
+  const anchorEpoch = Date.UTC(anchor.getFullYear(), anchor.getMonth(), anchor.getDate());
+  const refEpoch    = Date.UTC(ref.getFullYear(), ref.getMonth(), ref.getDate());
+  const diffDays = Math.floor((refEpoch - anchorEpoch) / 86400000);
   const idx = Math.floor(diffDays / days);
-  const start = new Date(anchor.getTime() + idx * days * 86400000);
-  const end = new Date(start.getTime() + (days - 1) * 86400000);
+  // Build start/end as calendar-day offsets, not ms offsets, for the same reason.
+  const start = new Date(
+    anchor.getFullYear(),
+    anchor.getMonth(),
+    anchor.getDate() + idx * days
+  );
+  const end = new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate() + days - 1
+  );
   return { start: localDateStr(start), end: localDateStr(end) };
 };
 ```
