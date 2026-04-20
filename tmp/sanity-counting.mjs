@@ -83,6 +83,41 @@ const ovResult = getEffectiveClientCount(clientOverride, overrideSessions, today
 assert(ovResult.effective === 10, `override 8+2 = 10 (got ${ovResult.effective})`);
 assert(isRenewalDue(clientOverride, overrideSessions), 'override-induced threshold IS due');
 
+// 5b. Sliding-window client: active override (periodStart matches current window)
+//     contractSize: null → sliding. Anchor Apr 1 → current window (ref Apr 20) is Apr 1..Apr 30.
+//     override.periodStart = '2026-04-01' matches → override applies.
+const clientSlidingActive = {
+  id: 'cs1', name: 'SlidingActive',
+  packages: [{
+    id: 'pkgs1', start: '2026-04-01', end: null,
+    periodUnit: 'month', periodValue: 1,
+    contractSize: null,
+    sessionCountOverride: { type: 'delta', value: 3, periodStart: '2026-04-01' },
+    closedAt: null, closedBy: null, notes: '',
+  }],
+};
+const slidingActiveRes = getEffectiveClientCount(clientSlidingActive, makeSessions('cs1', 2, '2026-04-03'), today);
+assert(slidingActiveRes.effective === 5, `sliding active override 2+3 = 5 (got ${slidingActiveRes.effective})`);
+assert(slidingActiveRes.override !== null, 'sliding active override is attached to result');
+
+// 5c. Sliding-window client: stale override from a previous window is ignored
+//     Anchor Mar 1, monthly → window for ref Apr 20 is Apr 1..Apr 30.
+//     override.periodStart = '2026-03-01' (last month's start) → stale → ignored.
+const clientSlidingStale = {
+  id: 'cs2', name: 'SlidingStale',
+  packages: [{
+    id: 'pkgs2', start: '2026-03-01', end: null,
+    periodUnit: 'month', periodValue: 1,
+    contractSize: null,
+    sessionCountOverride: { type: 'delta', value: 5, periodStart: '2026-03-01' },
+    closedAt: null, closedBy: null, notes: '',
+  }],
+};
+// Sessions in Apr only (current window). Override is stale (March).
+const slidingStaleRes = getEffectiveClientCount(clientSlidingStale, makeSessions('cs2', 2, '2026-04-03'), today);
+assert(slidingStaleRes.effective === 2, `sliding stale override ignored → effective = auto = 2 (got ${slidingStaleRes.effective})`);
+assert(slidingStaleRes.override === null, 'sliding stale override returned as null (dropped)');
+
 // 6. Future-dated sessions DO count (no today() capping)
 const futureSession = { id: 'sf', clientId: 'c2', date: '2026-05-15', time: '10:00', type: 'Strength', status: 'scheduled' };
 const contractWithFuture = [...makeSessions('c2', 9, '2026-03-05'), futureSession];
