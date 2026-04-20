@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon, ChevronIcon } from './Icons';
-import { today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getSessionOrdinal, getClientPeriod, timeToMinutes, localDateStr, getStatus, haptic } from '../utils';
+import { today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getEffectiveSessionCount, timeToMinutes, localDateStr, getStatus, haptic } from '../utils';
+import SessionCountPair from './SessionCountPair';
 import { t } from '../i18n';
 
 export default function Dashboard({ state, dispatch, setTab, lang }) {
@@ -108,8 +109,8 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
             const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
             const status = getStatus(session.status, lang, t);
             const client = state.clients.find(c => c.id === session.clientId);
-            const period = getClientPeriod(client, session.date);
-            const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, period.start, period.end);
+            // v2.8: effective count honours the PT's manual override for this period
+            const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
             const tags = FOCUS_TAGS[session.type] || FOCUS_TAGS.Custom;
             const focus = session.focus || [];
             const isNext = isNowSession(session);
@@ -122,7 +123,10 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
                 className={`card${isNext ? ' card-now' : ''}`} style={{ borderInlineStart: `3px solid ${isNext ? '#F59E0B' : st.color}` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                   <div>
-                    <div className="client-name">{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--t4)' }}>#{monthCount}</span></div>
+                    <div className="client-name">
+                      {getClientName(session.clientId)}{' '}
+                      <SessionCountPair auto={monthAuto} effective={monthCount} override={monthOverride} />
+                    </div>
                     <div className="meta">
                       <ClockIcon />
                       {session.time} · {session.duration}{t(lang, 'min')} ·{' '}
@@ -204,14 +208,17 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
             const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
             const status = getStatus(session.status, lang, t);
             const client = state.clients.find(c => c.id === session.clientId);
-            const period = getClientPeriod(client, session.date);
-            const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, period.start, period.end);
+            // v2.8: effective count honours the PT's manual override for this period
+            const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
             return (
               <div key={session.id} className="card card-tap" style={{ borderInlineStart: `3px solid ${st.color}`, cursor: 'pointer' }}
                 onClick={() => setActiveSession(session)}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <div className="client-name">{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--t4)' }}>#{monthCount}</span></div>
+                    <div className="client-name">
+                      {getClientName(session.clientId)}{' '}
+                      <SessionCountPair auto={monthAuto} effective={monthCount} override={monthOverride} />
+                    </div>
                     <div className="meta">
                       <ClockIcon />
                       {session.time} · {session.duration}{t(lang, 'min')} · {st.emoji} {session.type}
