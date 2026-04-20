@@ -255,6 +255,82 @@ export const getSessionOrdinal = (sessions, sessionId, clientId, periodStart, pe
   return idx === -1 ? periodSessions.length + 1 : idx + 1;
 };
 
+// ─── Session count override (v2.8) ───
+// PT can manually override the session count per client for the current billing period.
+// Motivation: when the app's auto count disagrees with his paper records or the client's
+// memory, the only pre-v2.8 workaround was to book a fake retroactive session or cancel
+// one "without counting" — both pollute history. The override is clean and period-scoped
+// so it can't silently inflate next period's count.
+
+// Parse the raw input from the override text field.
+// Returns null for empty/invalid/no-op inputs so the caller can clear the override.
+//   ""           → null
+//   "10"         → { type: 'absolute', value: 10 }    (exact number to report)
+//   "0"          → { type: 'absolute', value: 0 }
+//   "+1" / "-3"  → { type: 'delta', value: ±N }        (adjust auto count by ±N)
+//   "+0" / "-0"  → null                                 (no-op)
+//   "1.5" / junk → null                                 (rejected)
+export const parseSessionCountOverride = (raw) => {
+  if (raw == null) return null;
+  const s = String(raw).trim();
+  if (s === '') return null;
+
+  // Delta: explicit sign + digits (e.g. "+1", "-3", "+14")
+  const delta = /^([+-])(\d+)$/.exec(s);
+  if (delta) {
+    const value = (delta[1] === '-' ? -1 : 1) * Number(delta[2]);
+    if (value === 0) return null;
+    return { type: 'delta', value };
+  }
+
+  // Absolute: digits only, non-negative integer (e.g. "0", "10", "14")
+  const abs = /^(\d+)$/.exec(s);
+  if (abs) return { type: 'absolute', value: Number(abs[1]) };
+
+  return null;
+};
+
+// Compute auto + effective count for a specific session, applying an active override.
+// "Active" = overridePeriodStart matches the current period's start. If the override was
+// set in a past period, it's inert — we fall through and return auto. This is how overrides
+// auto-expire at period rollover without needing a cleanup job.
+// Returns { auto, effective, override } — `override` is the raw stored object (or null).
+export const getEffectiveSessionCount = (client, session, sessions) => {
+  const period = getClientPeriod(client, session.date);
+  const auto = getSessionOrdinal(sessions, session.id, session.clientId, period.start, period.end);
+
+  const override = client && client.sessionCountOverride;
+  const overridePeriod = client && client.overridePeriodStart;
+  if (!override || overridePeriod !== period.start) {
+    return { auto, effective: auto, override: null };
+  }
+
+  // Absolute wins outright; delta layers on top of auto (clamped at 0 — negative session
+  // counts aren't meaningful and would look wrong in a WhatsApp message).
+  const effective = override.type === 'absolute'
+    ? override.value
+    : Math.max(0, auto + override.value);
+  return { auto, effective, override };
+};
+
+// Compute auto + effective count for a client (no specific session) as of today.
+// Used by client-scoped displays like booking-flow chips. Uses getPeriodSessionCount
+// (total of all period sessions) instead of getSessionOrdinal since there's no session
+// anchor here.
+export const getEffectiveClientCount = (client, sessions) => {
+  const period = getClientPeriod(client, today());
+  const auto = getPeriodSessionCount(sessions, client.id, period.start, period.end);
+  const override = client && client.sessionCountOverride;
+  const overridePeriod = client && client.overridePeriodStart;
+  if (!override || overridePeriod !== period.start) {
+    return { auto, effective: auto, override: null };
+  }
+  const effective = override.type === 'absolute'
+    ? override.value
+    : Math.max(0, auto + override.value);
+  return { auto, effective, override };
+};
+
 // ─── Date helpers ───
 // NEVER use toISOString() for display dates — it converts to UTC, so midnight in
 // Beirut (UTC+3) becomes the previous day. All date→string must use local time.
@@ -467,11 +543,15 @@ export const DEFAULT_TEMPLATES = {
 };
 
 // Replace placeholders in a template with actual session values
-// Uses client's billing period to calculate {number} and {periodEnd}
+// Uses client's billing period to calculate {number} and {periodEnd}.
+// {number} honours the v2.8 session-count override — when active, the overridden
+// value is substituted; otherwise the auto ordinal (same as pre-v2.8 behaviour).
 const fillTemplate = (template, client, session, sessions) => {
   const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
   const period = getClientPeriod(client, session.date);
-  const number = sessions ? getSessionOrdinal(sessions, session.id, session.clientId, period.start, period.end) : '';
+  const number = sessions
+    ? getEffectiveSessionCount(client, session, sessions).effective
+    : '';
   return template
     .replace(/\{name\}/g, friendly(client))
     .replace(/\{type\}/g, session.type)
