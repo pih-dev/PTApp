@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon } from './Icons';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getPeriodSessionCount, getSessionOrdinal, getClientPeriod, currentMonth, localDateStr, getStatus, haptic } from '../utils';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, getEffectiveClientCount, getClientPeriod, currentMonth, localDateStr, getStatus, haptic, parseSessionCountOverride } from '../utils';
+import SessionCountPair from './SessionCountPair';
+import OverrideHelpPopup from './OverrideHelpPopup';
 import { t, dateLocale } from '../i18n';
 
 export default function Schedule({ state, dispatch, lang }) {
@@ -131,13 +133,16 @@ export default function Schedule({ state, dispatch, lang }) {
           const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
           const status = getStatus(session.status, lang, t);
           const client = state.clients.find(c => c.id === session.clientId);
-          const period = getClientPeriod(client, session.date);
-          const monthCount = getSessionOrdinal(state.sessions, session.id, session.clientId, period.start, period.end);
+          // v2.8: effective count honours the PT's manual override for this period
+          const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
           return (
             <div key={session.id} className="card" style={{ borderInlineStart: `3px solid ${st.color}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                 <div>
-                  <div className="client-name">{getClientName(session.clientId)} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--t5)' }}>#{monthCount}</span></div>
+                  <div className="client-name">
+                    {getClientName(session.clientId)}{' '}
+                    <SessionCountPair auto={monthAuto} effective={monthCount} override={monthOverride} />
+                  </div>
                   <div className="meta">
                     <ClockIcon />
                     {session.time} · {session.duration}{t(lang, 'min')} ·{' '}
@@ -224,11 +229,14 @@ export default function Schedule({ state, dispatch, lang }) {
                 {form.clientIds.map(id => {
                   const c = state.clients.find(cl => cl.id === id);
                   if (!c) return null;
-                  const chipPeriod = getClientPeriod(c, today());
-                  const monthCount = getPeriodSessionCount(state.sessions, id, chipPeriod.start, chipPeriod.end);
+                  // v2.8: honour override in booking-flow chips too (tight space → inline style)
+                  const { auto: chipAuto, effective: chipEffective, override: chipOverride } = getEffectiveClientCount(c, state.sessions);
                   return (
                     <span key={id} className="client-chip">
-                      {c.name} <span style={{ opacity: 0.6, fontSize: 11 }}>({monthCount})</span>
+                      {c.name}{' '}
+                      {chipOverride
+                        ? <span style={{ opacity: 0.85, fontSize: 11 }}>({chipAuto}→{chipEffective})</span>
+                        : <span style={{ opacity: 0.6, fontSize: 11 }}>({chipAuto})</span>}
                       {!editingSession && (
                         <span className="client-chip-x" onClick={() => setForm(p => ({ ...p, clientIds: p.clientIds.filter(cid => cid !== id) }))}>×</span>
                       )}
