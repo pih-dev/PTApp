@@ -178,49 +178,15 @@ export const PERIOD_OPTIONS = [
   { value: '1week', label: '1 Week' },
 ];
 
-// Compute the billing period that contains a given date for a client
+// DEPRECATED in v2.9 — kept as a thin compat wrapper. New code should use
+// getCurrentPackage + getEffectivePeriod. Returns the current effective period
+// for a client as of dateStr, derived from the current package.
 export const getClientPeriod = (client, dateStr) => {
-  const ref = new Date(dateStr + 'T00:00:00');
-
-  // Default: calendar month (periodLength is the master switch — ignore periodStart if no length set)
-  if (!client || !client.periodLength) {
-    const start = new Date(ref.getFullYear(), ref.getMonth(), 1);
-    const end = new Date(ref.getFullYear(), ref.getMonth() + 1, 0); // last day of month
-    return { start: localDateStr(start), end: localDateStr(end) };
-  }
-
-  // If periodLength is set but no start date, anchor to today (PT forgot to pick a date)
-  const anchor = client.periodStart
-    ? new Date(client.periodStart + 'T00:00:00')
-    : new Date(today() + 'T00:00:00');
-  const len = client.periodLength;
-
-  if (len === '1month') {
-    // Monthly periods anchored to anchor's day-of-month
-    const day = anchor.getDate();
-    // Clamp day to valid range for each month (e.g. 31 → 28 in Feb)
-    const clamp = (y, m) => Math.min(day, new Date(y, m + 1, 0).getDate());
-    const thisStart = new Date(ref.getFullYear(), ref.getMonth(), clamp(ref.getFullYear(), ref.getMonth()));
-    if (ref >= thisStart) {
-      const nextMonth = new Date(ref.getFullYear(), ref.getMonth() + 1, 1);
-      const endDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), clamp(nextMonth.getFullYear(), nextMonth.getMonth()) - 1);
-      return { start: localDateStr(thisStart), end: localDateStr(endDate) };
-    } else {
-      const prevMonth = new Date(ref.getFullYear(), ref.getMonth() - 1, 1);
-      const pStart = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), clamp(prevMonth.getFullYear(), prevMonth.getMonth()));
-      const pEnd = new Date(ref.getFullYear(), ref.getMonth(), clamp(ref.getFullYear(), ref.getMonth()) - 1);
-      return { start: localDateStr(pStart), end: localDateStr(pEnd) };
-    }
-  }
-
-  // Fixed-day periods (4weeks=28, 2weeks=14, 1week=7)
-  const days = len === '4weeks' ? 28 : len === '2weeks' ? 14 : len === '1week' ? 7 : Number(len) || 30;
-  const diffMs = ref.getTime() - anchor.getTime();
-  const diffDays = Math.floor(diffMs / 86400000);
-  const idx = Math.floor(diffDays / days);
-  const pStart = new Date(anchor.getTime() + idx * days * 86400000);
-  const pEnd = new Date(pStart.getTime() + (days - 1) * 86400000);
-  return { start: localDateStr(pStart), end: localDateStr(pEnd) };
+  const pkg = getCurrentPackage(client);
+  const { start, end } = getEffectivePeriod(pkg, dateStr);
+  // Old callers expect non-null end. For open-ended contract packages, return today as end
+  // (caller was computing "current period end for display" which is moot for contract packages).
+  return { start, end: end || today() };
 };
 
 // Count sessions for a client in a given month (YYYY-MM) — used for calendar month views
@@ -233,23 +199,28 @@ export const getMonthlySessionCount = (sessions, clientId, month) => {
   ).length;
 };
 
-// Count sessions for a client within a date range (billing period)
+// Count sessions for a client within a date range (billing period).
+// periodEnd can be null for open-ended contract packages — treat as "no upper bound".
 export const getPeriodSessionCount = (sessions, clientId, periodStart, periodEnd) => {
   return sessions.filter(s =>
     s.clientId === clientId &&
-    s.date >= periodStart && s.date <= periodEnd &&
+    s.date >= periodStart &&
+    (periodEnd == null || s.date <= periodEnd) &&
     (s.status !== 'cancelled' || s.cancelCounted)
   ).length;
 };
 
-// Sequential position of a session within the client's billing period (1st, 2nd, 3rd...)
-// Defensive: if sessionId isn't found in the filtered list (e.g. caller passed a stale
-// sessions array right after dispatching ADD_SESSION, before React applied the update),
-// fall back to length + 1 — treat it as if we're appending. This prevents "Session #0"
-// from leaking into WhatsApp messages.
+// Sequential position of a session within its client's billing period (1st, 2nd, 3rd...).
+// periodEnd can be null for open-ended contract packages. Defensive fallback: if the session
+// isn't found in the filtered list (stale array during ADD_SESSION), return length + 1 to
+// prevent "Session #0" from leaking into WhatsApp messages.
 export const getSessionOrdinal = (sessions, sessionId, clientId, periodStart, periodEnd) => {
   const periodSessions = sessions
-    .filter(s => s.clientId === clientId && s.date >= periodStart && s.date <= periodEnd && (s.status !== 'cancelled' || s.cancelCounted))
+    .filter(s =>
+      s.clientId === clientId &&
+      s.date >= periodStart &&
+      (periodEnd == null || s.date <= periodEnd) &&
+      (s.status !== 'cancelled' || s.cancelCounted))
     .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
   const idx = periodSessions.findIndex(s => s.id === sessionId);
   return idx === -1 ? periodSessions.length + 1 : idx + 1;
@@ -412,45 +383,51 @@ export const parseSessionCountOverride = (raw) => {
   return null;
 };
 
-// Compute auto + effective count for a specific session, applying an active override.
-// "Active" = overridePeriodStart matches the current period's start. If the override was
-// set in a past period, it's inert — we fall through and return auto. This is how overrides
-// auto-expire at period rollover without needing a cleanup job.
-// Returns { auto, effective, override } — `override` is the raw stored object (or null).
+// Compute auto + effective count for a specific session within its client's current package.
+// "Active override" = override.periodStart matches the current package's effective period start
+// (same semantic as v2.8 — works for both sliding-window and contract packages).
+// Returns { auto, effective, override } — preserved shape for backward compat.
 export const getEffectiveSessionCount = (client, session, sessions) => {
-  const period = getClientPeriod(client, session.date);
+  const pkg = getCurrentPackage(client);
+  const period = getEffectivePeriod(pkg, session.date);
   const auto = getSessionOrdinal(sessions, session.id, session.clientId, period.start, period.end);
 
-  const override = client && client.sessionCountOverride;
-  const overridePeriod = client && client.overridePeriodStart;
-  if (!override || overridePeriod !== period.start) {
+  const override = pkg.sessionCountOverride;
+  if (!override || override.periodStart !== period.start) {
     return { auto, effective: auto, override: null };
   }
 
-  // Absolute wins outright; delta layers on top of auto (clamped at 0 — negative session
-  // counts aren't meaningful and would look wrong in a WhatsApp message).
   const effective = override.type === 'absolute'
     ? override.value
     : Math.max(0, auto + override.value);
   return { auto, effective, override };
 };
 
-// Compute auto + effective count for a client (no specific session) as of today.
-// Used by client-scoped displays like booking-flow chips. Uses getPeriodSessionCount
-// (total of all period sessions) instead of getSessionOrdinal since there's no session
-// anchor here.
-export const getEffectiveClientCount = (client, sessions) => {
-  const period = getClientPeriod(client, today());
-  const auto = getPeriodSessionCount(sessions, client.id, period.start, period.end);
-  const override = client && client.sessionCountOverride;
-  const overridePeriod = client && client.overridePeriodStart;
-  if (!override || overridePeriod !== period.start) {
+// Compute auto + effective count for a client (not anchored to a specific session) as of refDate.
+// Used by client-scoped displays like booking chips and renewal-due detection.
+export const getEffectiveClientCount = (client, sessions, refDateStr = today()) => {
+  const pkg = getCurrentPackage(client);
+  const period = getEffectivePeriod(pkg, refDateStr);
+  const auto = getPeriodSessionCount(sessions, client.id, period.start, period.end || '9999-12-31');
+
+  const override = pkg.sessionCountOverride;
+  if (!override || override.periodStart !== period.start) {
     return { auto, effective: auto, override: null };
   }
+
   const effective = override.type === 'absolute'
     ? override.value
     : Math.max(0, auto + override.value);
   return { auto, effective, override };
+};
+
+// True when the client's current package has a contract and the effective count has reached it.
+// Used by UI surfaces (Clients card, Dashboard section, booking confirm banner) to apply red state.
+export const isRenewalDue = (client, sessions) => {
+  const pkg = getCurrentPackage(client);
+  if (!pkg || pkg.contractSize == null) return false;
+  const { effective } = getEffectiveClientCount(client, sessions);
+  return effective >= pkg.contractSize;
 };
 
 // ─── Date helpers ───
@@ -742,16 +719,23 @@ export const DEFAULT_TEMPLATES = {
   },
 };
 
-// Replace placeholders in a template with actual session values
-// Uses client's billing period to calculate {number} and {periodEnd}.
-// {number} honours the v2.8 session-count override — when active, the overridden
-// value is substituted; otherwise the auto ordinal (same as pre-v2.8 behaviour).
+// Replace placeholders in a template with actual session values.
+// Uses client's current package for {number} and {periodEnd} (unchanged semantics).
+// v2.9: adds {packageProgress} — "N/M" for contract packages, empty string otherwise.
 const fillTemplate = (template, client, session, sessions) => {
   const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
-  const period = getClientPeriod(client, session.date);
-  const number = sessions
-    ? getEffectiveSessionCount(client, session, sessions).effective
+  const pkg = getCurrentPackage(client);
+  const period = getEffectivePeriod(pkg, session.date);
+  const { effective } = sessions
+    ? getEffectiveSessionCount(client, session, sessions)
+    : { effective: '' };
+  const packageProgress = (pkg.contractSize != null && sessions)
+    ? `${effective}/${pkg.contractSize}`
     : '';
+  // {periodEnd} for contract packages: fall back to sliding window end computed from unit/value
+  // (meaningful for messaging even though the package extends past it).
+  const periodEndDisplay = period.end
+    || computeSlidingWindow(pkg.start, pkg.periodUnit, pkg.periodValue, session.date).end;
   return template
     .replace(/\{name\}/g, friendly(client))
     .replace(/\{type\}/g, session.type)
@@ -759,8 +743,9 @@ const fillTemplate = (template, client, session, sessions) => {
     .replace(/\{date\}/g, formatDateLong(session.date))
     .replace(/\{time\}/g, session.time)
     .replace(/\{duration\}/g, String(session.duration || 45))
-    .replace(/\{number\}/g, String(number))
-    .replace(/\{periodEnd\}/g, formatDateLong(period.end));
+    .replace(/\{number\}/g, String(effective))
+    .replace(/\{periodEnd\}/g, formatDateLong(periodEndDisplay))
+    .replace(/\{packageProgress\}/g, packageProgress);
 };
 
 export const sendBookingWhatsApp = (client, session, templates, lang = 'en', sessions = []) => {
