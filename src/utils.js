@@ -482,7 +482,7 @@ export const formatDateLong = (dateStr, lang = 'en') => {
 // ─── Data versioning & migration ───
 // Increment DATA_VERSION when the schema changes. Add a migration function
 // for each version bump. Existing data is NEVER discarded — only migrated forward.
-const DATA_VERSION = 2;
+const DATA_VERSION = 3;
 
 // Capitalize each word: "pierre ghorra" → "Pierre Ghorra"
 export const capitalizeName = (name) =>
@@ -504,10 +504,82 @@ function migrateData(data) {
     v = 2;
   }
 
+  // v2 → v3: Add packages[] to every client; move periodStart/periodLength/sessionCountOverride/overridePeriodStart
+  // into a synthesized first package. Initialize state.auditLog. Non-destructive: no session data touched.
+  // See docs/superpowers/specs/2026-04-20-session-contracts-design.md §7 for rationale.
+  if (v < 3) {
+    const sessions = data.sessions || [];
+    data.auditLog = data.auditLog || [];
+
+    (data.clients || []).forEach(c => {
+      if (c.packages && c.packages.length > 0) return;  // idempotent — already migrated
+
+      // Earliest session date for this client (anchor fallback if no periodStart set)
+      const clientSessions = sessions
+        .filter(s => s.clientId === c.id)
+        .map(s => s.date)
+        .sort();
+      const firstSessionDate = clientSessions[0];
+
+      const pkgStart = c.periodStart || firstSessionDate || today();
+      const { unit, value } = parseLegacyPeriodLength(c.periodLength);
+
+      // Preserve override only if it was ACTIVE for legacy current period.
+      // Stale overrides (from prior period) were inert in v2 and stay so in v3.
+      let override = null;
+      if (c.sessionCountOverride && c.overridePeriodStart) {
+        // Compute what legacy getClientPeriod would have returned for today — using the unit/value
+        // we just derived. If legacyCurrentPeriodStart === c.overridePeriodStart, override was live.
+        const legacyCurrent = computeSlidingWindow(pkgStart, unit, value, today());
+        if (c.overridePeriodStart === legacyCurrent.start) {
+          override = { ...c.sessionCountOverride, periodStart: legacyCurrent.start };
+        }
+      }
+
+      const pkg = {
+        id: 'pkg_' + genId(),
+        start: pkgStart,
+        end: null,
+        periodUnit: unit,
+        periodValue: value,
+        contractSize: null,
+        sessionCountOverride: override,
+        notes: '',
+        closedAt: null,
+        closedBy: null,
+      };
+      c.packages = [pkg];
+
+      // Remove deprecated root fields
+      delete c.periodStart;
+      delete c.periodLength;
+      delete c.sessionCountOverride;
+      delete c.overridePeriodStart;
+
+      // Seed audit log with a creation entry
+      data.auditLog.push({
+        id: 'log_' + genId(),
+        ts: new Date().toISOString(),
+        clientId: c.id,
+        clientName: c.name,
+        event: 'package_created',
+        packageId: pkg.id,
+        newPackageId: pkg.id,
+        before: null,
+        after: pkg,
+        trigger: { reason: 'migration v2→v3' },
+      });
+    });
+
+    v = 3;
+  }
+
   data.clients = data.clients || [];
   data.sessions = data.sessions || [];
   data.todos = data.todos || [];
   data.messageTemplates = data.messageTemplates || {};
+  // auditLog may be absent on fresh state or data fetched from remote before v3
+  data.auditLog = data.auditLog || [];
   // Ensure _lastModified exists — used for stale-push prevention (see sync fix, Apr 13 2026)
   data._lastModified = data._lastModified || new Date().toISOString();
   data._dataVersion = DATA_VERSION;
@@ -558,6 +630,8 @@ export function mergeData(local, remote) {
     clients: mergeById(local.clients, remote.clients),
     sessions: mergeById(local.sessions, remote.sessions),
     todos: mergeById(local.todos, remote.todos),
+    // auditLog entries are append-only and have IDs — union-merge like sessions/todos
+    auditLog: mergeById(local.auditLog, remote.auditLog),
     // Templates don't have per-record timestamps — prefer side with newer _lastModified
     messageTemplates: preferLocal
       ? (local.messageTemplates || remote.messageTemplates || {})
@@ -628,7 +702,7 @@ function baseReducer(state, action) {
       // Ensure all fields exist after replacing state (remote data may lack new fields).
       // Preserves remote's _lastModified if it exists; sets it if remote is legacy data
       // without timestamps (prevents "Modified: none" in debug panel).
-      const replaced = { todos: [], messageTemplates: {}, ...action.payload };
+      const replaced = { todos: [], auditLog: [], messageTemplates: {}, ...action.payload };
       replaced._lastModified = replaced._lastModified || new Date().toISOString();
       return replaced;
     }
