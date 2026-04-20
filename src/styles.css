@@ -432,7 +432,99 @@ button:active { transform: scale(0.97); }
   color: rgba(255,255,255,0.55); font-size: 13px; margin-bottom: 4px;
 }
 .client-notes { font-size: 13px; color: rgba(255,255,255,0.5); font-style: italic; }
-.session-count { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 6px; }
+/* Bumped from 0.5 → 0.72 in v2.8 — PT said the count was hard to read without squinting */
+.session-count { font-size: 12px; color: rgba(255,255,255,0.72); margin-top: 6px; }
+
+/* ─── Session count pair (v2.8) — auto → effective ─── */
+/* Used inline next to the client name on session cards, and in the period summary
+   of the client edit form. When no override is active, only .count-auto-solo renders.
+   When an override is active, both numbers show with an arrow. Pierre's hierarchy:
+   "auto readable, effective unmissable" — auto at 0.72 alpha (readable), effective
+   in accent blue with a subtle pill background. */
+.count-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.count-auto {
+  color: rgba(255,255,255,0.72);
+}
+.count-arrow {
+  color: #60A5FA;
+  font-size: 11px;
+  padding: 0 2px;
+}
+.count-effective {
+  color: #60A5FA;
+  font-weight: 700;
+  font-size: 13px;
+  background: rgba(96,165,250,0.14);
+  padding: 0 5px;
+  border-radius: 5px;
+}
+.count-auto-solo {
+  color: rgba(255,255,255,0.72);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ─── Override input (client edit form + booking confirm popup) ─── */
+.period-override-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.period-count-preview {
+  font-size: 13px;
+  color: var(--t3);
+}
+.period-count-preview strong {
+  color: var(--t1);
+  font-weight: 700;
+}
+.period-count-preview strong.accent {
+  color: #60A5FA;
+}
+.override-input {
+  width: 64px;
+  padding: 8px 10px;
+  border: 1px solid var(--sep);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--t1);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.override-input:focus {
+  outline: none;
+  border-color: #60A5FA;
+  box-shadow: 0 0 0 3px rgba(96,165,250,0.15);
+}
+.override-edit-btn {
+  background: transparent;
+  border: none;
+  padding: 6px 8px;
+  color: var(--t3);
+  cursor: pointer;
+  font-size: 15px;
+}
+.override-edit-btn:active { transform: scale(0.95); }
+
+/* Help popup body — preformatted multi-line syntax explanation */
+.override-help-body {
+  font-size: 14px;
+  color: var(--t2);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  margin-bottom: 16px;
+}
 
 /* ─── Week Strip ─── */
 .week-strip { display: flex; gap: 4px; padding: 16px 0; overflow-x: auto; }
@@ -750,7 +842,22 @@ button:active { transform: scale(0.97); }
 .theme-light .client-name { color: #1E1B4B; }
 .theme-light .client-phone { color: rgba(30,27,75,0.55); }
 .theme-light .client-notes { color: rgba(30,27,75,0.5); }
-.theme-light .session-count { color: rgba(30,27,75,0.5); }
+/* Bumped from 0.5 → 0.72 in v2.8 (same readability concern as dark theme) */
+.theme-light .session-count { color: rgba(30,27,75,0.72); }
+
+/* Light theme — indigo tint instead of white alpha for count pair */
+.theme-light .count-auto,
+.theme-light .count-auto-solo { color: rgba(30,27,75,0.78); }
+.theme-light .count-arrow { color: #2563EB; }
+.theme-light .count-effective {
+  color: #1E40AF;
+  background: rgba(37,99,235,0.14);
+}
+.theme-light .period-count-preview strong.accent { color: #1E40AF; }
+.theme-light .override-input:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+}
 
 .theme-light .week-day { border-color: rgba(37,99,235,0.12); background: rgba(255,255,255,0.15); color: rgba(30,27,75,0.6); }
 .theme-light .week-day.selected { border-color: #2563EB; background: rgba(37,99,235,0.25); color: #fff; }
