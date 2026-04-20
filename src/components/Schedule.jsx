@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon } from './Icons';
@@ -14,6 +14,23 @@ export default function Schedule({ state, dispatch, lang }) {
   const [form, setForm] = useState({ clientIds: [], type: 'Strength', date: today(), time: '09:00', duration: 45 });
   const [confirmMsg, setConfirmMsg] = useState(null);
   const [cancelPrompt, setCancelPrompt] = useState(null);
+  // v2.8: inline override edit inside the booking confirm popup.
+  //   editingOverride — true when the pencil is pressed and the input is shown in place of the pair
+  //   overrideDraft   — the in-flight string being typed (committed on blur)
+  //   overrideHelp    — help popup visibility (triggered by long-press / right-click on the input)
+  const [editingOverride, setEditingOverride] = useState(false);
+  const [overrideDraft, setOverrideDraft] = useState('');
+  const [overrideHelp, setOverrideHelp] = useState(false);
+  const overrideHoldRef = useRef(null);
+
+  // Long-press (500ms) opens the help popup. Same pattern as the debug panel + Clients form.
+  const startOverrideHold = () => {
+    if (overrideHoldRef.current) clearTimeout(overrideHoldRef.current);
+    overrideHoldRef.current = setTimeout(() => { haptic(); setOverrideHelp(true); }, 500);
+  };
+  const cancelOverrideHold = () => {
+    if (overrideHoldRef.current) { clearTimeout(overrideHoldRef.current); overrideHoldRef.current = null; }
+  };
 
   const daySessions = state.sessions
     .filter(s => s.date === selectedDate)
@@ -317,27 +334,56 @@ export default function Schedule({ state, dispatch, lang }) {
       {/* Success + WhatsApp Prompt (cycles through clients) */}
       {confirmMsg && (() => {
         const { items, index } = confirmMsg;
-        const { client, session } = items[index];
+        const { session } = items[index];
+        // Re-read client from state on every render — state.clients has the FRESHEST override
+        // after an inline edit-then-commit. Reading items[index].client would show stale data.
+        const client = state.clients.find(c => c.id === items[index].client.id) || items[index].client;
         const total = items.length;
         const isLast = index === total - 1;
+        // v2.8: guarantee the just-booked session is visible to the count helpers. Same reason
+        // as the sendBookingWhatsApp site — React batching can leave state.sessions stale here.
+        const sessions = state.sessions.some(s => s.id === session.id)
+          ? state.sessions
+          : [...state.sessions, session];
+        const { auto: cAuto, effective: cEffective, override: cOverride } = getEffectiveSessionCount(client, session, sessions);
         const advance = () => {
+          setEditingOverride(false);
           if (isLast) {
             setConfirmMsg(null);
           } else {
             setConfirmMsg({ items, index: index + 1 });
           }
         };
+        // Commit the typed override to the client record. Empty → clear both fields (null, not undefined,
+        // so they survive JSON.stringify and overwrite any stale remote value — same pattern as Clients.jsx).
+        const commitOverride = () => {
+          const parsed = parseSessionCountOverride(overrideDraft);
+          const periodForStamp = getClientPeriod(client, session.date);
+          dispatch({
+            type: 'EDIT_CLIENT',
+            payload: parsed
+              ? { ...client, sessionCountOverride: parsed, overridePeriodStart: periodForStamp.start }
+              : { ...client, sessionCountOverride: null, overridePeriodStart: null },
+          });
+          setEditingOverride(false);
+        };
+        // Initialize the input from the existing stored override (only if it's for the current period).
+        // Same logic as Clients.jsx openEdit.
+        const openOverrideEdit = () => {
+          const currentPeriod = getClientPeriod(client, session.date);
+          const isCurrent = client.sessionCountOverride && client.overridePeriodStart === currentPeriod.start;
+          const draft = isCurrent
+            ? (client.sessionCountOverride.mode === 'delta'
+                ? (client.sessionCountOverride.value >= 0 ? '+' : '') + client.sessionCountOverride.value
+                : String(client.sessionCountOverride.value))
+            : '';
+          setOverrideDraft(draft);
+          setEditingOverride(true);
+        };
         return (
-          <Modal title={total > 1 ? `${t(lang, 'sessionBooked')} (${index + 1}/${total})` : t(lang, 'sessionBooked')} onClose={() => setConfirmMsg(null)}
+          <Modal title={total > 1 ? `${t(lang, 'sessionBooked')} (${index + 1}/${total})` : t(lang, 'sessionBooked')} onClose={() => { setEditingOverride(false); setConfirmMsg(null); }}
             action={<>
               <button className="btn-whatsapp-lg mb-10" onClick={() => {
-                // Guarantee the just-booked session is in the list passed to WhatsApp.
-                // Without this, an edge case in React's state-update timing could leave
-                // state.sessions stale at click time → findIndex=-1 → "Session #0" in the
-                // message. Belt-and-braces with the defense in getSessionOrdinal.
-                const sessions = state.sessions.some(s => s.id === session.id)
-                  ? state.sessions
-                  : [...state.sessions, session];
                 sendBookingWhatsApp(client, session, state.messageTemplates, lang, sessions);
                 advance();
               }}>
@@ -351,10 +397,49 @@ export default function Schedule({ state, dispatch, lang }) {
               <div className="success-icon">✅</div>
               <div className="success-name">{client.name}</div>
               <div className="success-detail">{formatDate(session.date, lang)} {t(lang, 'at')} {session.time}</div>
+              {/* v2.8: inline override edit. Default view shows the pair + pencil; pencil toggles
+                  the input which commits on blur. Long-press / right-click opens help. */}
+              <div className="period-override-row" style={{ marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                {editingOverride ? (
+                  <input
+                    className="input override-input"
+                    style={{ maxWidth: 180, textAlign: 'center' }}
+                    autoFocus
+                    placeholder={t(lang, 'overridePlaceholder')}
+                    value={overrideDraft}
+                    onChange={e => setOverrideDraft(e.target.value)}
+                    onBlur={commitOverride}
+                    onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); }}
+                    onTouchStart={startOverrideHold}
+                    onTouchEnd={cancelOverrideHold}
+                    onTouchMove={cancelOverrideHold}
+                    onTouchCancel={cancelOverrideHold}
+                    onMouseDown={startOverrideHold}
+                    onMouseUp={cancelOverrideHold}
+                    onMouseLeave={cancelOverrideHold}
+                    onContextMenu={e => { e.preventDefault(); setOverrideHelp(true); }}
+                  />
+                ) : (
+                  <>
+                    <SessionCountPair auto={cAuto} effective={cEffective} override={cOverride} />
+                    <button className="btn-ghost" style={{ padding: '4px 8px' }} onClick={openOverrideEdit} aria-label="edit count">
+                      <EditIcon size={14} />
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </Modal>
         );
       })()}
+
+      {/* v2.8: help popup for the override input (shared between confirm popup + any future site) */}
+      <OverrideHelpPopup
+        show={overrideHelp}
+        onClose={() => setOverrideHelp(false)}
+        onClear={() => setOverrideDraft('')}
+        lang={lang}
+      />
 
       {/* Cancel Prompt — Count or Forgive */}
       {cancelPrompt && (
