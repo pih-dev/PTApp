@@ -33,7 +33,7 @@ export default function Clients({ state, dispatch, lang }) {
     const nowPeriod = getClientPeriod(c, today());
     const overrideIsCurrent = c.sessionCountOverride && c.overridePeriodStart === nowPeriod.start;
     const overrideStr = overrideIsCurrent
-      ? (c.sessionCountOverride.mode === 'delta'
+      ? (c.sessionCountOverride.type === 'delta'
           ? (c.sessionCountOverride.value >= 0 ? '+' : '') + c.sessionCountOverride.value
           : String(c.sessionCountOverride.value))
       : '';
@@ -358,7 +358,7 @@ export default function Clients({ state, dispatch, lang }) {
               : 0;
             const parsed = parseSessionCountOverride(form.sessionOverride);
             const effective = parsed
-              ? (parsed.mode === 'absolute' ? parsed.value : Math.max(0, auto + parsed.value))
+              ? (parsed.type === 'absolute' ? parsed.value : Math.max(0, auto + parsed.value))
               : auto;
             return (
               <div className="field period-override-row">

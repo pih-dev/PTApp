@@ -373,7 +373,7 @@ export default function Schedule({ state, dispatch, lang }) {
           const currentPeriod = getClientPeriod(client, session.date);
           const isCurrent = client.sessionCountOverride && client.overridePeriodStart === currentPeriod.start;
           const draft = isCurrent
-            ? (client.sessionCountOverride.mode === 'delta'
+            ? (client.sessionCountOverride.type === 'delta'
                 ? (client.sessionCountOverride.value >= 0 ? '+' : '') + client.sessionCountOverride.value
                 : String(client.sessionCountOverride.value))
             : '';
