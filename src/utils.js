@@ -681,6 +681,8 @@ export function baseReducer(state, action) {
         // Detect override change → override_set or override_cleared
         const oldOv = oldPkg.sessionCountOverride;
         const newOv = newPkg.sessionCountOverride;
+        // JSON.stringify used for structural equality. Key order must match — all override
+        // writers must construct the shape in the same literal order { type, value, periodStart }.
         if (JSON.stringify(oldOv) !== JSON.stringify(newOv)) {
           logEntries.push({
             id: 'log_' + genId(),
@@ -748,7 +750,11 @@ export function baseReducer(state, action) {
       const client = state.clients.find(c => c.id === clientId);
       if (!client || !client.packages || client.packages.length === 0) return state;
       const oldPkg = client.packages[client.packages.length - 1];
-      if (oldPkg.end != null) return state;  // already closed; shouldn't happen but defensive
+      if (oldPkg.end != null) return state;  // already closed — also blocks accidental double-dispatch
+
+      // Guard against malformed newPackageStart (callers must pass YYYY-MM-DD).
+      // An invalid string would produce oldEnd='NaN-NaN-NaN', silently corrupting the closed package.
+      if (!newPackageStart || !/^\d{4}-\d{2}-\d{2}$/.test(newPackageStart)) return state;
 
       // Compute day before new period start using local time to avoid UTC/DST bugs.
       // e.g. newPackageStart '2026-04-15' → oldEnd '2026-04-14'

@@ -109,6 +109,19 @@ assert(bothChange.auditLog.length === 2, 'pkg + override change → 2 entries');
 assert(bothChange.auditLog[0].event === 'package_edited', 'first = package_edited');
 assert(bothChange.auditLog[1].event === 'override_set', 'second = override_set');
 
+// === Append-only: two successive EDIT_CLIENT dispatches → 2 accumulated entries ===
+const after1 = baseReducer(initialState, {
+  type: 'EDIT_CLIENT',
+  payload: { ...initialState.clients[0], packages: [{ ...initialState.clients[0].packages[0], contractSize: 12 }] },
+});
+const after2 = baseReducer(after1, {
+  type: 'EDIT_CLIENT',
+  payload: { ...after1.clients[0], packages: [{ ...after1.clients[0].packages[0], contractSize: 14 }] },
+});
+assert(after2.auditLog.length === 2, 'two EDIT_CLIENT dispatches → 2 accumulated log entries');
+assert(after2.auditLog[0].after.contractSize === 12, 'first entry preserved after second dispatch');
+assert(after2.auditLog[1].after.contractSize === 14, 'second entry appended on top');
+
 // === RENEW_PACKAGE — happy path ===
 const renewed = baseReducer(initialState, {
   type: 'RENEW_PACKAGE',
@@ -174,5 +187,17 @@ const noop2 = baseReducer(closedState, {
   payload: { clientId: 'c1', newPackageStart: '2026-04-15', closedBy: 'manual' },
 });
 assert(noop2 === closedState, 'already-closed current package → state unchanged');
+
+// === RENEW_PACKAGE — defensive: invalid newPackageStart → state unchanged ===
+const noop3 = baseReducer(initialState, {
+  type: 'RENEW_PACKAGE',
+  payload: { clientId: 'c1', newPackageStart: 'not-a-date', closedBy: 'manual' },
+});
+assert(noop3 === initialState, 'malformed newPackageStart → state unchanged');
+const noop4 = baseReducer(initialState, {
+  type: 'RENEW_PACKAGE',
+  payload: { clientId: 'c1', newPackageStart: null, closedBy: 'manual' },
+});
+assert(noop4 === initialState, 'null newPackageStart → state unchanged');
 
 console.log('\nReducer sanity: PASS');
