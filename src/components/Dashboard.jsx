@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon, ChevronIcon } from './Icons';
-import { today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getEffectiveSessionCount, timeToMinutes, localDateStr, getStatus, haptic } from '../utils';
+import { today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getEffectiveSessionCount, timeToMinutes, localDateStr, getStatus, haptic, isRenewalDue, getCurrentPackage, getEffectiveClientCount } from '../utils';
 import SessionCountPair from './SessionCountPair';
+import RenewalModal from './RenewalModal';
 import { t } from '../i18n';
 
 export default function Dashboard({ state, dispatch, setTab, lang }) {
@@ -12,6 +13,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
   const [cancelPrompt, setCancelPrompt] = useState(null);
   const [expanded, setExpanded] = useState(true); // true = full cards, false = compact list
   const [form, setForm] = useState({ clientId: '', type: 'Strength', date: today(), time: '09:00', duration: 45 });
+  const [renewClient, setRenewClient] = useState(null);
 
   // todaySessions still feeds the "Today" stat card (middle of stat row).
   // It is NOT used as the section list anymore — `upcoming` is.
@@ -36,6 +38,8 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
       return true;
     })
     .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  // Clients whose current contract is exhausted or expired — shown in the renewal banner
+  const renewalDueClients = state.clients.filter(c => isRenewalDue(c, state.sessions));
   // Compare date strings to avoid fractional day math errors near midnight
   const weekSessions = state.sessions.filter(s => {
     const todayStr = today();
@@ -85,6 +89,31 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
           <div className="stat-label">{t(lang, 'statWeek')}</div>
         </div>
       </div>
+
+      {renewalDueClients.length > 0 && (
+        <div className="dashboard-renewal-section">
+          <div className="section-title" style={{ marginTop: 12 }}>
+            📋 {t(lang, 'dueForRenewal')} ({renewalDueClients.length})
+          </div>
+          {renewalDueClients.map(c => {
+            const pkg = getCurrentPackage(c);
+            const { effective } = getEffectiveClientCount(c, state.sessions);
+            return (
+              <div key={c.id} className="renewal-row card">
+                <div style={{ flex: 1 }}>
+                  <div className="client-name">{c.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--t4)' }}>
+                    {t(lang, 'session')} {effective}/{pkg.contractSize}
+                  </div>
+                </div>
+                <button className="btn-renew" onClick={() => { haptic(); setRenewClient(c); }}>
+                  {t(lang, 'renewContract')}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="section-title section-header">
         <span>📅 {t(lang, 'upcomingSessions')} ({upcoming.length})</span>
@@ -342,6 +371,16 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
           onClose={() => setCancelPrompt(null)}
         />
       )}
+
+      {/* Renewal Modal — triggered from the Due for Renewal banner */}
+      <RenewalModal
+        show={!!renewClient}
+        client={renewClient}
+        sessions={state.sessions}
+        onClose={() => setRenewClient(null)}
+        dispatch={dispatch}
+        lang={lang}
+      />
     </div>
   );
 }
