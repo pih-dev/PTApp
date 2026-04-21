@@ -169,3 +169,15 @@ Auto-complete used to dispatch N separate `UPDATE_SESSION` actions for N lapsed 
 **Rule:** When refactoring storage location, grep for EVERY read AND write of the old field name across the entire codebase. Don't trust the file you most recently touched. The fix is a one-character extra search before declaring a refactor complete.
 
 **Where it bit us:** `Schedule.jsx:394-417` (commitOverride + openOverrideEdit). Fixed in v2.9.2 to mirror `Clients.jsx:71-101` — mutate current package, dispatch new packages[]. Sanity-reducer regression test added.
+
+## TRAP: Architected behavior not propagated to every author site + missing from changelog (v2.9.4, 2026-04-21)
+**What happened:** On 2026-04-02 (commit `eb29798`, "Preserve focus tags when switching session type") Pierre made a conscious product decision: switching a session's type (Strength→Cardio→Strength) must NOT wipe focus tags, because a single session can mix subcategories across types — the tags from other types just stay hidden until you switch back. The commit updated `Dashboard.jsx` and added a file-level comment explaining the intent. But Schedule's inline type-selector was written earlier with `focus: []` on type change, and nobody checked whether the same author site existed elsewhere. The decision was also **not recorded in `changelog-summary.md` / `changelog-technical.md`** — it survived only as a file comment and a commit message.
+
+Three weeks later, during the v2.9.4 SessionCard-refactor brainstorm (2026-04-21), the divergence surfaced as "Schedule clears focus, Dashboard preserves them — looks like a bug or a pre-decision inconsistency." Pierre recognized it immediately as an architected-and-approved behavior that had simply missed Schedule and missed the changelog, so nothing in durable project memory could have reminded a reviewer that it was intentional-but-incomplete.
+
+**Rule (two-part):**
+
+1. **When committing an architected behavior decision, propagate it to every author site in the same commit.** Same pattern as the v2.8 `.mode/.type` trap and the v2.9.2 inline-override trap — this is the third instance of "one author site updated, others missed." The fix is a pre-commit grep for the old behavior/field/dispatch shape; don't trust the file you most recently touched.
+2. **Every architected behavior decision lands in `changelog-summary.md` AND `changelog-technical.md`, not just a file comment.** File comments are easy to miss during review and can be mistaken for personal preference. The changelog is the durable record; if a behavior isn't in the changelog, a future reviewer (or Claude session) has no way to distinguish "intentional, approved" from "inconsistency / bug." Add a one-line entry at minimum.
+
+**Where it bit us:** `Schedule.jsx:199-204` (focus-clearing dispatch). Fixed in v2.9.4 by removing `focus: []` from the dispatch payload and matching Dashboard's comment. The original 2026-04-02 decision is now recorded in `changelog-summary.md` + `changelog-technical.md` under v2.9.4.

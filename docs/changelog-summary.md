@@ -4,6 +4,18 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.9.4 — Schedule focus-tag preserve (retroactive fix + documentation) (Apr 21, 2026)
+
+**A behavior that was approved three weeks ago, but only half-applied.** On Apr 2, Pierre made a deliberate product decision: when the PT changes a session's type in the inline dropdown (Strength → Cardio and back), the focus tags must NOT be wiped. A single session can mix subcategories across types — think a Strength session that records Back work, then flips to Cardio for a segment, then returns to Strength with Back still selected. Hidden tags from other types stay there, waiting for the switch-back. That commit updated the Dashboard screen. It did not update the Schedule screen, and nobody noticed until the SessionCard-refactor brainstorm ran today and flagged the inconsistency as "possibly a bug, possibly a design choice — we can't tell from the code alone." Pierre immediately recognized it: not a bug in the architecture, but an incomplete rollout that also never made it into the changelog, so future reviewers (human or Claude) had no way to know it was intentional.
+
+**Fixed:** Schedule now preserves focus tags across type changes, matching Dashboard.
+
+**The bigger deliverable is the process fix.** This is the third instance of the same pattern — decision applied to one place, missed in others (v2.8 parser `.mode/.type`, v2.9.2 inline-override storage, now this). The lesson added to `docs/traps.md` is two-part: (1) propagate architected behaviors to every author site in the same commit (pre-commit grep the old behavior, not just the file you touched); (2) every architected behavior decision lands in `changelog-summary.md` AND `changelog-technical.md`, not just a file comment or commit message. A behavior that lives only in a file comment is indistinguishable from personal preference three weeks later. The changelog is the durable record.
+
+**Not in this release:** the SessionCard refactor itself (brainstorm is paused awaiting Pierre's scope decision in a follow-up session). No schema change. No new user feature.
+
+---
+
 ## v2.9.3 — Safety Net + Test-Script Promotion (Apr 21, 2026)
 
 **Two debt-reduction items, no new user-visible features.** Both pulled from the backlog Pierre kept after v2.9.2 shipped earlier the same day.

@@ -196,9 +196,12 @@ export default function Schedule({ state, dispatch, lang }) {
                   <div className="meta">
                     <ClockIcon />
                     {session.time} · {session.duration}{t(lang, 'min')} ·{' '}
-                    {/* Inline type selector — change type, auto-clear focus tags */}
+                    {/* Inline type selector — keep focus tags so switching back preserves selections.
+                         Tags from other types stay hidden (not deleted) so a mixed-subcategory session
+                         can accumulate work across types without losing prior selections.
+                         Matches Dashboard behavior (decided 2026-04-02, commit eb29798). */}
                     <select className="inline-type-select" value={session.type} onChange={e => {
-                      dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value, focus: [] } });
+                      dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value } });
                     }}>
                       {SESSION_TYPES.map(stype => <option key={stype.label} value={stype.label}>{stype.emoji} {stype.label}</option>)}
                     </select>

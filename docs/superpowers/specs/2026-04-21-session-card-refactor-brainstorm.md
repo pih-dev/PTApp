@@ -31,7 +31,7 @@ All three share:
 |---|---|---|---|
 | **WhatsApp Remind button** | Shown | Shown | **Never shown** |
 | **Notes + focus visibility** | Always visible + editable | Always visible + editable | **Only when `status === 'completed'`** (via `EditableFocus` sub-component) |
-| **Type-change behavior** | Preserves focus tags | **Clears focus tags** (`focus: []`) | N/A (type not editable) |
+| **Type-change behavior** | Preserves focus tags ✅ | **Clears focus tags** (`focus: []`) ❌ bug — resolved 2026-04-21 | N/A (type not editable) |
 | **"Now" amber glow** | `card-now` class when current | N/A | N/A |
 | **Edit button target** | Action-sheet modal | Booking-form modal | Date/time/duration modal |
 | **Complete dispatch** | Helper `updateStatus(id, 'completed')` | Helper `updateStatus(id, 'completed')` | **Inline `dispatch({ type: 'UPDATE_SESSION', ... })`** |
@@ -58,6 +58,10 @@ Sessions.jsx is the outlier (no WA, conditional notes editing, uses `EditableFoc
 
 ### Why I leaned toward B
 Building the component against two near-identical sites first tends to produce a cleaner API than designing upfront for three. The third consumer usually reveals what's generalizable vs. what was coincidence.
+
+## Resolved divergences (as Pierre inspects)
+
+- **Type-change focus clearing** — Pierre confirmed 2026-04-21 that preserving focus tags across type changes is the intentional behavior. A single session might mix subcategories across types (e.g., Strength + Back, then Cardio, then back to Strength with Back still selected). Dashboard's behavior is correct; Schedule's `focus: []` on type change is a bug. **Refactor will unify on "preserve focus", and delete the `focus: []` in `Schedule.jsx:201`.** No prop needed for this.
 
 ## What Pierre is doing before resuming
 - Visually inspect the three screens on a running dev server

@@ -229,7 +229,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.9.3</div>
+          <div><strong>Version:</strong> v2.9.4</div>
           <div><strong>Sync:</strong> {syncStatus}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>

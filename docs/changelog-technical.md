@@ -4,6 +4,83 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.9.4 — Schedule focus-tag preserve (retroactive fix + documentation) (2026-04-21)
+
+**Trigger:** SessionCard-refactor brainstorm (2026-04-21, `docs/superpowers/specs/2026-04-21-session-card-refactor-brainstorm.md`) flagged that `Dashboard.jsx` preserves focus tags across inline type changes while `Schedule.jsx` clears them. Pierre immediately identified this as an **architected-and-approved** behavior that had been applied only to Dashboard back on 2026-04-02 (commit `eb29798`, "Preserve focus tags when switching session type") and never propagated to Schedule — nor recorded in either changelog. The behavior survived only as a file-level comment in Dashboard and as the commit message.
+
+### The original (2026-04-02) decision, now in the record
+
+> Switching a session's type (Strength → Cardio → Strength) must NOT wipe the selected focus tags. Tags from other types stay hidden (not deleted); they reappear when the PT switches back. This lets a single training session accumulate mixed-subcategory work across types — e.g., a Strength session records Back work, flips to Cardio for a segment, returns to Strength with Back still selected.
+
+### Code fix
+
+**`src/components/Schedule.jsx:199-204`** — remove `focus: []` from the inline type-selector dispatch:
+
+```jsx
+// BEFORE
+{/* Inline type selector — change type, auto-clear focus tags */}
+<select className="inline-type-select" value={session.type} onChange={e => {
+  dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value, focus: [] } });
+}}>
+
+// AFTER — mirrors Dashboard.jsx:177-179 exactly
+{/* Inline type selector — keep focus tags so switching back preserves selections.
+     Tags from other types stay hidden (not deleted) so a mixed-subcategory session
+     can accumulate work across types without losing prior selections.
+     Matches Dashboard behavior (decided 2026-04-02, commit eb29798). */}
+<select className="inline-type-select" value={session.type} onChange={e => {
+  dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value } });
+}}>
+```
+
+No other consumers of the old behavior found:
+```
+$ grep -rn "focus: \[" src/
+(no matches)
+```
+
+### Process lesson (the actual lasting deliverable)
+
+Third instance of "architected-behavior-only-partially-propagated" in the v2.8 → v2.9.x window:
+
+| Version | Behavior | Missed sites |
+|---------|----------|--------------|
+| v2.8 → v2.8 fix | `parseSessionCountOverride` returns `.type`, not `.mode` | First implementation pass mis-read as `.mode` |
+| v2.9 → v2.9.2 | Override storage moved client-root → `pkg.sessionCountOverride` | `Schedule.jsx` booking-pencil kept writing legacy root fields |
+| v2.9.1 → v2.9.4 | Preserve focus tags across type changes (Apr 02 decision) | `Schedule.jsx` inline type-selector kept `focus: []` |
+
+New TRAP added to `docs/traps.md` — two-part rule:
+1. **Propagate in the same commit.** When committing an architected behavior decision, grep the codebase for the old behavior/field/dispatch shape BEFORE the commit. Do not trust the file you most recently touched.
+2. **Record in the changelog.** Every architected behavior decision lands in `docs/changelog-summary.md` + `docs/changelog-technical.md`, not only in a file comment or commit message. File comments are easy to miss in review and indistinguishable from personal preference three weeks later. The changelog is the durable, searchable project record.
+
+### Verification
+
+- `grep -rn "focus: \[" src/` → 0 matches.
+- Manual (pre-fix, Dashboard): Strength session → select Back → switch to Cardio → back to Strength → Back still selected ✓ (matches intended behavior).
+- Manual (post-fix, Schedule): same flow in weekly view → tags preserved across type changes. Pending PT iPhone smoke test.
+- Sanity scripts: unaffected (behavior lives in call-site dispatch shape, not in reducer logic). All four runnable sanity scripts still pass at their `scripts/sanity/` paths.
+- Build + bundle syntax check pass.
+
+### Files touched
+
+| File | Change |
+|------|--------|
+| `src/components/Schedule.jsx` | Remove `focus: []` from inline type-selector dispatch; rewrite comment to mirror Dashboard |
+| `src/App.jsx` | Version bump v2.9.3 → v2.9.4 in debug panel |
+| `docs/traps.md` | New TRAP — architected-behavior-not-propagated + missing-from-changelog |
+| `docs/changelog-summary.md` | Prepend v2.9.4 section |
+| `docs/changelog-technical.md` | Prepend v2.9.4 section (this section) |
+| `docs/instructions-v2.9.4.md` | NEW |
+| `CLAUDE.md` | Current-version block promoted v2.9.3 → v2.9.4 |
+
+### What v2.9.4 explicitly does NOT do
+
+- **Not** the SessionCard refactor. Brainstorm is paused at step 3 of `superpowers:brainstorming` awaiting Pierre's scope answer (A/B/C). See `memory/project_sessioncard_brainstorm_paused.md`.
+- **Not** a unification of the other Dashboard ↔ Schedule ↔ Sessions divergences (WhatsApp remind presence, notes-editing conditionality on Sessions, modal-target differences, cancelled-state action sets). Those belong to the SessionCard work.
+- **Not** a normalization of the compact Dashboard card — that's its own decision inside the SessionCard brainstorm.
+
+---
+
 ## v2.9.3 — Error boundary + sanity-script promotion (2026-04-21)
 
 **Trigger:** post-v2.9.2 backlog cleanup (`memory/project_todo_after_v292.md`). Two of the items rated highest-value-per-effort: top-level React error boundary (#3 in the backlog) and promoting the sanity scripts out of wipe-able `tmp/` (#8). No schema change, no migration, no new user feature.
