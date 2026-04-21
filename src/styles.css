@@ -53,6 +53,7 @@ button:active { transform: scale(0.97); }
   --t4: rgba(255,255,255,0.5);   /* muted: hints, counts, icons */
   --t5: rgba(255,255,255,0.4);   /* dim: subtle info */
   --sep: rgba(255,255,255,0.06); /* separators / borders */
+  --card-bg: rgba(255,255,255,0.04); /* card base — consumed by color-mix for red renewal tint */
 }
 
 .header {
@@ -797,6 +798,7 @@ button:active { transform: scale(0.97); }
   --t4: rgba(30,27,75,0.5);
   --t5: rgba(30,27,75,0.42);
   --sep: rgba(30,27,75,0.08);
+  --card-bg: rgba(210,228,255,0.55);
 }
 /* Header: glossier glass — more transparent base, stronger blur for frosted look */
 .theme-light .header { background: rgba(30,64,175,0.15); backdrop-filter: blur(28px) saturate(1.4); -webkit-backdrop-filter: blur(28px) saturate(1.4); border-bottom-color: rgba(37,99,235,0.12); }
