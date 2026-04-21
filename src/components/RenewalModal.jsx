@@ -9,7 +9,7 @@ export default function RenewalModal({ show, client, sessions, onClose, dispatch
   const [contractSize, setContractSize] = useState('');
   const [periodStart, setPeriodStart] = useState('');
   const [periodUnit, setPeriodUnit] = useState('month');
-  const [periodValue, setPeriodValue] = useState(1);
+  const [periodValue, setPeriodValue] = useState('1');
   const [notes, setNotes] = useState('');
 
   // Initialize defaults on open — derived from client's current package + latest session
@@ -33,9 +33,15 @@ export default function RenewalModal({ show, client, sessions, onClose, dispatch
     setContractSize(pkg.contractSize != null ? String(pkg.contractSize) : '10');
     setPeriodStart(defaultStart);
     setPeriodUnit(pkg.periodUnit || 'month');
-    setPeriodValue(pkg.periodValue || 1);
+    setPeriodValue(String(pkg.periodValue || 1));
     setNotes('');
-  }, [show, client, sessions]);
+    // `sessions` is intentionally excluded from deps. It's the full app-state array —
+    // every debounced sync (every ~1s on unstable Beirut internet) creates a new
+    // reference, which would re-run this effect and clobber the PT's in-progress
+    // edits. We only need to seed defaults when the modal OPENS (show flips false→true)
+    // or the target client changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show, client]);
 
   if (!show || !client) return null;
 
@@ -50,7 +56,7 @@ export default function RenewalModal({ show, client, sessions, onClose, dispatch
         newPackageStart: periodStart,
         newContractSize: contractNum,
         newPeriodUnit: periodUnit,
-        newPeriodValue: +periodValue || 1,
+        newPeriodValue: +periodValue >= 1 ? +periodValue : 1,
         newNotes: notes,
         closedBy: 'manual',
         trigger: null,
@@ -72,14 +78,15 @@ export default function RenewalModal({ show, client, sessions, onClose, dispatch
       </div>
       <div className="field">
         <label className="field-label">{t(lang, 'newPeriodStart')}</label>
-        <input type="date" className="input" value={periodStart}
+        <input type="date" required className="input" value={periodStart}
           onChange={e => setPeriodStart(e.target.value)} />
       </div>
       <div className="flex-row-12">
         <div className="field" style={{ flex: 1 }}>
           <label className="field-label">{t(lang, 'periodLengthValue')}</label>
           <input type="number" min="1" className="input" value={periodValue}
-            onChange={e => setPeriodValue(+e.target.value || 1)} />
+            onChange={e => setPeriodValue(e.target.value.replace(/[^0-9]/g, ''))}
+            onBlur={e => { if (!e.target.value || +e.target.value < 1) setPeriodValue('1'); }} />
         </div>
         <div className="field" style={{ flex: 1 }}>
           <label className="field-label">{t(lang, 'periodLengthUnit')}</label>
