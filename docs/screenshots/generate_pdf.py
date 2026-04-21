@@ -158,6 +158,35 @@ SECTIONS = [
             ("v2.5-mother-iphone-token-setup-apr13.jpg", "Mother's iPhone: token setup prompt (keeps reappearing)"),
         ],
     },
+    {
+        "title": "v2.6 - Bulletproof Multi-Device Sync (Apr 19, 2026)",
+        "desc": "Architecture rework - no visual changes. Per-record _modified timestamps, mergeData union-by-ID, reconcile() replaces scattered .catch(()=>{}). Triggered by the Apr 19 Hala Mouzanar data-loss incident.",
+        "images": [],
+    },
+    {
+        "title": "v2.7 - Upcoming Sessions on Home Screen (Apr 20, 2026)",
+        "desc": "Dashboard section renamed 'Today's Sessions' to 'Upcoming Sessions (N)'. Single filter status!='cancelled' && date>=today() replaces the today-only filter. Both Expanded and Compact views iterate the same array; Compact's 5-session cap removed.",
+        "images": [],
+    },
+    {
+        "title": "v2.8 - Manual Session Count Override (Apr 20-21, 2026)",
+        "desc": "Per-client manual override for the current billing period. Captured Apr 21 on Pierre's Android, legacy v2.8 Edit Client UI with override +1 active.",
+        "images": [
+            ("v2.8-android-edit-client-legacy-apr21.jpg", "Edit Client v2.8 legacy: Period Start (empty), Period Length 'Default', AUTO 12->13 with +1 override"),
+        ],
+    },
+    {
+        "title": "v2.9 - Session Contracts & Package History (Apr 20-21, 2026)",
+        "desc": "Per-client session contracts replace root-level periodStart/periodLength/override. Packages array with Length+Unit split and Contract Size. Migration preserves v2 overrides. Screenshot: same client as v2.8 above, after migration, override +1 preserved.",
+        "images": [
+            ("v2.9-android-edit-client-contracts-apr21.jpg", "Edit Client v2.9: Package #1 / Session 13 sessions, Length 1 Month, Contract Size field, override +1 preserved across migration"),
+        ],
+    },
+    {
+        "title": "v2.9.1 - Evening Dashboard Cleanup (Apr 21, 2026)",
+        "desc": "Behavior-only change. Dashboard Upcoming list hides sessions where status=='completed' AND end time is 2+ hours in the past. Keeps no-shows visible. Triggered by Pierre scrolling past today's finished sessions in the evening. No visual redesign - list just has fewer entries after ~8pm. Capture pending.",
+        "images": [],
+    },
 ]
 
 

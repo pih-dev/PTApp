@@ -1,6 +1,13 @@
 # PTApp Screenshot Catalog
 
-Visual evolution of the app, organized chronologically. All screenshots taken on Pierre's Samsung S25 Ultra (Android).
+Visual evolution of the app, organized chronologically. Primary capture device: Pierre's Samsung S25 Ultra (Android). Additional captures from the PT's iPhone and Pierre's mother's iPhone are labeled in each entry.
+
+**Changelog cross-references:**
+- Plain-English summaries: [`docs/changelog-summary.md`](../changelog-summary.md)
+- Technical / architectural notes: [`docs/changelog-technical.md`](../changelog-technical.md)
+- Per-version instruction docs: [`docs/instructions-v*.md`](../)
+
+Each version section below corresponds to a changelog entry of the same name. Versions without visual changes (pure behavior/sync/data changes) are noted with a pointer to the changelog instead of images.
 
 ---
 
@@ -189,12 +196,60 @@ Data loss incident led to sync architecture rework. Header simplified: version r
 
 ---
 
+## v2.6 — Bulletproof Multi-Device Sync (Apr 19, 2026)
+
+Changelog: [summary §v2.6](../changelog-summary.md#v26--bulletproof-multi-device-sync-apr-19-2026) · [technical §v2.6](../changelog-technical.md#v26--bulletproof-multi-device-sync-2026-04-19)
+
+**No new screenshots.** v2.6 was an architecture rework — per-record `_modified` timestamps, `mergeData` union-by-ID, `reconcile()` function, four silent `.catch(() => {})` replaced with surfaced errors. Triggered by the Apr 19 Hala Mouzanar data-loss incident. UI appearance identical to v2.5. See [`incident_data_loss_20260419.md`](../../memory/incident_data_loss_20260419.md) in memory for the forensic trail.
+
+---
+
+## v2.7 — Upcoming Sessions on Home Screen (Apr 20, 2026)
+
+Changelog: [summary §v2.7](../changelog-summary.md#v27--upcoming-sessions-on-home-screen-apr-20-2026) · [technical §v2.7](../changelog-technical.md#v27--upcoming-sessions-on-dashboard-2026-04-20)
+
+**No new screenshots.** Dashboard section renamed "Today's Sessions" → "Upcoming Sessions (N)". Single `upcoming` filter `status !== 'cancelled' && date >= today()` replaced the today-only filter. Both Expanded and Compact views now iterate the same array; Compact's 5-session cap was removed. Visually the layout is unchanged — only the list contents differ (more items, with date lines in Expanded view).
+
+---
+
+## v2.8 — Manual Session Count Override (Apr 20, 2026)
+
+Changelog: [summary §v2.8](../changelog-summary.md#v28--manual-session-count-override-apr-20-2026) · [technical §v2.8](../changelog-technical.md#v28--manual-session-count-override-2026-04-20)
+
+| File | Description |
+|------|-------------|
+| `v2.8-android-edit-client-legacy-apr21.jpg` | Android Chrome PWA (9:01am on Apr 21). Edit Client form for a legacy v2.8 client — **Period Start** (empty), **Period Length** "Default (calendar n..." dropdown, `AUTO 12 → 13` with `+1` override active. Captured to document the legacy UI shape before the v2.9 contracts migration replaced Period Start/Length with Package / Length+Unit / Contract Size. Same client as the v2.9 screenshot below — demonstrates the pair of UI shapes the migration bridges. |
+
+---
+
+## v2.9 — Session Contracts & Package History (Apr 20–21, 2026)
+
+Changelog: [summary §v2.9](../changelog-summary.md#v29--session-contracts--package-history) · [technical §v2.9](../changelog-technical.md#v29--technical-changelog)
+
+Also: [v2.9 migration override-drop near-miss memory](../../memory/incident_v29_migration_override_drop.md) — pre-deploy live-diff caught 2 overrides about to be dropped for calendar-month clients; migration was fixed before shipping.
+
+| File | Description |
+|------|-------------|
+| `v2.9-android-edit-client-contracts-apr21.jpg` | Android Chrome PWA (7:00am on Apr 21). Same client as the v2.8 screenshot above, after v2.9 migration. New UI: **Package #1 · Session 13 sessions** header, **Period Start** `04/01/2026` (migrated from legacy), **Length** `1` + **Unit** `Month` (split from the old combined Period Length dropdown), **Contract Size** field (empty = no contract), `AUTO 12 → 13` with `+1` override **preserved across migration** — the exact forensic evidence for why the Apr 21 pre-deploy live-diff gate matters (the initial migration draft would have dropped this). |
+
+---
+
+## v2.9.1 — Evening Dashboard Cleanup (Apr 21, 2026)
+
+Changelog: [summary §v2.9.1](../changelog-summary.md#v291--evening-dashboard-cleanup-apr-21-2026) · [technical §v2.9.1](../changelog-technical.md#v291--upcoming-rolls-off-completed-2h-past-end-2026-04-21)
+
+**No new screenshots.** Behavior-only change: Dashboard's Upcoming list now hides sessions where `status === 'completed'` AND end time is 2+ hours in the past. Pierre reported scrolling past today's finished sessions in the evening to reach tomorrow's. No UI redesign — the list just has fewer entries after 8pm. A post-evening capture would show Upcoming with tomorrow's sessions near the top instead of today's completed ones; [TODO: capture one on a typical evening on both Android and PT's iPhone.]
+
+---
+
 ## Not Yet Captured
 
 - Amber active session glow (card-now) — no in-progress sessions at screenshot time
 - Arabic/RTL mode
-- Modal/booking flow
+- Modal/booking flow (booking confirm popup with pencil-toggle override — v2.8)
 - Sessions tab
 - Schedule tab week view
 - Sync failed state (red dot)
-- Mother's iPhone after PWA manifest fix — confirmed working at 2:18pm (standalone mode, no Safari bar, token persists). Screenshot shared in chat, needs to be sent via Telegram for file cataloging.
+- Mother's iPhone after PWA manifest fix — confirmed working at 2:18pm Apr 13 (standalone mode, no Safari bar, token persists). Screenshot shared in chat, needs to be sent via Telegram for file cataloging.
+- Renewal flow (v2.9) — RenewalModal, Dashboard "Due for renewal" section, red renewal-due state on Clients cards, booking warning banner "Package limit hit — booking this session will auto-renew"
+- v2.9.1 evening view (see v2.9.1 section above)
