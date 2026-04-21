@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Modal from './Modal';
 import { WhatsAppIcon, EditIcon, TrashIcon, PhoneIcon, ChevronIcon } from './Icons';
-import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, FOCUS_TAGS, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic, parseSessionCountOverride, getCurrentPackage, getEffectivePeriod, getPeriodSessionCount, getEffectiveClientCount, today } from '../utils';
+import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, FOCUS_TAGS, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic, parseSessionCountOverride, isRenewalDue, getCurrentPackage, getEffectivePeriod, getPeriodSessionCount, getEffectiveClientCount, today } from '../utils';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import SessionCountPair from './SessionCountPair';
 import { t, dateLocale } from '../i18n';
@@ -189,7 +189,7 @@ export default function Clients({ state, dispatch, lang }) {
           const completedCount = isExpanded ? monthSessions.filter(s => s.status === 'completed').length : 0;
           const cancelledCount = isExpanded ? monthSessions.filter(s => s.status === 'cancelled').length : 0;
           return (
-          <div key={c.id} className="card" style={{ cursor: 'pointer' }}>
+          <div key={c.id} className={`card${isRenewalDue(c, state.sessions) ? ' card-renewal-due' : ''}`} style={{ cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
               onClick={() => toggleExpand(c.id)}>
               <div style={{ flex: 1 }}>
@@ -206,6 +206,15 @@ export default function Clients({ state, dispatch, lang }) {
                   <PhoneIcon />
                   {c.phone}
                 </div>
+                {isRenewalDue(c, state.sessions) && (() => {
+                  const pkg = getCurrentPackage(c);
+                  const { effective } = getEffectiveClientCount(c, state.sessions);
+                  return (
+                    <div className="renewal-pill">
+                      {t(lang, 'renewalDue')} · {t(lang, 'session')} {effective}/{pkg.contractSize}
+                    </div>
+                  );
+                })()}
                 {(c.gender || c.birthdate) && (
                   <div style={{ fontSize: 12, color: 'var(--t4)', marginBottom: 2 }}>
                     {c.gender === 'male' ? 'M' : c.gender === 'female' ? 'F' : ''}
@@ -217,6 +226,11 @@ export default function Clients({ state, dispatch, lang }) {
                 <div className="session-count">{sessionCount(c.id)} {t(lang, 'sessionWord')}</div>
               </div>
               <div className="flex-row" onClick={e => e.stopPropagation()}>
+                {isRenewalDue(c, state.sessions) && (
+                  <button className="btn-renew" onClick={() => alert('Renew modal coming in Task 8')}>
+                    {t(lang, 'renewContract')}
+                  </button>
+                )}
                 <button className="btn-whatsapp" style={{ padding: '8px 10px' }}
                   onClick={() => window.open(`https://wa.me/${formatPhone(c.phone)}?text=${encodeURIComponent(`Hi ${c.nickname || c.name.split(' ')[0]}! 💪`)}`, '_blank')}>
                   <WhatsAppIcon size={18} />
