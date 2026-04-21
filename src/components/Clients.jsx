@@ -188,8 +188,14 @@ export default function Clients({ state, dispatch, lang }) {
           const monthTotal = isExpanded ? getMonthlySessionCount(state.sessions, c.id, viewMonth) : 0;
           const completedCount = isExpanded ? monthSessions.filter(s => s.status === 'completed').length : 0;
           const cancelledCount = isExpanded ? monthSessions.filter(s => s.status === 'cancelled').length : 0;
+          // Hoist renewal state to one call per card (gate wrapper class, pill, and Renew button).
+          // isRenewalDue walks state.sessions; calling it 3× per card + a redundant getEffectiveClientCount
+          // in the pill IIFE would be 4 passes per client — noticeable on the search input re-render.
+          const renewalDue = isRenewalDue(c, state.sessions);
+          const renewalPkg = renewalDue ? getCurrentPackage(c) : null;
+          const renewalEffective = renewalDue ? getEffectiveClientCount(c, state.sessions).effective : 0;
           return (
-          <div key={c.id} className={`card${isRenewalDue(c, state.sessions) ? ' card-renewal-due' : ''}`} style={{ cursor: 'pointer' }}>
+          <div key={c.id} className={`card${renewalDue ? ' card-renewal-due' : ''}`} style={{ cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
               onClick={() => toggleExpand(c.id)}>
               <div style={{ flex: 1 }}>
@@ -206,15 +212,11 @@ export default function Clients({ state, dispatch, lang }) {
                   <PhoneIcon />
                   {c.phone}
                 </div>
-                {isRenewalDue(c, state.sessions) && (() => {
-                  const pkg = getCurrentPackage(c);
-                  const { effective } = getEffectiveClientCount(c, state.sessions);
-                  return (
-                    <div className="renewal-pill">
-                      {t(lang, 'renewalDue')} · {t(lang, 'session')} {effective}/{pkg.contractSize}
-                    </div>
-                  );
-                })()}
+                {renewalDue && (
+                  <div className="renewal-pill">
+                    {t(lang, 'renewalDue')} · {t(lang, 'session')} {renewalEffective}/{renewalPkg.contractSize}
+                  </div>
+                )}
                 {(c.gender || c.birthdate) && (
                   <div style={{ fontSize: 12, color: 'var(--t4)', marginBottom: 2 }}>
                     {c.gender === 'male' ? 'M' : c.gender === 'female' ? 'F' : ''}
@@ -226,7 +228,7 @@ export default function Clients({ state, dispatch, lang }) {
                 <div className="session-count">{sessionCount(c.id)} {t(lang, 'sessionWord')}</div>
               </div>
               <div className="flex-row" onClick={e => e.stopPropagation()}>
-                {isRenewalDue(c, state.sessions) && (
+                {renewalDue && (
                   <button className="btn-renew" onClick={() => alert('Renew modal coming in Task 8')}>
                     {t(lang, 'renewContract')}
                   </button>
