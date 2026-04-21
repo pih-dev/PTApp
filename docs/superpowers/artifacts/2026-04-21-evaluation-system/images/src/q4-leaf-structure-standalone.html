@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>PTApp — Q4 Leaf Structure (A vs B)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0e0e0e;
+    color: #f5f5f7;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    padding: 32px 28px;
+    min-height: 100vh;
+  }
+  h2 {
+    color: #f5f5f7;
+    font-size: 22px;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .subtitle {
+    color: #9ca3af;
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+  h3 { color: #f5f5f7; font-weight: 600; }
+  h4 { color: #f5f5f7; font-weight: 600; }
+  p { color: #e5e7eb; }
+  .label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #9ca3af;
+  }
+  /* Footer watermark so PT knows provenance */
+  .footer-note {
+    margin-top: 32px;
+    padding-top: 14px;
+    border-top: 1px solid #222;
+    text-align: center;
+    color: #555;
+    font-size: 10px;
+    font-family: ui-monospace, 'Cascadia Code', monospace;
+  }
+</style>
+</head>
+<body>
+<h2>Q4 — Leaf structure</h2>
+<p class="subtitle">A level alone, or a level × age band × gender cell? Determines how many classifications exist and how many programs the generator will need to produce later.</p>
+
+<style>
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+  }
+  .col {
+    background: #141414;
+    border: 2px solid #333;
+    border-radius: 12px;
+    padding: 20px 18px;
+    position: relative;
+  }
+  .col.a { border-color: #2563EB; }
+  .col.b { border-color: #A855F7; }
+  .col .option-tag {
+    position: absolute;
+    top: -12px;
+    left: 16px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    border-radius: 6px;
+    text-transform: uppercase;
+  }
+  .col.a .option-tag { background: #2563EB; color: white; }
+  .col.b .option-tag { background: #A855F7; color: white; }
+  .col h3 {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+  }
+  .col .tagline {
+    color: #888;
+    font-size: 11px;
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+  .tree-mini {
+    background: #0e0e0e;
+    border-radius: 8px;
+    padding: 14px;
+    margin: 10px 0;
+    font-family: ui-monospace, 'Cascadia Code', monospace;
+    font-size: 10px;
+    line-height: 1.55;
+    color: #ccc;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .tree-mini .root-lbl { color: #60A5FA; font-weight: 700; }
+  .tree-mini .level-lbl { color: #93C5FD; font-weight: 600; }
+  .tree-mini .cell-lbl { color: #F59E0B; }
+  .example {
+    background: rgba(37, 99, 235, 0.08);
+    border-left: 3px solid #2563EB;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-size: 11px;
+    color: #ddd;
+    line-height: 1.5;
+  }
+  .col.b .example {
+    background: rgba(168, 85, 247, 0.08);
+    border-left-color: #A855F7;
+  }
+  .pros-cons-mini {
+    margin-top: 12px;
+  }
+  .pc-row {
+    font-size: 11px;
+    line-height: 1.5;
+    margin-bottom: 4px;
+  }
+  .pc-label {
+    display: inline-block;
+    width: 44px;
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .pc-pro { color: #10B981; }
+  .pc-con { color: #EF4444; }
+  .count-box {
+    background: #1a1a1a;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 10px;
+    font-size: 11px;
+    color: #ccc;
+  }
+  .count-box strong {
+    color: #F59E0B;
+    font-size: 13px;
+  }
+</style>
+
+<div class="compare">
+
+  <!-- OPTION A -->
+  <div class="col a">
+    <span class="option-tag">Option A</span>
+    <h3>Level IS the classification</h3>
+    <p class="tagline">Age and gender are inputs that interpret the grades, but the output is just the level.</p>
+
+<div class="tree-mini">
+<span class="root-lbl">Evaluation</span>
+├── <span class="level-lbl">Beginner A</span>  (one leaf, one program)
+├── <span class="level-lbl">Beginner B</span>
+├── <span class="level-lbl">Intermediate A</span>
+├── <span class="level-lbl">Intermediate B</span>
+├── <span class="level-lbl">Pro</span>
+└── <span class="level-lbl">Elite</span>
+</div>
+
+    <div class="example">
+      <strong>Example:</strong><br>
+      25-yr-old man with 15 pushups → "Average" → <b>Beginner A</b><br>
+      45-yr-old woman with 15 pushups → "Good" → <b>Beginner A</b><br>
+      → Both follow the <b>same</b> "Beginner A" program.
+    </div>
+
+    <div class="count-box">
+      Classifications: <strong>6</strong><br>
+      Programs to build later: <strong>6</strong>
+    </div>
+
+    <div class="pros-cons-mini">
+      <div class="pc-row"><span class="pc-label pc-pro">pro</span> Simpler data model, easier to maintain.</div>
+      <div class="pc-row"><span class="pc-label pc-pro">pro</span> Only 6 program templates to write.</div>
+      <div class="pc-row"><span class="pc-label pc-con">con</span> 25-yr-old man and 55-yr-old woman do the identical daily plan.</div>
+      <div class="pc-row"><span class="pc-label pc-con">con</span> Recovery, volume, intensity can't adapt by age.</div>
+    </div>
+  </div>
+
+  <!-- OPTION B -->
+  <div class="col b">
+    <span class="option-tag">Option B</span>
+    <h3>Level × Age × Gender = cell</h3>
+    <p class="tagline">Each leaf splits into a matrix. A classification is a tuple, not a single level.</p>
+
+<div class="tree-mini">
+<span class="root-lbl">Evaluation</span>
+├── <span class="level-lbl">Beginner A</span>
+│   ├── M 20-29, F 20-29
+│   ├── M 30-39, F 30-39
+│   ├── M 40-49, F 40-49
+│   └── <span class="cell-lbl">... (8 cells per leaf, TBD)</span>
+├── <span class="level-lbl">Beginner B</span>  <span class="cell-lbl">(same split)</span>
+├── <span class="level-lbl">Intermediate A</span>  <span class="cell-lbl">(same split)</span>
+├── <span class="level-lbl">Intermediate B</span>  <span class="cell-lbl">(same split)</span>
+├── <span class="level-lbl">Pro</span>  <span class="cell-lbl">(same split)</span>
+└── <span class="level-lbl">Elite</span>  <span class="cell-lbl">(same split)</span>
+</div>
+
+    <div class="example">
+      <strong>Example:</strong><br>
+      25-yr-old man with 15 pushups → "Average" → <b>Beginner A, Male, 20-29</b><br>
+      45-yr-old woman with 15 pushups → "Good" → <b>Beginner A, Female, 40-49</b><br>
+      → Different programs tuned to age/gender.
+    </div>
+
+    <div class="count-box">
+      Classifications: <strong>6 × N × 2</strong> (e.g., 6 × 4 × 2 = <strong>48</strong> cells)<br>
+      Programs to build later: <strong>many</strong> (deferred — but planner needs to know now)
+    </div>
+
+    <div class="pros-cons-mini">
+      <div class="pc-row"><span class="pc-label pc-pro">pro</span> Programs can adapt recovery/volume by age.</div>
+      <div class="pc-row"><span class="pc-label pc-pro">pro</span> Matches Pierre's Input #1 wording ("classifications … based on 2 factors, age and gender").</div>
+      <div class="pc-row"><span class="pc-label pc-con">con</span> Many more program templates to write later.</div>
+      <div class="pc-row"><span class="pc-label pc-con">con</span> Age-band boundaries become a real decision (20-25? 20-29? 18-24?).</div>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center; margin-top: 28px; color:#888; font-size:12px; font-style:italic;">
+  Claude's recommendation: <strong style="color:#A855F7;">B</strong> — Pierre's Input #1 phrased it as "classifications for all based on 2 factors, age and gender", plural. Program generator is deferred but this decision shapes the schema we build now.
+</div>
+
+<div class="footer-note">PTApp evaluation brainstorm · 2026-04-21 · docs/superpowers/specs/2026-04-21-evaluation-system-brainstorm.md</div>
+</body>
+</html>
