@@ -1,7 +1,6 @@
 // Sanity script: asserts computeSlidingWindow output against known cases.
-// Run: node tmp/sanity-slidingwindow.mjs
-// Delete after v2.9 ships.
-import { computeSlidingWindow } from '../src/utils.js';
+// Run: node scripts/sanity/sanity-slidingwindow.mjs
+import { computeSlidingWindow } from '../../src/utils.js';
 
 const cases = [
   // Month N — anchored day-of-month

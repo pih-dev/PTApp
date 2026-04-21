@@ -1,11 +1,10 @@
 // Sanity: feed migrateData a synthetic v2 state, assert v3 shape is correct
 // and session counts are preserved.
-// Run: node tmp/sanity-migration.mjs
-// Delete after v2.9 ships.
+// Run: node scripts/sanity/sanity-migration.mjs
 // Vite-style import — utils.js uses ES modules.
-// Use import.meta.url directly — new URL('../src/utils.js', import.meta.url) already
+// Use import.meta.url directly — new URL('../../src/utils.js', import.meta.url) already
 // produces a file:// URL with the correct path; no need to re-wrap in pathToFileURL.
-const utilsUrl = new URL('../src/utils.js', import.meta.url).href;
+const utilsUrl = new URL('../../src/utils.js', import.meta.url).href;
 const { loadData, mergeBackup } = await import(utilsUrl);
 
 // Craft a v2 blob in localStorage-like shape

@@ -87,19 +87,19 @@ sendBookingWhatsApp(client, session, ..., sessions);
 ## TRAP: v2→v3 migration dropped active overrides for calendar-month clients (Apr 21 2026)
 **What happened:** Task 2 of v2.9 migrated every v2 client into a synthetic v3 package. The migration re-derived the "current legacy period start" to decide whether each client's v2 `overridePeriodStart` stamp was still active. But the re-derivation used `c.periodStart || today()` as the anchor and fed it to `computeSlidingWindow` — which is correct for the two "custom period" branches of v2 `getClientPeriod`, but WRONG for the default branch. v2's default (when both `periodStart` and `periodLength` are empty) returned calendar-month (1st to last), hardcoded, not sliding. For clients on the default, the override stamp was `YYYY-MM-01` while the migration computed `today()`-anchored day-of-month as the current-period start. They never matched. Every override on a calendar-month client was silently dropped.
 
-**How it was caught:** Pre-deploy live-migration diff (`tmp/sanity-live-migration.mjs`) ran PT's real v2 export through `migrateData` and reported "pre: 2 active overrides, post: 0". Two real overrides (Pierre Ghorra delta:+1, Elie Jabbour delta:-4) were about to be lost on deploy.
+**How it was caught:** Pre-deploy live-migration diff (`scripts/sanity/sanity-live-migration.mjs`) ran PT's real v2 export through `migrateData` and reported "pre: 2 active overrides, post: 0". Two real overrides (Pierre Ghorra delta:+1, Elie Jabbour delta:-4) were about to be lost on deploy.
 
-**Why the unit tests missed it:** `tmp/sanity-migration.mjs` had four synthetic clients. A, C had explicit `periodStart`. D had `periodLength` but no `periodStart` (testing the today()-anchor branch). **None tested the v2 default — no periodStart, no periodLength, with an override.** 100% of the PT's real overrides were in that untested branch. Added Client E to cover it.
+**Why the unit tests missed it:** `scripts/sanity/sanity-migration.mjs` had four synthetic clients. A, C had explicit `periodStart`. D had `periodLength` but no `periodStart` (testing the today()-anchor branch). **None tested the v2 default — no periodStart, no periodLength, with an override.** 100% of the PT's real overrides were in that untested branch. Added Client E to cover it.
 
 **Rule:** When migrating data from an old schema, re-read the OLD code exactly — don't trust design docs or memory. v2's `getClientPeriod` had three branches; the migration only faithfully reproduced two. Every branch of legacy logic needs a synthetic test fixture before deploy.
 
 **Additional rule:** Before any migration deploys, run it against a live data export and diff active-state counts. Unit tests on synthetic fixtures are necessary but not sufficient — real data has shapes synthetic data doesn't cover.
 
-**Pre-deploy migration gate:** `tmp/sanity-live-migration.mjs` is the permanent gate — **do not delete it** when cleaning up other sanity scripts. Workflow:
+**Pre-deploy migration gate:** `scripts/sanity/sanity-live-migration.mjs` is the permanent gate — **do not delete it** when cleaning up other sanity scripts. (Moved out of wipe-able `tmp/` in v2.9.3.) Workflow:
 1. PT exports backup via General → Export backup
 2. Pierre saves the export locally (do NOT commit — it contains real client data)
-3. Copy it to `tmp/live-snapshot-vX.Y.json` (gitignored via `tmp/live-snapshot-*.json`)
-4. Run `node tmp/sanity-live-migration.mjs` — script exits 1 on anomalies
+3. Copy it to `scripts/sanity/live-snapshot-vX.Y.json` (gitignored via `scripts/sanity/live-snapshot-*.json`)
+4. Run `node scripts/sanity/sanity-live-migration.mjs` — script exits 1 on anomalies
 5. After deploy, move the snapshot to `C:\projects\_archive\PTApp\migrations\YYYY-MM-DD-vX-to-vY-live-snapshot.json` for future forensic reference
 
 **Where it bit us:** `src/utils.js` `migrateData` v2→v3 block. Fix: branch pkgStart computation to match v2's three cases exactly (periodStart → anchor at periodStart, periodLength-only → today(), neither → 1st of earliest session's month so calendar-month periods align). Override check then uses the same pkgStart → windows match v2 exactly.

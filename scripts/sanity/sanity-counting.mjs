@@ -1,7 +1,6 @@
 // Sanity: verify counting and renewal detection on synthetic v3 clients.
-// Run: node tmp/sanity-counting.mjs
-// Delete after v2.9 ships.
-const utilsUrl = new URL('../src/utils.js', import.meta.url).href;
+// Run: node scripts/sanity/sanity-counting.mjs
+const utilsUrl = new URL('../../src/utils.js', import.meta.url).href;
 const utils = await import(utilsUrl);
 
 const { getEffectiveClientCount, isRenewalDue } = utils;

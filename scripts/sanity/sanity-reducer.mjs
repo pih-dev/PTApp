@@ -1,7 +1,6 @@
 // Sanity: verify EDIT_CLIENT logs package edits and RENEW_PACKAGE atomically renews.
-// Run: node tmp/sanity-reducer.mjs
-// Delete after v2.9 ships.
-const utilsUrl = new URL('../src/utils.js', import.meta.url).href;
+// Run: node scripts/sanity/sanity-reducer.mjs
+const utilsUrl = new URL('../../src/utils.js', import.meta.url).href;
 const { baseReducer, getCurrentPackage, getEffectivePeriod, getEffectiveSessionCount, parseSessionCountOverride } = await import(utilsUrl);
 
 function assert(cond, msg) {

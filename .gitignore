@@ -10,5 +10,9 @@ dist/
 
 # Live data snapshots contain PT's real client data — never commit.
 # Export these to C:\projects\_archive\PTApp\migrations\ for preservation.
+# Sanity scripts moved tmp/ → scripts/sanity/ in v2.9.3 (Apr 21 2026); keep
+# both patterns until any historical tmp/ workflow is fully retired.
 tmp/live-snapshot-*.json
 tmp/*-snapshot.json
+scripts/sanity/live-snapshot-*.json
+scripts/sanity/*-snapshot.json

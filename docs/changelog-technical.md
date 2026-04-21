@@ -4,6 +4,119 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.9.3 — Error boundary + sanity-script promotion (2026-04-21)
+
+**Trigger:** post-v2.9.2 backlog cleanup (`memory/project_todo_after_v292.md`). Two of the items rated highest-value-per-effort: top-level React error boundary (#3 in the backlog) and promoting the sanity scripts out of wipe-able `tmp/` (#8). No schema change, no migration, no new user feature.
+
+### 1 — Top-level React error boundary
+
+**Problem.** A render-time crash inside `<App />` (corrupted localStorage producing invalid state, future migration throwing, etc.) leaves the user with a blank white screen. Data is still in `localStorage['ptapp-data']`, but there's no UI path to it.
+
+**Fix.** New `src/components/ErrorBoundary.jsx` — class component (React requires class for `getDerivedStateFromError` / `componentDidCatch`). `main.jsx` wraps `<App />`:
+
+```jsx
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  </React.StrictMode>
+)
+```
+
+Recovery UI exposes three actions:
+- **Download backup** — `localStorage.getItem('ptapp-data')` → `Blob` → `URL.createObjectURL` → invisible `<a download>` click. Filename `ptapp-backup-YYYY-MM-DDTHH-MM-SS.json`.
+- **Try again** — `window.location.reload()`.
+- **Reset (erase local data)** — `localStorage.removeItem('ptapp-data')` + reload, gated by a `window.confirm()` with bilingual EN+AR copy.
+
+`componentDidCatch` logs the error to `console.error('[ErrorBoundary] App crashed:', error, info)` and stashes `info` in state for the collapsible `<details>` block at the bottom of the recovery UI.
+
+**Deliberate isolation from app modules.** The boundary cannot depend on anything that might itself be the source of crash:
+- No `i18n` import — copy is hardcoded EN+AR strings.
+- No reliance on `styles.css` or CSS variables — all styling inline (`s` object), safe dark palette (`#0f172a` bg, `#f1f5f9` text, `#2563EB` primary, `#EF4444` danger).
+- No shared components.
+
+`env(safe-area-inset-top/bottom)` honored; max-width 480px prevents stretch on desktop; 14px button vertical padding for thumb-friendly tap targets.
+
+### 2 — Sanity scripts moved `tmp/` → `scripts/sanity/`
+
+**Problem.** Per `~/.claude/CLAUDE.md`, `tmp/` is documented wipe-able dev scratch. The five sanity scripts are first-class regression assets — `sanity-reducer.mjs` was extended in v2.9.2 with the inline-confirm regression block specifically to catch the Schedule.jsx bug class. Leaving them in a wipe-able folder was a latent risk.
+
+**Move (git mv preserves history):**
+
+```
+tmp/sanity-counting.mjs        → scripts/sanity/sanity-counting.mjs
+tmp/sanity-live-migration.mjs  → scripts/sanity/sanity-live-migration.mjs
+tmp/sanity-migration.mjs       → scripts/sanity/sanity-migration.mjs
+tmp/sanity-reducer.mjs         → scripts/sanity/sanity-reducer.mjs
+tmp/sanity-slidingwindow.mjs   → scripts/sanity/sanity-slidingwindow.mjs
+```
+
+**Per-file edits:**
+
+| Edit | Pattern |
+|------|---------|
+| Run header | `// Run: node tmp/X.mjs` → `// Run: node scripts/sanity/X.mjs` |
+| utils import | `new URL('../src/utils.js', import.meta.url)` → `'../../src/utils.js'` |
+| Stale comments | Removed `// Delete after v2.9 ships.` lines (proven long-lived) |
+| Snapshot helper text (`sanity-live-migration.mjs`) | "save in tmp/" → "save in scripts/sanity/" |
+
+**`.gitignore`** — added the new snapshot patterns alongside the old ones (kept both until the historical `tmp/` workflow is fully retired):
+
+```
+tmp/live-snapshot-*.json
+tmp/*-snapshot.json
+scripts/sanity/live-snapshot-*.json
+scripts/sanity/*-snapshot.json
+```
+
+**Doc references updated:**
+- `CLAUDE.md` — Data Preservation rule (line 108), deploy section (lines 252–253), all updated to `scripts/sanity/`.
+- `docs/traps.md` — v2→v3 migration TRAP — three path mentions in the migration-gate workflow updated.
+
+**Doc references intentionally left alone:**
+- `docs/changelog-technical.md` v2.9.2 section, `docs/instructions-v2.9.2.md`, `docs/superpowers/plans/2026-04-20-session-contracts.md` — these are historical records; their `tmp/` references were accurate at write-time. Updating them retroactively would obscure history.
+
+### Verification
+
+```
+node scripts/sanity/sanity-slidingwindow.mjs   → 13 passed, 0 failed
+node scripts/sanity/sanity-migration.mjs       → all assertions pass (5 audit entries, A/B/C/D/E migration cases incl. Apr 21 calendar-month regression)
+node scripts/sanity/sanity-counting.mjs        → all assertions pass (sliding window + override + future-session)
+node scripts/sanity/sanity-reducer.mjs         → all assertions pass (incl. v2.9.2 inline-confirm regression block + RENEW_PACKAGE happy/auto/no-op paths)
+```
+
+`sanity-live-migration.mjs` not run — needs PT's local snapshot which is gitignored. To verify post-deploy, drop the latest export at `scripts/sanity/live-snapshot-v2.8.json` and run `node scripts/sanity/sanity-live-migration.mjs`.
+
+Bundle build + Node syntax check on extracted JS: PASS. Error boundary inert until React throws (by design — can't unit-test "blank screen recovery" without injecting a synthetic crash).
+
+### Files touched
+
+| File | Change |
+|------|--------|
+| `src/components/ErrorBoundary.jsx` | NEW (~140 lines) |
+| `src/main.jsx` | +5 / −1 (wrap App, comment) |
+| `src/App.jsx` | +1 / −1 (version bump) |
+| `scripts/sanity/sanity-counting.mjs` | renamed + path bump |
+| `scripts/sanity/sanity-live-migration.mjs` | renamed + path bump + helper text |
+| `scripts/sanity/sanity-migration.mjs` | renamed + path bump |
+| `scripts/sanity/sanity-reducer.mjs` | renamed + path bump |
+| `scripts/sanity/sanity-slidingwindow.mjs` | renamed + path bump |
+| `.gitignore` | +4 lines (new snapshot patterns + comment) |
+| `CLAUDE.md` | path updates (3 locations) |
+| `docs/traps.md` | path updates (4 locations in v2→v3 migration TRAP) |
+| `docs/instructions-v2.9.3.md` | NEW |
+| `docs/changelog-summary.md` | prepended v2.9.3 section |
+| `docs/changelog-technical.md` | prepended this section |
+
+### Lessons / process notes
+
+**Why this version is small.** Per `feedback_review_after_changes.md`, after the v2.9.2 hot patch ran the codebase through the post-deploy review wringer, the next session deliberately picked **two small wins** rather than a larger refactor (item #4 — shared `<SessionCard>`). The bigger refactor needs brainstorming on prop-shape unification before touching code; the boundary + script-move are mechanical and de-risk future work without introducing churn.
+
+**`tmp/` policy reaffirmed.** This move underscored the wider rule from `~/.claude/CLAUDE.md`: anything that must outlive cleanup goes outside `tmp/`. Live data snapshots → `_archive/`; durable dev tooling → `scripts/`.
+
+---
+
 ## v2.9.2 — Post-deploy review fixes (2026-04-21)
 
 **Trigger:** comprehensive code review run after v2.9 + v2.9.1 ship (per CLAUDE.md "review after 3+ feature changes" rule), plus a session-startup warning that CLAUDE.md had crossed the 40k char performance threshold (40.8k > 40.0k).

@@ -12,23 +12,16 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.9.2
-Post-deploy review fixes for the v2.9 contracts work. No schema change; bug + ergonomic fixes only.
-- **Critical fix — `Schedule.jsx` inline override:** Booking-confirm pencil-editor was still writing the legacy v2 root fields (`client.sessionCountOverride` / `overridePeriodStart`) which the v2→v3 migration deletes. Override silently no-op'd on every v3 client. Now reads/writes `pkg.sessionCountOverride` like `Clients.jsx`. Sanity-reducer regression test added (`tmp/sanity-reducer.mjs`). Cause logged in `docs/traps.md` under "Per-feature author-site drift".
-- **RenewalModal:** silently-no-op cross-device race surfaced — if the current package was already closed (e.g. another device renewed during the modal session), Confirm now shows an inline error and keeps the modal open.
-- **Schedule renewal-due useMemo:** `isRenewalDue` was O(clients × sessions) per keystroke while the booking form was open. Now precomputed once per render into a Set; consumed by both the auto-advance loop and the renewal banner.
-- **Sentinel `'9999-12-31'` removed:** `getPeriodSessionCount` already accepted `null` for "no upper bound"; both call sites now pass `null`.
-- **JSON.stringify equality on overrides replaced** with explicit field comparator in `EDIT_CLIENT` audit logging — key-order independent.
-- **Deprecated `getClientPeriod` shim deleted from `utils.js`** (no remaining callers in `src/`).
-- **Dashboard Upcoming filter** gained a `!s.time` defensive guard + DST/edge-case comment.
-- **Debug panel** now shows `auditLog.length` so the 10k revisit-trigger from `docs/app-health.md` is observable.
-- **i18n:** new keys `editCount` and `renewalAlreadyClosed` (en + ar).
-- **CLAUDE.md slim-down:** TRAPS extracted to `docs/traps.md`; older-version blocks reduced to one-line pointers.
+## Current Version: v2.9.3
+Two debt-reduction items pulled from the post-v2.9.2 backlog. No schema change, no migration, no new user feature.
+- **Top-level React error boundary:** new `src/components/ErrorBoundary.jsx` (class component) wraps `<App />` in `main.jsx`. Catches render-time crashes (corrupted localStorage, future migration throwing, etc.) and shows a recovery UI: **Download backup** (dumps `ptapp-data` to a timestamped JSON), **Try again** (reload), **Reset** (erase localStorage + reload, gated by EN+AR confirm). Deliberately uses no i18n / no CSS vars / no shared components — any of those could be the crash source. Inline-styled with safe dark palette so it works even if `styles.css` failed to load. Collapsible stack trace at bottom for debugging.
+- **Sanity scripts moved `tmp/` → `scripts/sanity/`:** all five (`sanity-reducer.mjs`, `sanity-counting.mjs`, `sanity-slidingwindow.mjs`, `sanity-migration.mjs`, `sanity-live-migration.mjs`) promoted out of wipe-able `tmp/` via `git mv`. Internal `../src/utils.js` paths bumped to `../../src/utils.js`. `// Run:` headers updated. `.gitignore` extended with `scripts/sanity/live-snapshot-*.json` + `scripts/sanity/*-snapshot.json` patterns. Doc references updated in CLAUDE.md + `docs/traps.md`; historical changelog/instructions/plans intentionally left at `tmp/` paths since they accurately describe write-time state.
 
-## Previous Version: v2.9.1
-Dashboard "Upcoming Sessions" filter rolls off completed sessions 2h past their end time. No-shows (past end, still `scheduled`) stay visible. One filter change in `Dashboard.jsx`. See `docs/instructions-v2.9.md` (combined v2.9 + v2.9.1 notes).
+## Previous Version: v2.9.2
+Post-deploy review fixes for v2.9. Critical: `Schedule.jsx` booking-confirm pencil now writes override into `pkg.sessionCountOverride` (was writing to legacy v2 root fields the migration deletes). Plus 5 important fixes (`RenewalModal` cross-device race surfacing, `Schedule` renewal-due `useMemo`, sentinel removal, override equality comparator, `getClientPeriod` shim deletion) + minor cleanups (Dashboard filter guard, debug panel `auditLog.length`, i18n keys). CLAUDE.md slimmed 41k→19.5k. See `docs/instructions-v2.9.2.md`.
 
 ## Older Versions (one-line pointers — full details in `docs/instructions-v*.md`)
+- **v2.9.1** — Dashboard Upcoming filter rolls off completed sessions 2h past their end time. No-shows stay visible. One filter change in `Dashboard.jsx`.
 - **v2.9** — Per-client session contracts. `client.packages: Array<Package>`, current open package = `packages[packages.length - 1]` with `end: null`. Optional `contractSize` triggers red renewal-due state + Dashboard "Due for renewal (N)" section. Two renewal paths: explicit (`RenewalModal.jsx`) + auto-advance on booking (`RENEW_PACKAGE` dispatched before `ADD_SESSION`). New top-level `state.auditLog` (append-only forensic log). Migration v2→v3 in `migrateData`. New utils: `computeSlidingWindow`, `getCurrentPackage`, `getEffectivePeriod`, `isRenewalDue`. WhatsApp placeholder `{packageProgress}` ("7/10" for contract packages).
 - **v2.8** — Per-client manual session count override (absolute or delta) authored in Clients edit form + booking-confirm pencil. Stored in package via v2.9. Long-press / right-click opens help popup. Parser contract: `parseSessionCountOverride` returns `{ type, value }`.
 - **v2.7** — Dashboard renamed "Today's Sessions" → "Upcoming Sessions". Single filter, both Expanded + Compact iterate the same array.
@@ -105,7 +98,7 @@ PTApp/
 - **Backward compatible always.** When the data schema changes, write a migration in `utils.js` (`migrateData`) that upgrades old data to the new format. Never require the user to re-enter anything.
 - **Version the data.** The `_dataVersion` field in the data tracks the schema version. Increment `DATA_VERSION` and add a migration step for each schema change.
 - **Preserve history.** Even if a feature is removed, keep the data that was collected. Archive it under a different key if needed, but never drop it.
-- **Test migrations.** Before deploying a schema change, run `tmp/sanity-live-migration.mjs` against the PT's real exported data — synthetic fixtures are necessary but not sufficient. (See `docs/traps.md` "v2→v3 migration dropped active overrides".)
+- **Test migrations.** Before deploying a schema change, run `scripts/sanity/sanity-live-migration.mjs` against the PT's real exported data — synthetic fixtures are necessary but not sufficient. (See `docs/traps.md` "v2→v3 migration dropped active overrides".)
 
 ---
 
@@ -249,8 +242,8 @@ git checkout master
 
 **Critical notes:**
 - Pushing to `master` alone does NOT deploy. The live site serves from `gh-pages`.
-- For schema changes, run `tmp/sanity-live-migration.mjs` against PT's real export BEFORE deploying.
-- Sanity scripts: `tmp/sanity-reducer.mjs`, `sanity-counting.mjs`, `sanity-slidingwindow.mjs`, `sanity-migration.mjs`, `sanity-live-migration.mjs`.
+- For schema changes, run `scripts/sanity/sanity-live-migration.mjs` against PT's real export BEFORE deploying.
+- Sanity scripts (in `scripts/sanity/`): `sanity-reducer.mjs`, `sanity-counting.mjs`, `sanity-slidingwindow.mjs`, `sanity-migration.mjs`, `sanity-live-migration.mjs`.
 
 ## Sibling Projects
 PTApp is the most mature web app in Pierre's project ecosystem. Its UI/UX patterns serve as reference for other projects:

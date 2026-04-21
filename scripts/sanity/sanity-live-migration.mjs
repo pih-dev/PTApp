@@ -1,9 +1,9 @@
 // Live-data migration diff: feed the PT's real v2 backup through migrateData,
 // assert no data is lost and every client ends up with a well-formed package.
-// Run: node tmp/sanity-live-migration.mjs
-// Delete after v2.9 ships.
+// Run: node scripts/sanity/sanity-live-migration.mjs
 //
-// Input: tmp/live-snapshot-v2.8.json — exported via General panel → Export backup.
+// Input: scripts/sanity/live-snapshot-v2.8.json — exported via General panel → Export backup.
+//        (Gitignored — never commit; contains real PT client data.)
 // Output: prints before/after summary + any field drops to stderr. Exits 1 on anomalies.
 
 import fs from 'fs';
@@ -15,7 +15,7 @@ const SNAPSHOT_PATH = path.join(__dirname, 'live-snapshot-v2.8.json');
 
 if (!fs.existsSync(SNAPSHOT_PATH)) {
   console.error(`✗ Missing ${SNAPSHOT_PATH}`);
-  console.error('  Export live data via General → Export backup, save as live-snapshot-v2.8.json in tmp/');
+  console.error('  Export live data via General → Export backup, save as live-snapshot-v2.8.json in scripts/sanity/');
   process.exit(1);
 }
 
@@ -49,7 +49,7 @@ global.localStorage = {
   setItem(k, v) { this._data[k] = v; },
 };
 
-const utilsUrl = new URL('../src/utils.js', import.meta.url).href;
+const utilsUrl = new URL('../../src/utils.js', import.meta.url).href;
 const { loadData } = await import(utilsUrl);
 
 const migrated = loadData();

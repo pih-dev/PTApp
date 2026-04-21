@@ -4,6 +4,18 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.9.3 — Safety Net + Test-Script Promotion (Apr 21, 2026)
+
+**Two debt-reduction items, no new user-visible features.** Both pulled from the backlog Pierre kept after v2.9.2 shipped earlier the same day.
+
+**1. The blank-screen problem is solved.** Until now, if the data in the browser ever got corrupted — by a manual edit, a half-finished write during a crash, or a buggy future migration — the app would render nothing. White screen, no buttons, no way to back up. Data was still safely in the browser, but the user had no way to reach it. v2.9.3 wraps the entire app in a "safety net" that catches any crash and shows a recovery screen instead. Three buttons: **Download backup** (saves your data to a file before you do anything else), **Try again** (reload — sometimes that fixes it), and **Reset** (erase everything and start fresh, with a double-confirm because there's no undo). The recovery screen is deliberately written in both English and Arabic, with no fancy styling, so it works even if the rest of the app is broken — including the language system itself.
+
+**2. The test scripts moved out of the disposable folder.** Five small Node scripts (`sanity-reducer.mjs`, `sanity-counting.mjs`, `sanity-slidingwindow.mjs`, `sanity-migration.mjs`, `sanity-live-migration.mjs`) verify the app's data math and reducers behave correctly. They were sitting in `tmp/` — a folder that any cleanup tool could wipe. They've already paid their rent: the v2.9.2 critical bug had a regression test added to one of them. Moved to `scripts/sanity/` so they're treated as the long-lived assets they are. No behaviour change to the app itself.
+
+**Nothing else changes.** No data migration, no new features, no UI redesign. v2.9.3 is purely "make the app safer to crash and treat the test code with respect."
+
+---
+
 ## v2.9.2 — Post-Deploy Review Fixes (Apr 21, 2026)
 
 **v2.9 had a silent bug nobody noticed.** Right after v2.9 (contracts) and v2.9.1 (evening rolloff) shipped, Pierre ran a comprehensive code review — the kind he does after 3+ feature changes per the project rules. The reviewer flagged a critical bug: the booking-confirm pencil-editor (the small `✎` next to the session count in the booking success popup) was writing the override into the **old v2 storage location** that the v2→v3 migration deletes. Result: every time the PT typed a quick override from the booking popup, it got erased on the next app load. Silently. The Clients tab edit form path worked fine — only the booking popup was broken. Caught only because the review re-read both code paths side-by-side.
