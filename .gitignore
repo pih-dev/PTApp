@@ -7,3 +7,8 @@ dist/
 !.claude/agents/
 .vite/
 .superpowers/
+
+# Live data snapshots contain PT's real client data — never commit.
+# Export these to C:\projects\_archive\PTApp\migrations\ for preservation.
+tmp/live-snapshot-*.json
+tmp/*-snapshot.json

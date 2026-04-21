@@ -256,7 +256,14 @@ sendBookingWhatsApp(client, session, ..., sessions);
 
 **Rule:** When migrating data from an old schema, re-read the OLD code exactly — don't trust design docs or memory. v2's `getClientPeriod` had three branches; the migration only faithfully reproduced two. Every branch of legacy logic needs a synthetic test fixture before deploy.
 
-**Additional rule:** Before any migration deploys, run it against a live data export (`tmp/live-snapshot-vX.Y.json`) and diff active-state counts. Unit tests on synthetic fixtures are necessary but not sufficient — real data has shapes synthetic data doesn't cover.
+**Additional rule:** Before any migration deploys, run it against a live data export and diff active-state counts. Unit tests on synthetic fixtures are necessary but not sufficient — real data has shapes synthetic data doesn't cover.
+
+**Pre-deploy migration gate:** `tmp/sanity-live-migration.mjs` is the permanent gate — **do not delete it** when cleaning up other sanity scripts. Workflow:
+1. PT exports backup via General → Export backup
+2. Pierre saves the export locally (do NOT commit — it contains real client data)
+3. Copy it to `tmp/live-snapshot-vX.Y.json` (gitignored via `tmp/live-snapshot-*.json`)
+4. Run `node tmp/sanity-live-migration.mjs` — script exits 1 on anomalies
+5. After deploy, move the snapshot to `C:\projects\_archive\PTApp\migrations\YYYY-MM-DD-vX-to-vY-live-snapshot.json` for future forensic reference
 
 **Where it bit us:** `src/utils.js` `migrateData` v2→v3 block. Fix: branch pkgStart computation to match v2's three cases exactly (periodStart → anchor at periodStart, periodLength-only → today(), neither → 1st of earliest session's month so calendar-month periods align). Override check then uses the same pkgStart → windows match v2 exactly.
 
