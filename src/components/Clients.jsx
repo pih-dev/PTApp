@@ -3,6 +3,7 @@ import Modal from './Modal';
 import { WhatsAppIcon, EditIcon, TrashIcon, PhoneIcon, ChevronIcon } from './Icons';
 import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, FOCUS_TAGS, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic, parseSessionCountOverride, isRenewalDue, getCurrentPackage, getEffectivePeriod, getPeriodSessionCount, getEffectiveClientCount, today } from '../utils';
 import OverrideHelpPopup from './OverrideHelpPopup';
+import RenewalModal from './RenewalModal';
 import SessionCountPair from './SessionCountPair';
 import { t, dateLocale } from '../i18n';
 
@@ -20,6 +21,7 @@ export default function Clients({ state, dispatch, lang }) {
   const [viewMonth, setViewMonth] = useState(() => localMonthStr(new Date()));
   const [deletePrompt, setDeletePrompt] = useState(null); // client to confirm delete
   const [overrideHelp, setOverrideHelp] = useState(false); // long-press or right-click on override input
+  const [renewClient, setRenewClient] = useState(null); // client pending renewal, null = modal hidden
   // long-press timer ref — 500ms hold opens the help popup (same pattern as debug panel)
   const overrideHoldRef = useRef(null);
 
@@ -229,7 +231,7 @@ export default function Clients({ state, dispatch, lang }) {
               </div>
               <div className="flex-row" onClick={e => e.stopPropagation()}>
                 {renewalDue && (
-                  <button className="btn-renew" onClick={() => alert('Renew modal coming in Task 8')}>
+                  <button className="btn-renew" onClick={(e) => { e.stopPropagation(); haptic(); setRenewClient(c); }}>
                     {t(lang, 'renewContract')}
                   </button>
                 )}
@@ -478,6 +480,14 @@ export default function Clients({ state, dispatch, lang }) {
         show={overrideHelp}
         onClose={() => setOverrideHelp(false)}
         onClear={() => setForm(p => ({ ...p, sessionOverride: '' }))}
+        lang={lang}
+      />
+      <RenewalModal
+        show={!!renewClient}
+        client={renewClient}
+        sessions={state.sessions}
+        onClose={() => setRenewClient(null)}
+        dispatch={dispatch}
         lang={lang}
       />
 
