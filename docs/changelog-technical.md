@@ -62,6 +62,64 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.9 — Technical changelog
+
+### Data model
+- `DATA_VERSION` 2 → 3.
+- New field on every client: `packages: Array<Package>`.
+- Package shape: `{ id, start, end, periodUnit, periodValue, contractSize, sessionCountOverride, notes, closedAt, closedBy }`.
+- Removed from client root: `periodStart`, `periodLength`, `sessionCountOverride`, `overridePeriodStart`.
+- New top-level array: `state.auditLog: Array<LogEntry>`.
+- Log entry shape: `{ id, ts, clientId, clientName, event, packageId, newPackageId, before, after, trigger }`.
+
+### New exports from utils.js
+- `computeSlidingWindow(anchor, unit, value, refDate)` — generalized anchored-period math.
+- `parseLegacyPeriodLength(legacyValue)` — v2→v3 migration helper.
+- `getCurrentPackage(client)` — last open package, with safe default.
+- `getEffectivePeriod(pkg, refDate)` — returns `{start, end}`; contract packages return `{start, null}`.
+- `isRenewalDue(client, sessions)` — high-level predicate for UI red-state detection.
+
+### Rewritten
+- `getEffectiveSessionCount`, `getEffectiveClientCount` — now read from current package.
+- `getSessionOrdinal`, `getPeriodSessionCount` — support null period end for open-ended contract packages.
+- `fillTemplate` — handles new `{packageProgress}` placeholder; `{periodEnd}` falls back to sliding window end when the current package has no fixed end.
+- `getClientPeriod` — now a thin compat wrapper around `getCurrentPackage` + `getEffectivePeriod`.
+
+### New reducer action
+- `RENEW_PACKAGE` — atomic close-and-open of current package + one auditLog append. Payload: `{ clientId, newPackageStart, newContractSize, newPeriodUnit, newPeriodValue, newNotes, closedBy, trigger }`.
+
+### Enhanced reducer action
+- `EDIT_CLIENT` — detects current-package field changes and appends `package_edited` / `override_set` / `override_cleared` entries to auditLog atomically.
+
+### Migration v2 → v3 (in migrateData)
+- Synthesizes one initial package per client from legacy fields. Anchors at `periodStart` ?? earliest session date ?? today.
+- Active v2 overrides (with matching `overridePeriodStart`) migrated inside the package.
+- Stale v2 overrides dropped (were inert in v2 anyway).
+- Seeds `state.auditLog[]`; appends one `package_created` entry per migrated client.
+
+### Sync impact
+- `mergeData` now also merges `auditLog` via `mergeById`. Append-only semantics make concurrent-device additions safe.
+
+### UI
+- New component `RenewalModal.jsx` — shared between Clients and Dashboard.
+- `Clients.jsx` — edit form billing section rewritten (value+unit split, contractSize field, status line); card red state + inline Renew button.
+- `Dashboard.jsx` — "Due for renewal (N)" section above Upcoming Sessions.
+- `Schedule.jsx` — pre-dispatch renewal check in `saveSession`; confirm popup banner.
+- `styles.css` — `.card-renewal-due`, `.renewal-pill`, `.btn-renew`, `.dashboard-renewal-section`, `.renewal-row`, `.booking-renewal-banner`.
+- `i18n.js` — ~19 new keys (en + ar).
+
+### New docs
+- `docs/app-health.md` — Feature Overhead Register (audit log, future accounting).
+- `docs/instructions-v2.9.md` — version user doc.
+
+### Non-automated verification
+- `tmp/sanity-slidingwindow.mjs` — computeSlidingWindow cases.
+- `tmp/sanity-migration.mjs` — v2→v3 transformation.
+- `tmp/sanity-counting.mjs` — counting + renewal-due detection.
+- Delete `tmp/` directory after release.
+
+---
+
 ## v2.7 — Upcoming Sessions on Dashboard (2026-04-20)
 
 **Problem:** The Dashboard's main section was labeled "Today's Sessions" and filtered on `s.date === today()`. At 8pm on Apr 19, a session scheduled for Apr 20 07:00 was not visible on the home screen until midnight crossed. The PT's day-ahead planning window was blind. The Compact view already showed upcoming sessions (filtered `s.date >= today()`, limited to 5) but it was the secondary view most users don't switch to.

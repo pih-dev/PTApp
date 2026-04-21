@@ -315,3 +315,15 @@ These rules emerged from building the app and watching how the PT actually uses 
 3. **Everything counts.** The PT won't consistently mark sessions as confirmed or completed — he's busy training. So every session counts toward the monthly total. Only cancelled-and-forgiven sessions don't count.
 
 4. **Don't solve imaginary problems.** This is a single-user app on one phone. Edge cases that require multiple simultaneous users or real-time sync don't apply yet.
+
+## v2.9 — Session Contracts & Package History
+
+**Core:** Optional per-client contract size (default 10 when filled in); billing period extends past time window until contract is met; red "Renewal due" flag fires when hit; renewal via explicit button or auto-advance on next booking.
+
+**Data model:** Every client now has `packages[]` — first-class history of past + current packages. Root `periodStart` / `periodLength` / override fields moved inside the current package. DATA_VERSION bumped 2→3, migration automatic and non-destructive.
+
+**UI:** Edit form billing section rewrites period as unit+value, adds contract field, status line "Package #N · Session X/Y". Red state on Clients cards + Dashboard "Due for renewal" section + booking confirm banner. Shared RenewalModal used from both Clients and Dashboard.
+
+**Forensics:** `state.auditLog[]` captures every package lifecycle event. Append-only, syncs via mergeById union. Inspect via exported backup.
+
+**New doc:** `docs/app-health.md` — Feature Overhead Register tracks knobs on medium/heavy-path features (audit log, future accounting).

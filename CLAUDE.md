@@ -12,7 +12,25 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.8
+## Current Version: v2.9
+- Per-client session contracts replace root-level `periodStart` / `periodLength` / `sessionCountOverride` / `overridePeriodStart`
+  - Every client now has `packages: Array<Package>` with shape `{ id, start, end, periodUnit, periodValue, contractSize, sessionCountOverride, notes, closedAt, closedBy }`
+  - Current open package is `packages[packages.length - 1]` with `end: null`
+  - Optional contract size (blank = no contract; billing period still uses value+unit as before). When set, period **extends** until contract met — no month-end reset.
+  - Red "Renewal due" state fires on Clients cards and a new Dashboard "Due for renewal (N)" section when auto session count hits contractSize.
+  - Two renewal paths: (a) explicit Renew button → opens shared `RenewalModal.jsx`; (b) auto-advance on booking — `RENEW_PACKAGE` dispatched BEFORE `ADD_SESSION` so the new booking falls into the new package as session 1.
+  - Booking form in Schedule shows a warning banner ("Package limit hit — booking this session will auto-renew") when any selected client is renewal-due.
+- New reducer action `RENEW_PACKAGE` — atomic close-and-open of current package + one `auditLog` append. Payload: `{ clientId, newPackageStart, newContractSize, newPeriodUnit, newPeriodValue, newNotes, closedBy, trigger }`.
+- Enhanced `EDIT_CLIENT` — detects current-package field changes and stamps `package_edited` / `override_set` / `override_cleared` auditLog entries.
+- New top-level `state.auditLog: Array<LogEntry>` — append-only forensic log of every package lifecycle event. Merged via `mergeById` in sync. Visible in exported backup JSON.
+- Migration v2 → v3: automatic, non-destructive. Synthesizes one initial package per client from legacy fields (`periodStart` ?? earliest session date ?? today anchor). Active v2 overrides migrated inside the package; stale ones dropped (were inert in v2). Seeds `auditLog` with one `package_created` entry per migrated client.
+- WhatsApp placeholders: `{number}` and `{periodEnd}` unchanged. New opt-in `{packageProgress}` renders as `"7/10"` for contract packages.
+- New utils exports: `computeSlidingWindow`, `parseLegacyPeriodLength`, `getCurrentPackage`, `getEffectivePeriod`, `isRenewalDue`. `getClientPeriod` now a thin compat wrapper.
+- New component: `RenewalModal.jsx` (shared between Clients tab and Dashboard).
+- New doc: `docs/app-health.md` — Feature Overhead Register tracks audit-log retention + future accounting knobs.
+- Debug panel shows v2.9
+
+## Previous Version: v2.8
 - Per-client manual session count override for the current billing period
   - Absolute (`10`) or delta (`+1`, `-1`) values. Empty / `+0` / `-0` / junk → null.
   - Authored on the client edit form AND inline in the booking confirm popup (pencil toggle).
@@ -27,7 +45,7 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - New shared components: `SessionCountPair`, `OverrideHelpPopup`
 - Debug panel shows v2.8
 
-## Previous Version: v2.7
+## Older Version: v2.7
 - Dashboard home screen shows "Upcoming Sessions" instead of "Today's Sessions"
   - Single `upcoming` filter: `status !== 'cancelled' && date >= today()`, sorted date+time asc
   - Both Expanded and Compact views iterate the same array — Compact's 5-session cap is gone
@@ -133,6 +151,7 @@ PTApp/
 │       ├── CancelPrompt.jsx # Cancel session modal (count/forgive)
 │       └── TokenSetup.jsx   # GitHub token setup (first-run)
 └── docs/               # Versioned instructions, changelogs, guides
+    ├── app-health.md   # Feature Overhead Register, performance/size budgets
 ```
 
 ## Data Preservation Rules (CRITICAL)
