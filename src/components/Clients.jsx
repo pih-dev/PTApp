@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Modal from './Modal';
 import { WhatsAppIcon, EditIcon, TrashIcon, PhoneIcon, ChevronIcon } from './Icons';
-import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, FOCUS_TAGS, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic, parseSessionCountOverride, getCurrentPackage, getEffectivePeriod, getPeriodSessionCount, getEffectiveClientCount, isRenewalDue, today } from '../utils';
+import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, FOCUS_TAGS, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic, parseSessionCountOverride, getCurrentPackage, getEffectivePeriod, getPeriodSessionCount, getEffectiveClientCount, today } from '../utils';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import SessionCountPair from './SessionCountPair';
 import { t, dateLocale } from '../i18n';
@@ -11,7 +11,7 @@ export default function Clients({ state, dispatch, lang }) {
   const [editingClient, setEditingClient] = useState(null);
   const [form, setForm] = useState({
     name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '',
-    periodStart: '', periodUnit: 'month', periodValue: 1, contractSize: '',
+    periodStart: '', periodUnit: 'month', periodValue: '1', contractSize: '',
     sessionOverride: '',
   });
   const [search, setSearch] = useState('');
@@ -26,7 +26,7 @@ export default function Clients({ state, dispatch, lang }) {
   const openAdd = () => {
     setForm({
       name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '',
-      periodStart: '', periodUnit: 'month', periodValue: 1, contractSize: '',
+      periodStart: '', periodUnit: 'month', periodValue: '1', contractSize: '',
       sessionOverride: '',
     });
     setEditingClient(null);
@@ -48,7 +48,7 @@ export default function Clients({ state, dispatch, lang }) {
       birthdate: c.birthdate || '', notes: c.notes || '',
       periodStart: pkg.start || '',
       periodUnit: pkg.periodUnit || 'month',
-      periodValue: pkg.periodValue || 1,
+      periodValue: String(pkg.periodValue || 1),
       contractSize: pkg.contractSize == null ? '' : String(pkg.contractSize),
       sessionOverride: overrideStr,
     });
@@ -390,7 +390,8 @@ export default function Clients({ state, dispatch, lang }) {
             <div className="field" style={{ flex: 1 }}>
               <label className="field-label">{t(lang, 'periodLengthValue')}</label>
               <input type="number" min="1" className="input" value={form.periodValue}
-                onChange={e => setForm(p => ({ ...p, periodValue: +e.target.value || 1 }))} />
+                onChange={e => setForm(p => ({ ...p, periodValue: e.target.value.replace(/[^0-9]/g, '') }))}
+                onBlur={e => { if (!e.target.value || +e.target.value < 1) setForm(p => ({ ...p, periodValue: '1' })); }} />
             </div>
             <div className="field" style={{ flex: 1 }}>
               <label className="field-label">{t(lang, 'periodLengthUnit')}</label>
