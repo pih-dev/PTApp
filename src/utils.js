@@ -178,17 +178,6 @@ export const PERIOD_OPTIONS = [
   { value: '1week', label: '1 Week' },
 ];
 
-// DEPRECATED in v2.9 — kept as a thin compat wrapper. New code should use
-// getCurrentPackage + getEffectivePeriod. Returns the current effective period
-// for a client as of dateStr, derived from the current package.
-export const getClientPeriod = (client, dateStr) => {
-  const pkg = getCurrentPackage(client);
-  const { start, end } = getEffectivePeriod(pkg, dateStr);
-  // Old callers expect non-null end. For open-ended contract packages, return today as end
-  // (caller was computing "current period end for display" which is moot for contract packages).
-  return { start, end: end || today() };
-};
-
 // Count sessions for a client in a given month (YYYY-MM) — used for calendar month views
 // Includes: scheduled, confirmed, completed, and cancelled-but-counted sessions
 export const getMonthlySessionCount = (sessions, clientId, month) => {
@@ -408,7 +397,7 @@ export const getEffectiveSessionCount = (client, session, sessions) => {
 export const getEffectiveClientCount = (client, sessions, refDateStr = today()) => {
   const pkg = getCurrentPackage(client);
   const period = getEffectivePeriod(pkg, refDateStr);
-  const auto = getPeriodSessionCount(sessions, client.id, period.start, period.end || '9999-12-31');
+  const auto = getPeriodSessionCount(sessions, client.id, period.start, period.end);
 
   const override = pkg.sessionCountOverride;
   if (!override || override.periodStart !== period.start) {
@@ -697,9 +686,16 @@ export function baseReducer(state, action) {
         // Detect override change → override_set or override_cleared
         const oldOv = oldPkg.sessionCountOverride;
         const newOv = newPkg.sessionCountOverride;
-        // JSON.stringify used for structural equality. Key order must match — all override
-        // writers must construct the shape in the same literal order { type, value, periodStart }.
-        if (JSON.stringify(oldOv) !== JSON.stringify(newOv)) {
+        // Explicit field comparison (key-order independent — the JSON.stringify approach was
+        // fragile because override writers across the codebase constructed the shape in
+        // different orders, e.g. spread-then-append in one site vs literal in another).
+        const ovEqual =
+          (oldOv == null && newOv == null) ||
+          (oldOv != null && newOv != null
+            && oldOv.type === newOv.type
+            && oldOv.value === newOv.value
+            && oldOv.periodStart === newOv.periodStart);
+        if (!ovEqual) {
           logEntries.push({
             id: 'log_' + genId(),
             ts: stamp,

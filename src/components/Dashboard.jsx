@@ -41,6 +41,12 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
       if (s.status === 'cancelled') return false;
       if (s.date < todayStr) return false;
       if (s.status === 'completed') {
+        // Missing/empty time would yield Invalid Date → NaN → comparison always false →
+        // the session would stay in Upcoming forever. The booking form requires a time so
+        // this is only a defensive guard for legacy/imported data, but cheap to add.
+        // DST note: in a spring-forward / fall-back hour the wall-clock end can drift ±1h
+        // against the 2h window. Acceptable — the rolloff isn't a precise deadline.
+        if (!s.time) return false;
         const endMs = new Date(`${s.date}T${s.time}`).getTime() + (s.duration || 45) * 60000;
         if (nowMs - endMs >= TWO_HOURS_MS) return false;
       }

@@ -229,11 +229,14 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.9.1</div>
+          <div><strong>Version:</strong> v2.9.2</div>
           <div><strong>Sync:</strong> {syncStatus}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>
           <div><strong>Clients:</strong> {state.clients?.length || 0}</div>
+          {/* v2.9.2: surface auditLog growth so the 10k revisit-trigger from
+              docs/app-health.md is observable in production. */}
+          <div><strong>Audit log:</strong> {state.auditLog?.length || 0}</div>
           <div><strong>Modified:</strong> {state._lastModified ? new Date(state._lastModified).toLocaleString() : 'none'}</div>
           <div><strong>Token:</strong> {getToken() ? `${getToken().slice(0,4)}...${getToken().slice(-4)}` : 'none'}</div>
         </div>

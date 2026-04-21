@@ -11,6 +11,10 @@ export default function RenewalModal({ show, client, sessions, onClose, dispatch
   const [periodUnit, setPeriodUnit] = useState('month');
   const [periodValue, setPeriodValue] = useState('1');
   const [notes, setNotes] = useState('');
+  // v2.9.2: surface the case where another device already renewed while this modal was open.
+  // The reducer silently no-ops if the current package is already closed (utils.js:769) — without
+  // this UI cue the PT would tap Confirm, the modal would close, and nothing would have happened.
+  const [error, setError] = useState('');
 
   // Initialize defaults on open — derived from client's current package + latest session
   useEffect(() => {
@@ -30,11 +34,15 @@ export default function RenewalModal({ show, client, sessions, onClose, dispatch
       defaultStart = localDateStr(d);
     }
 
+    // Default to the previous contract size when renewing one. For brand-new contracts
+    // (PT enabling contracts on a previously open-ended client), default to 10 — the PT's
+    // typical pre-paid package. PT can always edit before confirming.
     setContractSize(pkg.contractSize != null ? String(pkg.contractSize) : '10');
     setPeriodStart(defaultStart);
     setPeriodUnit(pkg.periodUnit || 'month');
     setPeriodValue(String(pkg.periodValue || 1));
     setNotes('');
+    setError('');
     // `sessions` is intentionally excluded from deps. It's the full app-state array —
     // every debounced sync (every ~1s on unstable Beirut internet) creates a new
     // reference, which would re-run this effect and clobber the PT's in-progress
@@ -49,6 +57,14 @@ export default function RenewalModal({ show, client, sessions, onClose, dispatch
     const cs = contractSize.trim();
     const contractNum = cs === '' ? null : (Number.isInteger(+cs) && +cs >= 1 ? +cs : null);
     if (!periodStart) return;
+    // Pre-check the reducer's silent-noop condition: if the current package was already
+    // closed (e.g. another device renewed during the modal session), surface that and
+    // keep the modal open so the PT understands nothing happened.
+    const livePkg = getCurrentPackage(client);
+    if (livePkg && livePkg.end != null) {
+      setError(t(lang, 'renewalAlreadyClosed'));
+      return;
+    }
     dispatch({
       type: 'RENEW_PACKAGE',
       payload: {
@@ -71,6 +87,11 @@ export default function RenewalModal({ show, client, sessions, onClose, dispatch
       onClose={onClose}
       action={<button className="btn-primary" onClick={confirm}>{t(lang, 'confirmRenewal')}</button>}
     >
+      {error && (
+        <div className="booking-renewal-banner" style={{ marginBottom: 12 }}>
+          ⚠️ {error}
+        </div>
+      )}
       <div className="field">
         <label className="field-label">{t(lang, 'contractSize')}</label>
         <input type="number" min="1" className="input" value={contractSize}

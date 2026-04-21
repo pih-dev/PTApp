@@ -440,7 +440,7 @@ export default function Clients({ state, dispatch, lang }) {
             };
             const period = getEffectivePeriod(pkgForPeriod, today());
             const auto = editingClient
-              ? getPeriodSessionCount(state.sessions, editingClient.id, period.start, period.end || '9999-12-31')
+              ? getPeriodSessionCount(state.sessions, editingClient.id, period.start, period.end)
               : 0;
             const parsed = parseSessionCountOverride(form.sessionOverride);
             const effective = parsed

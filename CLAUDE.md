@@ -12,82 +12,29 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.9.1
-- Dashboard "Upcoming Sessions": a session is hidden once it is `completed` AND its end time is 2+ hours in the past. Keeps just-finished sessions visible briefly, then clears so an evening glance shows tomorrow near the top. No-shows (past end, still `scheduled`) stay visible — the PT still needs to act on them. One filter change in `src/components/Dashboard.jsx`, no schema / i18n / CSS changes. `Date.now()` captured once above the filter; end-time computed with local-time `new Date(\`${s.date}T${s.time}\`)` to avoid the UTC trap. Applies to both Expanded and Compact views (they share the `upcoming` array). Debug panel shows v2.9.1.
+## Current Version: v2.9.2
+Post-deploy review fixes for the v2.9 contracts work. No schema change; bug + ergonomic fixes only.
+- **Critical fix — `Schedule.jsx` inline override:** Booking-confirm pencil-editor was still writing the legacy v2 root fields (`client.sessionCountOverride` / `overridePeriodStart`) which the v2→v3 migration deletes. Override silently no-op'd on every v3 client. Now reads/writes `pkg.sessionCountOverride` like `Clients.jsx`. Sanity-reducer regression test added (`tmp/sanity-reducer.mjs`). Cause logged in `docs/traps.md` under "Per-feature author-site drift".
+- **RenewalModal:** silently-no-op cross-device race surfaced — if the current package was already closed (e.g. another device renewed during the modal session), Confirm now shows an inline error and keeps the modal open.
+- **Schedule renewal-due useMemo:** `isRenewalDue` was O(clients × sessions) per keystroke while the booking form was open. Now precomputed once per render into a Set; consumed by both the auto-advance loop and the renewal banner.
+- **Sentinel `'9999-12-31'` removed:** `getPeriodSessionCount` already accepted `null` for "no upper bound"; both call sites now pass `null`.
+- **JSON.stringify equality on overrides replaced** with explicit field comparator in `EDIT_CLIENT` audit logging — key-order independent.
+- **Deprecated `getClientPeriod` shim deleted from `utils.js`** (no remaining callers in `src/`).
+- **Dashboard Upcoming filter** gained a `!s.time` defensive guard + DST/edge-case comment.
+- **Debug panel** now shows `auditLog.length` so the 10k revisit-trigger from `docs/app-health.md` is observable.
+- **i18n:** new keys `editCount` and `renewalAlreadyClosed` (en + ar).
+- **CLAUDE.md slim-down:** TRAPS extracted to `docs/traps.md`; older-version blocks reduced to one-line pointers.
 
-## Previous Version: v2.9
-- Per-client session contracts replace root-level `periodStart` / `periodLength` / `sessionCountOverride` / `overridePeriodStart`
-  - Every client now has `packages: Array<Package>` with shape `{ id, start, end, periodUnit, periodValue, contractSize, sessionCountOverride, notes, closedAt, closedBy }`
-  - Current open package is `packages[packages.length - 1]` with `end: null`
-  - Optional contract size (blank = no contract; billing period still uses value+unit as before). When set, period **extends** until contract met — no month-end reset.
-  - Red "Renewal due" state fires on Clients cards and a new Dashboard "Due for renewal (N)" section when auto session count hits contractSize.
-  - Two renewal paths: (a) explicit Renew button → opens shared `RenewalModal.jsx`; (b) auto-advance on booking — `RENEW_PACKAGE` dispatched BEFORE `ADD_SESSION` so the new booking falls into the new package as session 1.
-  - Booking form in Schedule shows a warning banner ("Package limit hit — booking this session will auto-renew") when any selected client is renewal-due.
-- New reducer action `RENEW_PACKAGE` — atomic close-and-open of current package + one `auditLog` append. Payload: `{ clientId, newPackageStart, newContractSize, newPeriodUnit, newPeriodValue, newNotes, closedBy, trigger }`.
-- Enhanced `EDIT_CLIENT` — detects current-package field changes and stamps `package_edited` / `override_set` / `override_cleared` auditLog entries.
-- New top-level `state.auditLog: Array<LogEntry>` — append-only forensic log of every package lifecycle event. Merged via `mergeById` in sync. Visible in exported backup JSON.
-- Migration v2 → v3: automatic, non-destructive. Synthesizes one initial package per client from legacy fields (`periodStart` ?? earliest session date ?? today anchor). Active v2 overrides migrated inside the package; stale ones dropped (were inert in v2). Seeds `auditLog` with one `package_created` entry per migrated client.
-- WhatsApp placeholders: `{number}` and `{periodEnd}` unchanged. New opt-in `{packageProgress}` renders as `"7/10"` for contract packages.
-- New utils exports: `computeSlidingWindow`, `parseLegacyPeriodLength`, `getCurrentPackage`, `getEffectivePeriod`, `isRenewalDue`. `getClientPeriod` now a thin compat wrapper.
-- New component: `RenewalModal.jsx` (shared between Clients tab and Dashboard).
-- New doc: `docs/app-health.md` — Feature Overhead Register tracks audit-log retention + future accounting knobs.
-- Debug panel shows v2.9
+## Previous Version: v2.9.1
+Dashboard "Upcoming Sessions" filter rolls off completed sessions 2h past their end time. No-shows (past end, still `scheduled`) stay visible. One filter change in `Dashboard.jsx`. See `docs/instructions-v2.9.md` (combined v2.9 + v2.9.1 notes).
 
-## Older Version: v2.8
-- Per-client manual session count override for the current billing period
-  - Absolute (`10`) or delta (`+1`, `-1`) values. Empty / `+0` / `-0` / junk → null.
-  - Authored on the client edit form AND inline in the booking confirm popup (pencil toggle).
-  - Clears automatically on billing period rollover — no cleanup job; display logic just ignores stale `overridePeriodStart`.
-  - Displayed as `#12 → 13` on every session card (Dashboard expanded+compact, Schedule day view, Sessions list) and `(12→13)` on booking client chips.
-  - Applied to every WhatsApp template with the `{number}` placeholder via `fillTemplate`.
-  - New fields: `sessionCountOverride` (`{ type: 'absolute' | 'delta', value }`), `overridePeriodStart` — both optional, no migration.
-  - Parser contract: `parseSessionCountOverride` returns `{ type, value }`. Consumers MUST read `.type`, not `.mode` (the first implementation pass used `.mode` and silently mis-read saved deltas — caught during static review).
-  - Long-press (500ms) the override input or right-click on desktop → help popup with Clear.
-  - Existing `.session-count` class on client list cards bumped from 0.5 → 0.72 alpha for readability.
-- New utils: `parseSessionCountOverride`, `getEffectiveSessionCount`, `getEffectiveClientCount`
-- New shared components: `SessionCountPair`, `OverrideHelpPopup`
-- Debug panel shows v2.8
-
-## Older Version: v2.7
-- Dashboard home screen shows "Upcoming Sessions" instead of "Today's Sessions"
-  - Single `upcoming` filter: `status !== 'cancelled' && date >= today()`, sorted date+time asc
-  - Both Expanded and Compact views iterate the same array — Compact's 5-session cap is gone
-  - Section title: "📅 Upcoming Sessions (N)" with count in both views
-  - Expanded cards gain a date line ("Today" or formatted date like "Apr 20") so cards are distinguishable across days
-  - Today's completed sessions stay visible (day-progress useful); roll off at midnight
-  - Stat card "Today" unchanged (workload-density metric, not an action queue)
-- New i18n key `today` (en: "Today", ar: "اليوم")
-
-## Older Version: v2.6
-- Bulletproof multi-device sync (Apr 19 Hala Mouzanar data loss fix)
-  - Per-record `_modified` timestamps stamped by reducer on every add/edit
-  - `mergeData()` union-by-ID merge: PT's fresher edits always win over stale devices
-  - `pushRemoteData` merges on 409 conflict instead of blind-overwriting
-  - All four silent `.catch(() => {})` in App.jsx replaced with proper error surfacing
-  - Single `reconcile()` function for initial load + retry handler
-
-## Older Version: v2.5
-- Blue accent color (both themes)
-- Light theme redesigned: deep steel blue background (#94A8C8→#788DB4), opaque white-blue cards, glossy frosted glass header/nav (rgba(30,64,175,0.15) + blur 28px + saturate 1.4), blue-tinted modals
-- Dark theme: blue-tinted header/nav glass, nav buttons 0.75 opacity (readable), active tab #3B82F6, micro-polished with transitions, button press feel, spring modals
-- Solid status badges (blue/green/red on white)
-- Solid blue active filter tabs with smooth transitions
-- Red delete buttons (solid, white icon)
-- Card shadows for depth, cards push down on tap
-- Nav active indicator dot (blue pill under active tab)
-- Session notes blue hue (on focus + when has content)
-- Haptic feedback on Android (vibrate on taps)
-- Horizontal dumbbell logo (was vertical water-jug shape)
-- Auto-complete 1hr after session end (was immediate)
-- i18n (English + Arabic)
-- Todo list with checkboxes in General panel
-- Language/theme toggles live in General panel (moved from header Apr 7 for iPhone reachability)
-- All modals have drag handle + swipe-down-to-dismiss gesture (Apr 7, standard bottom-sheet pattern)
-- Sync status indicator (green dot = synced, blue pulse = syncing, red pulse = failed — tap to retry)
-- Three-guard stale-push prevention with `_lastModified` timestamps (Apr 13 data loss fix)
-- Debug panel (long-press ⋮): version, sync state, session/client count, token snippet
-- PWA manifest + apple-mobile-web-app-capable for iOS standalone mode
-- See `docs/design-system.md` for comprehensive visual design documentation
+## Older Versions (one-line pointers — full details in `docs/instructions-v*.md`)
+- **v2.9** — Per-client session contracts. `client.packages: Array<Package>`, current open package = `packages[packages.length - 1]` with `end: null`. Optional `contractSize` triggers red renewal-due state + Dashboard "Due for renewal (N)" section. Two renewal paths: explicit (`RenewalModal.jsx`) + auto-advance on booking (`RENEW_PACKAGE` dispatched before `ADD_SESSION`). New top-level `state.auditLog` (append-only forensic log). Migration v2→v3 in `migrateData`. New utils: `computeSlidingWindow`, `getCurrentPackage`, `getEffectivePeriod`, `isRenewalDue`. WhatsApp placeholder `{packageProgress}` ("7/10" for contract packages).
+- **v2.8** — Per-client manual session count override (absolute or delta) authored in Clients edit form + booking-confirm pencil. Stored in package via v2.9. Long-press / right-click opens help popup. Parser contract: `parseSessionCountOverride` returns `{ type, value }`.
+- **v2.7** — Dashboard renamed "Today's Sessions" → "Upcoming Sessions". Single filter, both Expanded + Compact iterate the same array.
+- **v2.6** — Bulletproof multi-device sync. Per-record `_modified` timestamps; `mergeData` union-by-ID; `pushRemoteData` merges on 409 instead of blind-overwriting; `reconcile()` for initial load + retry handler. Apr 19 Hala Mouzanar data loss fix.
+- **v2.5** — Blue accent color, redesigned light theme, sync status indicator, three-guard stale-push prevention, iOS PWA standalone (`apple-mobile-web-app-capable` + `manifest.json`), debug panel. Apr 13 data loss fix. See `docs/design-system.md` for visual design.
+- **v2.4** — i18n + RTL, dark/light themes, todo list, swipe-to-dismiss modals, language/theme toggles moved to General panel for iPhone reachability.
 
 ## Roadmap
 
@@ -100,9 +47,8 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 ### Stage 2 — Native app (FUTURE)
 - Wrap web app with Capacitor for iOS/Android native builds
 - Publish to Apple App Store ($99/yr individual) and Google Play ($25 one-time)
-- No company registration needed — individual developer accounts work
 - Requires a final app name (not "PTApp")
-- See `docs/stage2-publishing-guide.md` for full details (costs, liability, prerequisites)
+- See `docs/stage2-publishing-guide.md` for full details
 
 ## Core Features
 - **Client Management**: Add/edit/delete clients with name, nickname, phone (with country code), gender, birthdate, and notes
@@ -118,43 +64,40 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Todo List**: Shared todo in General panel with checkboxes (done/delete/edit).
 
 ## Tech Stack
-- React 18 (with hooks: useState, useReducer, useEffect)
-- Vite for dev server and build
+- React 18 (with hooks: useState, useReducer, useEffect, useMemo)
+- Vite for dev server and build (vite-plugin-singlefile inlines all JS/CSS into one HTML file)
 - Pure CSS (no framework) — dark/light themes, mobile-first
-- Google Fonts: DM Sans
+- Google Fonts: DM Sans (loads from internet — device needs connectivity)
 - Service worker for offline support (network-first caching)
 - No backend — all data in browser localStorage + GitHub API cloud sync
 
 ## Project Structure
 ```
 PTApp/
-├── index.html          # Entry point
-├── package.json        # Dependencies
-├── vite.config.js      # Vite config
-├── .gitattributes      # LF line ending normalization
-├── CLAUDE.md           # This file
-├── public/
-│   ├── sw.js           # Service worker for offline support
-│   └── manifest.json   # PWA manifest (standalone mode, icon, theme)
+├── index.html, package.json, vite.config.js, .gitattributes, CLAUDE.md
+├── public/                   # sw.js, manifest.json (Vite copies to dist)
 ├── src/
-│   ├── main.jsx        # React mount point + SW registration
-│   ├── App.jsx         # Main app with routing/tabs, sync, auto-complete
-│   ├── sync.js         # GitHub API sync (makdissi-dev/ptapp-data)
-│   ├── i18n.js         # Translations (en/ar) + t() lookup + dateLocale()
-│   ├── styles.css      # All styles (dark + light themes, ~710 lines)
-│   ├── utils.js        # Helpers, constants, storage, reducer, date helpers
+│   ├── main.jsx              # React mount point + SW registration
+│   ├── App.jsx               # Routing/tabs, sync, auto-complete, debug panel
+│   ├── sync.js               # GitHub API sync (makdissi-dev/ptapp-data)
+│   ├── i18n.js               # Translations (en/ar) + t() lookup + dateLocale()
+│   ├── styles.css            # All styles (dark + light themes)
+│   ├── utils.js              # Helpers, constants, storage, reducer, date helpers
 │   └── components/
-│       ├── Dashboard.jsx    # Home tab: stats, today's sessions, expanded/compact
-│       ├── Clients.jsx      # Client list, search, add/edit/delete, month history
-│       ├── Schedule.jsx     # Week view, booking flow, day sessions
-│       ├── Sessions.jsx     # All sessions log with filters
-│       ├── General.jsx      # Backup, todos, WhatsApp templates, docs
-│       ├── Modal.jsx        # Bottom-sheet modal wrapper
-│       ├── Icons.jsx        # Shared SVG icon components (WhatsApp, Edit, Trash, etc.)
-│       ├── CancelPrompt.jsx # Cancel session modal (count/forgive)
-│       └── TokenSetup.jsx   # GitHub token setup (first-run)
-└── docs/               # Versioned instructions, changelogs, guides
-    ├── app-health.md   # Feature Overhead Register, performance/size budgets
+│       ├── Dashboard.jsx, Clients.jsx, Schedule.jsx, Sessions.jsx, General.jsx
+│       ├── Modal.jsx         # Bottom-sheet modal wrapper
+│       ├── Icons.jsx         # Shared SVG icons
+│       ├── CancelPrompt.jsx  # Cancel session modal
+│       ├── TokenSetup.jsx    # GitHub token first-run
+│       ├── RenewalModal.jsx  # Shared renewal dialog (Clients + Dashboard)
+│       ├── SessionCountPair.jsx, OverrideHelpPopup.jsx
+└── docs/
+    ├── traps.md              # Hard-won lessons / TRAPS (extracted from CLAUDE.md)
+    ├── app-health.md         # Feature Overhead Register
+    ├── design-system.md      # Visual design reference
+    ├── instructions-v*.md    # Per-version feature notes
+    ├── changelog-summary.md, changelog-technical.md
+    └── superpowers/          # Plans + specs from feature work
 ```
 
 ## Data Preservation Rules (CRITICAL)
@@ -162,278 +105,113 @@ PTApp/
 - **Backward compatible always.** When the data schema changes, write a migration in `utils.js` (`migrateData`) that upgrades old data to the new format. Never require the user to re-enter anything.
 - **Version the data.** The `_dataVersion` field in the data tracks the schema version. Increment `DATA_VERSION` and add a migration step for each schema change.
 - **Preserve history.** Even if a feature is removed, keep the data that was collected. Archive it under a different key if needed, but never drop it.
-- **Test migrations.** Before deploying a schema change, verify that existing data (from the PT's live app) loads correctly in the new version.
+- **Test migrations.** Before deploying a schema change, run `tmp/sanity-live-migration.mjs` against the PT's real exported data — synthetic fixtures are necessary but not sufficient. (See `docs/traps.md` "v2→v3 migration dropped active overrides".)
 
 ---
 
-## TRAPS & HARD-WON LESSONS
+## TRAPS
 
-These are patterns that have caused real bugs. Read these before writing any code.
+Full hard-won lessons live in **`docs/traps.md`** — read before touching the relevant area. One-line index:
 
-### TRAP: `toISOString()` for dates (UTC conversion bug)
-**What happened:** `toISOString()` converts to UTC. Midnight in Beirut (UTC+3) becomes 21:00 the previous day in UTC. Month navigation in Clients jumped Apr→Feb→Dec→Oct. The same bug also existed in Schedule week navigation, the "This Week" dashboard stat, and `createdAt` timestamps — it wasn't caught because the initial fix was only applied in one place.
-
-**Rule:** NEVER use `toISOString()` to format dates for display or comparison. Always use the local helpers:
-- `today()` → `YYYY-MM-DD` local date
-- `localDateStr(d)` → `YYYY-MM-DD` from a Date object, local time
-- `localMonthStr(d)` → `YYYY-MM` from a Date object, local time
-- `currentMonth()` → `YYYY-MM` current month, local time
-
-**Where it bit us:** `Clients.jsx` month navigation (3 places), `Schedule.jsx` week navigation (3 places), `Dashboard.jsx` "This Week" stat, `Schedule.jsx` `createdAt` field, `utils.js` `currentMonth()`.
-
-**When fixing a bug, audit EVERY file for the same pattern.** The `today()` function was already fixed in a prior session but nobody checked the other 8 places that used `toISOString()`.
-
-### TRAP: Variable shadowing of `t` (i18n function)
-The `t()` function from `i18n.js` is used everywhere for translations. Callbacks must never use `t` as a parameter name — it silently shadows the i18n function. **Fixed in v2.4 review** — all instances renamed across utils.js and all components.
-
-**Rule:** Never use `t` as a callback parameter. Use `stype` for session types, `tm` for times, `f` for focus tags, `tb` for tabs, `todo` for todo items.
-
-### TRAP: `defaultValue` on uncontrolled inputs
-Textareas using `defaultValue` won't re-render when state changes externally (e.g., cloud sync, template reset). The textarea keeps its internal DOM state until the component unmounts.
-
-**Fix pattern:** Add a `key` prop tied to the state value to force remount when the underlying data changes. See General.jsx WhatsApp template textareas for the pattern.
-
-### TRAP: Vite bundle corruption with string replacement
-The `fixForFileProtocol` plugin in `vite.config.js` uses a function replacement (`() =>`). Never change this to a string replacement — `$&` in React's minified code will corrupt the bundle.
-
-### TRAP: iPhone safe areas
-Bottom elements need `env(safe-area-inset-bottom)`. Nav bar is z-index 100, modals must be 200+. Modal action buttons go in `modal-footer` (sticky), never in scrollable body. iOS keyboard shrinks `visualViewport` — modals handle this via resize listener.
-
-### TRAP: iPhone reachability for top-of-screen controls
-**What happened:** Ar/En and Lit/Drk toggles were in the top-right of the header. Worked fine on Pierre's Android but the PT (iPhone) couldn't reach them one-handed. Same problem with the × button on tall modals — unreachable at the top of a 90vh bottom sheet.
-
-**Rule:** Anything tappable that should be reachable with a thumb must live in the bottom 60% of the screen. Move settings/toggles into the General panel (bottom sheet). For modals, provide swipe-down-to-dismiss AND a drag handle as a visual cue — the × button stays as a fallback but isn't the primary close method.
-
-**Test on actual iPhone ergonomics, not just Android.** iPhones (especially Pro Max) are taller; top-corner controls that feel fine on a Samsung are out of reach. Pierre's dev phone is not the target device.
-
-### TRAP: iOS Safari and `readOnly` textareas (keyboard won't show)
-**What happened:** Session notes textareas were set `readOnly` by default, with an `onFocus` handler that set `e.target.readOnly = false` to make them editable on tap. Worked perfectly on Android. On iPhone, tapping notes never brought up the keyboard. The PT had this bug for an unknown period — discovered Apr 7, likely broken since notes were first added.
-
-**Rule:** Never start a textarea/input as `readOnly` and try to remove it in `onFocus`. On iOS Safari, tapping a readonly field makes iOS decide "no keyboard" BEFORE the focus event fires. Setting `readOnly=false` in `onFocus` is too late — iOS has already decided. Focus fires, the field becomes editable in the DOM, but the keyboard never appears.
-
-**Where it bit us:** `Dashboard.jsx`, `Schedule.jsx`, `Sessions.jsx`, `Clients.jsx` — all four files had the same copy-paste pattern for `.focus-notes` textareas. Fix: remove `readOnly` attribute and the readOnly manipulation in focus/blur handlers. Collapse/expand behavior is handled entirely by the `.editing` CSS class toggle, which still works without readOnly.
-
-**Lesson:** "It works on my Android" is not a test for iOS-specific behavior. The PT is on iPhone and this was broken in his primary workflow (recording session notes). Always test form interactions on an actual iPhone before shipping, especially anything involving `readOnly`, `disabled`, `inputmode`, or touch events near form fields.
-
-### TRAP: Swipe-to-dismiss vs content scrolling
-**What happened:** Adding a swipe-down-to-close gesture to `Modal.jsx` initially conflicted with scrolling the modal body — swiping up to scroll then down would accidentally dismiss, and swipe-down-while-scrolled-mid-content was ambiguous.
-
-**Rule:** Only initiate the dismiss drag when `modalBodyRef.current.scrollTop === 0`. Check at `touchstart`, not `touchmove`. This is the iOS bottom-sheet convention — user must scroll to the very top before swipe-down dismisses.
-
-**Implementation details** (Modal.jsx):
-- Use refs for drag state, never useState — gesture tracking at 60fps must not trigger React re-renders
-- Use `transform: translateY()` not `top` — GPU-accelerated, smooth
-- Resistance factor (0.7x) makes the drag feel natural, not 1:1 rubber
-- Downward-only: clamp negative dy to 0
-- Dismiss threshold: 80px, then animate to `translateY(100%)` before calling `onClose`
-- Snap-back uses the same spring curve as the modal's open animation for consistency
-
-### TRAP: Inline styles and RTL
-Inline `marginLeft: 'auto'` doesn't flip in RTL mode. Use `marginInlineStart: 'auto'` instead. Similarly, use `borderInlineStart` not `borderLeft` for session card left borders. CSS class rules with `.theme-light` or `[dir="rtl"]` selectors DO flip correctly.
-
-### TRAP: Using `state.sessions` from a closure right after `dispatch(ADD_SESSION)` — "Session #0" bug
-**What happened (Apr 19):** The PT booked a brand-new client's first-ever session. The confirmation modal's "Send WhatsApp" button fired `sendBookingWhatsApp(..., state.sessions)`. The message template rendered `Session #0` instead of `#1`. For the developer's own account, a cancelled-but-forgiven session caused a separate off-by-one in the PT's perception — that one was working as designed (the app counts sessions in the billing period, forgiven cancellations don't count).
-
-**Root cause of the #0:** Schedule.jsx `saveSession` dispatches `ADD_SESSION` then immediately `setConfirmMsg`. React 18 batching normally makes `state.sessions` fresh by the time the modal's onClick runs — but real-world timing (StrictMode, fast taps, device variations) can produce a render where `confirmMsg` is set but the ADD hasn't reached the closure yet. `getSessionOrdinal` then calls `findIndex` on a stale array, returns `-1`, and `-1 + 1 = 0`.
-
-**Rule:** Never rely on React's re-render to include a freshly-dispatched item in an array that's passed to a callback in the SAME event cycle. If you need the new item guaranteed present, merge it into a local copy at the call site:
-```jsx
-const sessions = state.sessions.some(s => s.id === session.id)
-  ? state.sessions
-  : [...state.sessions, session];
-sendBookingWhatsApp(client, session, ..., sessions);
-```
-
-**Defense in depth:** `getSessionOrdinal` now returns `length + 1` (not `-1 + 1 = 0`) when the session isn't found in the filtered list. Future callers can't leak `#0` into user-facing text even if they forget the call-site merge.
-
-**Where it bit us:** `Schedule.jsx:325-334` (booking modal onClick) and `utils.js:246-255` (`getSessionOrdinal` fallback). Reminder-path calls (Dashboard.jsx, Schedule.jsx reminder button) don't have this issue because they fire on sessions that already exist in state.
-
-**Not platform-specific.** Works the same on iOS Safari, Android Chrome, and desktop. The timing window is small but reliably triggered by fast tapping during booking.
-
-### TRAP: v2→v3 migration dropped active overrides for calendar-month clients (Apr 21 2026)
-**What happened:** Task 2 of v2.9 migrated every v2 client into a synthetic v3 package. The migration re-derived the "current legacy period start" to decide whether each client's v2 `overridePeriodStart` stamp was still active. But the re-derivation used `c.periodStart || today()` as the anchor and fed it to `computeSlidingWindow` — which is correct for the two "custom period" branches of v2 `getClientPeriod`, but WRONG for the default branch. v2's default (when both `periodStart` and `periodLength` are empty) returned calendar-month (1st to last), hardcoded, not sliding. For clients on the default, the override stamp was `YYYY-MM-01` while the migration computed `today()`-anchored day-of-month as the current-period start. They never matched. Every override on a calendar-month client was silently dropped.
-
-**How it was caught:** Pre-deploy live-migration diff (`tmp/sanity-live-migration.mjs`) ran PT's real v2 export through `migrateData` and reported "pre: 2 active overrides, post: 0". Two real overrides (Pierre Ghorra delta:+1, Elie Jabbour delta:-4) were about to be lost on deploy.
-
-**Why the unit tests missed it:** `tmp/sanity-migration.mjs` had four synthetic clients. A, C had explicit `periodStart`. D had `periodLength` but no `periodStart` (testing the today()-anchor branch). **None tested the v2 default — no periodStart, no periodLength, with an override.** 100% of the PT's real overrides were in that untested branch. Added Client E to cover it.
-
-**Rule:** When migrating data from an old schema, re-read the OLD code exactly — don't trust design docs or memory. v2's `getClientPeriod` had three branches; the migration only faithfully reproduced two. Every branch of legacy logic needs a synthetic test fixture before deploy.
-
-**Additional rule:** Before any migration deploys, run it against a live data export and diff active-state counts. Unit tests on synthetic fixtures are necessary but not sufficient — real data has shapes synthetic data doesn't cover.
-
-**Pre-deploy migration gate:** `tmp/sanity-live-migration.mjs` is the permanent gate — **do not delete it** when cleaning up other sanity scripts. Workflow:
-1. PT exports backup via General → Export backup
-2. Pierre saves the export locally (do NOT commit — it contains real client data)
-3. Copy it to `tmp/live-snapshot-vX.Y.json` (gitignored via `tmp/live-snapshot-*.json`)
-4. Run `node tmp/sanity-live-migration.mjs` — script exits 1 on anomalies
-5. After deploy, move the snapshot to `C:\projects\_archive\PTApp\migrations\YYYY-MM-DD-vX-to-vY-live-snapshot.json` for future forensic reference
-
-**Where it bit us:** `src/utils.js` `migrateData` v2→v3 block. Fix: branch pkgStart computation to match v2's three cases exactly (periodStart → anchor at periodStart, periodLength-only → today(), neither → 1st of earliest session's month so calendar-month periods align). Override check then uses the same pkgStart → windows match v2 exactly.
-
-### TRAP: Billing period gate field
-**What happened:** `getClientPeriod` originally checked `!client.periodStart` to decide whether to use calendar month. But `periodStart` is a date input — hard to clear on mobile once set. When the PT changed the dropdown back to "Default (calendar month)", `periodLength` became `""` but `periodStart` still had a value, so the function treated it as a custom period.
-
-**Rule:** `periodLength` is the master switch. Gate on `!client.periodLength`, never on `periodStart`. When `periodLength` is falsy, return calendar month regardless of `periodStart`. The Clients.jsx form also auto-clears `periodStart` when the dropdown resets, but the function must not depend on that.
-
-### TRAP: iOS PWA standalone mode requires manifest + meta tag
-**What happened:** Pierre's mother added the app to her iPhone Home Screen. Every time she opened it, Safari showed its URL bar at the bottom and the app asked for the token again — localStorage wasn't persisting between opens.
-
-**Root cause:** The `index.html` lacked `<meta name="apple-mobile-web-app-capable" content="yes">` and a `manifest.json` with `"display": "standalone"`. Without these, iOS "Add to Home Screen" creates a Safari bookmark, not a standalone app. Each open is a new Safari context.
-
-**Rule:** Any PWA targeting iOS must have BOTH:
-1. `<meta name="apple-mobile-web-app-capable" content="yes">` in HTML head
-2. A `manifest.json` with `"display": "standalone"` linked via `<link rel="manifest">`
-
-**Deploy process:** `manifest.json` lives in `public/` (Vite copies to dist), and must be copied to gh-pages alongside index.html and sw.js.
-
-**After deploying a manifest change:** Users must delete the old Home Screen icon and re-add from Safari for the new manifest to take effect. The PT's phone worked because he set up when standalone mode was cached; new setups need the manifest.
-
-### TRAP: Silent `.catch(() => {})` in sync paths — "Hala Mouzanar" data loss (Apr 19 2026)
-**What happened:** PT booked Hala Mouzanar for Apr 17 at 10:00 on his iPhone. WhatsApp confirmation sent with "Session #3". Next morning the session was gone — not in the client's history, not in remote, not in any GitHub snapshot going back weeks. Same root pattern as the Apr 13 incident: a push silently failed, then another device's push overwrote remote without Hala, then REPLACE_ALL wiped the PT's local copy on next open.
-
-**Root cause:** The Apr 13 fix only patched `debouncedSync`. Four more `.catch(() => {})` patterns were left alive in App.jsx:
-- initial-load effect when local is newer than remote
-- initial-load effect when remote is null
-- handleRetrySync when local is newer
-- handleRetrySync when remote is null
-
-All four prematurely set `syncStatus = 'synced'` BEFORE the push promise resolved, then silently swallowed errors. Plus a second hazard: `pushRemoteData` on HTTP 409 blindly retried with local data, which can overwrite newer remote data that just arrived from another device.
-
-**Rule:** Every path that calls `pushRemoteData` or `fetchRemoteData` must surface failures via `setSyncStatus('failed')`. NEVER set `'synced'` before the promise resolves. Use a single `reconcile()` function with a real try/catch, not scattered `.catch(() => {})`.
-
-**Bulletproof sync (v2.6):** Replaced "timestamp wins" whole-state comparison with **per-record last-write-wins merge** by `_modified` timestamp. Reducer stamps `_modified` on every ADD_*/EDIT_*/UPDATE_*/TOGGLE_*/BATCH_COMPLETE. On initial load and 409 conflict, `mergeData(local, remote)` does union-by-ID — no record is ever blindly discarded. PT's freshly-edited record wins over a stale device's version because his `_modified` is newer.
-
-**Why this bulletproofs the 3-device setup (PT iPhone, Pierre Android, mother iPhone):** Unstable Beirut internet means pushes fail often. A stale mother's phone that opens weeks late can't overwrite PT's data because (a) on open it merges-not-replaces, (b) any record PT has edited since has a newer `_modified` and wins.
-
-**Deletes don't use tombstones.** If mother's phone has a client that PT deleted, the client resurrects on next sync. This is intentional — aligns with "NEVER lose user data". Rare, graceful failure mode; if it becomes a problem we can add tombstones later.
-
-**Where it bit us:** `src/App.jsx` sync effect + retry handler (both rewritten to use `reconcile()`), `src/sync.js` `pushRemoteData` 409 handler (now merges instead of blind-retry), `src/utils.js` reducer (stamps `_modified`) + new `mergeData`/`dataEquals` helpers.
-
-### TRAP: Single dispatches in loops
-Auto-complete used to dispatch N separate `UPDATE_SESSION` actions for N lapsed sessions. Each dispatch triggers a re-render + a sync push. Now uses `BATCH_COMPLETE` to mark all in one dispatch. Apply the same pattern whenever you need to update multiple records.
-
-### TRAP: Stale device overwriting remote sync data (DATA LOSS — Apr 13 2026)
-**What happened:** Pierre's Android had localStorage frozen at an Apr 11 state (35 sessions). When he opened the app at the gym, `fetchRemoteData` may have failed silently. The sync effect's `[state]` dependency fired on first render, consuming the `skipSync.current = true` flag. Auto-complete then changed state, which triggered `debouncedSync` — pushing the stale 35-session data to GitHub, overwriting 40 sessions (5 sessions lost). PT's focus tags and notes were also never in remote (his pushes failed silently too). When PT reopened his PWA, `REPLACE_ALL` loaded the corrupted remote data and wiped his local data.
-
-**Rule:** THREE guards must ALL pass before any push to GitHub (App.jsx sync effect):
-1. `initialLoad` must be false (startup fetch is complete)
-2. `syncReady.current` must be true (initial fetch SUCCEEDED — stays false on failure)
-3. `skipSync.current` must be false (one-time skip for REPLACE_ALL echo)
-
-**Never use `.catch(() => {})` on sync operations.** The debouncedSync status callback now surfaces errors to the UI via `syncStatus` state (green/blue/red indicator dot).
-
-**`_lastModified` timestamp** is set by the reducer wrapper on every local change (not REPLACE_ALL). On startup, if local is newer than remote, local pushes up. If remote is newer, REPLACE_ALL replaces local. This prevents both stale-push AND stale-replace scenarios.
-
-**Where it bit us:** App.jsx sync effect, debouncedSync `.catch(() => {})`, initial load REPLACE_ALL flow. All three had to be fixed together. See `docs/superpowers/specs/2026-04-13-sync-fix-design.md` for full forensic analysis.
+- **`toISOString()` UTC bug** — never use for display/comparison; use local helpers (`today`, `localDateStr`, `localMonthStr`, `currentMonth`).
+- **Variable shadowing of `t`** — never use `t` as a `.map`/`.find` callback param.
+- **`defaultValue` on uncontrolled inputs** — add `key` prop tied to state value to force remount on external changes.
+- **Vite bundle corruption** — `fixForFileProtocol` plugin must use function replacement; string replacement breaks React's minified `$&`.
+- **iPhone safe areas** — `env(safe-area-inset-bottom)`; modal z-index 200+; sticky `modal-footer`; visualViewport resize.
+- **iPhone reachability** — tap targets in bottom 60%; settings live in General panel, not header. Test iPhone ergonomics, not Android.
+- **iOS Safari `readOnly` textareas** — never start `readOnly` and remove in `onFocus`; keyboard never appears.
+- **Swipe-to-dismiss vs scrolling** — only initiate dismiss drag when `scrollTop === 0` at touchstart.
+- **Inline styles + RTL** — use `marginInlineStart`/`borderInlineStart`, never `marginLeft`/`borderLeft`.
+- **`state.X` after `dispatch(ADD_X)` in same handler** — Session #0 bug; merge new item into local copy at call site.
+- **v2→v3 migration override-drop (Apr 21)** — re-read OLD code exactly when migrating; live-data diff before every migration deploy.
+- **Billing period gate field (legacy v2)** — `periodLength` was the master switch (not `periodStart`). v2.9 removed the gate; trap retained for migration debugging.
+- **iOS PWA standalone** — needs both `apple-mobile-web-app-capable` meta tag AND `manifest.json` with `"display": "standalone"`. Old icons need re-add.
+- **Silent `.catch(() => {})` in sync** — Hala Mouzanar data loss; every sync path must surface failures via `setSyncStatus('failed')`.
+- **Single dispatches in loops** — use `BATCH_COMPLETE` pattern; one dispatch per N records, not N dispatches.
+- **Stale device overwriting remote (Apr 13)** — three guards (`initialLoad`, `syncReady`, `skipSync`) must all pass before push.
+- **Parser contract `.type` not `.mode`** — `parseSessionCountOverride` returns `{ type, value }`.
+- **Per-feature author-site drift (Apr 21 v2.9.2)** — when refactoring storage location, grep EVERY read+write of old field across the whole codebase, not just the file you're in.
 
 ---
 
 ## CODING CONVENTIONS
 
 ### Color system
-- **Accent color**: `#2563EB` (blue) / `#60A5FA` (light blue). Used in both themes.
-- **Error/danger**: `#EF4444` (red). Delete buttons are solid red with white icon. Cancel badge is red.
-- **Success**: `#10B981` (green). Confirmed status badge, todo checkmarks.
-- **Active session glow**: Amber `#F59E0B`. Sessions currently in progress get an amber tint, border, and glow (`card-now` class). Distinct from blue accent to signal "happening now" vs "selected."
-- **Session type colors**: Indigo `#6366F1` (Strength), Blue `#3B82F6` (Cardio), Purple `#8B5CF6` (Flexibility), Amber `#F59E0B` (HIIT), Green `#10B981` (Recovery), Grey `#6B7280` (Custom).
-- **Status badges**: Use CSS classes `badge-scheduled` (blue), `badge-completed` (blue), `badge-confirmed` (green), `badge-cancelled` (red). All solid fill with white text. Do NOT use inline `style={{ color, background }}` on badges — use `className={`badge badge-${status}`}`.
-- **Filter tabs**: Active filter is solid blue `#2563EB` with white text. Inactive is subtle outline.
-- **Light theme canvas**: Deep steel blue gradient `#94A8C8 → #788DB4`. Cards are opaque white-blue `rgba(210,228,255,0.55)`. Header/nav: glossy frosted glass `rgba(30,64,175,0.15)` with `blur(28px) saturate(1.4)`. Not bright — just lighter than dark.
-- **Light theme text**: Indigo-tinted `#1E1B4B` (indigo-950) as base color. CSS vars use `rgba(30,27,75,...)` instead of `rgba(0,0,0,...)`. Logo gradient: `#1E1B4B` → `#3730A3`.
-- **Dark theme nav**: Inactive buttons at `rgba(255,255,255,0.75)`, active tab `#3B82F6` (blue-500). Active dot matches.
-- **Theme-aware CSS vars**: `--t1` to `--t5` for text opacity levels, `--sep` for separators. Dark theme uses `rgba(255,255,255,...)`, light theme uses `rgba(30,27,75,...)`. Use these in inline styles — never hardcode raw rgba values.
-- **Card depth**: Cards have `box-shadow` in both themes. Light theme nav has top shadow.
+- **Accent**: `#2563EB` (blue) / `#60A5FA` (light blue). Both themes.
+- **Error/danger**: `#EF4444` (red). Solid red delete buttons. Cancelled badge red.
+- **Success**: `#10B981` (green). Confirmed badge, todo checkmarks.
+- **Active session glow**: Amber `#F59E0B` (`card-now` class).
+- **Session type colors**: Indigo (Strength), Blue (Cardio), Purple (Flexibility), Amber (HIIT), Green (Recovery), Grey (Custom).
+- **Status badges**: CSS classes `badge-scheduled` (blue), `badge-completed` (blue), `badge-confirmed` (green), `badge-cancelled` (red). Solid fill, white text. NEVER inline `style={{ color, background }}` — use `className={`badge badge-${status}`}`.
+- **Filter tabs**: Active = solid blue `#2563EB` + white text. Inactive = subtle outline.
+- **Theme-aware CSS vars**: `--t1`..`--t5` for text opacity, `--sep` for separators. Dark uses `rgba(255,255,255,...)`, light uses `rgba(30,27,75,...)`. Use these in inline styles — never hardcode raw rgba.
+- **Light theme** detail in `docs/design-system.md`.
 
 ### Status labels (i18n)
-Use `getStatus(status, lang, t)` to get a translated status object with `label` for display text. Badge colors are handled by CSS classes (`badge-scheduled`, `badge-completed`, etc.) — don't use inline color/bg styles on badges. Components render: `<span className={`badge badge-${session.status}`}>{status.label}</span>`. The `STATUS_MAP` export still exists for backward compatibility but is not used in components.
+Use `getStatus(status, lang, t)` for translated label. Badge colors via CSS class, not inline. Components render `<span className={`badge badge-${session.status}`}>{status.label}</span>`.
 
-### Sync
-- Sync is debounced (1s) via `debouncedSync()` in App.jsx. Every state change saves to localStorage immediately but GitHub push waits 1s for more changes.
-- `pushRemoteData` retries on 409 conflict up to 3 times. No infinite recursion.
-- Sync errors are silently caught (`.catch(() => {})`). There is no sync status indicator yet.
+### Sync (v2.6+)
+- Debounced 1s via `debouncedSync()` in App.jsx; localStorage saves immediately, GitHub push waits for more changes.
+- `pushRemoteData` retries up to 3 on 409 — merges instead of blind-overwriting.
+- **Errors surface to UI** via `syncStatus` (green/blue/red dot, tap red to retry). Never use `.catch(() => {})` on sync paths.
+- Per-record `_modified` timestamps; `mergeData` union-by-ID. PT's freshly-edited record always wins over a stale device's version.
 
 ### Reducer actions
 | Action | Payload | Notes |
 |--------|---------|-------|
-| `ADD_CLIENT` | `{id, name, ...}` | |
-| `EDIT_CLIENT` | `{id, ...fields}` | |
-| `DELETE_CLIENT` | `clientId` | Also deletes all their sessions |
+| `ADD_CLIENT` | `{id, name, packages: [pkg], ...}` | New clients seeded with one open package |
+| `EDIT_CLIENT` | `{id, ...fields}` | Detects current-package field changes → `package_edited` / `override_set` / `override_cleared` audit entries |
+| `DELETE_CLIENT` | `clientId` | Also deletes their sessions |
 | `ADD_SESSION` | `{id, clientId, ...}` | |
 | `UPDATE_SESSION` | `{id, ...fields}` | Merges fields |
-| `BATCH_COMPLETE` | `[id, id, ...]` | Marks all as completed in one dispatch |
-| `DELETE_SESSION` | `sessionId` | Not wired to any UI button yet |
-| `ADD_TODO` | `{id, text, done}` | Always include `done: false` |
-| `EDIT_TODO` | `{id, text}` | |
-| `TOGGLE_TODO` | `todoId` | Flips done boolean |
-| `DELETE_TODO` | `todoId` | |
+| `BATCH_COMPLETE` | `[id, id, ...]` | Marks all completed in one dispatch |
+| `DELETE_SESSION` | `sessionId` | |
+| `RENEW_PACKAGE` | `{clientId, newPackageStart, newContractSize, newPeriodUnit, newPeriodValue, newNotes, closedBy: 'manual'\|'auto', trigger}` | Atomic close-and-open of current package + audit append. Idempotent (returns state unchanged if current pkg already closed). |
+| `ADD_TODO` / `EDIT_TODO` / `TOGGLE_TODO` / `DELETE_TODO` | varies | |
 | `SET_TEMPLATES` | `{booking?, reminder?}` | |
-| `REPLACE_ALL` | `{clients, sessions, ...}` | Used by cloud sync |
+| `REPLACE_ALL` | full state | Used by cloud sync; bypasses `_lastModified` stamp |
 
 ---
 
 ## KNOWN ISSUES / TECH DEBT
 
-These are identified but not yet fixed. Check before starting related work.
-
 ### Should fix soon
-- **No error boundary** — If any component throws (e.g., corrupted localStorage), the entire app crashes to a white screen. A top-level error boundary would let the user access backup/export.
+- **No error boundary** — corrupted localStorage crashes the app to a white screen. A top-level boundary would let the user access backup/export.
+- **Duplicated session card rendering** — Dashboard, Schedule, Sessions render their own session cards (~50-80 lines each). A shared `SessionCard` component would eliminate this.
 
-### Fixed in v2.5
-- ~~No sync status indicator~~ — Green/blue/red dot in header. Failed state is tappable to retry. Errors surfaced to UI.
-- ~~Silent sync errors~~ — `.catch(() => {})` replaced with status callbacks.
-- ~~Stale device overwriting remote~~ — Three-guard sync protection + `_lastModified` timestamps.
-- ~~iOS PWA not standalone~~ — Added `apple-mobile-web-app-capable` meta tag + `manifest.json`.
-
-### Fixed in v2.4 review
-- ~~`confirm()` for client delete~~ — Replaced with in-app modal (Clients.jsx `deletePrompt` state)
-- ~~Hardcoded English strings~~ — TokenSetup.jsx fully i18n'd, `alert()` → notification state in General.jsx, "at" connector translated
-- ~~Inline SVG duplication~~ — Extracted to shared `Icons.jsx` (WhatsAppIcon, EditIcon, TrashIcon, ClockIcon, PhoneIcon, ChevronIcon, CloseIcon)
-- ~~Duplicated cancel prompt~~ — Extracted to shared `CancelPrompt.jsx` component
-- ~~Variable shadowing of `t`~~ — All instances renamed across utils.js and all components
-
-### Structural debt (address in a larger session)
-- **Duplicated session card rendering** — Dashboard, Schedule, Sessions all render session cards independently (~50-80 lines each). A shared `SessionCard` component would eliminate this.
-- ~~Stale closure in initial sync~~ — Fixed with `stateRef` (useRef tracking current state).
+### App name
+- "PTApp" is a working title. Need a unique name (not trademarked in fitness/trainer space) before App Store / Play Store submission.
 
 ---
 
 ## REVIEW DISCIPLINE
 
-### When to trigger a code review
-After accumulating **3+ feature changes** or **any session longer than ~2 hours of coding**, pause and run a comprehensive review before continuing. The review should check:
-1. **Pattern consistency** — Did a bug fix get applied everywhere the pattern exists? (The UTC bug was in 8 places but was only fixed in 1.)
-2. **Variable shadowing** — Any new `.map()` or `.find()` callbacks using `t`, `d`, or other commonly imported names?
-3. **Theme/RTL** — Any new inline styles that use `marginLeft`, `borderLeft`, or hardcoded colors?
-4. **i18n** — Any new user-facing strings that aren't in `i18n.js`?
-5. **Data safety** — Any new code that deletes, overwrites, or fails to migrate data?
-6. **Sync impact** — Any new dispatches in loops that should be batched?
+After accumulating **3+ feature changes** or **any session longer than ~2 hours of coding**, pause and run a comprehensive review before continuing. Check:
+1. **Pattern consistency** — Did a bug fix get applied everywhere the pattern exists? (UTC bug was in 8 places, fix landed in 1.)
+2. **Storage refactors** — Did EVERY read AND write of the old field name get migrated? (v2.8 `.mode/.type`, v2.9.2 inline override.)
+3. **Variable shadowing** — Any new `.map()`/`.find()` callbacks using `t`, `d`, or other commonly imported names?
+4. **Theme/RTL** — New inline `marginLeft`, `borderLeft`, hardcoded colors?
+5. **i18n** — New user-facing strings not in `i18n.js`?
+6. **Data safety** — New code that deletes, overwrites, or fails to migrate data?
+7. **Sync impact** — New `.catch(() => {})`? New dispatches in loops?
 
-### Documentation after every change
-Every commit should be followed by appropriate documentation:
-- **Bug fixes**: Document the root cause, where it manifested, and the fix pattern in the TRAPS section above. Check if the same pattern exists elsewhere.
-- **New features**: Update `docs/instructions-v{X}.md`, `docs/changelog-summary.md`, `docs/changelog-technical.md`.
-- **Design decisions**: Add to Key Design Decisions or Coding Conventions above.
-- **Incidents/lessons**: Save to memory for cross-session persistence.
+After every commit:
+- **Bug fixes** → document root cause + fix pattern in `docs/traps.md`. Grep for the same pattern elsewhere.
+- **New features** → update `docs/instructions-v{X}.md`, `docs/changelog-summary.md`, `docs/changelog-technical.md`.
+- **Design decisions** → add to Coding Conventions or Key Design Decisions.
+- **Incidents/lessons** → save to memory for cross-session persistence.
 
 ---
 
-## App Name
-- "PTApp" is a working title, NOT the final name.
-- A unique name is needed before publishing to Apple App Store / Google Play Store.
-- The name must not be already taken or trademarked in the fitness/trainer app space.
-- TODO: brainstorm and research a final name before the native app stage.
-
 ## Key Design Decisions
 - Single-page app with bottom tab navigation (Home, Clients, Schedule, Sessions)
-- WhatsApp integration uses `https://wa.me/{phone}?text={message}` — no API needed
+- WhatsApp via `https://wa.me/{phone}?text={message}` — no API needed
 - Phone numbers must include country code (e.g. +961 for Lebanon)
 - Session types: Strength, Cardio, Flexibility, HIIT, Recovery, Custom
-- Session statuses: Scheduled -> auto-completes -> Completed (or Cancelled with count/forgive)
-- Blue accent color (`#2563EB`). Dark theme default. Warm stone light theme.
-- Auto-complete: lapsed sessions are batch-marked completed on app load
-- Sync: debounced 1s, retry up to 3 on conflict, errors silently caught
+- Session statuses: Scheduled → auto-completes → Completed (or Cancelled with count/forgive)
+- Auto-complete: lapsed sessions batch-marked completed on app load
 - UX simplicity is the priority — the PT adopted the app because it's simple. Don't add friction.
-- Billing periods: `periodLength` is the master switch (not `periodStart`). When empty, calendar month is used regardless of any `periodStart` value. This ensures the dropdown "Default (calendar month)" is the single control needed to reset.
+- Billing periods (v2.9+): live inside `client.packages[]`. Each package has `periodUnit` ('day'/'week'/'month') + `periodValue` (number). Optional `contractSize` extends the period until contract met (no month-end reset).
 
 ## How to Run (Development)
 ```bash
@@ -450,7 +228,7 @@ npm run build
 # 2. Verify the bundle isn't corrupted (catches blank-page bugs)
 node -e "const fs=require('fs'),h=fs.readFileSync('dist/index.html','utf8'),s=h.indexOf('<script>')+8,e=h.lastIndexOf('</script>');fs.writeFileSync('test-bundle.js',h.substring(s,e))" && node --check test-bundle.js && rm test-bundle.js
 
-# 3. Bump version in App.jsx header (e.g. v2.3 → v2.4), rebuild if changed
+# 3. Bump version in App.jsx debug panel (e.g. v2.9.1 → v2.9.2), rebuild if changed
 
 # 4. Commit and push source to master
 git add <files> && git commit -m "message" && git push origin master
@@ -471,15 +249,12 @@ git checkout master
 
 **Critical notes:**
 - Pushing to `master` alone does NOT deploy. The live site serves from `gh-pages`.
-- The `fixForFileProtocol` plugin in vite.config.js uses a function replacement (`() =>`). Never change this to a string replacement — `$&` in React's minified code will corrupt the bundle.
-- The `vite-plugin-singlefile` plugin inlines all JS and CSS into one HTML file.
-- Google Fonts (DM Sans) still loads from the internet — device needs connectivity.
+- For schema changes, run `tmp/sanity-live-migration.mjs` against PT's real export BEFORE deploying.
+- Sanity scripts: `tmp/sanity-reducer.mjs`, `sanity-counting.mjs`, `sanity-slidingwindow.mjs`, `sanity-migration.mjs`, `sanity-live-migration.mjs`.
 
 ## Sibling Projects
-
 PTApp is the most mature web app in Pierre's project ecosystem. Its UI/UX patterns serve as reference for other projects:
-
-- **Alerts** (`C:/projects/Alerts`) — Safety alert dashboard. References PTApp's design system (dark theme, mobile-first, RTL, vanilla JS, card layouts) but uses its own zone-colored design language for urgency.
-- **HomeLab** (`C:/projects/HomeLab`) — Infrastructure/HA project. Has its own ticker overlay (HTML+JS on TV). No PTApp dependency.
-- **Career** (`C:/projects/Career`) — Resume and job search. No PTApp dependency.
-- **CCHealth** (`C:/projects/CCHealth`) — Meta/advisory project that monitors all projects including this one.
+- **Alerts** (`C:/projects/Alerts`) — Safety alert dashboard. References PTApp's design system but uses zone-colored design language for urgency.
+- **HomeLab** (`C:/projects/HomeLab`) — Infrastructure/HA project. Independent.
+- **Career** (`C:/projects/Career`) — Resume and job search. Independent.
+- **CCHealth** (`C:/projects/CCHealth`) — Meta/advisory project that monitors all projects.

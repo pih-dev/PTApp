@@ -184,6 +184,8 @@ const T = {
     renewalNotesPlaceholder: 'e.g. paid $500 cash',
     packageLimitHit: 'Package limit hit',
     willAutoRenew: 'booking this session will auto-renew',
+    renewalAlreadyClosed: 'This package was already renewed (likely from another device). Close this dialog and check the latest state.',
+    editCount: 'Edit count',
   },
   ar: {
     // App
@@ -366,6 +368,8 @@ const T = {
     renewalNotesPlaceholder: 'مثلاً دفع ٥٠٠$ نقداً',
     packageLimitHit: 'تم الوصول إلى حد الباقة',
     willAutoRenew: 'حجز هذه الجلسة سيجدد الباقة تلقائياً',
+    renewalAlreadyClosed: 'تم تجديد هذه الباقة مسبقاً (على الأرجح من جهاز آخر). أغلق هذا المربع وتحقق من الحالة الحالية.',
+    editCount: 'تعديل العدد',
   },
 };
 

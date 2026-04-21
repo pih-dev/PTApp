@@ -2,7 +2,7 @@
 // Run: node tmp/sanity-reducer.mjs
 // Delete after v2.9 ships.
 const utilsUrl = new URL('../src/utils.js', import.meta.url).href;
-const { baseReducer } = await import(utilsUrl);
+const { baseReducer, getCurrentPackage, getEffectivePeriod, getEffectiveSessionCount, parseSessionCountOverride } = await import(utilsUrl);
 
 function assert(cond, msg) {
   if (!cond) { console.error('✗', msg); process.exit(1); }
@@ -121,6 +121,34 @@ const after2 = baseReducer(after1, {
 assert(after2.auditLog.length === 2, 'two EDIT_CLIENT dispatches → 2 accumulated log entries');
 assert(after2.auditLog[0].after.contractSize === 12, 'first entry preserved after second dispatch');
 assert(after2.auditLog[1].after.contractSize === 14, 'second entry appended on top');
+
+// === Schedule.jsx booking-confirm inline override → lands inside packages[] (v2.9.2) ===
+// Regression for a Critical bug found in post-deploy review: Schedule.jsx commitOverride
+// was writing to the legacy root client.sessionCountOverride / overridePeriodStart fields
+// (deleted by v2→v3 migration). The fix mirrors Clients.jsx — write into pkg, dispatch
+// new packages[]. This sanity rebuilds the exact payload commitOverride dispatches.
+const bookingSession = { id: 's-confirm', clientId: 'c1', date: '2026-03-15', time: '10:00', status: 'scheduled' };
+const allSessions = [bookingSession];
+const clientBeforeOverride = initialState.clients[0];
+// Mimic commitOverride: parse '+2', stamp periodStart from current period, splice into packages
+const parsedDelta = parseSessionCountOverride('+2');
+const pkgPre = getCurrentPackage(clientBeforeOverride);
+const probePeriodPre = getEffectivePeriod(pkgPre, bookingSession.date);
+const newPkgPre = { ...pkgPre, sessionCountOverride: { ...parsedDelta, periodStart: probePeriodPre.start } };
+const pkgsPre = [...clientBeforeOverride.packages.slice(0, -1), newPkgPre];
+const afterInlineSet = baseReducer(initialState, {
+  type: 'EDIT_CLIENT',
+  payload: { ...clientBeforeOverride, packages: pkgsPre },
+});
+assert(afterInlineSet.clients[0].sessionCountOverride === undefined, 'inline-confirm: legacy root field NOT written');
+assert(afterInlineSet.clients[0].overridePeriodStart === undefined, 'inline-confirm: legacy root stamp NOT written');
+const pkgAfter = getCurrentPackage(afterInlineSet.clients[0]);
+assert(pkgAfter.sessionCountOverride && pkgAfter.sessionCountOverride.type === 'delta', 'inline-confirm: override stored inside package');
+assert(pkgAfter.sessionCountOverride.value === 2, 'inline-confirm: delta value preserved');
+const counts = getEffectiveSessionCount(afterInlineSet.clients[0], bookingSession, allSessions);
+assert(counts.override !== null, 'inline-confirm: reader sees the override');
+assert(counts.effective === counts.auto + 2, 'inline-confirm: effective = auto + delta');
+assert(afterInlineSet.auditLog.length === 1 && afterInlineSet.auditLog[0].event === 'override_set', 'inline-confirm: override_set audit entry');
 
 // === RENEW_PACKAGE — happy path ===
 const renewed = baseReducer(initialState, {

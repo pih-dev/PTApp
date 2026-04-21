@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon } from './Icons';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, getEffectiveClientCount, getClientPeriod, currentMonth, localDateStr, getStatus, haptic, parseSessionCountOverride, isRenewalDue, getCurrentPackage } from '../utils';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, getEffectiveClientCount, localDateStr, getStatus, haptic, parseSessionCountOverride, isRenewalDue, getCurrentPackage, getEffectivePeriod } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import { t, dateLocale } from '../i18n';
@@ -22,6 +22,16 @@ export default function Schedule({ state, dispatch, lang }) {
   const [overrideDraft, setOverrideDraft] = useState('');
   const [overrideHelp, setOverrideHelp] = useState(false);
   const overrideHoldRef = useRef(null);
+
+  // v2.9.2: precompute the set of renewal-due client IDs once per render.
+  // isRenewalDue is O(sessions) per call — without memoization the booking-form
+  // banner re-evaluates it for every selected client on every keystroke (form state
+  // change → re-render → fresh map). Same Set is consumed by the auto-advance loop
+  // in saveSession() so booking and the banner can't disagree.
+  const renewalDueIds = useMemo(
+    () => new Set(state.clients.filter(c => isRenewalDue(c, state.sessions)).map(c => c.id)),
+    [state.clients, state.sessions]
+  );
 
   // Long-press (500ms) opens the help popup. Same pattern as the debug panel + Clients form.
   const startOverrideHold = () => {
@@ -62,7 +72,7 @@ export default function Schedule({ state, dispatch, lang }) {
       for (const clientId of form.clientIds) {
         const c = state.clients.find(x => x.id === clientId);
         if (!c) continue;
-        if (isRenewalDue(c, state.sessions)) {
+        if (renewalDueIds.has(clientId)) {
           const pkg = getCurrentPackage(c);
           dispatch({
             type: 'RENEW_PACKAGE',
@@ -265,10 +275,7 @@ export default function Schedule({ state, dispatch, lang }) {
               booking will auto-advance their package. Placed BEFORE the book button fires
               so it appears while PT is reviewing the selection. After booking the renewal
               already happened so isRenewalDue returns false and the banner vanishes. */}
-          {form.clientIds.some(cid => {
-            const c = state.clients.find(x => x.id === cid);
-            return c && isRenewalDue(c, state.sessions);
-          }) && (
+          {form.clientIds.some(cid => renewalDueIds.has(cid)) && (
             <div className="booking-renewal-banner">
               ⚠️ {t(lang, 'packageLimitHit')} — {t(lang, 'willAutoRenew')}
             </div>
@@ -389,28 +396,38 @@ export default function Schedule({ state, dispatch, lang }) {
             setConfirmMsg({ items, index: index + 1 });
           }
         };
-        // Commit the typed override to the client record. Empty → clear both fields (null, not undefined,
-        // so they survive JSON.stringify and overwrite any stale remote value — same pattern as Clients.jsx).
+        // v2.9.2: Commit the typed override into the client's CURRENT package.
+        // v2.9 moved override into packages[] (root-level fields are deleted by the
+        // v2→v3 migration), so this writes to pkg.sessionCountOverride and dispatches
+        // a new packages[]. Mirrors Clients.jsx save() so audit logging picks it up
+        // via EDIT_CLIENT's package-diff detection (override_set / override_cleared).
         const commitOverride = () => {
           const parsed = parseSessionCountOverride(overrideDraft);
-          const periodForStamp = getClientPeriod(client, session.date);
-          dispatch({
-            type: 'EDIT_CLIENT',
-            payload: parsed
-              ? { ...client, sessionCountOverride: parsed, overridePeriodStart: periodForStamp.start }
-              : { ...client, sessionCountOverride: null, overridePeriodStart: null },
-          });
+          const pkg = getCurrentPackage(client);
+          const probePeriod = getEffectivePeriod(pkg, session.date);
+          const newPkg = {
+            ...pkg,
+            sessionCountOverride: parsed
+              ? { ...parsed, periodStart: probePeriod.start }
+              : null,
+          };
+          const pkgs = client.packages && client.packages.length
+            ? [...client.packages.slice(0, -1), newPkg]
+            : [newPkg];
+          dispatch({ type: 'EDIT_CLIENT', payload: { ...client, packages: pkgs } });
           setEditingOverride(false);
         };
-        // Initialize the input from the existing stored override (only if it's for the current period).
-        // Same logic as Clients.jsx openEdit.
+        // Initialize the input from the current package's override (only if its
+        // periodStart matches the current effective period — stale stamps render blank).
         const openOverrideEdit = () => {
-          const currentPeriod = getClientPeriod(client, session.date);
-          const isCurrent = client.sessionCountOverride && client.overridePeriodStart === currentPeriod.start;
+          const pkg = getCurrentPackage(client);
+          const period = getEffectivePeriod(pkg, session.date);
+          const ov = pkg.sessionCountOverride;
+          const isCurrent = ov && ov.periodStart === period.start;
           const draft = isCurrent
-            ? (client.sessionCountOverride.type === 'delta'
-                ? (client.sessionCountOverride.value >= 0 ? '+' : '') + client.sessionCountOverride.value
-                : String(client.sessionCountOverride.value))
+            ? (ov.type === 'delta'
+                ? (ov.value >= 0 ? '+' : '') + ov.value
+                : String(ov.value))
             : '';
           setOverrideDraft(draft);
           setEditingOverride(true);
@@ -457,7 +474,7 @@ export default function Schedule({ state, dispatch, lang }) {
                 ) : (
                   <>
                     <SessionCountPair auto={cAuto} effective={cEffective} override={cOverride} />
-                    <button className="btn-ghost" style={{ padding: '4px 8px' }} onClick={openOverrideEdit} aria-label="edit count">
+                    <button className="btn-ghost" style={{ padding: '4px 8px' }} onClick={openOverrideEdit} aria-label={t(lang, 'editCount')}>
                       <EditIcon size={14} />
                     </button>
                   </>
