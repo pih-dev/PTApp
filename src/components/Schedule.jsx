@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon } from './Icons';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, getEffectiveClientCount, getClientPeriod, currentMonth, localDateStr, getStatus, haptic, parseSessionCountOverride } from '../utils';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, getEffectiveClientCount, getClientPeriod, currentMonth, localDateStr, getStatus, haptic, parseSessionCountOverride, isRenewalDue, getCurrentPackage } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import { t, dateLocale } from '../i18n';
@@ -56,6 +56,29 @@ export default function Schedule({ state, dispatch, lang }) {
       dispatch({ type: 'UPDATE_SESSION', payload: { id: editingSession.id, clientId: clientIds[0], ...rest } });
       setShowForm(false);
     } else {
+      // v2.9 auto-advance: if any selected client is renewal-due, close their current
+      // package and open a new one BEFORE adding the new session. The new session's
+      // date becomes the new package start so it naturally falls into the new package.
+      for (const clientId of form.clientIds) {
+        const c = state.clients.find(x => x.id === clientId);
+        if (!c) continue;
+        if (isRenewalDue(c, state.sessions)) {
+          const pkg = getCurrentPackage(c);
+          dispatch({
+            type: 'RENEW_PACKAGE',
+            payload: {
+              clientId,
+              newPackageStart: form.date,
+              newContractSize: pkg.contractSize,
+              newPeriodUnit: pkg.periodUnit,
+              newPeriodValue: pkg.periodValue,
+              newNotes: '',
+              closedBy: 'auto',
+              trigger: { reason: 'auto-advance on booking', bookingDate: form.date, bookingTime: form.time },
+            },
+          });
+        }
+      }
       // Create mode: one independent session per selected client
       const created = form.clientIds.map(clientId => {
         const { clientIds, ...rest } = form;
@@ -238,6 +261,18 @@ export default function Schedule({ state, dispatch, lang }) {
       {showForm && (
         <Modal title={editingSession ? t(lang, 'editSession') : t(lang, 'bookSessionBtn')} onClose={() => setShowForm(false)}
           action={<button className="btn-primary" onClick={saveSession}>{editingSession ? t(lang, 'saveChanges') : `📅 ${t(lang, 'bookSessionBtn')}${form.clientIds.length > 1 ? ` (${form.clientIds.length} ${t(lang, 'client')})` : ''}`}</button>}>
+          {/* v2.9: banner shown when any selected client is renewal-due — informs PT that
+              booking will auto-advance their package. Placed BEFORE the book button fires
+              so it appears while PT is reviewing the selection. After booking the renewal
+              already happened so isRenewalDue returns false and the banner vanishes. */}
+          {form.clientIds.some(cid => {
+            const c = state.clients.find(x => x.id === cid);
+            return c && isRenewalDue(c, state.sessions);
+          }) && (
+            <div className="booking-renewal-banner">
+              ⚠️ {t(lang, 'packageLimitHit')} — {t(lang, 'willAutoRenew')}
+            </div>
+          )}
           <div className="field">
             <label className="field-label">{t(lang, 'client')}</label>
             {/* Chips showing selected clients */}
