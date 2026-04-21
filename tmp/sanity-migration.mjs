@@ -42,6 +42,16 @@ const v2Blob = {
       overridePeriodStart: null,   // filled at runtime below
       _modified: '2026-04-18T10:00:00Z',
     },
+    // Client E: REGRESSION GUARD for Apr 21 live-data bug. No custom period at all
+    // (v2 calendar-month default). Active override stamped with calendar-month anchor
+    // (1st of current month). Migration must preserve it — previous impl anchored the
+    // override check at today() and silently dropped every override of this shape.
+    {
+      id: 'cE', name: 'Eva', nickname: 'Ev', phone: '96170000005',
+      sessionCountOverride: { type: 'delta', value: 1 },
+      overridePeriodStart: null,   // filled at runtime below to 1st of current month
+      _modified: '2026-04-20T10:00:00Z',
+    },
   ],
   sessions: [
     { id: 's1', clientId: 'cA', date: '2026-04-05', time: '10:00', type: 'Strength', status: 'completed' },
@@ -64,6 +74,11 @@ const thisStartDay = Math.min(td, thisMonthLen);
 const legacyCurStart = `${ty}-${String(tm).padStart(2, '0')}-${String(thisStartDay).padStart(2, '0')}`;
 v2Blob.clients.find(c => c.id === 'cD').overridePeriodStart = legacyCurStart;
 
+// Client E's overridePeriodStart is stamped with v2's calendar-month anchor (1st of current month).
+// This is the shape of every live override on 2026-04-21 (Pierre Ghorra + Elie Jabbour in PT data).
+const calendarMonthStart = `${ty}-${String(tm).padStart(2, '0')}-01`;
+v2Blob.clients.find(c => c.id === 'cE').overridePeriodStart = calendarMonthStart;
+
 // Simulate localStorage for this run
 global.localStorage = {
   _data: { 'ptapp-data': JSON.stringify(v2Blob) },
@@ -80,7 +95,7 @@ function assert(cond, msg) {
 
 assert(migrated._dataVersion === 3, 'dataVersion bumped to 3');
 assert(Array.isArray(migrated.auditLog), 'auditLog is an array');
-assert(migrated.auditLog.length === 4, 'four package_created audit entries');
+assert(migrated.auditLog.length === 5, 'five package_created audit entries');
 
 const A = migrated.clients.find(c => c.id === 'cA');
 assert(A.packages && A.packages.length === 1, 'Alice has one package');
@@ -94,7 +109,7 @@ assert(A.sessionCountOverride === undefined, 'Alice root override removed');
 assert(A.overridePeriodStart === undefined, 'Alice root overridePeriodStart removed');
 
 const B = migrated.clients.find(c => c.id === 'cB');
-assert(B.packages[0].start === '2026-03-20', 'Bob package anchored at earliest session date');
+assert(B.packages[0].start === '2026-03-01', 'Bob package anchored at 1st of earliest session month (v2 calendar-month parity)');
 assert(B.packages[0].periodUnit === 'month', 'Bob default unit=month');
 assert(B.packages[0].sessionCountOverride === null, 'Bob no override');
 
@@ -108,9 +123,18 @@ assert(D.packages[0].sessionCountOverride !== null, 'Dana active override preser
 assert(D.packages[0].sessionCountOverride.value === 3, 'Dana override value intact');
 assert(D.packages[0].sessionCountOverride.periodStart === legacyCurStart, 'Dana override stamped with legacy anchor start');
 
+// Apr 21 live-data regression: Eva had neither periodStart nor periodLength (v2 calendar-month
+// default). Override stamped at 1st of current month. Previous migration mis-anchored at today()
+// and dropped the override silently. Must survive the fix.
+const E = migrated.clients.find(c => c.id === 'cE');
+assert(E.packages[0].start === calendarMonthStart, 'Eva package anchored at 1st of current month (calendar-month parity)');
+assert(E.packages[0].sessionCountOverride !== null, 'Eva active override preserved (calendar-month anchor)');
+assert(E.packages[0].sessionCountOverride.value === 1, 'Eva override value intact');
+assert(E.packages[0].sessionCountOverride.periodStart === calendarMonthStart, 'Eva override stamped with calendar-month start');
+
 // I2 regression: mergeBackup unions auditLog entries from the backup so forensic
-// history survives a restore. The migrated state has 4 audit entries; a synthetic
-// backup with one additional log entry should end up with 5.
+// history survives a restore. The migrated state has 5 audit entries; a synthetic
+// backup with one additional log entry should end up with 6.
 const liveAfterMigration = migrated;
 const backup = {
   _dataVersion: 3,
@@ -127,7 +151,7 @@ const backup = {
   _lastModified: '2026-04-01T00:00:00Z',
 };
 const restored = mergeBackup(liveAfterMigration, backup);
-assert(restored.auditLog.length === 5, 'mergeBackup unions auditLog (4 live + 1 backup-only)');
+assert(restored.auditLog.length === 6, 'mergeBackup unions auditLog (5 live + 1 backup-only)');
 assert(restored.auditLog.some(e => e.id === 'log_backup_only'), 'backup audit entry restored');
 
 console.log('\nMigration sanity: PASS');

@@ -247,6 +247,19 @@ sendBookingWhatsApp(client, session, ..., sessions);
 
 **Not platform-specific.** Works the same on iOS Safari, Android Chrome, and desktop. The timing window is small but reliably triggered by fast tapping during booking.
 
+### TRAP: v2→v3 migration dropped active overrides for calendar-month clients (Apr 21 2026)
+**What happened:** Task 2 of v2.9 migrated every v2 client into a synthetic v3 package. The migration re-derived the "current legacy period start" to decide whether each client's v2 `overridePeriodStart` stamp was still active. But the re-derivation used `c.periodStart || today()` as the anchor and fed it to `computeSlidingWindow` — which is correct for the two "custom period" branches of v2 `getClientPeriod`, but WRONG for the default branch. v2's default (when both `periodStart` and `periodLength` are empty) returned calendar-month (1st to last), hardcoded, not sliding. For clients on the default, the override stamp was `YYYY-MM-01` while the migration computed `today()`-anchored day-of-month as the current-period start. They never matched. Every override on a calendar-month client was silently dropped.
+
+**How it was caught:** Pre-deploy live-migration diff (`tmp/sanity-live-migration.mjs`) ran PT's real v2 export through `migrateData` and reported "pre: 2 active overrides, post: 0". Two real overrides (Pierre Ghorra delta:+1, Elie Jabbour delta:-4) were about to be lost on deploy.
+
+**Why the unit tests missed it:** `tmp/sanity-migration.mjs` had four synthetic clients. A, C had explicit `periodStart`. D had `periodLength` but no `periodStart` (testing the today()-anchor branch). **None tested the v2 default — no periodStart, no periodLength, with an override.** 100% of the PT's real overrides were in that untested branch. Added Client E to cover it.
+
+**Rule:** When migrating data from an old schema, re-read the OLD code exactly — don't trust design docs or memory. v2's `getClientPeriod` had three branches; the migration only faithfully reproduced two. Every branch of legacy logic needs a synthetic test fixture before deploy.
+
+**Additional rule:** Before any migration deploys, run it against a live data export (`tmp/live-snapshot-vX.Y.json`) and diff active-state counts. Unit tests on synthetic fixtures are necessary but not sufficient — real data has shapes synthetic data doesn't cover.
+
+**Where it bit us:** `src/utils.js` `migrateData` v2→v3 block. Fix: branch pkgStart computation to match v2's three cases exactly (periodStart → anchor at periodStart, periodLength-only → today(), neither → 1st of earliest session's month so calendar-month periods align). Override check then uses the same pkgStart → windows match v2 exactly.
+
 ### TRAP: Billing period gate field
 **What happened:** `getClientPeriod` originally checked `!client.periodStart` to decide whether to use calendar month. But `periodStart` is a date input — hard to clear on mobile once set. When the PT changed the dropdown back to "Default (calendar month)", `periodLength` became `""` but `periodStart` still had a value, so the function treated it as a custom period.
 

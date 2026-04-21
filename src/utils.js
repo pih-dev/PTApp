@@ -498,22 +498,38 @@ function migrateData(data) {
         .sort();
       const firstSessionDate = clientSessions[0];
 
-      const pkgStart = c.periodStart || firstSessionDate || today();
+      // Pick pkgStart so computeSlidingWindow reproduces v2's current-period start exactly.
+      // v2 had three branches in getClientPeriod (pre-v2.9 utils.js:182-220):
+      //   1. periodStart set  → anchor at periodStart
+      //   2. periodLength set, no periodStart  → anchor at today() (PT forgot to pick a date)
+      //   3. neither set  → CALENDAR MONTH (1st to last), not sliding — special case
+      // Branch 3 is the default (most live clients). Anchoring at firstSessionDate is wrong:
+      // it produces a sliding window offset by the first-session day-of-month, so current-period
+      // start on 2026-04-21 becomes e.g. 2026-04-02 instead of v2's 2026-04-01. Any override
+      // stamped with v2's 2026-04-01 anchor then fails the match and is silently dropped
+      // (observed Apr 21 on live data — Pierre + Elie's active deltas lost).
+      // Fix: for branch 3, anchor at 1st of earliest session's month (or 1st of current month
+      // if no sessions). computeSlidingWindow with day-of-month=1 produces calendar-month
+      // periods going both directions, matching v2 exactly.
       const { unit, value } = parseLegacyPeriodLength(c.periodLength);
+      let pkgStart;
+      if (c.periodStart) {
+        pkgStart = c.periodStart;
+      } else if (c.periodLength) {
+        pkgStart = today();
+      } else {
+        const earliest = new Date((firstSessionDate || today()) + 'T00:00:00');
+        pkgStart = localDateStr(new Date(earliest.getFullYear(), earliest.getMonth(), 1));
+      }
 
-      // Preserve override only if it was ACTIVE for legacy current period.
-      // Stale overrides (from prior period) were inert in v2 and stay so in v3.
-      //
-      // Anchor note: legacy getClientPeriod used today() as anchor when periodStart was absent
-      // (see utils.js:193 pre-v2.9). We reuse that exact rule ONLY for the override check, so
-      // a live override set against that legacy window still matches. pkgStart itself uses
-      // firstSessionDate as a better long-term anchor — the two anchors only diverge here.
+      // Override is active iff its stamp equals the v2 current-period start. With the correct
+      // pkgStart above, the v2 current-period start == computeSlidingWindow(pkgStart, ..., today()).start
+      // for all three branches. Stale overrides fail this check and are dropped (were inert in v2 too).
       let override = null;
       if (c.sessionCountOverride && c.overridePeriodStart) {
-        const legacyAnchor = c.periodStart || today();
-        const legacyCurrent = computeSlidingWindow(legacyAnchor, unit, value, today());
-        if (c.overridePeriodStart === legacyCurrent.start) {
-          override = { ...c.sessionCountOverride, periodStart: legacyCurrent.start };
+        const currentWindow = computeSlidingWindow(pkgStart, unit, value, today());
+        if (c.overridePeriodStart === currentWindow.start) {
+          override = { ...c.sessionCountOverride, periodStart: currentWindow.start };
         }
       }
 
