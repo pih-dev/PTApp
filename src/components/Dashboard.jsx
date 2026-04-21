@@ -26,15 +26,24 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
     const start = timeToMinutes(s.time);
     return nowMinutes >= start && nowMinutes < start + (s.duration || 45);
   };
-  // Upcoming Sessions: everything from today onward that isn't cancelled.
-  // Keep today's completed visible (day-progress is useful) but hide past-day
-  // completed so the list doesn't grow with stale "done" cards. The `date < todayStr`
-  // check also acts as a defensive stale guard against any past-dated scheduled session.
+  // Upcoming Sessions: future + today's sessions that aren't cancelled.
+  // Extra rule (v2.9.1, 2026-04-21): once a session is `completed` AND its
+  // end time is 2+ hours in the past, hide it. Pierre reported scrolling past
+  // today's finished sessions in the evening to reach tomorrow's — 2h gives
+  // a short "still visible right after it ended" window, then the list clears
+  // out. No-shows left as `scheduled` stay visible (the PT still needs to act
+  // on them). The `date < todayStr` guard stays as a stale-scheduled safeguard.
   const todayStr = today();
+  const nowMs = Date.now();
+  const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
   const upcoming = state.sessions
     .filter(s => {
       if (s.status === 'cancelled') return false;
       if (s.date < todayStr) return false;
+      if (s.status === 'completed') {
+        const endMs = new Date(`${s.date}T${s.time}`).getTime() + (s.duration || 45) * 60000;
+        if (nowMs - endMs >= TWO_HOURS_MS) return false;
+      }
       return true;
     })
     .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
