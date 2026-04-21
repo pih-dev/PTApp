@@ -4,6 +4,165 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.9.2 — Post-deploy review fixes (2026-04-21)
+
+**Trigger:** comprehensive code review run after v2.9 + v2.9.1 ship (per CLAUDE.md "review after 3+ feature changes" rule), plus a session-startup warning that CLAUDE.md had crossed the 40k char performance threshold (40.8k > 40.0k).
+
+### Critical: Schedule.jsx booking-confirm inline override wrote legacy v2 root fields
+
+**Bug:** the pencil-editor (`✎`) next to the session count in the booking confirm popup was dispatching `EDIT_CLIENT` with `client.sessionCountOverride` and `client.overridePeriodStart` at the **root** of the client object — the legacy v2 storage location that the v2→v3 migration explicitly deletes (`migrateData` strips both fields on load). Every override the PT typed from the booking popup was silently dropped on the next app load.
+
+**Why nobody noticed:** the parallel `Clients.jsx` edit-form path was correct (writes into `pkg.sessionCountOverride`). Only the booking-popup quick-edit path was broken. Both paths visually look identical when the override is "just set" — the bug only manifested on next reload.
+
+**Fix:** mirrored the `Clients.jsx:71-101` pattern in `Schedule.jsx`:
+
+```jsx
+const commitOverride = () => {
+  const parsed = parseSessionCountOverride(overrideDraft);
+  const pkg = getCurrentPackage(client);
+  const probePeriod = getEffectivePeriod(pkg, session.date);
+  const newPkg = {
+    ...pkg,
+    sessionCountOverride: parsed
+      ? { ...parsed, periodStart: probePeriod.start }
+      : null,
+  };
+  const pkgs = client.packages && client.packages.length
+    ? [...client.packages.slice(0, -1), newPkg]
+    : [newPkg];
+  dispatch({ type: 'EDIT_CLIENT', payload: { ...client, packages: pkgs } });
+  setEditingOverride(false);
+};
+```
+
+`openOverrideEdit` reworked similarly to read from `pkg.sessionCountOverride` instead of the legacy root fields when prefilling the input.
+
+**Regression test:** new "inline-confirm" block in `tmp/sanity-reducer.mjs` simulates the Schedule.jsx commit path end-to-end: builds a v3 client → dispatches the new payload shape → asserts (1) legacy root fields stay null, (2) override lives inside `packages[0].sessionCountOverride`, (3) `getEffectiveSessionCount` reads it correctly, (4) `EDIT_CLIENT` writes an `override_set` audit entry.
+
+**Lesson logged:** new TRAP "Per-feature author-site drift — v2.9 inline override (Apr 21 2026)" added to `docs/traps.md`. The fix pattern: when refactoring a storage location, grep EVERY read AND write of the old field across the whole codebase, not just the file you're in. The original v2.9 work touched `Clients.jsx` thoroughly but missed the parallel quick-edit affordance in `Schedule.jsx`.
+
+### Important: RenewalModal silent cross-device race
+
+**Bug:** if two devices had `RenewalModal` open simultaneously and Device A confirmed first, Device B's Confirm tap dispatched `RENEW_PACKAGE` against an already-closed package. The reducer correctly no-op'd (idempotency guard from v2.9), but the modal closed without feedback — PT thought renewal happened on B; nothing did.
+
+**Fix in `RenewalModal.jsx`:**
+```jsx
+const livePkg = getCurrentPackage(client);
+if (livePkg && livePkg.end != null) {
+  setError(t(lang, 'renewalAlreadyClosed'));
+  return;
+}
+```
+Pre-checks current package state before dispatch. On race detection, renders an inline error banner and keeps the modal open. New `error` useState added; cleared in the open-init effect.
+
+**i18n:** new key `renewalAlreadyClosed` (en + ar).
+
+### Important: Schedule.jsx O(N×M) renewal-due lookup memoized
+
+**Problem:** with the booking form open, `isRenewalDue(c, state.sessions)` was called per render in two places — the auto-advance loop in `saveSession` (per selected client) and the renewal-due banner check (filter over all selected clients). On every keystroke in any form field, both ran. The function itself iterates the client's sessions to compute `getEffectiveSessionCount`. Cost: O(clients × sessions) per render.
+
+**Fix:**
+```jsx
+const renewalDueIds = useMemo(
+  () => new Set(state.clients.filter(c => isRenewalDue(c, state.sessions)).map(c => c.id)),
+  [state.clients, state.sessions]
+);
+```
+Both consumers now do `renewalDueIds.has(clientId)`. Added `useMemo` to React imports.
+
+### Important: deprecated `getClientPeriod` removed
+
+The v2.9 migration deprecated this helper but left the export in place "for backwards compatibility." Grep confirmed zero callers in `src/`. Deleted (lines 184-190 of `utils.js`). Defensive code that protects nothing is dead code — flagged in CLAUDE.md "no defensive code" rule.
+
+### Important: explicit override-equality in EDIT_CLIENT audit logging
+
+**Was:**
+```js
+if (JSON.stringify(oldOv) !== JSON.stringify(newOv)) { /* log */ }
+```
+
+**Issue:** key order sensitive. If a render produced `{value, type, periodStart}` instead of `{type, value, periodStart}`, the comparison would falsely report a change and emit a spurious `override_set` audit entry. Hadn't bitten yet but was a ticking bug.
+
+**Now:**
+```js
+const ovEqual =
+  (oldOv == null && newOv == null) ||
+  (oldOv != null && newOv != null
+    && oldOv.type === newOv.type
+    && oldOv.value === newOv.value
+    && oldOv.periodStart === newOv.periodStart);
+if (!ovEqual) { /* log */ }
+```
+
+### Minor: `'9999-12-31'` sentinel removed from two call sites
+
+`getPeriodSessionCount(client, sessions, periodStart, periodEnd)` already handled `null` for "no upper bound." Both call sites (`getEffectiveClientCount` in `utils.js`, `Clients.jsx:443`) were passing `period.end || '9999-12-31'`. Now they pass `period.end` directly. The fallback was a hangover from before the helper was nullable.
+
+### Minor: Dashboard upcoming filter `!s.time` guard
+
+Defensive guard for sessions imported from external data or pre-time-field legacy records that might lack `s.time`. Without it, `new Date(\`${date}T${undefined}\`).getTime()` returns NaN and the comparison silently misbehaves. Plus DST-edge-case comment on the local-time end-of-session calculation (matches the v2.9.1 convention).
+
+### Minor: Audit log size visible in debug panel
+
+`docs/app-health.md` flags audit log >10k entries as a revisit trigger. Without UI surface, there was no way to observe approach. Added one line to App.jsx debug panel: `Audit log: {state.auditLog?.length || 0}`.
+
+### Minor: i18n + comments
+
+- `aria-label="edit count"` (Schedule pencil button) → `t(lang, 'editCount')`. New i18n key.
+- RenewalModal: comment explaining why brand-new contracts default to '10' (PT's typical pre-paid package size).
+
+### Docs: CLAUDE.md slim-down (41.2k → 19.5k chars)
+
+**Trigger:** session-startup warning `⚠ Large CLAUDE.md will impact performance (40.8k chars > 40.0k)`.
+
+**Approach:**
+- Extracted entire TRAPS section verbatim into new file `docs/traps.md` (19.6k chars).
+- Replaced TRAPS section in CLAUDE.md with a one-line index — each trap is one bullet pointing into the new file.
+- Collapsed older-version sections (v2.5–v2.8) to one-line pointers to their `instructions-v*.md`.
+- Updated Reducer actions table to include `RENEW_PACKAGE`.
+- Removed outdated text about silent sync errors (already fixed in v2.5/v2.6).
+- Added new "Current Version: v2.9.2" section.
+- Two new TRAPS entries added during the slim-down: "Per-feature author-site drift" (this incident) and "Parser contract `.type` not `.mode`" (promoted from inline mention in v2.8 prose).
+
+**Result:** CLAUDE.md = 19,461 chars; docs/traps.md = 19,651 chars. Combined 39,112 — but only CLAUDE.md is loaded into every Claude session, and traps.md is read on-demand when the relevant area is touched.
+
+### What didn't change
+
+- No schema change. `_dataVersion` stays at 3. No migration step.
+- No CSS changes.
+- No sync behavior changes.
+- No new features.
+- `Clients.jsx` override-write path was already correct (uses `pkg.sessionCountOverride`) — untouched.
+
+### Verification
+
+All 4 sanity scripts pass after each batch:
+- `tmp/sanity-reducer.mjs` (with new "inline-confirm" regression block) — PASS
+- `tmp/sanity-counting.mjs` — PASS
+- `tmp/sanity-slidingwindow.mjs` — PASS
+- `tmp/sanity-migration.mjs` — PASS
+
+Bundle integrity verified: `node --check` on extracted JS bundle from `dist/index.html` — clean.
+
+### Ship size
+
+| File | Δ |
+|------|---|
+| `src/components/Schedule.jsx` | +33 / −18 (Critical fix + memo) |
+| `src/components/RenewalModal.jsx` | +21 / −0 |
+| `src/components/Dashboard.jsx` | +6 / −0 |
+| `src/components/Clients.jsx` | +1 / −1 |
+| `src/utils.js` | +12 / −14 |
+| `src/i18n.js` | +4 / −0 |
+| `src/App.jsx` | +4 / −1 |
+| `tmp/sanity-reducer.mjs` | +28 / −2 |
+| `CLAUDE.md` | +98 / −355 (slim-down) |
+| `docs/traps.md` | NEW (+458) |
+
+Commits: `388138b` (master) / `baa95bb` (gh-pages). Deployed Apr 21, 2026.
+
+---
+
 ## v2.9.1 — Upcoming rolls off completed 2h past end (2026-04-21)
 
 **Problem:** v2.7's `upcoming` filter kept `status !== 'cancelled' && date >= today()`. Today's completed sessions stayed visible until midnight — useful for day-progress awareness, but by evening the list was dominated by done-already cards while tomorrow's sessions sat at the bottom. Pierre reported scroll fatigue on 2026-04-21.

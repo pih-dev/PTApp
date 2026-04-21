@@ -4,6 +4,30 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.9.2 — Post-Deploy Review Fixes (Apr 21, 2026)
+
+**v2.9 had a silent bug nobody noticed.** Right after v2.9 (contracts) and v2.9.1 (evening rolloff) shipped, Pierre ran a comprehensive code review — the kind he does after 3+ feature changes per the project rules. The reviewer flagged a critical bug: the booking-confirm pencil-editor (the small `✎` next to the session count in the booking success popup) was writing the override into the **old v2 storage location** that the v2→v3 migration deletes. Result: every time the PT typed a quick override from the booking popup, it got erased on the next app load. Silently. The Clients tab edit form path worked fine — only the booking popup was broken. Caught only because the review re-read both code paths side-by-side.
+
+**Fixed by mirroring the working path** — the booking popup now writes the override into the package, same as Clients.jsx. Added a regression test so this can't come back.
+
+**A second, smaller bug:** if two devices opened the renewal dialog at the same time and one confirmed first, the second device's Confirm tap silently did nothing — the dialog just closed. Now it shows an inline "already renewed by another device" warning and keeps the dialog open so the PT understands what happened.
+
+**Performance smoothing:** the booking form was recomputing "is this client at their contract limit?" on every keystroke for every client × session combination. Now it's computed once per render and reused. Imperceptible on small data, but it scales with the PT's growing client list.
+
+**Cleanup of small things that bug Pierre:**
+- Removed an unused legacy helper (`getClientPeriod`) that was kept "for compatibility" — nothing was using it anymore.
+- Replaced a brittle string-comparison for change detection with an explicit field check.
+- Added a defensive guard for sessions that lack a time (legacy/imported records).
+- Removed two `'9999-12-31'` sentinel values that were no longer needed (the underlying helper accepts `null` for "no upper bound").
+- Made the audit log size visible in the debug panel so it can be observed approaching the 10k entry threshold.
+- Translated the pencil button's accessibility label.
+
+**CLAUDE.md slim-down.** Session-startup printed a warning: `⚠ Large CLAUDE.md will impact performance (40.8k chars > 40.0k)`. Pierre extracted the TRAPS section (the hard-won lessons list) into its own file (`docs/traps.md`) and collapsed older version histories into one-line pointers to their respective instruction docs. CLAUDE.md is now 19.5k characters — under the warning threshold, more focused on what's currently relevant. Two new TRAPS entries added: this incident's lesson ("when refactoring a storage location, grep EVERY read AND write across the whole codebase, not just the file you're in") and a parser-contract note from v2.8.
+
+**No data migration. No new features. No schema change.** Pure cleanup and a critical bug fix that nobody had noticed.
+
+---
+
 ## v2.9.1 — Evening Dashboard Cleanup (Apr 21, 2026)
 
 **The evening view got crowded.** After v2.7 made the home screen show "Upcoming Sessions" (today's + future, no cancellations), the list worked great all day. But at night, when Pierre or the PT opens the app to peek at tomorrow's first session, they had to scroll past every session the PT already finished that day. Day-progress value in the morning, scroll-fatigue by dinnertime.
