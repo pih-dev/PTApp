@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Modal from './Modal';
 import { WhatsAppIcon, EditIcon, TrashIcon, PhoneIcon, ChevronIcon } from './Icons';
-import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, FOCUS_TAGS, PERIOD_OPTIONS, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic, parseSessionCountOverride, getClientPeriod, getPeriodSessionCount, today } from '../utils';
+import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, FOCUS_TAGS, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic, parseSessionCountOverride, getCurrentPackage, getEffectivePeriod, getPeriodSessionCount, getEffectiveClientCount, isRenewalDue, today } from '../utils';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import SessionCountPair from './SessionCountPair';
 import { t, dateLocale } from '../i18n';
@@ -9,7 +9,11 @@ import { t, dateLocale } from '../i18n';
 export default function Clients({ state, dispatch, lang }) {
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
-  const [form, setForm] = useState({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '', periodStart: '', periodLength: '', sessionOverride: '' });
+  const [form, setForm] = useState({
+    name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '',
+    periodStart: '', periodUnit: 'month', periodValue: 1, contractSize: '',
+    sessionOverride: '',
+  });
   const [search, setSearch] = useState('');
   const [countryCode, setCountryCode] = useState(getDefaultCountryCode);
   const [expandedId, setExpandedId] = useState(null);
@@ -20,27 +24,32 @@ export default function Clients({ state, dispatch, lang }) {
   const overrideHoldRef = useRef(null);
 
   const openAdd = () => {
-    setForm({ name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '', periodStart: '', periodLength: '', sessionOverride: '' });
+    setForm({
+      name: '', nickname: '', phone: '', gender: '', birthdate: '', notes: '',
+      periodStart: '', periodUnit: 'month', periodValue: 1, contractSize: '',
+      sessionOverride: '',
+    });
     setEditingClient(null);
     setShowForm(true);
   };
 
   const openEdit = (c) => {
-    // Only pre-fill sessionOverride if the stored override is for the CURRENT period.
-    // Stale overrides (from a prior month/period) are ignored — they'll be overwritten
-    // on save, or left inert if the PT doesn't touch the field. This mirrors read-side
-    // behaviour in getEffectiveSessionCount.
-    const nowPeriod = getClientPeriod(c, today());
-    const overrideIsCurrent = c.sessionCountOverride && c.overridePeriodStart === nowPeriod.start;
+    const pkg = getCurrentPackage(c);
+    const period = getEffectivePeriod(pkg, today());
+    const ov = pkg.sessionCountOverride;
+    const overrideIsCurrent = ov && ov.periodStart === period.start;
     const overrideStr = overrideIsCurrent
-      ? (c.sessionCountOverride.type === 'delta'
-          ? (c.sessionCountOverride.value >= 0 ? '+' : '') + c.sessionCountOverride.value
-          : String(c.sessionCountOverride.value))
+      ? (ov.type === 'delta'
+          ? (ov.value >= 0 ? '+' : '') + ov.value
+          : String(ov.value))
       : '';
     setForm({
       name: c.name, nickname: c.nickname || '', phone: c.phone, gender: c.gender || '',
       birthdate: c.birthdate || '', notes: c.notes || '',
-      periodStart: c.periodStart || '', periodLength: c.periodLength || '',
+      periodStart: pkg.start || '',
+      periodUnit: pkg.periodUnit || 'month',
+      periodValue: pkg.periodValue || 1,
+      contractSize: pkg.contractSize == null ? '' : String(pkg.contractSize),
       sessionOverride: overrideStr,
     });
     setEditingClient(c);
@@ -49,22 +58,50 @@ export default function Clients({ state, dispatch, lang }) {
 
   const save = () => {
     if (!form.name.trim() || !form.phone.trim()) return;
-    // Parse override + stamp period so we can detect rollover on read.
-    // Empty input → clear stored override fields (set to null, not undefined, so they
-    // serialise through JSON.stringify and overwrite any remote stale value).
-    const { sessionOverride, ...rest } = form;
-    const parsed = parseSessionCountOverride(sessionOverride);
-    let overrideFields;
-    if (parsed) {
-      const periodForStamp = getClientPeriod({ ...rest }, today());
-      overrideFields = { sessionCountOverride: parsed, overridePeriodStart: periodForStamp.start };
-    } else {
-      overrideFields = { sessionCountOverride: null, overridePeriodStart: null };
-    }
+
+    // Parse contract and override
+    const contractNum = form.contractSize.trim();
+    const contractSize = contractNum === '' ? null : (Number.isInteger(+contractNum) && +contractNum >= 1 ? +contractNum : null);
+
+    const parsedOverride = parseSessionCountOverride(form.sessionOverride);
+
+    // Build the current package (edit or create)
+    const existingPkg = editingClient ? getCurrentPackage(editingClient) : null;
+    const newPkgStart = form.periodStart || (existingPkg ? existingPkg.start : today());
+    const pkgShell = {
+      id: existingPkg && existingPkg.id ? existingPkg.id : 'pkg_' + genId(),
+      start: newPkgStart,
+      end: null,
+      periodUnit: form.periodUnit || 'month',
+      periodValue: +form.periodValue || 1,
+      contractSize,
+      notes: existingPkg ? existingPkg.notes || '' : '',
+      closedAt: null,
+      closedBy: null,
+    };
+
+    // Override gets stamped with the effective period start computed against the NEW pkg settings
+    const probePeriod = getEffectivePeriod(pkgShell, today());
+    pkgShell.sessionCountOverride = parsedOverride
+      ? { ...parsedOverride, periodStart: probePeriod.start }
+      : null;
+
+    // Compose client — strip form-only fields
+    const { sessionOverride, periodStart, periodUnit, periodValue, contractSize: _cs, ...restForm } = form;
     if (editingClient) {
-      dispatch({ type: 'EDIT_CLIENT', payload: { ...editingClient, ...rest, ...overrideFields } });
+      // Replace the last package in the packages array (current open package)
+      const pkgs = editingClient.packages && editingClient.packages.length
+        ? [...editingClient.packages.slice(0, -1), pkgShell]
+        : [pkgShell];
+      dispatch({
+        type: 'EDIT_CLIENT',
+        payload: { ...editingClient, ...restForm, packages: pkgs },
+      });
     } else {
-      dispatch({ type: 'ADD_CLIENT', payload: { id: genId(), ...rest, ...overrideFields } });
+      dispatch({
+        type: 'ADD_CLIENT',
+        payload: { id: genId(), ...restForm, packages: [pkgShell] },
+      });
     }
     setShowForm(false);
   };
@@ -325,36 +362,66 @@ export default function Clients({ state, dispatch, lang }) {
             <input className="input" placeholder="e.g. Bad knee, prefers mornings" value={form.notes}
               onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
           </div>
-          {/* Billing period — optional, defaults to calendar month */}
+          {/* Billing — period + contract. Edits the current open package. */}
+          <div className="field" style={{ borderTop: '1px solid var(--sep)', paddingTop: 12, marginTop: 4 }}>
+            {/* Status line — read-only, shows package position */}
+            {editingClient && (() => {
+              const pkg = getCurrentPackage(editingClient);
+              const pkgCount = (editingClient.packages || []).length;
+              const { effective } = getEffectiveClientCount(editingClient, state.sessions);
+              const labelNum = pkg.contractSize != null
+                ? `${effective} / ${pkg.contractSize}`
+                : `${effective} ${t(lang, 'sessionWord')}`;
+              return (
+                <div style={{ fontSize: 12, color: 'var(--t4)', marginBottom: 8 }}>
+                  {t(lang, 'packageNumber')} #{pkgCount} · {t(lang, 'session')} {labelNum}
+                </div>
+              );
+            })()}
+          </div>
+          <div className="field">
+            <label className="field-label">
+              {t(lang, 'periodStart')} <span style={{ fontWeight: 400, color: 'var(--t4)' }}>{t(lang, 'periodOptional')}</span>
+            </label>
+            <input type="date" className="input" value={form.periodStart}
+              onChange={e => setForm(p => ({ ...p, periodStart: e.target.value }))} />
+          </div>
           <div className="flex-row-12">
             <div className="field" style={{ flex: 1 }}>
-              <label className="field-label">{t(lang, 'periodStart')} <span style={{ fontWeight: 400, color: 'var(--t4)' }}>{t(lang, 'periodOptional')}</span></label>
-              <input type="date" className="input" value={form.periodStart}
-                onChange={e => setForm(p => ({ ...p, periodStart: e.target.value }))} />
+              <label className="field-label">{t(lang, 'periodLengthValue')}</label>
+              <input type="number" min="1" className="input" value={form.periodValue}
+                onChange={e => setForm(p => ({ ...p, periodValue: +e.target.value || 1 }))} />
             </div>
             <div className="field" style={{ flex: 1 }}>
-              <label className="field-label">{t(lang, 'periodLength')}</label>
-              <select className="select" value={form.periodLength} onChange={e => {
-                const v = e.target.value;
-                // Clearing periodLength (back to default) also clears periodStart for clean data
-                setForm(p => v ? { ...p, periodLength: v } : { ...p, periodLength: '', periodStart: '' });
-              }}>
-                <option value="">{t(lang, 'periodDefault')}</option>
-                {PERIOD_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              <label className="field-label">{t(lang, 'periodLengthUnit')}</label>
+              <select className="select" value={form.periodUnit}
+                onChange={e => setForm(p => ({ ...p, periodUnit: e.target.value }))}>
+                <option value="day">{t(lang, 'unitDay')}</option>
+                <option value="week">{t(lang, 'unitWeek')}</option>
+                <option value="month">{t(lang, 'unitMonth')}</option>
               </select>
             </div>
           </div>
-          {/* v2.8 Manual session count override — long-press opens help, right-click on desktop.
-              Live preview shows auto→effective so the PT sees the result before saving. */}
+          <div className="field">
+            <label className="field-label">
+              {t(lang, 'contractSize')} <span style={{ fontWeight: 400, color: 'var(--t4)' }}>{t(lang, 'contractOptional')}</span>
+            </label>
+            <input type="number" min="1" className="input" placeholder={t(lang, 'contractPlaceholder')}
+              value={form.contractSize}
+              onChange={e => setForm(p => ({ ...p, contractSize: e.target.value.replace(/[^0-9]/g, '') }))} />
+          </div>
+          {/* Override row — live preview of auto → effective using current form state */}
           {(() => {
-            // Preview context: use today's period and auto count for the client-in-progress.
-            // For a new client, sessions array is empty so auto is 0 — fine.
-            const clientForPeriod = editingClient
-              ? { ...editingClient, periodStart: form.periodStart, periodLength: form.periodLength }
-              : { periodStart: form.periodStart, periodLength: form.periodLength };
-            const period = getClientPeriod(clientForPeriod, today());
+            const pkgForPeriod = {
+              id: 'preview', start: form.periodStart || today(),
+              end: null,
+              periodUnit: form.periodUnit, periodValue: +form.periodValue || 1,
+              contractSize: form.contractSize === '' ? null : +form.contractSize,
+              sessionCountOverride: null, notes: '', closedAt: null, closedBy: null,
+            };
+            const period = getEffectivePeriod(pkgForPeriod, today());
             const auto = editingClient
-              ? getPeriodSessionCount(state.sessions, editingClient.id, period.start, period.end)
+              ? getPeriodSessionCount(state.sessions, editingClient.id, period.start, period.end || '9999-12-31')
               : 0;
             const parsed = parseSessionCountOverride(form.sessionOverride);
             const effective = parsed
