@@ -4,6 +4,54 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.9.1 — Upcoming rolls off completed 2h past end (2026-04-21)
+
+**Problem:** v2.7's `upcoming` filter kept `status !== 'cancelled' && date >= today()`. Today's completed sessions stayed visible until midnight — useful for day-progress awareness, but by evening the list was dominated by done-already cards while tomorrow's sessions sat at the bottom. Pierre reported scroll fatigue on 2026-04-21.
+
+### Change
+
+`src/components/Dashboard.jsx` — filter extended with a completed-rolloff predicate:
+
+```jsx
+if (s.status === 'completed') {
+  const endMs = new Date(`${s.date}T${s.time}`).getTime() + (s.duration || 45) * 60000;
+  if (nowMs - endMs >= TWO_HOURS_MS) return false;
+}
+```
+
+- `nowMs = Date.now()` captured once above the filter (not per-iteration).
+- `TWO_HOURS_MS = 2 * 60 * 60 * 1000`.
+- End time computed with local-time `new Date(\`${s.date}T${s.time}\`)` — no `Z` suffix, so no UTC conversion (avoids the documented `toISOString` trap).
+- `s.duration || 45` matches the `isNowSession` convention above — old records may lack the field.
+- The pre-existing `s.date < todayStr` guard stays as a defensive stale-scheduled safeguard.
+
+### Why threshold lives on end time, not on when the user tapped Complete
+
+Auto-complete (v2.5) already flips `scheduled → completed` 1h after end time. Tying rolloff to end time means a 17:00–18:00 session:
+- 18:00 — ends, `scheduled`
+- 19:00 — auto-completed
+- 20:00 — 2h past end, rolls off ✓
+
+If the PT taps Complete early (e.g., at 17:45), the session still rolls off at 20:00, not 19:45 — matches the mental model "the session was until 18:00."
+
+### What didn't change
+
+- `src/components/Schedule.jsx` day view — still shows every session for the selected day.
+- `src/components/Sessions.jsx` — full history unchanged.
+- Dashboard stat cards (Today, This Week) — unchanged.
+- No-shows (past end time, still `status === 'scheduled'`) stay in Upcoming by design — the PT still needs to act on them.
+- No i18n, no CSS, no schema, no sync behavior.
+
+### Views covered
+
+Both Expanded and Compact Dashboard views share the `upcoming` array (per v2.7), so the single filter change covers both.
+
+### Ship size
+
+13 lines added / 4 removed in Dashboard.jsx. Version bump v2.9 → v2.9.1 in App.jsx debug panel.
+
+---
+
 ## v2.8 — Manual Session Count Override (2026-04-20)
 
 **Problem:** The period session count was computed purely from session records (scheduled + completed in the current billing period). When the app's count disagreed with the PT's paper records, his only recovery options were destructive: add a fake retroactive session or cancel-without-count an existing one. Both pollute history permanently and compound over time.

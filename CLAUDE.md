@@ -12,7 +12,10 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.9
+## Current Version: v2.9.1
+- Dashboard "Upcoming Sessions": a session is hidden once it is `completed` AND its end time is 2+ hours in the past. Keeps just-finished sessions visible briefly, then clears so an evening glance shows tomorrow near the top. No-shows (past end, still `scheduled`) stay visible — the PT still needs to act on them. One filter change in `src/components/Dashboard.jsx`, no schema / i18n / CSS changes. `Date.now()` captured once above the filter; end-time computed with local-time `new Date(\`${s.date}T${s.time}\`)` to avoid the UTC trap. Applies to both Expanded and Compact views (they share the `upcoming` array). Debug panel shows v2.9.1.
+
+## Previous Version: v2.9
 - Per-client session contracts replace root-level `periodStart` / `periodLength` / `sessionCountOverride` / `overridePeriodStart`
   - Every client now has `packages: Array<Package>` with shape `{ id, start, end, periodUnit, periodValue, contractSize, sessionCountOverride, notes, closedAt, closedBy }`
   - Current open package is `packages[packages.length - 1]` with `end: null`
@@ -30,7 +33,7 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - New doc: `docs/app-health.md` — Feature Overhead Register tracks audit-log retention + future accounting knobs.
 - Debug panel shows v2.9
 
-## Previous Version: v2.8
+## Older Version: v2.8
 - Per-client manual session count override for the current billing period
   - Absolute (`10`) or delta (`+1`, `-1`) values. Empty / `+0` / `-0` / junk → null.
   - Authored on the client edit form AND inline in the booking confirm popup (pencil toggle).

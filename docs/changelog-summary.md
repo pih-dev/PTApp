@@ -4,6 +4,16 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.9.1 — Evening Dashboard Cleanup (Apr 21, 2026)
+
+**The evening view got crowded.** After v2.7 made the home screen show "Upcoming Sessions" (today's + future, no cancellations), the list worked great all day. But at night, when Pierre or the PT opens the app to peek at tomorrow's first session, they had to scroll past every session the PT already finished that day. Day-progress value in the morning, scroll-fatigue by dinnertime.
+
+**v2.9.1 rolls off completed sessions 2 hours after their end time.** A session at 17:00–18:00 stays visible through 20:00; at 20:00+ it disappears from the Upcoming list. The Sessions tab still keeps the full history — only the home screen glance is trimmed. No-shows (sessions past their end time that are still marked `scheduled`) stay visible because they still need a decision (mark complete, cancel, or follow up).
+
+**One filter change, nothing else.** No new settings, no data migration, no UI redesign. Both Expanded and Compact views on the home screen share the same list, so both benefit from the one change. Works on dark, light, and RTL the same way.
+
+---
+
 ## v2.8 — Manual Session Count Override (Apr 20, 2026)
 
 **The auto count was the only voice in the room.** The session count for each billing period was computed by looking at all scheduled + completed sessions dated inside the period. That's usually right — but when it's wrong, there was no clean way to correct it. If the PT's paper records said the client was on session 10 but the app said 12, his only options were destructive: book a retroactive fake session (pollutes history) or cancel-without-count an existing one (pollutes history). Both leave permanent record-keeping garbage.
