@@ -92,7 +92,10 @@ function assert(cond, msg) {
   console.log('✓', msg);
 }
 
-assert(migrated._dataVersion === 3, 'dataVersion bumped to 3');
+// migrateData runs all forward steps in one pass, so a v2 input now lands at v4
+// (after v2.9.5 added the v3→v4 Arms/Endurance step). We assert the latest version
+// and additionally that the v3-introduced shape (packages[]) survives the v4 step.
+assert(migrated._dataVersion === 4, 'dataVersion bumped through to 4');
 assert(Array.isArray(migrated.auditLog), 'auditLog is an array');
 assert(migrated.auditLog.length === 5, 'five package_created audit entries');
 

@@ -4,6 +4,91 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.9.5 — Arms→Bi/Tri tag split + Custom→Endurance type rename + v3→v4 migration (2026-04-29)
+
+**Trigger:** PT requested finer-grained arm tracking. Single 'Arms' tag couldn't distinguish biceps-focused vs triceps-focused sessions. PT also reframed the misnamed 'Custom' session type as 'Endurance' (specifically "Strength Endurance" per his words).
+
+### Decisions (Pierre, 2026-04-29 brainstorm round)
+
+**D1 — Tag split shape:** 'Arms' deleted from FOCUS_TAGS catalog. 'Bi' and 'Tri' added as two independent tags (not a combined 'Bi/Tri' or a sub-hierarchy). Sessions can carry one or both depending on what was actually trained. Applied to both `Strength` and `Endurance` (formerly `Custom`) since both used the same anatomical tag list.
+
+**D2 — Type rename, not delete:** 'Custom' renamed in place to 'Endurance'. SESSION_TYPES.length stays at 6 — the `SESSION_TYPES[5]` fallback at `src/utils.js:860` continues to resolve to a valid type. Color (`#6B7280`) and emoji (`🎯`) preserved so the visual signature in session cards is unchanged.
+
+**D3 — History migration semantics (per Pierre 2026-04-29):**
+1. **Per-client alternation, chronological by `${date} ${time} ${id}`**, starting with **Bi**, then Tri, then Bi… Each client has their own independent counter (no global ordering).
+2. **Cancelled sessions COUNT.** Pierre revised an earlier "skip cancelled" answer mid-conversation: counting them keeps the sequence predictable when the PT eyeballs his history in date order — a cancelled session still occupies a calendar slot the PT remembers.
+3. **Mixed-tag sessions** (e.g. `['Chest','Arms']`): only the 'Arms' slot is replaced; other tags are preserved. Result: `['Chest','Bi']` (or Tri depending on alternation position).
+4. **Free-text `notes` field untouched.** Migration only walks the structured `focus` array.
+5. **`session.type === 'Custom'` rewritten to 'Endurance'** on every session regardless of status.
+
+### Code change — `src/utils.js`
+
+**SESSION_TYPES (line 89-103):**
+```js
+// BEFORE
+{ label: 'Custom', color: '#6B7280', emoji: '🎯' }
+
+// AFTER
+{ label: 'Endurance', color: '#6B7280', emoji: '🎯' }
+```
+
+**FOCUS_TAGS (line 105-118):**
+```js
+// BEFORE
+Strength: ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core', 'Glutes', 'Full Body'],
+Custom:   ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core', 'Glutes', 'Full Body'],
+
+// AFTER
+Strength:  ['Chest', 'Back', 'Shoulders', 'Bi', 'Tri', 'Legs', 'Core', 'Glutes', 'Full Body'],
+Endurance: ['Chest', 'Back', 'Shoulders', 'Bi', 'Tri', 'Legs', 'Core', 'Glutes', 'Full Body'],
+```
+
+**migrateData v3→v4 (new step):**
+- Group sessions by `clientId` (orphans bucketed under `__orphan__`).
+- Per group: stable sort by `${date} ${time} ${id}`, walk in order, keep an `armsCount` counter, replace each occurrence of `'Arms'` in `s.focus` with `armsCount % 2 === 0 ? 'Bi' : 'Tri'`.
+- Separate pass: rewrite `s.type === 'Custom'` to `'Endurance'` on every session.
+- Idempotent: a re-run finds no 'Arms' tags and no 'Custom' types, so nothing flips.
+- `DATA_VERSION` bumped 3 → 4.
+
+**App.jsx version label** bumped to `v2.9.5`.
+
+### Propagation surface
+
+`grep -rn "'Arms'" src/` returned only `src/utils.js:102, 107` — both updated. No hardcoded `'Custom'` literal anywhere outside the SESSION_TYPES definition (verified `grep -rn "'Custom'\|\"Custom\"" src/`). All component-side reads go through `FOCUS_TAGS[session.type]` lookup, which automatically returns the new lists post-rename.
+
+### Tests
+
+**New: `scripts/sanity/sanity-arms-migration.mjs`** — 17 assertions covering:
+- DATA_VERSION reaches 4
+- 6-session per-client alternation Bi/Tri/Bi/Tri/Bi/Tri (Alice)
+- Cancelled session counted at position 2 (Tri)
+- Out-of-order session inserts: chronological sort overrides array order
+- Mixed `[Chest,Arms]` → `[Chest,Bi]`, `[Arms,Core]` → `[Tri,Core]` (Arms slot replaced in place)
+- Per-client independence (Bob's first Arms is Bi, not Tri)
+- No-Arms client (Cara): `focus` untouched
+- `type === 'Custom'` → `'Endurance'` on every session, `'Strength'` unchanged
+- Idempotency: re-running migration on already-migrated data is a no-op
+
+All 17 pass.
+
+**Updated: `scripts/sanity/sanity-migration.mjs`** — `dataVersion === 3` assertion bumped to `=== 4` since `migrateData` now runs both v2→v3 and v3→v4 steps in one pass.
+
+**Pre-existing failure flagged:** `sanity-migration.mjs` "Alice active override migrated" check fails today (2026-04-29) because the test fixture hardcodes `overridePeriodStart: '2026-04-02'` against monthly periods anchored at `2026-03-02` — the assertion was authored 2026-04-21 when 04-02 was the current period start. This is a test-fixture rot issue (the fixture should compute its dates at test-run time), unrelated to the v3→v4 migration itself. Out of scope for v2.9.5 — flagged for follow-up.
+
+### What this v2.9.5 release deliberately did NOT do
+
+- **Did not add an Endurance-specific tag list.** Pierre confirmed Endurance keeps the same anatomical tags as Strength because the PT frames it as "Strength Endurance".
+- **Did not strip 'Arms' from cancelled sessions and leave them with a smaller tag list.** Cancelled sessions go through the same alternation rewrite so no orphan 'Arms' tag survives in any session, anywhere.
+- **Did not rewrite or re-emit audit log entries.** The v3→v4 migration is purely tag-and-type rewriting; no audit-log mutation.
+
+### TRAP avoided
+
+The `_archive` of trap-prone migration patterns (`docs/traps.md` "v2→v3 migration override-drop") was followed:
+- Live-data diff: no Pierre-side export available pre-deploy on this run, so the sanity script's idempotency + per-client alternation tests stand in. Pierre will run `sanity-live-migration.mjs` against the PT's exported data on his next sync window before declaring the migration safe in production.
+- Per-feature author-site drift: `grep` confirmed only one author site (`utils.js`) for both 'Arms' and `'Custom'` literals.
+
+---
+
 ## v2.9.4 — Schedule focus-tag preserve (retroactive fix + documentation) (2026-04-21)
 
 **Trigger:** SessionCard-refactor brainstorm (2026-04-21, `docs/superpowers/specs/2026-04-21-session-card-refactor-brainstorm.md`) flagged that `Dashboard.jsx` preserves focus tags across inline type changes while `Schedule.jsx` clears them. Pierre immediately identified this as an **architected-and-approved** behavior that had been applied only to Dashboard back on 2026-04-02 (commit `eb29798`, "Preserve focus tags when switching session type") and never propagated to Schedule — nor recorded in either changelog. The behavior survived only as a file-level comment in Dashboard and as the commit message.

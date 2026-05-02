@@ -4,6 +4,20 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.9.5 — Arms split into Bi/Tri + Custom renamed to Endurance (Apr 29, 2026)
+
+**The PT wanted finer arm tracking.** "Arms" as a single focus tag was lumping biceps and triceps days together — most of his sessions train one head, not both. v2.9.5 splits "Arms" into two independent tags, **Bi** (biceps) and **Tri** (triceps), under both Strength and the renamed Endurance category. Going forward, when the PT opens a Strength session he'll see `Chest, Back, Shoulders, Bi, Tri, Legs, Core, Glutes, Full Body` — Bi and Tri sit side-by-side where Arms used to be. He can pick one or both depending on what the session actually worked.
+
+**The historical sessions get rewritten too.** Hundreds of past Arms sessions can't just be left tagged with a focus that no longer exists in the catalog. v2.9.5 walks every client's Arms-tagged sessions in date order and alternates: 1st becomes **Bi**, 2nd becomes **Tri**, 3rd **Bi**, and so on — independently per client. Cancelled sessions count toward the alternation order (so the sequence the PT sees in his history matches what would have happened day-by-day). Mixed-tag sessions like `[Chest, Arms]` keep Chest and just swap Arms for the alternation pick, e.g. `[Chest, Bi]`. Free-text notes are untouched. This is a one-shot data migration (schema v3 → v4) — runs once on the next app open, then sleeps forever.
+
+**Custom became Endurance.** The "Custom" session type was a misnamed catch-all that mostly mirrored Strength. The PT clarified this slot is really "Strength Endurance" — strength-flavoured movements held for time or volume. v2.9.5 renames it everywhere: the type label in the dropdown, the focus tag list (still anatomical, mirroring Strength's body-part split), and any past session marked `Custom` is rewritten to `Endurance` on the same migration pass. Order, color, and emoji unchanged so muscle memory doesn't break.
+
+**Tested before deploy.** A new sanity script (`scripts/sanity/sanity-arms-migration.mjs`) covers 17 cases — alternation order, cancelled inclusion, out-of-order inserts, mixed tags, idempotency (running the migration twice produces the same result), and the type rename. All pass. The pre-existing v2→v3 sanity test was updated to expect dataVersion 4 (a v2 blob now flows through both migration steps in one load).
+
+**Not in this release:** no UI redesign, no new feature, no client-facing copy change. The Bi/Tri buttons appear in the existing focus-tag chip group; nothing new to learn.
+
+---
+
 ## v2.9.4 — Schedule focus-tag preserve (retroactive fix + documentation) (Apr 21, 2026)
 
 **A behavior that was approved three weeks ago, but only half-applied.** On Apr 2, Pierre made a deliberate product decision: when the PT changes a session's type in the inline dropdown (Strength → Cardio and back), the focus tags must NOT be wiped. A single session can mix subcategories across types — think a Strength session that records Back work, then flips to Cardio for a segment, then returns to Strength with Back still selected. Hidden tags from other types stay there, waiting for the switch-back. That commit updated the Dashboard screen. It did not update the Schedule screen, and nobody noticed until the SessionCard-refactor brainstorm ran today and flagged the inconsistency as "possibly a bug, possibly a design choice — we can't tell from the code alone." Pierre immediately recognized it: not a bug in the architecture, but an incomplete rollout that also never made it into the changelog, so future reviewers (human or Claude) had no way to know it was intentional.

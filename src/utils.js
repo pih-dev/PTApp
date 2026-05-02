@@ -86,25 +86,37 @@ export const phoneMatchesQuery = (storedPhone, query) => {
 };
 
 // ─── Session Types ───
+// v2.9.5 (2026-04-29): Custom renamed to Endurance per PT — he frames the slot as
+// "Strength Endurance", a complement to Strength rather than a generic catch-all. The
+// type's color/emoji and tag list (anatomical: Chest, Back, Shoulders, Bi, Tri, Legs,
+// Core, Glutes, Full Body) intentionally mirror Strength so the same body parts can be
+// logged under either modality. Renaming (not adding) keeps SESSION_TYPES.length stable
+// — the [5] fallback at line ~860 still resolves to a valid type.
 export const SESSION_TYPES = [
   { label: 'Strength', color: '#6366F1', emoji: '💪' },
   { label: 'Cardio', color: '#3B82F6', emoji: '🏃' },
   { label: 'Flexibility', color: '#8B5CF6', emoji: '🧘' },
   { label: 'HIIT', color: '#F59E0B', emoji: '⚡' },
   { label: 'Recovery', color: '#10B981', emoji: '🧊' },
-  { label: 'Custom', color: '#6B7280', emoji: '🎯' },
+  { label: 'Endurance', color: '#6B7280', emoji: '🎯' },
 ];
 
 // ─── Focus Tags (per session type) ───
 // Tappable tags for recording what was done during a session.
 // Notes field handles anything not covered here; parseable later for weights/reps.
+//
+// v2.9.5 (2026-04-29): 'Arms' split into 'Bi' (biceps) and 'Tri' (triceps). PT wanted
+// finer granularity — most sessions train one head, not both. The two new tags are
+// independent (a session that genuinely trains both adds both). History migration in
+// migrateData v3→v4 alternates Bi/Tri per-client chronologically (cancelled sessions
+// counted, per Pierre's 2026-04-29 instruction).
 export const FOCUS_TAGS = {
-  Strength:    ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core', 'Glutes', 'Full Body'],
+  Strength:    ['Chest', 'Back', 'Shoulders', 'Bi', 'Tri', 'Legs', 'Core', 'Glutes', 'Full Body'],
   Cardio:      ['Running', 'Cycling', 'Rowing', 'Swimming', 'Jump Rope', 'Stairs'],
   Flexibility: ['Stretching', 'Yoga', 'Mobility', 'Foam Rolling'],
   HIIT:        ['Upper Body', 'Lower Body', 'Full Body', 'Core', 'Tabata', 'Circuit'],
   Recovery:    ['Foam Rolling', 'Stretching', 'Ice Bath', 'Light Cardio', 'Massage'],
-  Custom:      ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core', 'Glutes', 'Full Body'],
+  Endurance:   ['Chest', 'Back', 'Shoulders', 'Bi', 'Tri', 'Legs', 'Core', 'Glutes', 'Full Body'],
 };
 
 // ─── Session Statuses ───
@@ -448,7 +460,7 @@ export const formatDateLong = (dateStr, lang = 'en') => {
 // ─── Data versioning & migration ───
 // Increment DATA_VERSION when the schema changes. Add a migration function
 // for each version bump. Existing data is NEVER discarded — only migrated forward.
-const DATA_VERSION = 3;
+const DATA_VERSION = 4;
 
 // Capitalize each word: "pierre ghorra" → "Pierre Ghorra"
 export const capitalizeName = (name) =>
@@ -558,6 +570,61 @@ function migrateData(data) {
     });
 
     v = 3;
+  }
+
+  // v3 → v4: Tag library refactor + session-type rename (2026-04-29, v2.9.5).
+  //   1) FOCUS_TAGS: 'Arms' replaced by 'Bi' and 'Tri' under Strength + Endurance (formerly Custom).
+  //   2) SESSION_TYPES: 'Custom' renamed to 'Endurance'.
+  // History rewrite rules (per Pierre 2026-04-29):
+  //   - Per-client, chronological by date+time, alternate Bi/Tri starting with Bi.
+  //   - Cancelled sessions ARE counted in the alternation order (Pierre revised earlier
+  //     "skip cancelled" → "count cancelled" so the sequence stays predictable to the PT
+  //     even if a session falls through). This matters because alternating order matches
+  //     what the PT will see if he eyeballs his old sessions in date order.
+  //   - Mixed-tag sessions ('Chest','Arms' → 'Chest','Bi') replace just the 'Arms' slot.
+  //   - Cancelled sessions still get their 'Arms' tag rewritten so no orphan 'Arms' tag
+  //     survives in any session — the catalog no longer contains it.
+  //   - session.type === 'Custom' rewritten to 'Endurance' on every session regardless of status.
+  // Defensive choices:
+  //   - Sort by `${date} ${time} ${id}` so same-day sessions are stable across runs.
+  //   - Idempotent: running twice produces the same result (Bi/Tri don't match 'Arms', so
+  //     a re-migration finds no 'Arms' tags to replace; same for 'Custom' types).
+  if (v < 4) {
+    const sessions = data.sessions || [];
+
+    // Group session refs by clientId. We mutate session.focus in place — these refs are
+    // shared with data.sessions, so the result propagates without reassignment.
+    const byClient = {};
+    for (const s of sessions) {
+      const cid = s.clientId || '__orphan__';
+      (byClient[cid] = byClient[cid] || []).push(s);
+    }
+
+    for (const cid in byClient) {
+      // Stable chronological sort. Falsy date/time push to the end via empty-string compare.
+      const clientSessions = byClient[cid].slice().sort((a, b) => {
+        const aKey = `${a.date || ''} ${a.time || ''} ${a.id || ''}`;
+        const bKey = `${b.date || ''} ${b.time || ''} ${b.id || ''}`;
+        return aKey < bKey ? -1 : aKey > bKey ? 1 : 0;
+      });
+
+      let armsCount = 0;
+      for (const s of clientSessions) {
+        if (Array.isArray(s.focus) && s.focus.includes('Arms')) {
+          const replacement = armsCount % 2 === 0 ? 'Bi' : 'Tri';
+          s.focus = s.focus.map(t => t === 'Arms' ? replacement : t);
+          armsCount++;
+        }
+      }
+    }
+
+    // Rename session type (every session, regardless of status — type is a category label,
+    // not history-sensitive like the focus tag alternation).
+    for (const s of sessions) {
+      if (s.type === 'Custom') s.type = 'Endurance';
+    }
+
+    v = 4;
   }
 
   data.clients = data.clients || [];
