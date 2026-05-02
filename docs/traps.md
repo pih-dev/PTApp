@@ -181,3 +181,16 @@ Three weeks later, during the v2.9.4 SessionCard-refactor brainstorm (2026-04-21
 2. **Every architected behavior decision lands in `changelog-summary.md` AND `changelog-technical.md`, not just a file comment.** File comments are easy to miss during review and can be mistaken for personal preference. The changelog is the durable record; if a behavior isn't in the changelog, a future reviewer (or Claude session) has no way to distinguish "intentional, approved" from "inconsistency / bug." Add a one-line entry at minimum.
 
 **Where it bit us:** `Schedule.jsx:199-204` (focus-clearing dispatch). Fixed in v2.9.4 by removing `focus: []` from the dispatch payload and matching Dashboard's comment. The original 2026-04-02 decision is now recorded in `changelog-summary.md` + `changelog-technical.md` under v2.9.4.
+
+## TRAP: Hardcoded date stamps in test fixtures rot silently (2026-05-02)
+**What happened:** `scripts/sanity/sanity-migration.mjs` "Alice active override migrated" assertion passed when authored on 2026-04-21 and silently broke on 2026-05-02. Alice's fixture used `periodStart: '2026-03-02'` (anchor) + `periodLength: '1month'` + `overridePeriodStart: '2026-04-02'` (hardcoded). The migration's active-override check is `c.overridePeriodStart === computeSlidingWindow(pkgStart, unit, value, today()).start` — on 2026-04-21 the current sliding window started Apr 2 → match → override migrated → test passed. On 2026-05-02 the window rolled to May 2 → hardcoded Apr 2 stamp now stale → migration correctly drops it → test fails. The migration is right; the fixture rotted.
+
+This wasn't caught immediately because the v2.9.5 release session ran on 2026-05-02, and the assertion failed during routine sanity, masquerading as a possible migration bug. Pierre recognized the symptom and confirmed root cause via the date math.
+
+**Rule:** Test fixtures MUST NOT hardcode date stamps that have to match a value computed from `today()`. If the assertion involves "is this stamp still in the current window," compute the stamp at runtime from the same logic the production code uses. Otherwise, the test is a time bomb — it will pass for ~one period and break the moment the calendar advances, and the failure looks like a real bug rather than fixture rot.
+
+The same pattern was already applied to Clients D and E in this file (lines 65-90 use `today()` + window arithmetic). Alice was the holdout because her assertion was authored at a time when the hardcoded stamp happened to match the current window.
+
+**Where it bit us:** `scripts/sanity/sanity-migration.mjs:19, 107` (Alice fixture + assertion). Fixed by importing `computeSlidingWindow`, computing `aliceWindow.start` at runtime from the same anchor + unit + value the migration uses, and asserting against that value. Cara's stale stamp (line 36) is left hardcoded as `'2026-02-02'` because it just needs to be "not the current window" — fine as long as today is past Mar 2 of any year, which is the reality of a 2026-launched app.
+
+**General principle:** When you need a "current period stamp" in a test, derive it from the same function the code under test will derive it from. When you need a "stale stamp," any sufficiently old hardcoded date is fine — but document why it'll never become "current" again.

@@ -130,6 +130,7 @@ Full hard-won lessons live in **`docs/traps.md`** — read before touching the r
 - **Stale device overwriting remote (Apr 13)** — three guards (`initialLoad`, `syncReady`, `skipSync`) must all pass before push.
 - **Parser contract `.type` not `.mode`** — `parseSessionCountOverride` returns `{ type, value }`.
 - **Per-feature author-site drift (Apr 21 v2.9.2)** — when refactoring storage location, grep EVERY read+write of old field across the whole codebase, not just the file you're in.
+- **Hardcoded date stamps in test fixtures rot (May 2 v2.9.5 followup)** — fixture stamps that must match a `today()`-derived value will silently break when the calendar moves; compute at runtime using the same logic the production code uses.
 
 ---
 

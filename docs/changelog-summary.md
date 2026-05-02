@@ -16,6 +16,8 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 **Not in this release:** no UI redesign, no new feature, no client-facing copy change. The Bi/Tri buttons appear in the existing focus-tag chip group; nothing new to learn.
 
+**Post-release fix (May 2, 2026):** the v2→v3 migration sanity test had a hardcoded date stamp for "Alice" that quietly went stale when the calendar rolled from April to May. The migration code was always correct — the test fixture was authored with `2026-04-02` baked in as Alice's "current period start", and on May 2 that value is one window in the past so the migration correctly drops it. Test now computes Alice's stamp at runtime from the same logic the production code uses, so the fixture stays valid forever. New trap entry recorded in `docs/traps.md` ("Hardcoded date stamps in test fixtures rot silently") with a general principle: test stamps that must match a `today()`-derived value get computed at runtime; "stale" stamps that just need to be old can stay hardcoded.
+
 ---
 
 ## v2.9.4 — Schedule focus-tag preserve (retroactive fix + documentation) (Apr 21, 2026)

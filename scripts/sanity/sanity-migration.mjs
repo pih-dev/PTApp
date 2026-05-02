@@ -5,18 +5,22 @@
 // Use import.meta.url directly — new URL('../../src/utils.js', import.meta.url) already
 // produces a file:// URL with the correct path; no need to re-wrap in pathToFileURL.
 const utilsUrl = new URL('../../src/utils.js', import.meta.url).href;
-const { loadData, mergeBackup } = await import(utilsUrl);
+const { loadData, mergeBackup, computeSlidingWindow } = await import(utilsUrl);
 
 // Craft a v2 blob in localStorage-like shape
 const v2Blob = {
   _dataVersion: 2,
   clients: [
-    // Client A: periodStart+periodLength set, active override
+    // Client A: periodStart+periodLength set, active override.
+    // overridePeriodStart is filled at runtime below so the fixture stays valid as
+    // the calendar moves. Hardcoding caused fixture rot: authored 2026-04-21 with
+    // window Apr 2-May 1; on May 2 the window rolled to May 2-Jun 1 and the test
+    // silently broke because the migration correctly dropped the now-stale stamp.
     {
       id: 'cA', name: 'Alice', nickname: 'Al', phone: '96170000001',
       periodStart: '2026-03-02', periodLength: '1month',
       sessionCountOverride: { type: 'delta', value: 2 },
-      overridePeriodStart: '2026-04-02',
+      overridePeriodStart: null,   // filled at runtime below to current sliding-window start
       _modified: '2026-04-15T10:00:00Z',
     },
     // Client B: no period config, no override, has sessions
@@ -62,11 +66,18 @@ const v2Blob = {
   _lastModified: '2026-04-15T10:00:00Z',
 };
 
+const todayStr = new Date().toISOString().slice(0, 10);
+const [ty, tm, td] = todayStr.split('-').map(Number);
+
+// Client A's overridePeriodStart must equal the *current* sliding-window start computed
+// from anchor 2026-03-02 monthly — otherwise the migration treats the override as stale
+// and drops it. Compute at runtime so the fixture keeps working as the calendar advances.
+const aliceWindow = computeSlidingWindow('2026-03-02', 'month', 1, todayStr);
+v2Blob.clients.find(c => c.id === 'cA').overridePeriodStart = aliceWindow.start;
+
 // Client D's overridePeriodStart must match what legacy getClientPeriod would have produced
 // when periodStart was absent (anchor = today()). Reconstruct it here using the same
 // month-anchor-clamp rule so the test stays calendar-agnostic.
-const todayStr = new Date().toISOString().slice(0, 10);
-const [ty, tm, td] = todayStr.split('-').map(Number);
 // Anchor day = today's day. This month's start = that day clamped to month length.
 const thisMonthLen = new Date(ty, tm, 0).getDate();
 const thisStartDay = Math.min(td, thisMonthLen);
@@ -104,7 +115,7 @@ assert(A.packages && A.packages.length === 1, 'Alice has one package');
 assert(A.packages[0].start === '2026-03-02', 'Alice package start matches periodStart');
 assert(A.packages[0].periodUnit === 'month' && A.packages[0].periodValue === 1, 'Alice unit/value');
 assert(A.packages[0].sessionCountOverride && A.packages[0].sessionCountOverride.value === 2, 'Alice active override migrated');
-assert(A.packages[0].sessionCountOverride.periodStart === '2026-04-02', 'Alice override stamped with current period start');
+assert(A.packages[0].sessionCountOverride.periodStart === aliceWindow.start, 'Alice override stamped with current period start');
 assert(A.periodStart === undefined, 'Alice root periodStart removed');
 assert(A.periodLength === undefined, 'Alice root periodLength removed');
 assert(A.sessionCountOverride === undefined, 'Alice root override removed');

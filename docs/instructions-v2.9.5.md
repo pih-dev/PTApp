@@ -67,7 +67,7 @@ node -e "const fs=require('fs'),h=fs.readFileSync('dist/index.html','utf8'),s=h.
 # 3. Run new sanity test
 node scripts/sanity/sanity-arms-migration.mjs
 
-# 4. Run existing sanity (note: pre-existing fixture-rot failure unrelated to v2.9.5)
+# 4. Run existing sanity (Alice fixture rot fixed post-release on 2026-05-02 — see CHANGELOG)
 node scripts/sanity/sanity-migration.mjs
 ```
 
