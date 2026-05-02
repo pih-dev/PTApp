@@ -6,7 +6,7 @@
 //
 // Catches:
 //   - Alternation off-by-one (must START with Bi, not Tri)
-//   - Cancelled sessions accidentally skipped (Pierre revised the rule on 2026-04-29:
+//   - Cancelled sessions accidentally skipped (Pierre revised the rule on 2026-05-02:
 //     cancelled sessions DO count toward the alternation order)
 //   - Mixed-tag sessions losing the non-Arms tags
 //   - Per-client cross-contamination (alternation must reset per client)

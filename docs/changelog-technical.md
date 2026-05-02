@@ -4,17 +4,17 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
-## v2.9.5 — Arms→Bi/Tri tag split + Custom→Endurance type rename + v3→v4 migration (2026-04-29)
+## v2.9.5 — Arms→Bi/Tri tag split + Custom→Endurance type rename + v3→v4 migration (2026-05-02)
 
 **Trigger:** PT requested finer-grained arm tracking. Single 'Arms' tag couldn't distinguish biceps-focused vs triceps-focused sessions. PT also reframed the misnamed 'Custom' session type as 'Endurance' (specifically "Strength Endurance" per his words).
 
-### Decisions (Pierre, 2026-04-29 brainstorm round)
+### Decisions (Pierre, 2026-05-02 brainstorm round)
 
 **D1 — Tag split shape:** 'Arms' deleted from FOCUS_TAGS catalog. 'Bi' and 'Tri' added as two independent tags (not a combined 'Bi/Tri' or a sub-hierarchy). Sessions can carry one or both depending on what was actually trained. Applied to both `Strength` and `Endurance` (formerly `Custom`) since both used the same anatomical tag list.
 
 **D2 — Type rename, not delete:** 'Custom' renamed in place to 'Endurance'. SESSION_TYPES.length stays at 6 — the `SESSION_TYPES[5]` fallback at `src/utils.js:860` continues to resolve to a valid type. Color (`#6B7280`) and emoji (`🎯`) preserved so the visual signature in session cards is unchanged.
 
-**D3 — History migration semantics (per Pierre 2026-04-29):**
+**D3 — History migration semantics (per Pierre 2026-05-02):**
 1. **Per-client alternation, chronological by `${date} ${time} ${id}`**, starting with **Bi**, then Tri, then Bi… Each client has their own independent counter (no global ordering).
 2. **Cancelled sessions COUNT.** Pierre revised an earlier "skip cancelled" answer mid-conversation: counting them keeps the sequence predictable when the PT eyeballs his history in date order — a cancelled session still occupies a calendar slot the PT remembers.
 3. **Mixed-tag sessions** (e.g. `['Chest','Arms']`): only the 'Arms' slot is replaced; other tags are preserved. Result: `['Chest','Bi']` (or Tri depending on alternation position).
@@ -73,7 +73,7 @@ All 17 pass.
 
 **Updated: `scripts/sanity/sanity-migration.mjs`** — `dataVersion === 3` assertion bumped to `=== 4` since `migrateData` now runs both v2→v3 and v3→v4 steps in one pass.
 
-**Pre-existing failure flagged:** `sanity-migration.mjs` "Alice active override migrated" check fails today (2026-04-29) because the test fixture hardcodes `overridePeriodStart: '2026-04-02'` against monthly periods anchored at `2026-03-02` — the assertion was authored 2026-04-21 when 04-02 was the current period start. This is a test-fixture rot issue (the fixture should compute its dates at test-run time), unrelated to the v3→v4 migration itself. Out of scope for v2.9.5 — flagged for follow-up.
+**Pre-existing failure flagged + root cause confirmed by Pierre 2026-05-02:** `sanity-migration.mjs` "Alice active override migrated" check fails. The test fixture hardcodes `overridePeriodStart: '2026-04-02'` against monthly periods anchored at `2026-03-02`. Assertion was authored 2026-04-21 when the current sliding window was `2026-04-02 → 2026-05-01`, so `2026-04-02` matched and the override survived migration. Today is **2026-05-02** — the calendar rolled to the next window (`2026-05-02 → 2026-06-01`), so `2026-04-02` is now stale, the v2→v3 migration correctly drops the stale override, and the assertion fails. The migration code is correct; the test fixture is rotting. Out of scope for v2.9.5 — flagged for follow-up. Side note: my own session-context "today" was reported as 2026-04-29 (stale by 3 days), which masked this root cause until Pierre corrected it. Lesson: when a date-dependent test fails, run `date` first instead of trusting the session context's `currentDate`.
 
 ### What this v2.9.5 release deliberately did NOT do
 

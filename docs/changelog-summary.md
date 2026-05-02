@@ -4,7 +4,7 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
-## v2.9.5 — Arms split into Bi/Tri + Custom renamed to Endurance (Apr 29, 2026)
+## v2.9.5 — Arms split into Bi/Tri + Custom renamed to Endurance (May 2, 2026)
 
 **The PT wanted finer arm tracking.** "Arms" as a single focus tag was lumping biceps and triceps days together — most of his sessions train one head, not both. v2.9.5 splits "Arms" into two independent tags, **Bi** (biceps) and **Tri** (triceps), under both Strength and the renamed Endurance category. Going forward, when the PT opens a Strength session he'll see `Chest, Back, Shoulders, Bi, Tri, Legs, Core, Glutes, Full Body` — Bi and Tri sit side-by-side where Arms used to be. He can pick one or both depending on what the session actually worked.
 

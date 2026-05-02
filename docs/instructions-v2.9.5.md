@@ -1,6 +1,6 @@
 # PTApp v2.9.5 — Arms split + Custom→Endurance rename
 
-**Released:** 2026-04-29
+**Released:** 2026-05-02
 **Type:** Tag library refactor + session-type rename + one-shot data migration (v3 → v4)
 **Schema change:** YES (DATA_VERSION 3 → 4)
 **User-visible change:** Tag chip group under Strength + Endurance; `Custom` label replaced by `Endurance` in the type dropdown
@@ -26,7 +26,7 @@ The "Arms" focus tag is gone. In its place: two independent tags, **Bi** and **T
 | `scripts/sanity/sanity-arms-migration.mjs` (new) | 17 sanity assertions for the new migration |
 | `scripts/sanity/sanity-migration.mjs` | One assertion bumped from `=== 3` to `=== 4` |
 
-### Migration rules (locked 2026-04-29)
+### Migration rules (locked 2026-05-02)
 
 For each client, walk their sessions in chronological order (`date` then `time` then `id` as tiebreakers). Maintain a counter starting at 0. Every time a session's `focus` array contains `'Arms'`:
 
@@ -93,4 +93,5 @@ Sanity output:
 
 - **Mid-conversation rule revision is normal — capture it explicitly.** Pierre answered "skip cancelled" first, then revised to "count cancelled" two messages later. The technical changelog records both states + the chosen rule + Pierre's stated reason ("count canceled as a session, I changed my mind from earlier on this"). Without that record, a future reader of the migration code might assume the unrevised answer was authoritative and "fix" it back.
 - **Idempotency is a real test, not a paper assertion.** The sanity script literally re-feeds the migrated state to `loadData` and checks that nothing flips. This catches the off-by-one mistake where a re-run flips Bi↔Tri because the counter starts fresh on every load.
-- **Stale test fixtures are a class of bug.** `sanity-migration.mjs` hardcoded `2026-04-02` as the "current period start" and now fails on every run because today is past that. Logged as known issue; not in scope for v2.9.5.
+- **Stale test fixtures are a class of bug.** `sanity-migration.mjs` hardcoded `2026-04-02` as the "current period start". Today is **2026-05-02** — the monthly window rolled over (Mar 2 → Apr 1, Apr 2 → May 1, May 2 → Jun 1), so 2026-04-02 is now in the previous window and the v2→v3 migration correctly drops the stale override. The test fails not because the migration is broken but because the fixture's "current period" anchor is fixed in time. Fix is to compute fixture dates at test-run time, not bake them in. Tracked as TODO post-clear (see `project_todo_post_clear_v295.md` in memory).
+- **Don't trust session-context `currentDate`.** My session reported today as 2026-04-29; actual was 2026-05-02. Three-day drift was enough to make me wave off the test failure as "fixture rot, no big deal" without verifying the date arithmetic. When a test depends on dates, `date` (or `Get-Date`) before reasoning.

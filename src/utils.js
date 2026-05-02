@@ -86,7 +86,7 @@ export const phoneMatchesQuery = (storedPhone, query) => {
 };
 
 // ─── Session Types ───
-// v2.9.5 (2026-04-29): Custom renamed to Endurance per PT — he frames the slot as
+// v2.9.5 (2026-05-02): Custom renamed to Endurance per PT — he frames the slot as
 // "Strength Endurance", a complement to Strength rather than a generic catch-all. The
 // type's color/emoji and tag list (anatomical: Chest, Back, Shoulders, Bi, Tri, Legs,
 // Core, Glutes, Full Body) intentionally mirror Strength so the same body parts can be
@@ -105,11 +105,11 @@ export const SESSION_TYPES = [
 // Tappable tags for recording what was done during a session.
 // Notes field handles anything not covered here; parseable later for weights/reps.
 //
-// v2.9.5 (2026-04-29): 'Arms' split into 'Bi' (biceps) and 'Tri' (triceps). PT wanted
+// v2.9.5 (2026-05-02): 'Arms' split into 'Bi' (biceps) and 'Tri' (triceps). PT wanted
 // finer granularity — most sessions train one head, not both. The two new tags are
 // independent (a session that genuinely trains both adds both). History migration in
 // migrateData v3→v4 alternates Bi/Tri per-client chronologically (cancelled sessions
-// counted, per Pierre's 2026-04-29 instruction).
+// counted, per Pierre's 2026-05-02 instruction).
 export const FOCUS_TAGS = {
   Strength:    ['Chest', 'Back', 'Shoulders', 'Bi', 'Tri', 'Legs', 'Core', 'Glutes', 'Full Body'],
   Cardio:      ['Running', 'Cycling', 'Rowing', 'Swimming', 'Jump Rope', 'Stairs'],
@@ -572,10 +572,10 @@ function migrateData(data) {
     v = 3;
   }
 
-  // v3 → v4: Tag library refactor + session-type rename (2026-04-29, v2.9.5).
+  // v3 → v4: Tag library refactor + session-type rename (2026-05-02, v2.9.5).
   //   1) FOCUS_TAGS: 'Arms' replaced by 'Bi' and 'Tri' under Strength + Endurance (formerly Custom).
   //   2) SESSION_TYPES: 'Custom' renamed to 'Endurance'.
-  // History rewrite rules (per Pierre 2026-04-29):
+  // History rewrite rules (per Pierre 2026-05-02):
   //   - Per-client, chronological by date+time, alternate Bi/Tri starting with Bi.
   //   - Cancelled sessions ARE counted in the alternation order (Pierre revised earlier
   //     "skip cancelled" → "count cancelled" so the sequence stays predictable to the PT
