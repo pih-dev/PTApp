@@ -194,3 +194,18 @@ The same pattern was already applied to Clients D and E in this file (lines 65-9
 **Where it bit us:** `scripts/sanity/sanity-migration.mjs:19, 107` (Alice fixture + assertion). Fixed by importing `computeSlidingWindow`, computing `aliceWindow.start` at runtime from the same anchor + unit + value the migration uses, and asserting against that value. Cara's stale stamp (line 36) is left hardcoded as `'2026-02-02'` because it just needs to be "not the current window" — fine as long as today is past Mar 2 of any year, which is the reality of a 2026-launched app.
 
 **General principle:** When you need a "current period stamp" in a test, derive it from the same function the code under test will derive it from. When you need a "stale stamp," any sufficiently old hardcoded date is fine — but document why it'll never become "current" again.
+
+## TRAP: Same number, two semantics, two adjacent screens — "Nayla (0) → #1" booking-chip confusion (2026-05-04)
+**What happened:** The booking-form chip showed `Nayla Sfeir (0)` for a brand-new client. PT tapped Book Session, the confirmation popup said `#1`, the WhatsApp said "session 1". Three screens shown back-to-back, two different numbers next to the same name. The PT screenshotted the confusion three separate times over two weeks before Pierre debugged it; reading "(0)" he kept thinking "this booking is session zero" rather than "this client has zero sessions so far."
+
+**Root cause:** Two helpers, two semantics:
+- Booking-form chip used `getEffectiveClientCount(c, state.sessions)` → client's CURRENT period count (pre-action snapshot).
+- Post-booking popup used `getEffectiveSessionCount(client, session, sessions)` with `sessions` augmented to include the just-created session → the new session's ORDINAL in its package (post-action result).
+
+Both correct in isolation — they answer different questions. But the user can't see the question, only the parenthetical, so the same surface (a number next to a client's name) suddenly changing from 0 to 1 with no explanation reads as a glitch.
+
+**Rule:** When a number, badge, or parenthetical appears on screen A (pre-action) and again on screen B (post-action) of the same flow, both surfaces MUST use the same semantics. Pre-action snapshot vs post-action ordinal are different things and must never share a visual slot. The cleanest fix is: use the post-action helper on the pre-action screen too, with a SIMULATED event (e.g. a preview session appended to a render-local array). The two screens are then identical by construction — no possibility of drift.
+
+**Where it bit us:** `Schedule.jsx:295` (booking-form chip) shipped Apr 21 (v2.9.2) using the snapshot helper, while the popup at `:393` used the ordinal helper. Fixed in v2.9.6 by switching the chip to the ordinal helper with a preview session, plus a renewal-due short-circuit that mirrors `RENEW_PACKAGE`'s "fresh package, no override" outcome.
+
+**Why this kept slipping past review:** Each helper read correctly when audited alone. The bug lives in the *transition* between screens — only visible when the two are stacked in the actual user flow. Lesson: when reviewing a flow, mentally screenshot every intermediate state and read the labels as the user would read them, with no helper-name knowledge.

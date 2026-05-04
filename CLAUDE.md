@@ -12,19 +12,22 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.9.5
+## Current Version: v2.9.6
+Single-file UI fix — booking-form chip now reads `(1)` for a brand-new client (was `(0)`). Three screens (chip, post-booking popup, WhatsApp) now show the same number. See `docs/instructions-v2.9.6.md`.
+- **Chip helper switched to ordinal semantics.** `Schedule.jsx:295` was using `getEffectiveClientCount` (pre-booking snapshot, returns `0` for a new client). Now uses `getEffectiveSessionCount` against a render-local `previewSession` at `form.date`/`form.time` — same helper the post-booking popup at line ~393 uses, so the numbers match by construction.
+- **Three-way branch.** Edit mode preserves prior behavior. Renewal-due short-circuits to `(1)` because `saveSession` dispatches `RENEW_PACKAGE` before `ADD_SESSION`, opening a fresh package with `sessionCountOverride: null` per `utils.js:852`. Otherwise simulate.
+- **No data write, no schema change, no migration.** `previewSession` lives only in render-local scope.
+- **TRAP added — same number, two semantics, two adjacent screens.** When a parenthetical or badge appears on screen A (pre-action) and again on screen B (post-action) of the same flow, both surfaces must use the same semantics. Pre-action snapshot vs post-action ordinal in adjacent screens looks like a glitch to the user. Fix: use the post-action helper on both screens (with a simulated event on the pre-action one).
+
+## Previous Version: v2.9.5
 Tag library refactor + session-type rename + one-shot v3→v4 data migration. See `docs/instructions-v2.9.5.md`.
 - **`Arms` focus tag split into `Bi` (biceps) + `Tri` (triceps).** Applied to `FOCUS_TAGS.Strength` and `FOCUS_TAGS.Endurance` (formerly `Custom`). Two independent tags — sessions can carry one or both.
 - **`Custom` session type renamed to `Endurance`.** Color/emoji/index unchanged (still `SESSION_TYPES[5]`); the PT frames this slot as "Strength Endurance".
 - **v3→v4 migration:** per-client chronological alternation rewrites every `'Arms'` in `session.focus` to `'Bi'` or `'Tri'` (starts at Bi, counts cancelled sessions, sorts by `${date} ${time} ${id}`). `session.type === 'Custom'` rewritten to `'Endurance'` on every session. Idempotent (re-run is a no-op). New sanity script `scripts/sanity/sanity-arms-migration.mjs` covers 17 assertions including out-of-order inserts, mixed-tag sessions, per-client independence, and idempotency.
-- **Pre-existing test fixture rot flagged.** `sanity-migration.mjs` "Alice active override migrated" assertion fails on dates past 2026-04-21 because the fixture hardcodes `overridePeriodStart: '2026-04-02'`. Test-fixture issue, not migration logic. Out of scope for v2.9.5.
-
-## Previous Version: v2.9.4
-Single-file behavioral fix + retroactive documentation of an architected decision that had been missing from the changelog. No schema change, no migration, no new user feature. See `docs/instructions-v2.9.4.md`.
-- **Schedule inline type-selector now preserves focus tags.** `Schedule.jsx:199-204` dropped `focus: []` from its `UPDATE_SESSION` dispatch. Matches the behavior decided 2026-04-02 (commit `eb29798`, "Preserve focus tags when switching session type") which had only been applied to `Dashboard.jsx`. Rationale: a single training session can mix subcategories across types (Strength + Back → Cardio → back to Strength with Back still selected). Tags from other types stay hidden, not deleted.
-- **TRAP added — architected behavior not propagated + missing from changelog.** Third instance of the "one author site updated, others missed" pattern (after v2.8 `.mode/.type` and v2.9.2 inline-override storage). New rule is two-part: (1) grep the codebase for the old behavior/field/dispatch shape in the same commit that introduces the new one; (2) every architected behavior decision lands in `docs/changelog-summary.md` AND `docs/changelog-technical.md`, not only in a file comment or commit message.
+- **Test fixture rot fixed in commit `ed458c7` (May 2).** `sanity-migration.mjs` Alice override stamp now computed at runtime from `computeSlidingWindow` instead of hardcoded.
 
 ## Older Versions (one-line pointers — full details in `docs/instructions-v*.md`)
+- **v2.9.4** — Schedule inline type-selector preserves focus tags (retroactive fix to Apr 2 decision `eb29798` only applied to Dashboard). TRAP: architected behavior not propagated + missing from changelog.
 - **v2.9.3** — Top-level React error boundary (`ErrorBoundary.jsx` wrapping `<App />` in `main.jsx`) with Backup / Try again / Reset recovery UI. Sanity scripts moved `tmp/` → `scripts/sanity/`. No schema change.
 - **v2.9.2** — Post-deploy review fixes for v2.9. Critical: `Schedule.jsx` booking-confirm pencil now writes override into `pkg.sessionCountOverride` (was writing to legacy v2 root fields the migration deletes). Plus 5 important fixes (`RenewalModal` cross-device race surfacing, `Schedule` renewal-due `useMemo`, sentinel removal, override equality comparator, `getClientPeriod` shim deletion) + minor cleanups. CLAUDE.md slimmed 41k→19.5k.
 - **v2.9.1** — Dashboard Upcoming filter rolls off completed sessions 2h past their end time. No-shows stay visible. One filter change in `Dashboard.jsx`.
@@ -131,6 +134,7 @@ Full hard-won lessons live in **`docs/traps.md`** — read before touching the r
 - **Parser contract `.type` not `.mode`** — `parseSessionCountOverride` returns `{ type, value }`.
 - **Per-feature author-site drift (Apr 21 v2.9.2)** — when refactoring storage location, grep EVERY read+write of old field across the whole codebase, not just the file you're in.
 - **Hardcoded date stamps in test fixtures rot (May 2 v2.9.5 followup)** — fixture stamps that must match a `today()`-derived value will silently break when the calendar moves; compute at runtime using the same logic the production code uses.
+- **Same number, two semantics, two adjacent screens (May 4 v2.9.6)** — when a parenthetical/badge appears on screen A (pre-action) and again on screen B (post-action) of the same flow, both must use the same semantics. Booking chip showed "(0)" pre-action, popup showed "#1" post-action — looked like a glitch. Fix: simulate the action on the pre-action screen and use the SAME helper as the post-action screen.
 
 ---
 

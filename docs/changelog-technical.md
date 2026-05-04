@@ -4,6 +4,94 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.9.6 — Booking-form chip preview math (2026-05-04)
+
+**Trigger:** PT screenshotted the same confusion three times in two weeks. Booking screen showed `Nayla Sfeir (0)` for a brand-new client; he kept reading "(0)" as "this session is session zero" and asked why. After tapping Book Session the confirmation popup correctly said `#1` and the WhatsApp said "session 1" — so two of the three places were already right; only the booking-form chip was misaligned with the others.
+
+### Root cause
+
+Two different helpers in two adjacent screens of the same flow:
+
+| Screen | Helper | Returns | For Nayla pre-booking |
+|---|---|---|---|
+| Booking form chip (`Schedule.jsx:295`) | `getEffectiveClientCount(c, state.sessions)` | client's current period count | `(0)` |
+| Post-booking confirmation (`Schedule.jsx:393`) | `getEffectiveSessionCount(client, session, sessions)` (with `sessions` augmented to include the just-created `session`) | the new session's ordinal in its package | `#1` |
+
+Both correct in isolation. But the chip is shown on the screen the PT taps Book Session FROM, and the popup is shown on the screen he lands ON immediately after — so the user reads them as a single label that suddenly changes from 0 to 1 with no explanation. The PR's Apr 2 design intent for the chip was "client volume so far" (current count), but the post-booking popup's intent is "this session's number" (ordinal) — both legitimate, neither labelled, and the PT only has the parenthetical to distinguish.
+
+### Fix — align booking-form chip to post-booking semantics
+
+`Schedule.jsx` ~lines 291–321: replace the single `getEffectiveClientCount` call with a three-way branch.
+
+```jsx
+let chipAuto, chipEffective, chipOverride;
+if (editingSession) {
+  // Edit mode — preserve prior behavior; no session is being created
+  ({ auto: chipAuto, effective: chipEffective, override: chipOverride } =
+    getEffectiveClientCount(c, state.sessions));
+} else if (renewalDueIds.has(c.id)) {
+  // saveSession dispatches RENEW_PACKAGE first → fresh package, sessionCountOverride: null
+  // (see utils.js:852). New session lands as #1.
+  chipAuto = 1; chipEffective = 1; chipOverride = null;
+} else {
+  // Simulate this booking by appending a preview session, then ask the SAME helper
+  // the post-booking popup uses → numbers match by construction.
+  const previewSession = { id: '__preview__', clientId: c.id, date: form.date, time: form.time, status: 'scheduled' };
+  ({ auto: chipAuto, effective: chipEffective, override: chipOverride } =
+    getEffectiveSessionCount(c, previewSession, [...state.sessions, previewSession]));
+}
+```
+
+Render block (parentheses with `(auto)` or `(auto→effective)`) unchanged — only the input numbers change.
+
+### Why three branches and not just `auto + 1`
+
+Override types differ in how they react to an additional session:
+- **Delta override** (`+5`): both `auto` and `effective` increase by 1 → `+1` would work.
+- **Absolute override** (`=10`): `auto` increases, `effective` stays at the override value → `+1` would over-count effective.
+- **Renewal-due**: actual booking auto-renews the package (RENEW_PACKAGE strips override per reducer), so `auto+1` against the OLD package returns 11 when the right answer is 1 in a brand-new package.
+
+The simulation approach uses `getEffectiveSessionCount` — the production helper — for all three, so all three are correct without conditional math.
+
+### Edge cases verified
+
+| Scenario | Pre-fix chip | Post-fix chip | Post-booking popup |
+|---|---|---|---|
+| New client, no override | `(0)` | `(1)` | `#1` ✓ |
+| 5 sessions, no override | `(5)` | `(6)` | `#6` ✓ |
+| 5 sessions, +5 delta override | `(5→10)` | `(6→11)` | `#6→11` ✓ |
+| 5 sessions, =10 absolute override | `(5→10)` | `(6→10)` | `#6→10` ✓ |
+| 10/10 contract (renewal-due) | `(10→10)` | `(1)` | `#1` (in new pkg) ✓ |
+| Edit mode | `(N)` | `(N)` (unchanged) | n/a |
+| Backdated booking (date < other sessions) | `(5)` | ordinal at chronological position | matches popup ✓ |
+
+`getSessionOrdinal` sorts by `${date} ${time} ${id}`, so the preview session with `form.date`/`form.time` lands at the correct chronological position even when backdated.
+
+### Constraints respected
+
+- **No data write.** `previewSession` is created in render only, never dispatched.
+- **Stable preview id.** `'__preview__'` (string) cannot collide with `genId()` IDs (which use timestamp prefixes) — and even if it could, it's only ever appended into a render-local array, never `state.sessions`.
+- **Renewal banner stays in sync.** Already uses `renewalDueIds` (the same memo); no logic change needed.
+- **Time field.** `form.time` is initialized to `'09:00'` in `openBooking()` and updated by the time-grid, so it's always a valid string when the chip renders.
+
+### Out of scope
+
+- Edit mode behavior (kept identical).
+- Dashboard chips (no booking form on Dashboard).
+- WhatsApp template — already shows the post-booking ordinal correctly.
+
+### Trap added — `docs/traps.md`
+
+> **Same number, two semantics, two adjacent screens** — when a parenthetical/badge appears on screen A (pre-action) and again on screen B (post-action) of the same flow, both surfaces must use the same semantics. Pre-action snapshot vs post-action ordinal looks like a glitch to the user. Use the post-action helper on both screens (with a simulated event on the pre-action one) so the number is identical by construction.
+
+### Files
+
+- `src/components/Schedule.jsx` — chip render block lines 291–321 (was 291–301).
+- `src/App.jsx` — version label v2.9.5 → v2.9.6.
+- `docs/changelog-summary.md`, `docs/changelog-technical.md`, `docs/traps.md`, `docs/instructions-v2.9.6.md`, `CLAUDE.md` — documentation.
+
+---
+
 ## v2.9.5 — Arms→Bi/Tri tag split + Custom→Endurance type rename + v3→v4 migration (2026-05-02)
 
 **Trigger:** PT requested finer-grained arm tracking. Single 'Arms' tag couldn't distinguish biceps-focused vs triceps-focused sessions. PT also reframed the misnamed 'Custom' session type as 'Endurance' (specifically "Strength Endurance" per his words).

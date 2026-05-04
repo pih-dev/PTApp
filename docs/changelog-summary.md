@@ -4,6 +4,20 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.9.6 — Booking-chip preview math (May 4, 2026)
+
+**A small confusion that kept coming back.** Every couple of weeks the PT would screenshot the app and ask "why does it show zero?" The screenshot was always the same: the booking screen, a brand-new client (zero past sessions), and a chip on the form reading `Nayla Sfeir (0)`. Then he'd tap **Book Session**, the confirmation popup would say `#1`, the WhatsApp would say "session 1 of …" — all consistent — but the chip on the booking form had said `(0)`. He kept reading that as "this booking is session zero" instead of "this client has zero sessions so far."
+
+**Why the chip was right and wrong at the same time.** Two chips, two helpers: the booking-form chip used `getEffectiveClientCount` (the client's CURRENT period count — pre-booking), while the post-booking confirmation used `getEffectiveSessionCount` against the just-created session (the new session's ordinal — post-booking). Both correct in isolation, but presenting two different semantics for the same idea ("the number next to the client's name") in two screens shown back-to-back.
+
+**Fixed by aligning the booking-form chip to post-booking semantics.** It now simulates the booking — appends a preview session at the form's date/time and asks the same helper the confirmation popup uses. So Nayla's chip now reads `(1)` on the booking form, the confirmation says `#1`, and the WhatsApp says "session 1." Three screens, one number. For a client at their contract limit (renewal-due), the chip reads `(1)` too — because the actual booking will auto-renew the package and this session lands as #1 in the fresh package, matching what the PT will see immediately after.
+
+**Edit mode unchanged.** Editing an existing session still shows the client's current period count — that's correct because no new session is being created.
+
+**Pure UI fix.** No schema change, no migration, no new feature. One file touched (`Schedule.jsx`). New TRAP recorded: when a number appears in two consecutive screens of the same flow, both must use the same semantics — pre-action and post-action are different things, and showing both to the user is the bug.
+
+---
+
 ## v2.9.5 — Arms split into Bi/Tri + Custom renamed to Endurance (May 2, 2026)
 
 **The PT wanted finer arm tracking.** "Arms" as a single focus tag was lumping biceps and triceps days together — most of his sessions train one head, not both. v2.9.5 splits "Arms" into two independent tags, **Bi** (biceps) and **Tri** (triceps), under both Strength and the renamed Endurance category. Going forward, when the PT opens a Strength session he'll see `Chest, Back, Shoulders, Bi, Tri, Legs, Core, Glutes, Full Body` — Bi and Tri sit side-by-side where Arms used to be. He can pick one or both depending on what the session actually worked.

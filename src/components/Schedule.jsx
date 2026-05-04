@@ -291,8 +291,33 @@ export default function Schedule({ state, dispatch, lang }) {
                 {form.clientIds.map(id => {
                   const c = state.clients.find(cl => cl.id === id);
                   if (!c) return null;
-                  // v2.8: honour override in booking-flow chips too (tight space → inline style)
-                  const { auto: chipAuto, effective: chipEffective, override: chipOverride } = getEffectiveClientCount(c, state.sessions);
+                  // v2.9.6: chip shows the ordinal this booking WILL produce, not the
+                  // pre-booking count. Mirrors the post-booking confirmation popup
+                  // (line ~393) and the WhatsApp #N — so PT sees the same number in
+                  // all three places. Why this matters: PT was repeatedly confused
+                  // by the chip reading "(0)" for a brand-new client, then seeing
+                  // "#1" on the next screen. Two semantics for the same idea.
+                  //   Edit mode      → existing behavior (current period count of the
+                  //                    client whose session is being edited).
+                  //   Renewal-due    → saveSession dispatches RENEW_PACKAGE first; new
+                  //                    package starts fresh (sessionCountOverride: null
+                  //                    in the reducer), so this session is #1.
+                  //   Otherwise      → simulate by appending a preview session at
+                  //                    form.date/form.time and asking
+                  //                    getEffectiveSessionCount for its ordinal — same
+                  //                    helper the success popup uses, so the numbers
+                  //                    are identical by construction.
+                  let chipAuto, chipEffective, chipOverride;
+                  if (editingSession) {
+                    ({ auto: chipAuto, effective: chipEffective, override: chipOverride } =
+                      getEffectiveClientCount(c, state.sessions));
+                  } else if (renewalDueIds.has(c.id)) {
+                    chipAuto = 1; chipEffective = 1; chipOverride = null;
+                  } else {
+                    const previewSession = { id: '__preview__', clientId: c.id, date: form.date, time: form.time, status: 'scheduled' };
+                    ({ auto: chipAuto, effective: chipEffective, override: chipOverride } =
+                      getEffectiveSessionCount(c, previewSession, [...state.sessions, previewSession]));
+                  }
                   return (
                     <span key={id} className="client-chip">
                       {c.name}{' '}
