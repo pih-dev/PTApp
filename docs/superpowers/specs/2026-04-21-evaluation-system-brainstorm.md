@@ -2,8 +2,8 @@
 
 **Phase:** Brainstorming (step 3 of 9 — clarifying questions) — **PAUSED pending PT data**
 **Started:** 2026-04-21
-**Last checkpoint:** 2026-04-21 (after Q6 answered `C` + Pierre requested pause so PT can supply data)
-**Next action when resumed:** Ingest PT's per-branch eval exercise lists (Q7), evaluate Pierre's proposal to add a pre-classification layer between eval and branch assignment (and a possible second layer between branch and level), then continue clarifying questions. Do NOT implement anything yet.
+**Last checkpoint:** 2026-05-11 (PT-facing Excel template generated and dated baseline archived; awaiting PT to return the filled copy)
+**Next action when resumed:** When Pierre posts back the PT's filled `.xlsx`, **diff it against the empty baseline at `C:/projects/_archive/PTApp/evaluation-system/2026-05-11-PT-eval-template-EMPTY-baseline.xlsx`** to extract exactly what the PT entered (per-branch batteries + layering opinions + any optional cell-norm jottings). Then ingest that into Q7 (battery contents) and Q8 (layering decision = D8) and continue clarifying questions. Do NOT implement anything yet.
 
 ---
 
@@ -351,6 +351,44 @@ until the PT returns.
 
 ### Q8 (blocked on PT data) — Pre-classification layer decision
 Whether to adopt the two-stage decision tree in D8. Depends on what the PT says about routing.
+
+---
+
+## PT-facing Excel template (generated 2026-05-11)
+
+To unblock Q7/Q8 cleanly — instead of asking the PT to free-form a reply — Pierre asked for a
+structured Excel template the PT can key his input into directly.
+
+### Files
+- **Template (committed):** `docs/superpowers/artifacts/2026-04-21-evaluation-system/PT-Evaluation-Template.xlsx`
+- **Baseline copy (archived for diff):** `C:/projects/_archive/PTApp/evaluation-system/2026-05-11-PT-eval-template-EMPTY-baseline.xlsx`
+- **Build script (re-runnable):** `docs/superpowers/artifacts/2026-04-21-evaluation-system/build-eval-template.mjs`
+
+The build script depends on `exceljs`, installed with `npm install --no-save exceljs` so
+`package.json` is untouched. To rebuild the template:
+```
+npm install --no-save exceljs   # one-time per fresh checkout
+node docs/superpowers/artifacts/2026-04-21-evaluation-system/build-eval-template.mjs
+```
+
+### Workbook structure (6 sheets)
+| Sheet | Purpose | Locked vs PT-fills |
+|---|---|---|
+| Read Me | Context, instructions, locked grading scale + age bands | All locked |
+| WBS Reference | Tree visual + 6 leaves + 72-cell math + why two batteries | All locked |
+| Beginner Battery | PT lists exercises | 1 example seeded as row pattern; 14 amber-tinted blank rows |
+| Pro Battery | PT lists exercises (no seeds — PT domain) | 15 amber-tinted blank rows |
+| Layering Questions | PT answers Q1 routing (D8 part A), Q2 intermediate split (D8 part B), Q3 re-eval cadence, Q4 catch-all | Question text locked; answer cells amber |
+| Cell Norms (optional) | 6 levels × 6 age bands × 2 genders matrix for jottings | Headers locked; all 72 cells amber |
+
+Amber cells = "PT fills here". Color palette matches PTApp (blue accent / purple Pro branch / amber for placeholders).
+
+### Workflow when the PT returns the filled file
+1. Pierre posts the filled `.xlsx` back into a session.
+2. **Diff it against the baseline** at `C:/projects/_archive/PTApp/evaluation-system/2026-05-11-PT-eval-template-EMPTY-baseline.xlsx`. The baseline is byte-for-byte identical to what the PT received, so any differing cell is PT-authored content. (Use exceljs to read both, walk every sheet/cell, emit a list of `(sheet, cell, before, after)` tuples — only the rows where `before !== after` matter.)
+3. Save the filled copy to `C:/projects/_archive/PTApp/evaluation-system/YYYY-MM-DD-PT-eval-template-FILLED.xlsx` for long-lived preservation.
+4. Ingest the diff: per-branch exercises → Q7 answers; layering questions → Q8 answers + D8 decision; optional cell norms → seed for the eventual classification thresholds.
+5. Update D7 with concrete contents, decide D8, then continue the brainstorm (Q9+ or move to step 4 of the brainstorming skill — propose 2–3 approaches).
 
 ---
 
