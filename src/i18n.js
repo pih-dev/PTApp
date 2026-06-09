@@ -74,6 +74,15 @@ const T = {
     prev: '← Prev',
     next: 'Next →',
     bookSessionBtn: 'Book Session',
+    // v2.10 recurring session generator
+    repeatSessions: 'Repeat',
+    recurringWeekdays: 'Repeat on',
+    recurringCount: 'Number of sessions',
+    recurringPreview: 'Preview',
+    recurringAlreadyBooked: 'Already booked',
+    recurringCreate: 'Create',
+    sessionsLower: 'sessions',
+    recurringBack: 'Back',
     sessionBooked: 'Session Booked! 🎉',
     sendConfirmWA: 'Send Confirmation via WhatsApp',
 
@@ -258,6 +267,15 @@ const T = {
     prev: 'السابق ←',
     next: '→ التالي',
     bookSessionBtn: 'حجز جلسة',
+    // v2.10 recurring session generator
+    repeatSessions: 'تكرار',
+    recurringWeekdays: 'يتكرر في',
+    recurringCount: 'عدد الجلسات',
+    recurringPreview: 'معاينة',
+    recurringAlreadyBooked: 'محجوز مسبقاً',
+    recurringCreate: 'إنشاء',
+    sessionsLower: 'جلسات',
+    recurringBack: 'رجوع',
     sessionBooked: 'تمّ الحجز! 🎉',
     sendConfirmWA: 'إرسال تأكيد عبر واتساب',
 
