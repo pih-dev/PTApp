@@ -2,16 +2,32 @@ import React, { useState, useRef, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon } from './Icons';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, getEffectiveClientCount, localDateStr, getStatus, haptic, parseSessionCountOverride, isRenewalDue, getCurrentPackage, getEffectivePeriod } from '../utils';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, getEffectiveClientCount, localDateStr, getStatus, haptic, parseSessionCountOverride, isRenewalDue, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import { t, dateLocale } from '../i18n';
+
+// v2.10 recurring booking helpers (module-scope, no re-creation per render).
+// Mon-first display order for weekday chips, mapped to JS getDay() numbers (0=Sun..6=Sat).
+// 2024-01-01 is a Monday, so adding (jsDay-1) days from it yields the correct locale label.
+const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
+const weekdayLabel = (jsDay, lang) => {
+  const offset = jsDay === 0 ? 6 : jsDay - 1;
+  return new Date(2024, 0, 1 + offset).toLocaleDateString(dateLocale(lang), { weekday: 'short' });
+};
 
 export default function Schedule({ state, dispatch, lang }) {
   const [showForm, setShowForm] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
   const [selectedDate, setSelectedDate] = useState(today());
   const [form, setForm] = useState({ clientIds: [], type: 'Strength', date: today(), time: '09:00', duration: 45 });
+  // v2.10 recurring booking. Active only when `repeat` is true and not editing.
+  //   weekdays — Set of JS getDay() numbers (0=Sun..6=Sat) the protocol repeats on
+  //   preview  — null = form view; array of { date, time, conflict, keep } = preview view
+  const [repeat, setRepeat] = useState(false);
+  const [weekdays, setWeekdays] = useState(new Set());
+  const [count, setCount] = useState(10);
+  const [preview, setPreview] = useState(null);
   const [confirmMsg, setConfirmMsg] = useState(null);
   const [cancelPrompt, setCancelPrompt] = useState(null);
   // v2.8: inline override edit inside the booking confirm popup.
@@ -49,12 +65,16 @@ export default function Schedule({ state, dispatch, lang }) {
   const openBooking = () => {
     setEditingSession(null);
     setForm({ clientIds: [], type: 'Strength', date: selectedDate, time: '09:00', duration: 45 });
+    // v2.10: reset recurring state so toggling repeat on a prior booking doesn't leak
+    setRepeat(false); setWeekdays(new Set()); setCount(10); setPreview(null);
     setShowForm(true);
   };
 
   const openEdit = (session) => {
     setEditingSession(session);
     setForm({ clientIds: [session.clientId], type: session.type, date: session.date, time: session.time, duration: session.duration });
+    // Edit mode never enters recurring flow — reset so state is clean
+    setRepeat(false); setWeekdays(new Set()); setCount(10); setPreview(null);
     setShowForm(true);
   };
 
@@ -103,6 +123,39 @@ export default function Schedule({ state, dispatch, lang }) {
     }
   };
 
+  // v2.10: build an array of { date, time, conflict, keep } rows from the recurring config.
+  // Only reads state — no dispatches. Called by the "Preview" action button.
+  const buildPreview = () => {
+    const clientId = form.clientIds[0];
+    if (!clientId || weekdays.size === 0 || count < 1) return;
+    const dates = generateRecurringDates(form.date, [...weekdays], count);
+    const rows = dates.map(date => {
+      const conflict = hasClientSlotConflict(state.sessions, clientId, date, form.time);
+      return { date, time: form.time, conflict, keep: !conflict };
+    });
+    setPreview(rows);
+  };
+
+  // Commit ticked preview rows as ONE ADD_SESSIONS dispatch. Calendar-only:
+  // no RENEW_PACKAGE, contracts untouched by design (recurring series doesn't
+  // auto-advance packages — the PT reviews each renewal explicitly).
+  const createRecurring = () => {
+    const clientId = form.clientIds[0];
+    const kept = (preview || []).filter(r => r.keep);
+    if (!clientId || kept.length === 0) return;
+    const created = localDateStr(new Date());
+    const payload = kept.map(r => ({
+      id: genId(), clientId, type: form.type, date: r.date, time: r.time,
+      duration: form.duration, status: 'scheduled', createdAt: created,
+    }));
+    dispatch({ type: 'ADD_SESSIONS', payload });
+    haptic();
+    setShowForm(false);
+    setPreview(null);
+    setRepeat(false);
+    setSelectedDate(kept[0].date);
+  };
+
   const updateStatus = (id, status) => {
     dispatch({ type: 'UPDATE_SESSION', payload: { id, status } });
   };
@@ -124,6 +177,32 @@ export default function Schedule({ state, dispatch, lang }) {
   }
 
   const getClientName = (id) => state.clients.find(c => c.id === id)?.name || 'Unknown';
+
+  // v2.10: context-aware primary action for the booking modal.
+  //   • Edit mode → "Save Changes" (unchanged)
+  //   • Repeat + preview visible → Back (ghost) + "Create N sessions" (primary)
+  //   • Repeat + no preview yet → "Preview" (disabled until client+weekday+count set)
+  //   • Normal booking → the original "📅 Book" button
+  const bookingAction = editingSession ? (
+    <button className="btn-primary" onClick={saveSession}>{t(lang, 'saveChanges')}</button>
+  ) : repeat ? (
+    preview ? (
+      <div className="flex-row">
+        <button className="btn-ghost" onClick={() => setPreview(null)}>{t(lang, 'recurringBack')}</button>
+        <button className="btn-primary" disabled={preview.filter(r => r.keep).length === 0} onClick={createRecurring}>
+          {t(lang, 'recurringCreate')} {preview.filter(r => r.keep).length} {t(lang, 'sessionsLower')}
+        </button>
+      </div>
+    ) : (
+      <button className="btn-primary"
+        disabled={!form.clientIds[0] || weekdays.size === 0 || count < 1}
+        onClick={buildPreview}>{t(lang, 'recurringPreview')}</button>
+    )
+  ) : (
+    <button className="btn-primary" onClick={saveSession}>
+      {`📅 ${t(lang, 'bookSessionBtn')}${form.clientIds.length > 1 ? ` (${form.clientIds.length} ${t(lang, 'client')})` : ''}`}
+    </button>
+  );
 
   return (
     <div>
@@ -272,132 +351,211 @@ export default function Schedule({ state, dispatch, lang }) {
 
       {/* Booking Modal */}
       {showForm && (
-        <Modal title={editingSession ? t(lang, 'editSession') : t(lang, 'bookSessionBtn')} onClose={() => setShowForm(false)}
-          action={<button className="btn-primary" onClick={saveSession}>{editingSession ? t(lang, 'saveChanges') : `📅 ${t(lang, 'bookSessionBtn')}${form.clientIds.length > 1 ? ` (${form.clientIds.length} ${t(lang, 'client')})` : ''}`}</button>}>
+        <Modal title={editingSession ? t(lang, 'editSession') : t(lang, 'bookSessionBtn')}
+          onClose={() => { setShowForm(false); setPreview(null); setRepeat(false); }}
+          action={bookingAction}>
+          {/* v2.10: Repeat toggle — only visible in create mode; switches client selector
+              to single-select and unlocks weekday chips + count input below time picker. */}
+          {!editingSession && (
+            <label className="repeat-toggle">
+              <input type="checkbox" checked={repeat} onChange={e => {
+                const on = e.target.checked;
+                setRepeat(on);
+                setPreview(null);
+                // Recurring is single-client only — drop extras when enabling
+                if (on) setForm(p => ({ ...p, clientIds: p.clientIds.slice(0, 1) }));
+              }} />
+              <span>{t(lang, 'repeatSessions')}</span>
+            </label>
+          )}
           {/* v2.9: banner shown when any selected client is renewal-due — informs PT that
               booking will auto-advance their package. Placed BEFORE the book button fires
               so it appears while PT is reviewing the selection. After booking the renewal
-              already happened so isRenewalDue returns false and the banner vanishes. */}
-          {form.clientIds.some(cid => renewalDueIds.has(cid)) && (
+              already happened so isRenewalDue returns false and the banner vanishes.
+              Hidden during preview step (no new input needed, action is just confirm/back). */}
+          {!preview && form.clientIds.some(cid => renewalDueIds.has(cid)) && (
             <div className="booking-renewal-banner">
               ⚠️ {t(lang, 'packageLimitHit')} — {t(lang, 'willAutoRenew')}
             </div>
           )}
-          <div className="field">
-            <label className="field-label">{t(lang, 'client')}</label>
-            {/* Chips showing selected clients */}
-            {form.clientIds.length > 0 && (
-              <div className="client-chips">
-                {form.clientIds.map(id => {
-                  const c = state.clients.find(cl => cl.id === id);
-                  if (!c) return null;
-                  // v2.9.6: chip shows the ordinal this booking WILL produce, not the
-                  // pre-booking count. Mirrors the post-booking confirmation popup
-                  // (line ~393) and the WhatsApp #N — so PT sees the same number in
-                  // all three places. Why this matters: PT was repeatedly confused
-                  // by the chip reading "(0)" for a brand-new client, then seeing
-                  // "#1" on the next screen. Two semantics for the same idea.
-                  //   Edit mode      → existing behavior (current period count of the
-                  //                    client whose session is being edited).
-                  //   Renewal-due    → saveSession dispatches RENEW_PACKAGE first; new
-                  //                    package starts fresh (sessionCountOverride: null
-                  //                    in the reducer), so this session is #1.
-                  //   Otherwise      → simulate by appending a preview session at
-                  //                    form.date/form.time and asking
-                  //                    getEffectiveSessionCount for its ordinal — same
-                  //                    helper the success popup uses, so the numbers
-                  //                    are identical by construction.
-                  let chipAuto, chipEffective, chipOverride;
-                  if (editingSession) {
-                    ({ auto: chipAuto, effective: chipEffective, override: chipOverride } =
-                      getEffectiveClientCount(c, state.sessions));
-                  } else if (renewalDueIds.has(c.id)) {
-                    chipAuto = 1; chipEffective = 1; chipOverride = null;
-                  } else {
-                    const previewSession = { id: '__preview__', clientId: c.id, date: form.date, time: form.time, status: 'scheduled' };
-                    ({ auto: chipAuto, effective: chipEffective, override: chipOverride } =
-                      getEffectiveSessionCount(c, previewSession, [...state.sessions, previewSession]));
-                  }
-                  return (
-                    <span key={id} className="client-chip">
-                      {c.name}{' '}
-                      {chipOverride
-                        ? <span style={{ opacity: 0.85, fontSize: 11 }}>({chipAuto}→{chipEffective})</span>
-                        : <span style={{ opacity: 0.6, fontSize: 11 }}>({chipAuto})</span>}
-                      {!editingSession && (
-                        <span className="client-chip-x" onClick={() => setForm(p => ({ ...p, clientIds: p.clientIds.filter(cid => cid !== id) }))}>×</span>
-                      )}
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-            {/* Dropdown to add clients — hidden in edit mode */}
-            {!editingSession && (
-              <select className="select" style={{ marginTop: form.clientIds.length > 0 ? 8 : 0 }} value="" onChange={e => {
-                if (e.target.value) setForm(p => ({ ...p, clientIds: [...p.clientIds, e.target.value] }));
-              }}>
-                <option value="">{t(lang, 'selectClient')}</option>
-                {state.clients.filter(c => !form.clientIds.includes(c.id)).map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            )}
-          </div>
-          <div className="field">
-            <label className="field-label">{t(lang, 'sessionType')}</label>
-            <div className="flex-row">
-              {SESSION_TYPES.map(stype => (
-                <button key={stype.label}
-                  className={`type-btn${form.type === stype.label ? ' selected' : ''}`}
-                  style={form.type === stype.label ? { borderColor: stype.color, background: `${stype.color}20`, color: stype.color } : {}}
-                  onClick={() => setForm(p => ({ ...p, type: stype.label }))}>
-                  {stype.emoji} {stype.label}
-                </button>
-              ))}
+          {/* ── Preview step: hide all input fields, show checkable date rows ── */}
+          {preview ? (
+            <div className="recurring-preview">
+              {preview.map((r, i) => {
+                const dt = new Date(r.date + 'T00:00:00');
+                const label = dt.toLocaleDateString(dateLocale(lang), { weekday: 'short', month: 'short', day: 'numeric' });
+                return (
+                  <label key={r.date} className={`preview-row${r.conflict ? ' conflict' : ''}`}>
+                    <input type="checkbox" checked={r.keep} onChange={() =>
+                      setPreview(prev => prev.map((row, j) => j === i ? { ...row, keep: !row.keep } : row))} />
+                    <span className="preview-date">{label} · {r.time}</span>
+                    {r.conflict && <span className="preview-flag">{t(lang, 'recurringAlreadyBooked')}</span>}
+                  </label>
+                );
+              })}
             </div>
-          </div>
-          <div className="field">
-            <label className="field-label">{t(lang, 'date')}</label>
-            <input type="date" className="input" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} />
-          </div>
-          <div className="field">
-            <label className="field-label">{t(lang, 'duration')}</label>
-            <select className="select" value={form.duration} onChange={e => setForm(p => ({ ...p, duration: Number(e.target.value) }))}>
-              {DURATIONS.map(d => <option key={d} value={d}>{d} {t(lang, 'min')}</option>)}
-            </select>
-          </div>
-          <div className="field">
-            <label className="field-label">{t(lang, 'time')}</label>
-            {(() => {
-              const occupied = getOccupiedSlots(state.sessions, state.clients, form.date);
-              return (
-                <div className="time-grid" ref={el => {
-                  // Auto-scroll to selected time when grid mounts
-                  if (el && !el.dataset.scrolled) {
-                    const idx = TIMES.indexOf(form.time);
-                    const row = Math.floor(idx / 4);
-                    el.scrollTop = Math.max(0, row * 42 - 60);
-                    el.dataset.scrolled = '1';
-                  }
-                }}>
-                  {TIMES.map(tm => {
-                    const isSelected = form.time === tm;
-                    const occ = occupied[tm];
-                    let cls = 'time-slot';
-                    if (isSelected) cls += ' selected';
-                    if (occ) cls += ' occupied';
-                    return (
-                      <button key={tm} className={cls} onClick={() => setForm(p => ({ ...p, time: tm }))}>
-                        <span>{tm}</span>
-                        {occ && <span className="time-slot-name">{occ[0].clientName}</span>}
-                      </button>
-                    );
-                  })}
+          ) : (
+            <>
+              {/* ── Client selector ── */}
+              <div className="field">
+                <label className="field-label">{t(lang, 'client')}</label>
+                {/* Repeat mode: single-client select (no chips, no multi-select) */}
+                {repeat ? (
+                  <select className="select" value={form.clientIds[0] || ''} onChange={e =>
+                    setForm(p => ({ ...p, clientIds: e.target.value ? [e.target.value] : [] }))}>
+                    <option value="">{t(lang, 'selectClient')}</option>
+                    {state.clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                ) : (
+                  <>
+                    {/* Normal mode: chips + multi-select dropdown */}
+                    {/* Chips showing selected clients */}
+                    {form.clientIds.length > 0 && (
+                      <div className="client-chips">
+                        {form.clientIds.map(id => {
+                          const c = state.clients.find(cl => cl.id === id);
+                          if (!c) return null;
+                          // v2.9.6: chip shows the ordinal this booking WILL produce, not the
+                          // pre-booking count. Mirrors the post-booking confirmation popup
+                          // (line ~393) and the WhatsApp #N — so PT sees the same number in
+                          // all three places. Why this matters: PT was repeatedly confused
+                          // by the chip reading "(0)" for a brand-new client, then seeing
+                          // "#1" on the next screen. Two semantics for the same idea.
+                          //   Edit mode      → existing behavior (current period count of the
+                          //                    client whose session is being edited).
+                          //   Renewal-due    → saveSession dispatches RENEW_PACKAGE first; new
+                          //                    package starts fresh (sessionCountOverride: null
+                          //                    in the reducer), so this session is #1.
+                          //   Otherwise      → simulate by appending a preview session at
+                          //                    form.date/form.time and asking
+                          //                    getEffectiveSessionCount for its ordinal — same
+                          //                    helper the success popup uses, so the numbers
+                          //                    are identical by construction.
+                          let chipAuto, chipEffective, chipOverride;
+                          if (editingSession) {
+                            ({ auto: chipAuto, effective: chipEffective, override: chipOverride } =
+                              getEffectiveClientCount(c, state.sessions));
+                          } else if (renewalDueIds.has(c.id)) {
+                            chipAuto = 1; chipEffective = 1; chipOverride = null;
+                          } else {
+                            const previewSession = { id: '__preview__', clientId: c.id, date: form.date, time: form.time, status: 'scheduled' };
+                            ({ auto: chipAuto, effective: chipEffective, override: chipOverride } =
+                              getEffectiveSessionCount(c, previewSession, [...state.sessions, previewSession]));
+                          }
+                          return (
+                            <span key={id} className="client-chip">
+                              {c.name}{' '}
+                              {chipOverride
+                                ? <span style={{ opacity: 0.85, fontSize: 11 }}>({chipAuto}→{chipEffective})</span>
+                                : <span style={{ opacity: 0.6, fontSize: 11 }}>({chipAuto})</span>}
+                              {!editingSession && (
+                                <span className="client-chip-x" onClick={() => setForm(p => ({ ...p, clientIds: p.clientIds.filter(cid => cid !== id) }))}>×</span>
+                              )}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {/* Dropdown to add clients — hidden in edit mode */}
+                    {!editingSession && (
+                      <select className="select" style={{ marginTop: form.clientIds.length > 0 ? 8 : 0 }} value="" onChange={e => {
+                        if (e.target.value) setForm(p => ({ ...p, clientIds: [...p.clientIds, e.target.value] }));
+                      }}>
+                        <option value="">{t(lang, 'selectClient')}</option>
+                        {state.clients.filter(c => !form.clientIds.includes(c.id)).map(c => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    )}
+                  </>
+                )}
+              </div>
+              {/* ── Session type ── */}
+              <div className="field">
+                <label className="field-label">{t(lang, 'sessionType')}</label>
+                <div className="flex-row">
+                  {SESSION_TYPES.map(stype => (
+                    <button key={stype.label}
+                      className={`type-btn${form.type === stype.label ? ' selected' : ''}`}
+                      style={form.type === stype.label ? { borderColor: stype.color, background: `${stype.color}20`, color: stype.color } : {}}
+                      onClick={() => setForm(p => ({ ...p, type: stype.label }))}>
+                      {stype.emoji} {stype.label}
+                    </button>
+                  ))}
                 </div>
-              );
-            })()}
-          </div>
+              </div>
+              {/* ── Date ── */}
+              <div className="field">
+                <label className="field-label">{t(lang, 'date')}</label>
+                <input type="date" className="input" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} />
+              </div>
+              {/* ── Duration ── */}
+              <div className="field">
+                <label className="field-label">{t(lang, 'duration')}</label>
+                <select className="select" value={form.duration} onChange={e => setForm(p => ({ ...p, duration: Number(e.target.value) }))}>
+                  {DURATIONS.map(d => <option key={d} value={d}>{d} {t(lang, 'min')}</option>)}
+                </select>
+              </div>
+              {/* ── Time picker ── */}
+              <div className="field">
+                <label className="field-label">{t(lang, 'time')}</label>
+                {(() => {
+                  const occupied = getOccupiedSlots(state.sessions, state.clients, form.date);
+                  return (
+                    <div className="time-grid" ref={el => {
+                      // Auto-scroll to selected time when grid mounts
+                      if (el && !el.dataset.scrolled) {
+                        const idx = TIMES.indexOf(form.time);
+                        const row = Math.floor(idx / 4);
+                        el.scrollTop = Math.max(0, row * 42 - 60);
+                        el.dataset.scrolled = '1';
+                      }
+                    }}>
+                      {TIMES.map(tm => {
+                        const isSelected = form.time === tm;
+                        const occ = occupied[tm];
+                        let cls = 'time-slot';
+                        if (isSelected) cls += ' selected';
+                        if (occ) cls += ' occupied';
+                        return (
+                          <button key={tm} className={cls} onClick={() => setForm(p => ({ ...p, time: tm }))}>
+                            <span>{tm}</span>
+                            {occ && <span className="time-slot-name">{occ[0].clientName}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </div>
+              {/* ── v2.10: Weekday chips + count — only in repeat mode ── */}
+              {repeat && !editingSession && (
+                <>
+                  <div className="field">
+                    <label className="field-label">{t(lang, 'recurringWeekdays')}</label>
+                    <div className="weekday-row">
+                      {WEEKDAY_ORDER.map(jsDay => (
+                        <button key={jsDay} type="button"
+                          className={`weekday-chip${weekdays.has(jsDay) ? ' selected' : ''}`}
+                          onClick={() => setWeekdays(prev => {
+                            const next = new Set(prev);
+                            next.has(jsDay) ? next.delete(jsDay) : next.add(jsDay);
+                            return next;
+                          })}>
+                          {weekdayLabel(jsDay, lang)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="field">
+                    <label className="field-label">{t(lang, 'recurringCount')}</label>
+                    <input className="input" type="number" min="1" max="60" value={count}
+                      onChange={e => setCount(Math.max(1, Math.min(60, parseInt(e.target.value) || 1)))} />
+                  </div>
+                </>
+              )}
+            </>
+          )}
         </Modal>
       )}
 
