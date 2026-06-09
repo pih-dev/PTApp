@@ -178,6 +178,32 @@ export const getOccupiedSlots = (sessions, clients, date) => {
   return occupied;
 };
 
+// ─── Recurring session generation (v2.10) ───
+// Walk forward day-by-day from startDate (inclusive); collect each date whose
+// weekday is in `weekdays` (0=Sun..6=Sat, JS Date.getDay()) until `count` dates
+// are gathered. Pure + local-time only (never toISOString — UTC drift trap).
+// Safety cap of 730 iterations: an empty weekday set or an unreachable count can
+// never loop forever — it just returns whatever it gathered.
+export const generateRecurringDates = (startDate, weekdays, count) => {
+  const days = new Set(weekdays);
+  const out = [];
+  if (days.size === 0 || count <= 0) return out;
+  const d = new Date(startDate + 'T00:00:00'); // local midnight, not UTC
+  let guard = 0;
+  while (out.length < count && guard < 730) {
+    if (days.has(d.getDay())) out.push(localDateStr(d));
+    d.setDate(d.getDate() + 1);
+    guard++;
+  }
+  return out;
+};
+
+// True if `clientId` already has a non-cancelled session at this exact date+time.
+// Two different clients sharing a slot is intentional (group training) and is NOT
+// a conflict — only a same-client duplicate at the same slot counts.
+export const hasClientSlotConflict = (sessions, clientId, date, time) =>
+  sessions.some(s => s.clientId === clientId && s.date === date && s.time === time && s.status !== 'cancelled');
+
 // ─── Monthly session count ───
 // ─── Billing Period ───
 // Each client can have a custom billing period (periodStart + periodLength).
@@ -794,6 +820,11 @@ export function baseReducer(state, action) {
       };
     case 'ADD_SESSION':
       return { ...state, sessions: [...state.sessions, { ...action.payload, _modified: now() }] };
+    case 'ADD_SESSIONS':
+      // Batch-append N new sessions in a single dispatch (recurring generator).
+      // One reducer pass → one re-render → one debounced sync push, instead of
+      // N dispatches in a loop. See the "single dispatches in loops" trap.
+      return { ...state, sessions: [...state.sessions, ...action.payload.map(s => ({ ...s, _modified: now() }))] };
     case 'UPDATE_SESSION':
       return { ...state, sessions: state.sessions.map(s => s.id === action.payload.id ? { ...s, ...action.payload, _modified: now() } : s) };
     case 'BATCH_COMPLETE': {
