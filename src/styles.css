@@ -967,3 +967,26 @@ button:active { transform: scale(0.97); }
   color: var(--t2, inherit);
   margin-bottom: 12px;
 }
+
+/* ─── Recurring booking (v2.10) ─── */
+/* Theme-aware via --t* / --sep; RTL-safe via logical properties. */
+.repeat-toggle { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 14px; color: var(--t2); }
+.repeat-toggle input { width: 18px; height: 18px; }
+
+.weekday-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 12px; }
+.weekday-chip {
+  flex: 1 1 auto; min-width: 40px; padding: 8px 4px; border-radius: 8px;
+  border: 1px solid var(--sep); background: transparent; color: var(--t2);
+  font-size: 13px; cursor: pointer;
+}
+.weekday-chip.selected { background: #2563EB; border-color: #2563EB; color: #fff; }
+
+.recurring-preview { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
+.preview-row {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border: 1px solid var(--sep); border-radius: 8px; font-size: 14px; color: var(--t2);
+}
+.preview-row input { width: 18px; height: 18px; flex-shrink: 0; }
+.preview-date { flex: 1; }
+.preview-row.conflict { border-color: #F59E0B; }
+.preview-flag { font-size: 12px; color: #F59E0B; }
