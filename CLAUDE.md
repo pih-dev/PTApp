@@ -12,21 +12,22 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.9.6
-Single-file UI fix — booking-form chip now reads `(1)` for a brand-new client (was `(0)`). Three screens (chip, post-booking popup, WhatsApp) now show the same number. See `docs/instructions-v2.9.6.md`.
-- **Chip helper switched to ordinal semantics.** `Schedule.jsx:295` was using `getEffectiveClientCount` (pre-booking snapshot, returns `0` for a new client). Now uses `getEffectiveSessionCount` against a render-local `previewSession` at `form.date`/`form.time` — same helper the post-booking popup at line ~393 uses, so the numbers match by construction.
-- **Three-way branch.** Edit mode preserves prior behavior. Renewal-due short-circuits to `(1)` because `saveSession` dispatches `RENEW_PACKAGE` before `ADD_SESSION`, opening a fresh package with `sessionCountOverride: null` per `utils.js:852`. Otherwise simulate.
-- **No data write, no schema change, no migration.** `previewSession` lives only in render-local scope.
-- **TRAP added — same number, two semantics, two adjacent screens.** When a parenthetical or badge appears on screen A (pre-action) and again on screen B (post-action) of the same flow, both surfaces must use the same semantics. Pre-action snapshot vs post-action ordinal in adjacent screens looks like a glitch to the user. Fix: use the post-action helper on both screens (with a simulated event on the pre-action one).
+## Current Version: v2.10.0
+Recurring session generator — book a whole protocol in one pass. Calendar-only, no schema change, no migration. See `docs/instructions-v2.10.0.md`.
+- **Repeat mode in the booking form.** A "Repeat" toggle (gated `!editingSession`) switches the form to: single-client select + 7 weekday chips (Mon-first, localized) + one time + a session count (1–60). `generateRecurringDates(startDate, weekdays, count)` walks forward from the start date collecting matching weekdays until `count` is reached (local-time only, 730-iter safety cap).
+- **Preview + deselect.** `buildPreview()` renders the computed dates each pre-ticked; `hasClientSlotConflict` flags same-client same-slot duplicates "Already booked" (pre-unticked). `createRecurring()` commits ticked rows via ONE `ADD_SESSIONS` dispatch (new batch reducer action, stamps `_modified`, honors the "single dispatches in loops" trap), then jumps the week strip to the first date.
+- **Calendar-only by design (D1).** No `RENEW_PACKAGE`, no `contractSize` touch — recurring generation never renews. Existing contract logic counts these like any other session. No WhatsApp at generate time (no backend; day-before reminders deferred as a separate feature).
+- **Non-repeat path untouched.** Existing multi-client chip block gated `!repeat`, preserved verbatim (incl. v2.9.6 ordinal sim). `saveSession` unchanged. Verified by independent spec review.
+- **Feature #1 of 3** the PT requested. #2 = evaluation protocol (timed/chart-normed — CONFLICTS with the paused Apr 21 "observe & grade 1–5" eval spec + outstanding PT Excel; reconcile before designing). #3 = auto program proposal (depends on #2). New `scripts/sanity/sanity-recurring.mjs` (21 assertions).
 
-## Previous Version: v2.9.5
-Tag library refactor + session-type rename + one-shot v3→v4 data migration. See `docs/instructions-v2.9.5.md`.
-- **`Arms` focus tag split into `Bi` (biceps) + `Tri` (triceps).** Applied to `FOCUS_TAGS.Strength` and `FOCUS_TAGS.Endurance` (formerly `Custom`). Two independent tags — sessions can carry one or both.
-- **`Custom` session type renamed to `Endurance`.** Color/emoji/index unchanged (still `SESSION_TYPES[5]`); the PT frames this slot as "Strength Endurance".
-- **v3→v4 migration:** per-client chronological alternation rewrites every `'Arms'` in `session.focus` to `'Bi'` or `'Tri'` (starts at Bi, counts cancelled sessions, sorts by `${date} ${time} ${id}`). `session.type === 'Custom'` rewritten to `'Endurance'` on every session. Idempotent (re-run is a no-op). New sanity script `scripts/sanity/sanity-arms-migration.mjs` covers 17 assertions including out-of-order inserts, mixed-tag sessions, per-client independence, and idempotency.
-- **Test fixture rot fixed in commit `ed458c7` (May 2).** `sanity-migration.mjs` Alice override stamp now computed at runtime from `computeSlidingWindow` instead of hardcoded.
+## Previous Version: v2.9.6
+Single-file UI fix — booking-form chip now reads `(1)` for a brand-new client (was `(0)`). Three screens (chip, post-booking popup, WhatsApp) now show the same number. See `docs/instructions-v2.9.6.md`.
+- **Chip helper switched to ordinal semantics.** `Schedule.jsx:295` was using `getEffectiveClientCount` (pre-booking snapshot, returns `0` for a new client). Now uses `getEffectiveSessionCount` against a render-local `previewSession` at `form.date`/`form.time` — same helper the post-booking popup uses, so the numbers match by construction.
+- **TRAP added — same number, two semantics, two adjacent screens.** When a parenthetical or badge appears on screen A (pre-action) and again on screen B (post-action) of the same flow, both surfaces must use the same semantics. Fix: use the post-action helper on both screens (with a simulated event on the pre-action one).
+- **No data write, no schema change, no migration.**
 
 ## Older Versions (one-line pointers — full details in `docs/instructions-v*.md`)
+- **v2.9.5** — `Arms` focus tag split into `Bi`+`Tri`; `Custom` session type renamed `Endurance`; one-shot v3→v4 migration (per-client chronological Bi/Tri alternation + Custom→Endurance). `sanity-arms-migration.mjs` (17 assertions). Snapshot tag `snapshot-pre-v2.9.5`.
 - **v2.9.4** — Schedule inline type-selector preserves focus tags (retroactive fix to Apr 2 decision `eb29798` only applied to Dashboard). TRAP: architected behavior not propagated + missing from changelog.
 - **v2.9.3** — Top-level React error boundary (`ErrorBoundary.jsx` wrapping `<App />` in `main.jsx`) with Backup / Try again / Reset recovery UI. Sanity scripts moved `tmp/` → `scripts/sanity/`. No schema change.
 - **v2.9.2** — Post-deploy review fixes for v2.9. Critical: `Schedule.jsx` booking-confirm pencil now writes override into `pkg.sessionCountOverride` (was writing to legacy v2 root fields the migration deletes). Plus 5 important fixes (`RenewalModal` cross-device race surfacing, `Schedule` renewal-due `useMemo`, sentinel removal, override equality comparator, `getClientPeriod` shim deletion) + minor cleanups. CLAUDE.md slimmed 41k→19.5k.
@@ -167,6 +168,7 @@ Use `getStatus(status, lang, t)` for translated label. Badge colors via CSS clas
 | `EDIT_CLIENT` | `{id, ...fields}` | Detects current-package field changes → `package_edited` / `override_set` / `override_cleared` audit entries |
 | `DELETE_CLIENT` | `clientId` | Also deletes their sessions |
 | `ADD_SESSION` | `{id, clientId, ...}` | |
+| `ADD_SESSIONS` | `[{id, clientId, ...}, ...]` | v2.10: batch-append a recurring series in ONE dispatch (each stamped `_modified`). One re-render, one sync push. Calendar-only — never renews packages. |
 | `UPDATE_SESSION` | `{id, ...fields}` | Merges fields |
 | `BATCH_COMPLETE` | `[id, id, ...]` | Marks all completed in one dispatch |
 | `DELETE_SESSION` | `sessionId` | |

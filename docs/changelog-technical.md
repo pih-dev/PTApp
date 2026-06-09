@@ -4,6 +4,49 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.10.0 — Recurring session generator (2026-06-09)
+
+**Trigger:** PT requested fixed recurring schedules — "every Mon/Wed/Fri at 8:15, N sessions, per client, populate the calendar." Refined in brainstorming: the session count is a free input (not a hardcoded 10), and the feature is calendar-only.
+
+### Decisions (D1–D6)
+D1 calendar-only (no package/contract/renewal touch); D2 one time across days; D3 preview+deselect; D4 no WhatsApp at generate time (no backend → can't auto-send day-before; deferred); D5 per-client single-select in repeat mode; D6 no series object (independent records). Full rationale in `docs/superpowers/specs/2026-06-09-recurring-session-generator-design.md`.
+
+### New utils (`src/utils.js`)
+```js
+// Walk forward from startDate (inclusive), collect dates whose getDay() ∈ weekdays
+// (0=Sun..6=Sat) until count gathered. Local-time only; 730-iter safety cap.
+export const generateRecurringDates = (startDate, weekdays, count) => { ... };
+
+// Same-client, non-cancelled, exact date+time → true. Different clients sharing a
+// slot is intentional group training, NOT a conflict.
+export const hasClientSlotConflict = (sessions, clientId, date, time) => ...;
+```
+
+### New reducer action
+```js
+case 'ADD_SESSIONS':  // batch-append, one dispatch, each stamped _modified: now()
+  return { ...state, sessions: [...state.sessions, ...action.payload.map(s => ({ ...s, _modified: now() }))] };
+```
+Honors the "single dispatches in loops" trap (precedent: `BATCH_COMPLETE`). One re-render, one debounced sync push for the whole series.
+
+### Schedule.jsx
+- State: `repeat`, `weekdays` (Set of getDay() ints), `count` (1–60, clamped), `preview` (null | `[{date,time,conflict,keep}]`).
+- Module-scope `WEEKDAY_ORDER = [1,2,3,4,5,6,0]` + `weekdayLabel(jsDay, lang)` (Mon-anchored on 2024-01-01).
+- Repeat mode collapses `clientIds` to one; existing multi-client chip block gated `!repeat` and preserved verbatim (incl. v2.9.6 ordinal sim). All recurring UI gated `!editingSession`.
+- `buildPreview()` → `generateRecurringDates(form.date, [...weekdays], count)` mapped through `hasClientSlotConflict`. `createRecurring()` → one `ADD_SESSIONS`, no `RENEW_PACKAGE`, jumps week strip to first kept date.
+- Context-aware `bookingAction` (edit / repeat+preview / repeat+form / normal). Non-repeat path and `saveSession` untouched (verified by independent spec review — the diff's 117 deletions were benign re-indent from wrapping the form body in `{preview ? … : <>…</>}`).
+
+### i18n / CSS
+8 EN+AR keys (`repeatSessions`, `recurringWeekdays`, `recurringCount`, `recurringPreview`, `recurringAlreadyBooked`, `recurringCreate`, `sessionsLower`, `recurringBack`). CSS: `.repeat-toggle`, `.weekday-chip(.selected)`, `.recurring-preview`, `.preview-row(.conflict)`, theme-aware + RTL-safe.
+
+### Testing
+`scripts/sanity/sanity-recurring.mjs` — 21 assertions. No schema change → no migration, DATA_VERSION unchanged at 4.
+
+### Process note
+Built via brainstorm → spec → plan → subagent-driven execution. Three feature asks decomposed; this is #1. #2 (evaluation protocol, timed/chart-normed) **conflicts with** the paused Apr 21 eval spec (observe & grade 1–5) and the outstanding PT Excel template — reconcile before designing. #3 (auto program) depends on #2.
+
+---
+
 ## v2.9.6 — Booking-form chip preview math (2026-05-04)
 
 **Trigger:** PT screenshotted the same confusion three times in two weeks. Booking screen showed `Nayla Sfeir (0)` for a brand-new client; he kept reading "(0)" as "this session is session zero" and asked why. After tapping Book Session the confirmation popup correctly said `#1` and the WhatsApp said "session 1" — so two of the three places were already right; only the booking-form chip was misaligned with the others.

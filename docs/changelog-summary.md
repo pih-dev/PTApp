@@ -4,6 +4,20 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.10.0 — Recurring session generator (June 9, 2026)
+
+**Booking a whole protocol in one go.** Lots of the PT's clients train on a fixed weekly rhythm — Mon/Wed/Fri at 8:15, say. Until now he booked each of those ten sessions by hand. v2.10.0 adds a **Repeat** toggle to the booking form: pick the client, tap the weekdays, set one time, type a number of sessions, and the app lays the whole series onto the calendar. Ten sessions on Mon/Wed/Fri simply land across the next ~3.3 weeks — the count is what decides how far it runs, not a fixed number of weeks.
+
+**It shows you the dates before it commits.** Creating ten sessions blind would be a pain to undo, so Repeat ends on a **preview**: every date it's about to create, each ticked, with any slot the client is *already* booked for flagged "Already booked" and pre-unticked. Untick a holiday, untick a clash, then hit **Create N sessions**. They all appear at once and the calendar jumps to the first one.
+
+**Deliberately kept simple and safe.** It only touches the calendar — it does **not** change the client's contract, package, or renewal state, so none of the renewal machinery can misfire. One time for all the days (edit individual sessions later if needed). No automatic WhatsApp at booking time — the app has no server to send "the day before" on its own, so that piece is a separate feature coming next. No schema change, nothing to migrate.
+
+**Tested before deploy.** A new sanity script (`sanity-recurring.mjs`, 21 checks) covers the date math, the conflict flagging, and the new batch-create. All pass.
+
+*This is the first of three features the PT asked for. Next: a fitness-evaluation protocol, then an automatic program suggestion based on the results.*
+
+---
+
 ## v2.9.6 — Booking-chip preview math (May 4, 2026)
 
 **A small confusion that kept coming back.** Every couple of weeks the PT would screenshot the app and ask "why does it show zero?" The screenshot was always the same: the booking screen, a brand-new client (zero past sessions), and a chip on the form reading `Nayla Sfeir (0)`. Then he'd tap **Book Session**, the confirmation popup would say `#1`, the WhatsApp would say "session 1 of …" — all consistent — but the chip on the booking form had said `(0)`. He kept reading that as "this booking is session zero" instead of "this client has zero sessions so far."
