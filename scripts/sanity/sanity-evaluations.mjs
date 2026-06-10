@@ -124,3 +124,47 @@ for (const [testId, byGender] of Object.entries(CHARTS)) {
 }
 
 console.log('\nAll normCharts assertions passed.');
+
+// === Part 2a: schema v5 — migration + merge (appended after the normCharts block) ===
+const utilsUrl = new URL('../../src/utils.js', import.meta.url).href;
+const { mergeData, baseReducer } = await import(utilsUrl);
+
+// migrateData is private — exercise it through mergeData(local, remote), which migrates
+// the remote blob by its OWN version (v2.10.1 behavior, already covered by
+// sanity-merge-migration.mjs for v<4 shapes).
+const v4blob = {
+  _dataVersion: 4, _lastModified: '2026-06-01T00:00:00.000Z',
+  clients: [{ id: 'c1', name: 'Test One', nickname: 'Test', phone: '+961 1', packages: [
+    { id: 'pkg_x', start: '2026-06-01', end: null, periodUnit: 'month', periodValue: 1,
+      contractSize: null, sessionCountOverride: null, notes: '', closedAt: null, closedBy: null }],
+    _modified: '2026-06-01T00:00:00.000Z' }],
+  sessions: [], todos: [], auditLog: [], messageTemplates: {},
+};
+const localV5 = {
+  _dataVersion: 5, _lastModified: '2026-06-10T00:00:00.000Z',
+  clients: [], sessions: [], todos: [], auditLog: [], messageTemplates: {},
+  evaluations: [{ id: 'e1', clientId: 'c9', date: '2026-06-10', branch: 'mass',
+    pullVariant: 'pullup', raw: { pushup: 10, pull: 3, squat: 20, runSec: null, sitReachCm: null },
+    frozen: { age: 30, gender: 'male', scores: { pushup: 2, pull: 2, squat: 2, run: null, sitReach: null },
+      muscleAvg: 2, classification: 'begB', chartsVersion: 1 },
+    _modified: '2026-06-10T00:00:00.000Z' }],
+};
+const merged = mergeData(localV5, v4blob);
+assert(Array.isArray(merged.evaluations) && merged.evaluations.length === 1,
+  'merge v5-local + v4-remote: local evaluations survive');
+assert(merged._dataVersion === 5, 'merged blob is v5');
+assert(merged.clients.length === 1, 'remote client unions in');
+
+// Two devices each holding different evals → union, newer _modified wins on collision
+const remoteV5 = JSON.parse(JSON.stringify(localV5));
+remoteV5.evaluations = [
+  { ...localV5.evaluations[0], _modified: '2026-06-11T00:00:00.000Z',
+    raw: { ...localV5.evaluations[0].raw, pushup: 11 } },
+  { ...localV5.evaluations[0], id: 'e2', _modified: '2026-06-09T00:00:00.000Z' },
+];
+const merged2 = mergeData(localV5, remoteV5);
+assert(merged2.evaluations.length === 2, 'eval union by ID');
+assert(merged2.evaluations.find(ev => ev.id === 'e1').raw.pushup === 11,
+  'newer _modified wins per record');
+
+console.log('\nAll migration/merge assertions passed.');

@@ -613,7 +613,7 @@ export const formatDateLong = (dateStr, lang = 'en') => {
 // ─── Data versioning & migration ───
 // Increment DATA_VERSION when the schema changes. Add a migration function
 // for each version bump. Existing data is NEVER discarded — only migrated forward.
-const DATA_VERSION = 4;
+const DATA_VERSION = 5;
 
 // Capitalize each word: "pierre ghorra" → "Pierre Ghorra"
 export const capitalizeName = (name) =>
@@ -780,9 +780,18 @@ function migrateData(data) {
     v = 4;
   }
 
+  // v4 → v5: evaluation system (v2.11). Adds top-level evaluations[] — per-client
+  // fitness eval records (sessions pattern: per-record _modified, union-by-ID merge).
+  // Purely additive: no client/session reshaping, nothing to rewrite.
+  if (v < 5) {
+    data.evaluations = data.evaluations || [];
+    v = 5;
+  }
+
   data.clients = data.clients || [];
   data.sessions = data.sessions || [];
   data.todos = data.todos || [];
+  data.evaluations = data.evaluations || [];
   data.messageTemplates = data.messageTemplates || {};
   // auditLog may be absent on fresh state or data fetched from remote before v3
   data.auditLog = data.auditLog || [];
@@ -847,6 +856,8 @@ export function mergeData(local, remote) {
     clients: mergeById(local.clients, remote.clients),
     sessions: mergeById(local.sessions, remote.sessions),
     todos: mergeById(local.todos, remote.todos),
+    // evaluations merge exactly like sessions — per-record _modified, union by ID
+    evaluations: mergeById(local.evaluations, remote.evaluations),
     // auditLog entries are append-only and have IDs — union-merge like sessions/todos
     auditLog: mergeById(local.auditLog, remote.auditLog),
     // Templates don't have per-record timestamps — prefer side with newer _lastModified
@@ -1085,7 +1096,7 @@ export function baseReducer(state, action) {
       // Ensure all fields exist after replacing state (remote data may lack new fields).
       // Preserves remote's _lastModified if it exists; sets it if remote is legacy data
       // without timestamps (prevents "Modified: none" in debug panel).
-      const replaced = { todos: [], auditLog: [], messageTemplates: {}, ...action.payload };
+      const replaced = { todos: [], auditLog: [], messageTemplates: {}, evaluations: [], ...action.payload };
       replaced._lastModified = replaced._lastModified || new Date().toISOString();
       return replaced;
     }
@@ -1215,6 +1226,10 @@ export const mergeBackup = (live, backup) => {
     !liveAuditIds.has(e.id) &&
     !(e.trigger && e.trigger.reason === 'migration v2→v3' && liveClientIds.has(e.clientId)));
   merged.auditLog = [...(live.auditLog || []), ...restoredAudit];
+  // Merge evaluations by ID — backup fills missing, doesn't overwrite existing
+  const liveEvalIds = new Set((live.evaluations || []).map(ev => ev.id));
+  const restoredEvals = (backup.evaluations || []).filter(ev => !liveEvalIds.has(ev.id));
+  merged.evaluations = [...(live.evaluations || []), ...restoredEvals];
   // Keep whichever has custom templates (live wins if both have them)
   merged.messageTemplates = live.messageTemplates || backup.messageTemplates || {};
   return migrateData(merged);
