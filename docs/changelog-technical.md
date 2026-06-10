@@ -4,6 +4,55 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.11.0 — Evaluation system: mass-population battery (2026-06-11)
+
+**Trigger:** PT feature #2 (stage 1 of 2). Design spec: `docs/superpowers/specs/2026-06-10-evaluation-v2-mass-battery-design.md`. Plan: `docs/superpowers/plans/2026-06-10-evaluation-v2-mass-battery.md`. PT deliverable: `docs/superpowers/artifacts/2026-06-09-evaluation-v2/PT-Norms-As-Implemented.xlsx` (archived copy at `_archive/PTApp/eval-artifacts/`).
+
+### Schema: v4 → v5
+- New top-level `state.evaluations: Array<Evaluation>` (purely additive). Each record: `{ id, clientId, date, age, gender, chartsVersion, scores: { pushups, pullups|invertedRow, squats, run?, sitreach? }, classification, _modified }`.
+- `DATA_VERSION` bumped 4 → 5. Migration step is a no-op (adds `evaluations: []` if absent). Verified byte-identical on live data via `scripts/sanity/sanity-live-v5-diff.mjs`: 0 bytes differ in clients/sessions/packages/auditLog — additive-only confirmed.
+- `mergeData`, `mergeBackup`, and `REPLACE_ALL` all carry `evaluations` (same pattern as `sessions`, `clients`, `auditLog`).
+- `DELETE_CLIENT` cascades: removes all evaluations where `e.clientId === clientId`.
+
+### New module: `src/normCharts.js`
+- **Owns ALL chart data and scoring.** `CHARTS_VERSION = 1`. Never inline thresholds in components — always call the helpers here.
+- `lookupScore(testKey, gender, age, value)` — returns 1–5 (or `null` for optional tests left blank). Scores against bundled norm tables; pull-up and inverted-row share one table (the toggle selects which label to display, not which chart to use).
+- `classify(avgScore)` — returns classification string from the muscle-average: `'Beginner A'|'Beginner B'|'Intermediate A'|'Intermediate B'|'Pro'`.
+- `computeEvalFrozen(rawInputs, gender, age)` — THE kernel: runs `lookupScore` for all tests, calls `classify`, returns the frozen `scores` + `classification` object. Both EvalForm live chips AND the save path call this — by construction they can never disagree.
+- Sit & reach uses YMCA published norms as a placeholder. When the PT supplies his chart: edit the `SITREACH` table here and bump `CHARTS_VERSION`. Old records keep their frozen scores; new evaluations score against the new chart.
+- Pull-up age 46–55 band flat-capped at score 3 (no published data for that age group in the PT's chart — gap resolution documented in the PT deliverable xlsx).
+
+### New reducer actions
+- `ADD_EVALUATION { id, clientId, date, age, gender, chartsVersion, scores, classification, _modified }` — appends, stamps `_modified`.
+- `EDIT_EVALUATION { full record }` — **full-record contract**: replaces the record by id with the entire new object (re-frozen by `computeEvalFrozen` at call site). Partial patches are forbidden — the frozen `scores` + `classification` must always be internally consistent.
+- `DELETE_EVALUATION { evalId }` — removes by id, writes `evaluation_deleted` audit entry (confirm-guarded at UI layer).
+- Audit events: `evaluation_added`, `evaluation_edited`, `evaluation_deleted`.
+
+### New components
+- **`src/components/EvalForm.jsx`** — modal form; live verdict chips via `computeEvalFrozen` on every keystroke; pull-up/inverted-row toggle; run + sit&reach optional; gated on gender+birthdate; Pro/Elite 1RM section visible-but-disabled (ships v2.12).
+- **`src/components/EvalSection.jsx`** — renders inside expanded client card; "Evaluate" button (gated on gender+birthdate); evaluation history rows (newest first) with classification badge, date, scores summary, edit/delete controls; latest classification badge passed up for display on collapsed card.
+- **`src/components/NormChartsView.jsx`** — full-page norm chart reference rendered from `normCharts.js` data (never a separate document that can drift). Accessed via General → Norm Charts.
+
+### Clients.jsx integration
+- Expanded card renders `<EvalSection>` below sessions.
+- Latest classification badge rendered on collapsed card header when `evaluations` exist for the client.
+- `state.evaluations` threaded as prop (no context — consistent with existing prop-threading pattern).
+
+### General.jsx integration
+- New "Norm Charts" entry in the Documentation section opens `<NormChartsView>`.
+
+### i18n
+- 18 new keys × 2 languages (EN + AR) covering evaluation form labels, verdicts, classification names, error messages, confirm-delete dialog.
+
+### Sanity
+- `scripts/sanity/sanity-evaluations.mjs` — three parts: (1) `lookupScore` edge cases + boundary values for all 5 tests; (2) `computeEvalFrozen` consistency (chips === save path for 20 input combinations); (3) reducer ADD/EDIT/DELETE + cascade DELETE_CLIENT + merge round-trip.
+- `scripts/sanity/sanity-live-v5-diff.mjs` — loads the real archived snapshot (`_archive/PTApp/data-snapshots/2026-06-10-pre-fable5-review-data.json`), runs `migrateData` v4→v5, asserts zero diff on all existing record fields. This is the **live-data gate for v4→v5**. For future schema changes: write a new `sanity-live-vN-diff.mjs`; note that `sanity-live-migration.mjs` is v2→v3-era STALE (asserts `_dataVersion === 3`) — modernize or retire it at the next schema change.
+
+### Design decisions (D1–D8)
+D1 raw-value input (not a slider — PT measures exact reps/time); D2 per-test 1–5 scale with freeze-at-save (not a live recompute on chart update — old records are historical); D3 muscle average only (run + sit&reach recorded, not classified); D4 bands match PT's own 30s norms for muscle tests, YMCA for sit&reach (until PT supplies his); D5 pull-up/inverted-row share one chart (toggle = label only); D6 Pro/Elite 1RM parked (visible-disabled, ships v2.12 pending PT: Elite boundary + 1RM verdict + bodyweight-at-eval-time); D7 evaluations[] = sessions[] pattern in every merge path (not nested under client — consistent with existing top-level arrays); D8 computeEvalFrozen is THE single kernel (form chips + save path share it — can't diverge).
+
+---
+
 ## v2.10.4 — `EDIT_CURRENT_PACKAGE` reducer action (2026-06-10)
 
 **Trigger:** review finding P7, the last actionable preserved finding (P3 awaits Pierre's SessionCard scope decision; P6 needs a freeze-vs-live display design discussion first). Pure refactor, no schema change.

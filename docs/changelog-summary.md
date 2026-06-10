@@ -4,6 +4,24 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.11.0 — Client Fitness Evaluations (June 11, 2026)
+
+**The PT can now score clients against published norms.** v2.11 adds a full fitness evaluation battery directly inside each client's card. The PT measures five tests by hand — push-ups, pull-ups (or inverted row) and bodyweight squats timed at 30 seconds each, plus an optional 1-mile run and sit-and-reach — types the raw numbers into the app, and gets a scored result on the spot.
+
+**Live verdict chips while typing.** As each number is entered, a coloured chip appears beside the field (Weak / Below Average / Average / Good / Excellent) so the PT can give the client immediate feedback without waiting to save.
+
+**A classification tells you where the client stands overall.** The three muscle-test scores are averaged and translated into a fitness band: Beginner A, Beginner B, Intermediate A, Intermediate B, or Pro. The latest classification shows as a badge on the collapsed client card so it's visible at a glance.
+
+**History kept forever, never overwritten.** Each evaluation is saved as its own record with the date, age, and the exact chart version used. Re-evaluate every 8 weeks to track progress — the full history stays in the app. Editing an old record re-freezes its scores; deleting one asks for confirmation and writes to the audit trail.
+
+**The norm charts are visible in-app.** General → Norm Charts shows the exact numbers the app scores with, so there's no guesswork. The sit & reach chart currently uses YMCA published norms (a placeholder until the PT sends his own chart). The 1-mile run gets its own verdict but doesn't affect the muscle-test average.
+
+**Pro/Elite 1RM battery is coming next.** The button for it is visible in the evaluation form but disabled — barbell 1RM tests (bench, squat, deadlift scored against bodyweight ratios) ship in v2.12 once the PT confirms the Elite boundary and scoring approach.
+
+**No schema migration needed.** The new evaluations data is purely additive. Existing clients and sessions are untouched, and the app was verified against a copy of today's live data to confirm zero changes to existing records.
+
+---
+
 ## v2.10.4 — More internal cleanup, nothing visible (June 10, 2026)
 
 **One owner for package edits.** Editing a client's package settings or session-count override used to be assembled by hand in two different screens — the exact pattern that caused a silent bug back in April (v2.9.2). All package edits now go through a single, tested code path that also writes the audit trail. Bonus robustness: committing an override from the booking popup can no longer accidentally overwrite client details that were edited on the other phone while the popup was open.

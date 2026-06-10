@@ -12,7 +12,17 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.10.4
+## Current Version: v2.11.0
+Evaluation system — mass-population battery (PT feature #2, stage 1 of 2). Schema v4→v5 (purely additive).
+- **`src/normCharts.js` owns ALL chart data + scoring.** Never inline thresholds in components. `CHARTS_VERSION = 1`. Bump it when any chart table changes — old records keep their frozen scores, new evaluations use the updated table.
+- **`computeEvalFrozen(rawInputs, gender, age)`** is THE single scoring kernel. Both EvalForm live chips AND the save path call it — by construction they can never disagree. Do not reimplement the 1–5 lookup or classify logic anywhere else.
+- **`EDIT_EVALUATION` full-record contract** — the entire record is replaced (re-frozen by `computeEvalFrozen` at call site). Partial patches are forbidden; `scores` + `classification` must stay internally consistent.
+- **`evaluations[]` follows the sessions[] pattern** in every merge path (`mergeData`, `mergeBackup`, `REPLACE_ALL`). `DELETE_CLIENT` cascades to evaluations. Never let evaluations become orphaned.
+- **Sit & reach = YMCA placeholder** until the PT sends his own chart. When it arrives: edit the `SITREACH` table in `normCharts.js` and bump `CHARTS_VERSION`. No migration needed — old frozen records are unaffected.
+- **Pro/Elite 1RM parked for v2.12.** Visible-disabled in EvalForm. Three open questions before enabling: Elite boundary, 1RM verdict phrasing, bodyweight captured per eval or from client profile.
+- New components: `EvalForm.jsx`, `EvalSection.jsx`, `NormChartsView.jsx`. New sanity: `sanity-evaluations.mjs` (3 parts), `sanity-live-v5-diff.mjs` (live-data byte-diff gate).
+
+## Previous Version: v2.10.4
 Pure refactor — review finding P7. No schema change, no user-visible change.
 - **`EDIT_CURRENT_PACKAGE { clientId, pkg }`** is THE owner of replace-last-package writes (was hand-rolled `[...packages.slice(0,-1), pkg]` at 2 author sites — the v2.9.2 incident class). Reads the LIVE client by id (no stale-snapshot clobbering), stamps `_modified`, audits via shared `buildPackageAuditEntries` (extracted from EDIT_CLIENT — both actions use it). Never author package-array surgery at call sites again.
 - Clients `save()` edit branch = EDIT_CLIENT (profile) + EDIT_CURRENT_PACKAGE (package), batched by React 18. Schedule `commitOverride` = EDIT_CURRENT_PACKAGE only.
@@ -40,6 +50,7 @@ Whole-codebase review fix pack (Fable 5 fresh-eyes review, 2026-06-10). No schem
 - **New sanity script:** `scripts/sanity/sanity-merge-migration.mjs` (17 checks; uses the real archived snapshot when present). 4 new traps in `docs/traps.md`.
 
 ## Older Versions (one-line pointers — full details in `docs/instructions-v*.md`)
+- **v2.10.4** — `EDIT_CURRENT_PACKAGE` reducer action: THE owner of replace-last-package writes; shared `buildPackageAuditEntries` with EDIT_CLIENT; no hand-rolled `packages.slice(0,-1)` at call sites. Pure refactor, review finding P7.
 - **v2.10.0** — Recurring session generator: "Repeat" toggle → single client + weekday chips + count (1–60) → `buildPreview()` with conflict flags → ONE `ADD_SESSIONS`. Calendar-only by design (never renews, no WhatsApp at generate time). Feature #1 of 3 PT asks; #2 = evaluation protocol (awaiting PT's filled xlsx), #3 = auto program proposal. `sanity-recurring.mjs` (21 assertions).
 - **v2.9.6** — Booking-form chip switched to post-booking ordinal semantics (was pre-booking count); chip/popup/WhatsApp now agree by construction. TRAP: same number, two semantics, two adjacent screens.
 - **v2.9.5** — `Arms` focus tag split into `Bi`+`Tri`; `Custom` session type renamed `Endurance`; one-shot v3→v4 migration (per-client chronological Bi/Tri alternation + Custom→Endurance). `sanity-arms-migration.mjs` (17 assertions). Snapshot tag `snapshot-pre-v2.9.5`.
@@ -187,13 +198,16 @@ Use `getStatus(status, lang, t)` for translated label. Badge colors via CSS clas
 | `ADD_CLIENT` | `{id, name, packages: [pkg], ...}` | New clients seeded with one open package |
 | `EDIT_CLIENT` | `{id, ...fields}` | Detects current-package field changes → `package_edited` / `override_set` / `override_cleared` audit entries |
 | `EDIT_CURRENT_PACKAGE` | `{clientId, pkg}` | v2.10.4: THE owner of replace-last-package writes. Reads live client by id, stamps `_modified`, shares audit diffing with EDIT_CLIENT. Use this — never hand-roll `packages.slice(0,-1)` at call sites. |
-| `DELETE_CLIENT` | `clientId` | Also deletes their sessions |
+| `DELETE_CLIENT` | `clientId` | Also deletes their sessions and evaluations |
 | `ADD_SESSION` | `{id, clientId, ...}` | |
 | `ADD_SESSIONS` | `[{id, clientId, ...}, ...]` | v2.10: batch-append in ONE dispatch (each stamped `_modified`). Used by the recurring generator AND (v2.10.1) the multi-client booking path. Never renews packages. |
 | `UPDATE_SESSION` | `{id, ...fields}` | Merges fields |
 | `BATCH_COMPLETE` | `[id, id, ...]` | Marks all completed in one dispatch |
 | `DELETE_SESSION` | `sessionId` | |
 | `RENEW_PACKAGE` | `{clientId, newPackageStart, newContractSize, newPeriodUnit, newPeriodValue, newNotes, closedBy: 'manual'\|'auto', trigger}` | Atomic close-and-open of current package + audit append. Idempotent (returns state unchanged if current pkg already closed). |
+| `ADD_EVALUATION` | `full record` | Appends to `state.evaluations`, stamps `_modified` |
+| `EDIT_EVALUATION` | `{full record}` | Full-record contract — partial patches forbidden; `scores` + `classification` must be re-frozen by `computeEvalFrozen` at call site before dispatch |
+| `DELETE_EVALUATION` | `evalId` | Audit-logged (`evaluation_deleted`), confirm-guarded at UI layer |
 | `ADD_TODO` / `EDIT_TODO` / `TOGGLE_TODO` / `DELETE_TODO` | varies | |
 | `SET_TEMPLATES` | `{booking?, reminder?}` | |
 | `REPLACE_ALL` | full state | Used by cloud sync; bypasses `_lastModified` stamp |
@@ -277,8 +291,8 @@ git checkout master
 
 **Critical notes:**
 - Pushing to `master` alone does NOT deploy. The live site serves from `gh-pages`.
-- For schema changes, run `scripts/sanity/sanity-live-migration.mjs` against PT's real export BEFORE deploying.
-- Sanity scripts (in `scripts/sanity/`): `sanity-reducer.mjs`, `sanity-counting.mjs`, `sanity-slidingwindow.mjs`, `sanity-migration.mjs`, `sanity-live-migration.mjs`.
+- For schema changes, run a live-data byte-diff gate before deploying. Current gate: `scripts/sanity/sanity-live-v5-diff.mjs` (v4→v5). **`sanity-live-migration.mjs` is v2→v3-era STALE** — it asserts `_dataVersion === 3` and will misfire on current data. Modernize or retire it at the next schema change; do not use it as the gate.
+- Sanity scripts (in `scripts/sanity/`): `sanity-reducer.mjs`, `sanity-counting.mjs`, `sanity-slidingwindow.mjs`, `sanity-migration.mjs`, `sanity-live-migration.mjs` (stale — see note above), `sanity-evaluations.mjs`, `sanity-live-v5-diff.mjs`.
 
 ## Sibling Projects
 PTApp is the most mature web app in Pierre's project ecosystem. Its UI/UX patterns serve as reference for other projects:
