@@ -66,8 +66,9 @@ function check(label, actual, expected) {
   if (ok) pass++; else fail++;
 }
 
-// Sanity that v3→v4 ran
-check('DATA_VERSION is 4', result._dataVersion, 4);
+// Sanity that the full chain ran (v3→v4 Arms/Endurance is this script's focus;
+// v4→v5 added evaluations[] in v2.11 — the sentinel tracks the CURRENT version)
+check('DATA_VERSION is 5', result._dataVersion, 5);
 
 // Find sessions by id (post-migration order may have changed)
 const byId = Object.fromEntries(result.sessions.map(s => [s.id, s]));
