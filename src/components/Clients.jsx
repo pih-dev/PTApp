@@ -5,6 +5,7 @@ import { genId, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode,
 import OverrideHelpPopup from './OverrideHelpPopup';
 import RenewalModal from './RenewalModal';
 import SessionCountPair from './SessionCountPair';
+import EvalSection from './EvalSection';
 import { t, dateLocale } from '../i18n';
 
 export default function Clients({ state, dispatch, lang }) {
@@ -231,6 +232,18 @@ export default function Clients({ state, dispatch, lang }) {
                     {c.birthdate || ''}
                   </div>
                 )}
+                {(() => {
+                  // Latest eval classification at a glance (newest by date)
+                  const latest = (state.evaluations || [])
+                    .filter(ev => ev.clientId === c.id)
+                    .sort((a, b) => b.date.localeCompare(a.date))[0];
+                  return latest ? (
+                    <span className={`badge badge-class-${latest.frozen.classification}`}
+                      style={{ fontSize: 10, marginBottom: 2, display: 'inline-block' }}>
+                      {t(lang, 'class' + latest.frozen.classification.charAt(0).toUpperCase() + latest.frozen.classification.slice(1))}
+                    </span>
+                  ) : null;
+                })()}
                 {c.notes && <div className="client-notes">{c.notes}</div>}
                 <div className="session-count">{sessionCount(c.id)} {t(lang, 'sessionWord')}</div>
               </div>
@@ -325,6 +338,8 @@ export default function Clients({ state, dispatch, lang }) {
                     );
                   })
                 )}
+                {/* v2.11: evaluations — history + Evaluate action */}
+                <EvalSection client={c} state={state} dispatch={dispatch} lang={lang} />
               </div>
             )}
           </div>
