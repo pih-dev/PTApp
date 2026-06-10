@@ -5,7 +5,9 @@ import { formatRunTime } from '../normCharts';
 import EvalForm, { scoreLabel, scoreChipClass } from './EvalForm';
 import { t } from '../i18n';
 
-const classLabel = (lang, c) => t(lang, 'class' + c.charAt(0).toUpperCase() + c.slice(1));
+// classification can legitimately be null (computeEvalFrozen emits it when a muscle
+// score can't be resolved) — render '—' rather than crashing on our own value domain.
+const classLabel = (lang, c) => c ? t(lang, 'class' + c.charAt(0).toUpperCase() + c.slice(1)) : '—';
 
 // Evaluations block inside the expanded client card: Evaluate button (gated on
 // gender+birthdate — the chart lookup needs both), newest-first history with
