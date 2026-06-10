@@ -877,10 +877,63 @@ export const saveData = (data) => {
 // ─── Reducer ───
 // Base reducer handles all state transitions. Wrapped by reducer() which
 // stamps _lastModified on local changes (not REPLACE_ALL from remote sync).
+
+// Audit-log entries for an edit to a client's CURRENT package (v2.10.4, P7 — extracted
+// from EDIT_CLIENT so EDIT_CURRENT_PACKAGE shares the exact same diffing; two copies of
+// this logic would be the v2.9.6 drift class). Only diffs when old and new share the same
+// package id (an edit, not a renewal — RENEW_PACKAGE logs its own renewal events).
+// Returns [] when nothing tracked changed.
+const buildPackageAuditEntries = (oldPkg, newPkg, client, stamp) => {
+  const entries = [];
+  if (!(oldPkg && newPkg && oldPkg.id === newPkg.id)) return entries;
+  // Tracked package field changes → package_edited
+  const tracked = ['start', 'periodUnit', 'periodValue', 'contractSize'];
+  if (tracked.some(f => oldPkg[f] !== newPkg[f])) {
+    entries.push({
+      id: 'log_' + genId(),
+      ts: stamp,
+      clientId: client.id,
+      clientName: client.name,
+      event: 'package_edited',
+      packageId: newPkg.id,
+      newPackageId: null,
+      before: oldPkg,
+      after: newPkg,
+      trigger: null,
+    });
+  }
+  // Override change → override_set or override_cleared. Explicit field comparison
+  // (key-order independent — JSON.stringify was fragile because override writers across
+  // the codebase constructed the shape in different orders).
+  const oldOv = oldPkg.sessionCountOverride;
+  const newOv = newPkg.sessionCountOverride;
+  const ovEqual =
+    (oldOv == null && newOv == null) ||
+    (oldOv != null && newOv != null
+      && oldOv.type === newOv.type
+      && oldOv.value === newOv.value
+      && oldOv.periodStart === newOv.periodStart);
+  if (!ovEqual) {
+    entries.push({
+      id: 'log_' + genId(),
+      ts: stamp,
+      clientId: client.id,
+      clientName: client.name,
+      event: newOv ? 'override_set' : 'override_cleared',
+      packageId: newPkg.id,
+      newPackageId: null,
+      before: { sessionCountOverride: oldOv },
+      after: { sessionCountOverride: newOv },
+      trigger: null,
+    });
+  }
+  return entries;
+};
+
 // Per-record `_modified` timestamps are stamped by each case that adds/edits
 // a record — enables last-write-wins merge across multiple devices (Apr 19
 // bulletproofing after the Hala Mouzanar session was lost to a sync race).
-// Exported for unit testing (sanity scripts in tmp/).
+// Exported for unit testing (sanity scripts in scripts/sanity/).
 export function baseReducer(state, action) {
   const now = () => new Date().toISOString();
   switch (action.type) {
@@ -890,61 +943,40 @@ export function baseReducer(state, action) {
       const stamp = now();
       const oldClient = state.clients.find(c => c.id === action.payload.id);
       const newClient = { ...action.payload, _modified: stamp };
-      const logEntries = [];
-
-      // Detect changes to the current (last) package and append audit log entries.
-      // Only runs when old and new clients share the same last package ID (edit, not renewal).
+      // Audit changes to the current (last) package — only when old and new clients
+      // share the same last package ID (edit, not renewal).
       const oldPkg = oldClient && oldClient.packages && oldClient.packages[oldClient.packages.length - 1];
       const newPkg = newClient.packages && newClient.packages[newClient.packages.length - 1];
-      if (oldPkg && newPkg && oldPkg.id === newPkg.id) {
-        // Detect tracked package field changes → package_edited
-        const tracked = ['start', 'periodUnit', 'periodValue', 'contractSize'];
-        const changed = tracked.some(f => oldPkg[f] !== newPkg[f]);
-        if (changed) {
-          logEntries.push({
-            id: 'log_' + genId(),
-            ts: stamp,
-            clientId: newClient.id,
-            clientName: newClient.name,
-            event: 'package_edited',
-            packageId: newPkg.id,
-            newPackageId: null,
-            before: oldPkg,
-            after: newPkg,
-            trigger: null,
-          });
-        }
-        // Detect override change → override_set or override_cleared
-        const oldOv = oldPkg.sessionCountOverride;
-        const newOv = newPkg.sessionCountOverride;
-        // Explicit field comparison (key-order independent — the JSON.stringify approach was
-        // fragile because override writers across the codebase constructed the shape in
-        // different orders, e.g. spread-then-append in one site vs literal in another).
-        const ovEqual =
-          (oldOv == null && newOv == null) ||
-          (oldOv != null && newOv != null
-            && oldOv.type === newOv.type
-            && oldOv.value === newOv.value
-            && oldOv.periodStart === newOv.periodStart);
-        if (!ovEqual) {
-          logEntries.push({
-            id: 'log_' + genId(),
-            ts: stamp,
-            clientId: newClient.id,
-            clientName: newClient.name,
-            event: newOv ? 'override_set' : 'override_cleared',
-            packageId: newPkg.id,
-            newPackageId: null,
-            before: { sessionCountOverride: oldOv },
-            after: { sessionCountOverride: newOv },
-            trigger: null,
-          });
-        }
-      }
+      const logEntries = buildPackageAuditEntries(oldPkg, newPkg, newClient, stamp);
 
       return {
         ...state,
         clients: state.clients.map(c => c.id === newClient.id ? newClient : c),
+        auditLog: logEntries.length
+          ? [...(state.auditLog || []), ...logEntries]
+          : (state.auditLog || []),
+      };
+    }
+    case 'EDIT_CURRENT_PACKAGE': {
+      // v2.10.4 (review P7): THE owner of replace-last-package writes.
+      // Payload: { clientId, pkg } — pkg is the full replacement for the CURRENT (last)
+      // package. Author sites used to hand-roll `[...packages.slice(0, -1), newPkg]`
+      // (Clients save + Schedule commitOverride) — the v2.9.2 incident class, where one
+      // site wrote the override to a location the migration deletes. The reducer reads
+      // the LIVE client from state (callers pass only the id), so a stale client snapshot
+      // held by an open modal can never clobber profile fields edited on another device.
+      const stamp = now();
+      const { clientId, pkg } = action.payload;
+      const client = state.clients.find(c => c.id === clientId);
+      if (!client || !pkg) return state;
+      const oldPkgs = client.packages || [];
+      const oldPkg = oldPkgs.length ? oldPkgs[oldPkgs.length - 1] : null;
+      const packages = oldPkgs.length ? [...oldPkgs.slice(0, -1), pkg] : [pkg];
+      const newClient = { ...client, packages, _modified: stamp };
+      const logEntries = buildPackageAuditEntries(oldPkg, pkg, newClient, stamp);
+      return {
+        ...state,
+        clients: state.clients.map(c => c.id === clientId ? newClient : c),
         auditLog: logEntries.length
           ? [...(state.auditLog || []), ...logEntries]
           : (state.auditLog || []),

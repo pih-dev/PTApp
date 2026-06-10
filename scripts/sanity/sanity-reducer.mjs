@@ -227,4 +227,67 @@ const noop4 = baseReducer(initialState, {
 });
 assert(noop4 === initialState, 'null newPackageStart → state unchanged');
 
+// === EDIT_CURRENT_PACKAGE (v2.10.4, review P7) — the owner of replace-last writes ===
+const ecpPkg = {
+  ...initialState.clients[0].packages[0],
+  contractSize: 12,
+  sessionCountOverride: { type: 'delta', value: 2, periodStart: '2026-03-01' },
+};
+const ecp = baseReducer(initialState, {
+  type: 'EDIT_CURRENT_PACKAGE',
+  payload: { clientId: 'c1', pkg: ecpPkg },
+});
+assert(ecp.clients[0].packages.length === 1, 'EDIT_CURRENT_PACKAGE replaces (not appends) the last package');
+assert(ecp.clients[0].packages[0].contractSize === 12, 'package fields updated');
+assert(ecp.clients[0].packages[0].sessionCountOverride.value === 2, 'override written into the package');
+assert(ecp.clients[0]._modified !== initialState.clients[0]._modified, '_modified bumped');
+assert(ecp.clients[0].name === 'Alice', 'client profile fields untouched');
+assert(ecp.auditLog.length === 2, `package_edited + override_set logged (got ${ecp.auditLog.length})`);
+assert(ecp.auditLog.some(e => e.event === 'package_edited'), 'package_edited entry present');
+assert(ecp.auditLog.some(e => e.event === 'override_set'), 'override_set entry present');
+
+// Override-only change → only override_set, no package_edited
+const ecpOvOnly = baseReducer(initialState, {
+  type: 'EDIT_CURRENT_PACKAGE',
+  payload: {
+    clientId: 'c1',
+    pkg: { ...initialState.clients[0].packages[0], sessionCountOverride: { type: 'absolute', value: 5, periodStart: '2026-03-01' } },
+  },
+});
+assert(ecpOvOnly.auditLog.length === 1 && ecpOvOnly.auditLog[0].event === 'override_set',
+  'override-only edit → single override_set entry');
+
+// Clearing an override → override_cleared
+const ecpCleared = baseReducer(ecpOvOnly, {
+  type: 'EDIT_CURRENT_PACKAGE',
+  payload: { clientId: 'c1', pkg: { ...ecpOvOnly.clients[0].packages[0], sessionCountOverride: null } },
+});
+assert(ecpCleared.auditLog[ecpCleared.auditLog.length - 1].event === 'override_cleared',
+  'override cleared → override_cleared entry');
+
+// No-op edit (identical package) → no audit entries, but multi-package clients keep earlier packages
+const twoPkgState = {
+  ...initialState,
+  clients: [{
+    ...initialState.clients[0],
+    packages: [
+      { ...initialState.clients[0].packages[0], id: 'pkgOld', end: '2026-03-31', closedAt: '2026-04-01T00:00:00Z', closedBy: 'manual' },
+      { ...initialState.clients[0].packages[0], id: 'pkgNew', start: '2026-04-01' },
+    ],
+  }],
+};
+const ecpTwo = baseReducer(twoPkgState, {
+  type: 'EDIT_CURRENT_PACKAGE',
+  payload: { clientId: 'c1', pkg: { ...twoPkgState.clients[0].packages[1], contractSize: 20 } },
+});
+assert(ecpTwo.clients[0].packages.length === 2 && ecpTwo.clients[0].packages[0].id === 'pkgOld',
+  'earlier (closed) packages preserved, only last replaced');
+assert(ecpTwo.clients[0].packages[1].contractSize === 20, 'last package replaced on multi-package client');
+
+// Defensive: unknown client / missing pkg → state unchanged
+assert(baseReducer(initialState, { type: 'EDIT_CURRENT_PACKAGE', payload: { clientId: 'ghost', pkg: ecpPkg } }) === initialState,
+  'unknown client → state unchanged');
+assert(baseReducer(initialState, { type: 'EDIT_CURRENT_PACKAGE', payload: { clientId: 'c1', pkg: null } }) === initialState,
+  'missing pkg → state unchanged');
+
 console.log('\nReducer sanity: PASS');

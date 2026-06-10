@@ -12,7 +12,13 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.10.3
+## Current Version: v2.10.4
+Pure refactor — review finding P7. No schema change, no user-visible change.
+- **`EDIT_CURRENT_PACKAGE { clientId, pkg }`** is THE owner of replace-last-package writes (was hand-rolled `[...packages.slice(0,-1), pkg]` at 2 author sites — the v2.9.2 incident class). Reads the LIVE client by id (no stale-snapshot clobbering), stamps `_modified`, audits via shared `buildPackageAuditEntries` (extracted from EDIT_CLIENT — both actions use it). Never author package-array surgery at call sites again.
+- Clients `save()` edit branch = EDIT_CLIENT (profile) + EDIT_CURRENT_PACKAGE (package), batched by React 18. Schedule `commitOverride` = EDIT_CURRENT_PACKAGE only.
+- **Remaining review findings:** P3 (SessionCard refactor — blocked on Pierre's scope decision, parked brainstorm), P6 (ordinal-at-booking-time — needs freeze-vs-live display design discussion: the confirm popup must reflect override edits live, so "compute once and store" isn't a drop-in).
+
+## Previous Version: v2.10.3
 Pure refactor — review findings P4 + P5. No schema change, no user-visible change.
 - **P4 — repeat-mode fork hygiene (Schedule.jsx).** `buildSession(clientId, date, time)` is THE single constructor for new sessions from the booking form — `saveSession` AND `createRecurring` both call it (new session fields now reach recurring series automatically). One derived `mode` (`'edit'|'single'|'repeatConfig'|'repeatPreview'`) replaces three free booleans across ~9 JSX sites; `resetRepeat()` owns the 4-setter reset (2 sites were partial).
 - **P5 — shared renewal selector.** `getRenewalDueMap(clients, sessions)` in utils.js → `Map<clientId, {due, auto, effective, override, contractSize, pkg}>`, memoized on the array pair (nested WeakMaps, same pattern as P2). All three tabs read it; the RULE stays in `isRenewalDue` — change it there only.
@@ -180,6 +186,7 @@ Use `getStatus(status, lang, t)` for translated label. Badge colors via CSS clas
 |--------|---------|-------|
 | `ADD_CLIENT` | `{id, name, packages: [pkg], ...}` | New clients seeded with one open package |
 | `EDIT_CLIENT` | `{id, ...fields}` | Detects current-package field changes → `package_edited` / `override_set` / `override_cleared` audit entries |
+| `EDIT_CURRENT_PACKAGE` | `{clientId, pkg}` | v2.10.4: THE owner of replace-last-package writes. Reads live client by id, stamps `_modified`, shares audit diffing with EDIT_CLIENT. Use this — never hand-roll `packages.slice(0,-1)` at call sites. |
 | `DELETE_CLIENT` | `clientId` | Also deletes their sessions |
 | `ADD_SESSION` | `{id, clientId, ...}` | |
 | `ADD_SESSIONS` | `[{id, clientId, ...}, ...]` | v2.10: batch-append in ONE dispatch (each stamped `_modified`). Used by the recurring generator AND (v2.10.1) the multi-client booking path. Never renews packages. |
@@ -196,7 +203,7 @@ Use `getStatus(status, lang, t)` for translated label. Badge colors via CSS clas
 ## KNOWN ISSUES / TECH DEBT
 
 ### Should fix soon
-- **P3, P6, P7 from the v2.10.1 review** — see `docs/reviews/2026-06-10-fable5-codebase-review.md` (P1/P2/P8 fixed in v2.10.2; P4/P5 in v2.10.3). P3 folds the SessionCard refactor (Dashboard/Schedule/Clients/Sessions each render their own card; `EditableFocus` already exists in Sessions.jsx; parked brainstorm awaits Pierre's scope decision). P6 (Session #0 band-aid altitude — compute ordinal at booking time). P7 (`EDIT_CURRENT_PACKAGE` reducer action owning replace-last-package writes).
+- **P3 + P6 from the v2.10.1 review** — see `docs/reviews/2026-06-10-fable5-codebase-review.md` (P1/P2/P8 fixed in v2.10.2; P4/P5 in v2.10.3; P7 in v2.10.4). P3 folds the SessionCard refactor (Dashboard/Schedule/Clients/Sessions each render their own card; `EditableFocus` already exists in Sessions.jsx; parked brainstorm awaits Pierre's scope decision). P6 (Session #0 band-aid altitude — compute ordinal at booking time; needs a design decision first: the confirm popup must reflect override edits LIVE, so a frozen at-booking ordinal isn't a drop-in).
 
 ### App name
 - "PTApp" is a working title. Need a unique name (not trademarked in fitness/trainer space) before App Store / Play Store submission.

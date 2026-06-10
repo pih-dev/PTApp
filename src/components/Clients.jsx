@@ -90,13 +90,18 @@ export default function Clients({ state, dispatch, lang }) {
     // Compose client — strip form-only fields
     const { sessionOverride, periodStart, periodUnit, periodValue, contractSize: _cs, ...restForm } = form;
     if (editingClient) {
-      // Replace the last package in the packages array (current open package)
-      const pkgs = editingClient.packages && editingClient.packages.length
-        ? [...editingClient.packages.slice(0, -1), pkgShell]
-        : [pkgShell];
+      // v2.10.4 (review P7): profile fields and the package travel in separate actions.
+      // EDIT_CLIENT carries the form's profile fields (snapshot packages ride along
+      // unchanged — no hand-rolled array surgery here anymore); EDIT_CURRENT_PACKAGE
+      // owns the replace-last write + audit diffing (package_edited / override_set /
+      // override_cleared). React 18 batches both dispatches into one render+save.
       dispatch({
         type: 'EDIT_CLIENT',
-        payload: { ...editingClient, ...restForm, packages: pkgs },
+        payload: { ...editingClient, ...restForm },
+      });
+      dispatch({
+        type: 'EDIT_CURRENT_PACKAGE',
+        payload: { clientId: editingClient.id, pkg: pkgShell },
       });
     } else {
       dispatch({

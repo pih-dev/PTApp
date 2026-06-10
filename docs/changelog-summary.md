@@ -4,6 +4,12 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.10.4 — More internal cleanup, nothing visible (June 10, 2026)
+
+**One owner for package edits.** Editing a client's package settings or session-count override used to be assembled by hand in two different screens — the exact pattern that caused a silent bug back in April (v2.9.2). All package edits now go through a single, tested code path that also writes the audit trail. Bonus robustness: committing an override from the booking popup can no longer accidentally overwrite client details that were edited on the other phone while the popup was open.
+
+---
+
 ## v2.10.3 — Internal cleanup, nothing visible (June 10, 2026)
 
 **Housekeeping under the hood.** Two structural cleanups from the June review, with zero visible change: the repeat-booking feature now builds its sessions through the exact same code as normal bookings (so future features can't accidentally apply to one and not the other), and the "due for renewal" calculation — previously written three slightly different ways in three tabs — is now computed once and shared, so the renewal rule can never drift between screens.

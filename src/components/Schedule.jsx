@@ -629,11 +629,12 @@ export default function Schedule({ state, dispatch, lang }) {
             setConfirmMsg({ items, index: index + 1 });
           }
         };
-        // v2.9.2: Commit the typed override into the client's CURRENT package.
-        // v2.9 moved override into packages[] (root-level fields are deleted by the
-        // v2→v3 migration), so this writes to pkg.sessionCountOverride and dispatches
-        // a new packages[]. Mirrors Clients.jsx save() so audit logging picks it up
-        // via EDIT_CLIENT's package-diff detection (override_set / override_cleared).
+        // v2.9.2: Commit the typed override into the client's CURRENT package
+        // (v2.9 moved override into packages[] — root-level fields are deleted by the
+        // v2→v3 migration). v2.10.4 (review P7): dispatches EDIT_CURRENT_PACKAGE — the
+        // reducer owns the replace-last write + audit (override_set / override_cleared),
+        // and reads the LIVE client by id, so this no longer spreads a possibly-stale
+        // client snapshot over profile fields edited on another device mid-popup.
         const commitOverride = () => {
           const parsed = parseSessionCountOverride(overrideDraft);
           const pkg = getCurrentPackage(client);
@@ -644,10 +645,7 @@ export default function Schedule({ state, dispatch, lang }) {
               ? { ...parsed, periodStart: probePeriod.start }
               : null,
           };
-          const pkgs = client.packages && client.packages.length
-            ? [...client.packages.slice(0, -1), newPkg]
-            : [newPkg];
-          dispatch({ type: 'EDIT_CLIENT', payload: { ...client, packages: pkgs } });
+          dispatch({ type: 'EDIT_CURRENT_PACKAGE', payload: { clientId: client.id, pkg: newPkg } });
           setEditingOverride(false);
         };
         // Initialize the input from the current package's override (only if its

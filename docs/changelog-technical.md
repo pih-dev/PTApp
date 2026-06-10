@@ -4,6 +4,17 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.10.4 — `EDIT_CURRENT_PACKAGE` reducer action (2026-06-10)
+
+**Trigger:** review finding P7, the last actionable preserved finding (P3 awaits Pierre's SessionCard scope decision; P6 needs a freeze-vs-live display design discussion first). Pure refactor, no schema change.
+
+- **New reducer action `EDIT_CURRENT_PACKAGE { clientId, pkg }`** — THE owner of replace-last-package writes. Replaces the current (last) package, stamps `_modified`, and audits via the shared differ. Defensive: unknown client or missing pkg → state unchanged. Crucially it reads the LIVE client from state by id — callers no longer spread a possibly-stale client snapshot over profile fields (an open booking-confirm popup could previously clobber a name/phone edited on another device mid-popup).
+- **`buildPackageAuditEntries(oldPkg, newPkg, client, stamp)`** — the package_edited / override_set / override_cleared diffing extracted from `EDIT_CLIENT`; both actions share it (two copies would be the v2.9.6 drift class). Same-package-id guard retained (edits audit, renewals don't — RENEW_PACKAGE logs its own events).
+- **Author sites converted:** Schedule `commitOverride` dispatches `EDIT_CURRENT_PACKAGE` only (no more `{...client, packages: surgery}`); Clients `save()` edit branch dispatches `EDIT_CLIENT` (profile fields) + `EDIT_CURRENT_PACKAGE` (the package) — React 18 batches both into one render+save.
+- +9 assertions in `sanity-reducer.mjs` (replace-not-append, audit events, multi-package preservation, defensive no-ops).
+
+---
+
 ## v2.10.3 — Repeat-mode fork hygiene + shared renewal selector (2026-06-10)
 
 **Trigger:** continuation of the review work order — P4 and P5 (P3 awaits Pierre's SessionCard scope decision; P6/P7 left for a dedicated session). Pure refactor: no schema change, no user-visible behavior change.

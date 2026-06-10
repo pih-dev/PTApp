@@ -179,7 +179,7 @@ Fix direction: compute the ordinal once at booking time and store/pass it explic
 The next post-dispatch surface (recurring confirmation, day-before reminders, eval feature #2)
 will hit the trap otherwise.
 
-### P7. `EDIT_CURRENT_PACKAGE` reducer action
+### P7. `EDIT_CURRENT_PACKAGE` reducer action — FIXED in v2.10.4
 Replace-last-package writes are hand-rolled at 2+ author sites (Clients save, Schedule
 commitOverride) — the v2.9.2 incident class. Fix direction: one reducer action owning
 replace-last, override stamping, `_modified`, audit diffing.
