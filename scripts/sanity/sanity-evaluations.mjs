@@ -55,6 +55,7 @@ assert(lookupScore('squat', 'female', 19, 22).score === 3, 'squat F19 → 20-29 
 // === run — time-based, 4 levels, score is null, levelKey carries the verdict ===
 const run1 = lookupScore('run', 'male', 25, 330);
 assert(run1.score === null && run1.levelKey === 'excellent', 'run M25 5:30 → excellent');
+assert(lookupScore('run', 'male', 25, 345).levelKey === 'good', 'run M25 5:45 exact → good (excellent is strictly faster)');
 assert(lookupScore('run', 'male', 25, 420).levelKey === 'good', 'run M25 7:00 → good (≤ cutoff)');
 assert(lookupScore('run', 'male', 25, 520).levelKey === 'average', 'run M25 8:40 → average');
 assert(lookupScore('run', 'male', 25, 541).levelKey === 'poor', 'run M25 9:01 → poor');
@@ -65,6 +66,16 @@ assert(lookupScore('sitReach', 'male', 25, -3).score === 1, 'sitReach M25 -3cm �
 assert(lookupScore('sitReach', 'male', 25, 3).score === 3, 'sitReach M25 3cm → 3');
 assert(lookupScore('sitReach', 'male', 25, 18).score === 5, 'sitReach M25 18cm → 5');
 assert(lookupScore('sitReach', 'female', 25, 11).score === 3, 'sitReach F25 11cm → 3');
+
+// === guard paths — unknown keys / bad raws return null, never a fake score ===
+assert(lookupScore('unknownTest', 'male', 25, 10).score === null, 'unknown testId → null');
+assert(lookupScore('pushup', 'nonbinary', 25, 10).score === null, 'unknown gender → null');
+assert(lookupScore('pushup', 'male', 25, NaN).score === null, 'NaN raw → null');
+assert(lookupScore('pushup', 'male', 25, null).score === null, 'null raw → null');
+const frozenBadVariant = computeEvalFrozen('male', 25, 'unknownVariant',
+  { pushup: 18, pull: 7, squat: 36, runSec: null, sitReachCm: null });
+assert(frozenBadVariant.muscleAvg === null && frozenBadVariant.classification === null,
+  'null pull score → frozen muscleAvg/classification null (not coerced to 0)');
 
 // === classify — PT bands; thirds arithmetic ===
 assert(classify(5 / 3) === 'begA', 'avg 1.67 → begA');

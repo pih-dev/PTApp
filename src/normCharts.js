@@ -160,6 +160,19 @@ export function computeEvalFrozen(gender, age, pullVariant, raw) {
   const squat = lookupScore('squat', gender, age, raw.squat).score;
   const run = raw.runSec == null ? null : lookupScore('run', gender, age, raw.runSec).levelKey;
   const sitReach = raw.sitReachCm == null ? null : lookupScore('sitReach', gender, age, raw.sitReachCm).score;
+
+  // A null muscle score (unknown chart key / gender drift) must surface as a visibly
+  // incomplete record — null+null arithmetic would otherwise coerce to 0 and freeze a
+  // plausible-but-wrong classification. Also keeps NaN out of classify().
+  if (pushup == null || pull == null || squat == null) {
+    return {
+      age, gender,
+      scores: { pushup, pull, squat, run, sitReach },
+      muscleAvg: null, classification: null,
+      chartsVersion: CHARTS_VERSION,
+    };
+  }
+
   const exact = (pushup + pull + squat) / 3;
   return {
     age, gender,
