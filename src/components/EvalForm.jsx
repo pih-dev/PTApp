@@ -83,10 +83,11 @@ export default function EvalForm({ client, evalRecord, dispatch, lang, onClose }
         {t(lang, labelKey)} <span style={{ fontWeight: 400, color: 'var(--t4)' }}>{t(lang, hintKey)}{extra || ''}</span>
       </label>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-        {/* sitReach can be NEGATIVE (short of toes) — iOS numeric/decimal pads have no
-            minus key, so it gets the full keyboard. Reps stay on the numeric pad. */}
+        {/* sitReach can be NEGATIVE (short of toes) and run needs a COLON (mm:ss) —
+            the iOS numeric/decimal pads have neither key, so both get the full
+            keyboard. Reps stay on the numeric pad. */}
         <input className="input" style={{ flex: 1 }}
-          inputMode={field === 'sitReach' ? 'text' : 'numeric'}
+          inputMode={field === 'sitReach' || field === 'run' ? 'text' : 'numeric'}
           placeholder={field === 'run' ? t(lang, 'runHint') : ''}
           value={form[field]} onChange={set(field)} />
         {chip}
