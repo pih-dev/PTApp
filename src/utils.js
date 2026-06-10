@@ -1111,7 +1111,9 @@ export function baseReducer(state, action) {
       // same kernel that rendered the live preview chips.
       return { ...state, evaluations: [...(state.evaluations || []), { ...action.payload, _modified: now() }] };
     case 'EDIT_EVALUATION': {
-      // Full-record replacement (the form re-froze scores for the edited raws/date).
+      // CONTRACT: callers MUST pass the FULL record (raw + re-frozen scores together).
+      // The spread below would let a partial payload keep stale frozen scores next to
+      // edited raws — never author a partial-patch caller against this action.
       // Audited: evals are business records — silent edits would be invisible forensics.
       const stamp = now();
       const oldEval = (state.evaluations || []).find(ev => ev.id === action.payload.id);
