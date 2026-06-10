@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon, ChevronIcon } from './Icons';
-import { today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendReminderWhatsApp, getEffectiveSessionCount, timeToMinutes, localDateStr, getStatus, haptic, isRenewalDue, getCurrentPackage, getEffectiveClientCount } from '../utils';
+import { today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendReminderWhatsApp, getEffectiveSessionCount, timeToMinutes, localDateStr, getStatus, haptic, getRenewalDueMap } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import RenewalModal from './RenewalModal';
 import { t } from '../i18n';
@@ -69,11 +69,12 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
       .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
   }, [state.sessions, todayStr]);
 
-  // Clients whose current contract is exhausted or expired — shown in the renewal banner
-  const renewalDueClients = useMemo(
-    () => state.clients.filter(c => isRenewalDue(c, state.sessions)),
-    [state.clients, state.sessions]
-  );
+  // Clients whose current contract is exhausted or expired — shown in the renewal banner.
+  // v2.10.3 (review P5): read from the shared selector (memoized in utils on the
+  // (clients, sessions) array pair) — Schedule and Clients consume the SAME map, so the
+  // renewal rule can't drift between tabs anymore.
+  const renewalDue = getRenewalDueMap(state.clients, state.sessions);
+  const renewalDueClients = state.clients.filter(c => renewalDue.get(c.id)?.due);
 
   // "This Week" stat: today + the next 6 days (7 calendar days total).
   // v2.10.1: was `+ 7 days` with inclusive <=, silently counting 8 days.
@@ -135,14 +136,13 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
             📋 {t(lang, 'dueForRenewal')} ({renewalDueClients.length})
           </div>
           {renewalDueClients.map(c => {
-            const pkg = getCurrentPackage(c);
-            const { effective } = getEffectiveClientCount(c, state.sessions);
+            const { effective, contractSize } = renewalDue.get(c.id);
             return (
               <div key={c.id} className="renewal-row card">
                 <div style={{ flex: 1 }}>
                   <div className="client-name">{c.name}</div>
                   <div style={{ fontSize: 12, color: 'var(--t4)' }}>
-                    {t(lang, 'session')} {effective}/{pkg.contractSize}
+                    {t(lang, 'session')} {effective}/{contractSize}
                   </div>
                 </div>
                 <button className="btn-renew" onClick={() => { haptic(); setRenewClient(c); }}>

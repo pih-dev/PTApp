@@ -4,6 +4,24 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.10.3 — Repeat-mode fork hygiene + shared renewal selector (2026-06-10)
+
+**Trigger:** continuation of the review work order — P4 and P5 (P3 awaits Pierre's SessionCard scope decision; P6/P7 left for a dedicated session). Pure refactor: no schema change, no user-visible behavior change.
+
+### P4 — repeat-mode fork hygiene (Schedule.jsx)
+- **`buildSession(clientId, date, time)`** — the ONLY place a session object is born from the form. `saveSession` (single/multi) and `createRecurring` both call it; previously `createRecurring` picked fields by hand, so any session field a future feature adds (eval protocol) would have silently vanished from recurring series. `date`/`time` come after the form spread so recurring rows override per occurrence.
+- **One derived `mode`** = `'edit' | 'single' | 'repeatConfig' | 'repeatPreview'` replaces branching on three free booleans (`editingSession`/`repeat`/`preview`) in the action button, modal title, repeat toggle, banner, body fork, client selector, dropdown gate, chip ×, and weekday section. `bookingAction` is now a keyed object lookup.
+- **`resetRepeat()`** owns the 4-setter reset; the modal-close and createRecurring sites previously reset only 2 of 4 states (weekdays/count stayed dirty).
+
+### P5 — shared renewal-due selector (utils.js + 3 tabs)
+- **`getRenewalDueMap(clients, sessions)`** → `Map<clientId, {due, auto, effective, override, contractSize, pkg}>`; only contract clients appear. Memoized on the (clients, sessions) array PAIR via nested WeakMaps — same array-identity pattern as P2's counted-session index, so components call it directly with no useMemo. The rule itself stays in `isRenewalDue` (the map calls it); a rule change like "due soon at N−1" now lands in one place.
+- Consumers: Schedule (`isDue()` feeds banner + auto-advance loop + chip), Dashboard (renewal section reads `effective`/`contractSize` from the entry), Clients (per-card `due`/`pkg`/`effective` — was 3 helper passes per card per render).
+
+### Process note
+A PowerShell `-replace` pipeline (used for a 3-site rename) read Schedule.jsx as ANSI and re-wrote it UTF-8, baking mojibake into every em-dash and emoji. Caught immediately (`â€` scan), reverted via git, re-applied with the Edit tool. Rule: never round-trip source files through PS5.1 `Get-Content`/`Set-Content` without explicit `-Encoding UTF8` on BOTH ends — or just use the Edit tool.
+
+---
+
 ## v2.10.2 — Counting kernel: historical ordinals + memoized index (2026-06-10)
 
 **Trigger:** Pierre asked to start on the v2.10.1 review's preserved findings, beginning with P1+P2 (they share the counting kernel). P8 folded in (the review marked it "revisit when touching P1"). TDD: `scripts/sanity/sanity-historical-ordinals.mjs` written first (39 assertions), watched fail, then implemented.

@@ -542,12 +542,47 @@ export const getEffectiveClientCount = (client, sessions, refDateStr = today()) 
 };
 
 // True when the client's current package has a contract and the effective count has reached it.
-// Used by UI surfaces (Clients card, Dashboard section, booking confirm banner) to apply red state.
+// THE renewal-due rule — every UI surface reads it via getRenewalDueMap below; if the rule
+// ever changes (e.g. "due soon at N−1"), this is the only place to touch.
 export const isRenewalDue = (client, sessions) => {
   const pkg = getCurrentPackage(client);
   if (!pkg || pkg.contractSize == null) return false;
   const { effective } = getEffectiveClientCount(client, sessions);
   return effective >= pkg.contractSize;
+};
+
+// ─── Renewal-due selector (v2.10.3, P5) ───
+// One source of truth for renewal state across tabs. Previously computed three ways in
+// three places (Schedule memoized Set, Dashboard filter, Clients per-card) — the drift
+// class where a rule change lands in one tab and silently not the others.
+// Map<clientId, { due, effective, auto, override, contractSize, pkg }> — only contract
+// clients appear (sliding clients are never due; map.get() returns undefined for them).
+// Memoized on the (clients, sessions) array pair, same WeakMap-on-reference pattern as
+// getClientCountedSessions: the reducer is immutable, so array identity = data identity.
+const renewalMapCache = new WeakMap();
+export const getRenewalDueMap = (clients, sessions) => {
+  let bySessions = renewalMapCache.get(clients);
+  if (!bySessions) {
+    bySessions = new WeakMap();
+    renewalMapCache.set(clients, bySessions);
+  }
+  let map = bySessions.get(sessions);
+  if (!map) {
+    map = new Map();
+    for (const c of clients) {
+      const pkg = getCurrentPackage(c);
+      if (pkg.contractSize == null) continue;
+      const { auto, effective, override } = getEffectiveClientCount(c, sessions);
+      map.set(c.id, {
+        due: isRenewalDue(c, sessions), // the rule lives in isRenewalDue, not here
+        auto, effective, override,
+        contractSize: pkg.contractSize,
+        pkg,
+      });
+    }
+    bySessions.set(sessions, map);
+  }
+  return map;
 };
 
 // ─── Date helpers ───

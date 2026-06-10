@@ -160,14 +160,14 @@ step 3 — `docs/superpowers/specs/2026-04-21-session-card-refactor-brainstorm.m
 The focus-tag row + auto-saving notes textarea is inlined in Dashboard, Schedule, Clients and
 exists as `EditableFocus` in Sessions.jsx. Fold into the SessionCard refactor (P2).
 
-### P4. Repeat-mode fork hygiene in Schedule.jsx
+### P4. Repeat-mode fork hygiene in Schedule.jsx — FIXED in v2.10.3
 Session objects built independently in `saveSession` and `createRecurring`; modal JSX branches
 on three free booleans in four places; the 4-setter repeat-reset is duplicated in 4 spots.
 Fix direction: shared `buildSession(form, clientId, date)` + one derived
 `mode = 'edit'|'single'|'repeatConfig'|'repeatPreview'` + one `resetRepeat()`.
 Do this BEFORE feature #2/#3 add session fields, or recurring series will silently lack them.
 
-### P5. Renewal-due computed three ways in three tabs
+### P5. Renewal-due computed three ways in three tabs — FIXED in v2.10.3
 Schedule (memoized Set), Dashboard (filter — now memoized in v2.10.1), Clients (per-card).
 Fix direction: one shared memoized selector/hook returning `Map<clientId, {due, effective,
 contractSize}>`. Becomes urgent the moment the renewal rule changes (e.g. "due soon at N−1").

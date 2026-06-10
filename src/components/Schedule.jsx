@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon } from './Icons';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, localDateStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, isRenewalDue, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict } from '../utils';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, localDateStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, getRenewalDueMap, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import { t, dateLocale } from '../i18n';
@@ -39,15 +39,27 @@ export default function Schedule({ state, dispatch, lang }) {
   const [overrideHelp, setOverrideHelp] = useState(false);
   const overrideHoldRef = useRef(null);
 
-  // v2.9.2: precompute the set of renewal-due client IDs once per render.
-  // isRenewalDue is O(sessions) per call — without memoization the booking-form
-  // banner re-evaluates it for every selected client on every keystroke (form state
-  // change → re-render → fresh map). Same Set is consumed by the auto-advance loop
-  // in saveSession() so booking and the banner can't disagree.
-  const renewalDueIds = useMemo(
-    () => new Set(state.clients.filter(c => isRenewalDue(c, state.sessions)).map(c => c.id)),
-    [state.clients, state.sessions]
-  );
+  // v2.10.3 (review P5): shared renewal selector — memoized inside utils on the
+  // (clients, sessions) array pair, so no useMemo needed here. The same map feeds
+  // the banner AND the auto-advance loop in saveSession() so booking and the banner
+  // can't disagree (the v2.9.2 requirement), and now also Dashboard + Clients.
+  const renewalDue = getRenewalDueMap(state.clients, state.sessions);
+  const isDue = (clientId) => renewalDue.get(clientId)?.due === true;
+
+  // v2.10.3 (review P4): ONE derived mode instead of three free booleans branched in
+  // four JSX places. The booleans allowed impossible combinations to be expressed and
+  // forced every branch to re-derive which screen it was on. Order matters: edit wins
+  // (openEdit resets repeat state), then repeat splits on whether the preview is built.
+  const mode = editingSession ? 'edit' : repeat ? (preview ? 'repeatPreview' : 'repeatConfig') : 'single';
+
+  // v2.10.3 (review P4): the 4-setter repeat reset existed in 4 spots, two of them
+  // PARTIAL (modal close and createRecurring left weekdays/count dirty). One owner.
+  const resetRepeat = () => {
+    setRepeat(false);
+    setWeekdays(new Set());
+    setCount(10);
+    setPreview(null);
+  };
 
   // Long-press (500ms) opens the help popup. Same pattern as the debug panel + Clients form.
   const startOverrideHold = () => {
@@ -73,17 +85,29 @@ export default function Schedule({ state, dispatch, lang }) {
   const openBooking = () => {
     setEditingSession(null);
     setForm({ clientIds: [], type: 'Strength', date: selectedDate, time: '09:00', duration: 45 });
-    // v2.10: reset recurring state so toggling repeat on a prior booking doesn't leak
-    setRepeat(false); setWeekdays(new Set()); setCount(10); setPreview(null);
+    resetRepeat(); // toggling repeat on a prior booking must not leak into this one
     setShowForm(true);
   };
 
   const openEdit = (session) => {
     setEditingSession(session);
     setForm({ clientIds: [session.clientId], type: session.type, date: session.date, time: session.time, duration: session.duration });
-    // Edit mode never enters recurring flow — reset so state is clean
-    setRepeat(false); setWeekdays(new Set()); setCount(10); setPreview(null);
+    resetRepeat(); // edit mode never enters the recurring flow
     setShowForm(true);
+  };
+
+  // v2.10.3 (review P4): the ONLY place a new session object is born from the form.
+  // Both the single/multi booking path and the recurring generator call this, so a
+  // form field added here reaches both. Before, createRecurring picked fields by
+  // hand — any session field a future feature adds (e.g. the eval protocol) would
+  // have silently vanished from recurring series. `date`/`time` come AFTER the form
+  // spread so recurring rows can override them per occurrence.
+  const buildSession = (clientId, date, time) => {
+    const { clientIds, ...fields } = form;
+    return {
+      id: genId(), clientId, ...fields, date, time,
+      status: 'scheduled', createdAt: localDateStr(new Date()),
+    };
   };
 
   const saveSession = () => {
@@ -100,7 +124,7 @@ export default function Schedule({ state, dispatch, lang }) {
       for (const clientId of form.clientIds) {
         const c = state.clients.find(x => x.id === clientId);
         if (!c) continue;
-        if (renewalDueIds.has(clientId)) {
+        if (isDue(clientId)) {
           const pkg = getCurrentPackage(c);
           dispatch({
             type: 'RENEW_PACKAGE',
@@ -122,11 +146,10 @@ export default function Schedule({ state, dispatch, lang }) {
       // recurring generator) instead of N ADD_SESSION dispatches in the .map — the
       // "single dispatches in loops" convention. The RENEW_PACKAGE loop above stays:
       // each renewal is a distinct per-client state transition with its own audit entry.
-      const { clientIds, ...rest } = form;
       const created = form.clientIds
         .map(clientId => ({
           client: state.clients.find(c => c.id === clientId),
-          session: { id: genId(), clientId, ...rest, status: 'scheduled', createdAt: localDateStr(new Date()) },
+          session: buildSession(clientId, form.date, form.time),
         }))
         .filter(c => c.client);
       if (created.length > 0) {
@@ -159,16 +182,12 @@ export default function Schedule({ state, dispatch, lang }) {
     const clientId = form.clientIds[0];
     const kept = (preview || []).filter(r => r.keep);
     if (!clientId || kept.length === 0) return;
-    const created = localDateStr(new Date());
-    const payload = kept.map(r => ({
-      id: genId(), clientId, type: form.type, date: r.date, time: r.time,
-      duration: form.duration, status: 'scheduled', createdAt: created,
-    }));
+    // Same constructor as the single-booking path (P4) — only date/time vary per row.
+    const payload = kept.map(r => buildSession(clientId, r.date, r.time));
     dispatch({ type: 'ADD_SESSIONS', payload });
     haptic();
     setShowForm(false);
-    setPreview(null);
-    setRepeat(false);
+    resetRepeat();
     setSelectedDate(kept[0].date);
   };
 
@@ -194,31 +213,34 @@ export default function Schedule({ state, dispatch, lang }) {
 
   const getClientName = (id) => state.clients.find(c => c.id === id)?.name || 'Unknown';
 
-  // v2.10: context-aware primary action for the booking modal.
-  //   • Edit mode → "Save Changes" (unchanged)
-  //   • Repeat + preview visible → Back (ghost) + "Create N sessions" (primary)
-  //   • Repeat + no preview yet → "Preview" (disabled until client+weekday+count set)
-  //   • Normal booking → the original "📅 Book" button
-  const bookingAction = editingSession ? (
-    <button className="btn-primary" onClick={saveSession}>{t(lang, 'saveChanges')}</button>
-  ) : repeat ? (
-    preview ? (
+  // v2.10: context-aware primary action for the booking modal, keyed on `mode` (P4).
+  //   • edit          → "Save Changes" (unchanged)
+  //   • repeatPreview → Back (ghost) + "Create N sessions" (primary)
+  //   • repeatConfig  → "Preview" (disabled until client+weekday+count set)
+  //   • single        → the original "📅 Book" button
+  const bookingAction = {
+    edit: (
+      <button className="btn-primary" onClick={saveSession}>{t(lang, 'saveChanges')}</button>
+    ),
+    repeatPreview: preview && (
       <div className="flex-row">
         <button className="btn-ghost" onClick={() => setPreview(null)}>{t(lang, 'recurringBack')}</button>
         <button className="btn-primary" disabled={preview.filter(r => r.keep).length === 0} onClick={createRecurring}>
           {t(lang, 'recurringCreate')} {preview.filter(r => r.keep).length} {t(lang, 'sessionsLower')}
         </button>
       </div>
-    ) : (
+    ),
+    repeatConfig: (
       <button className="btn-primary"
         disabled={!form.clientIds[0] || weekdays.size === 0 || count < 1}
         onClick={buildPreview}>{t(lang, 'recurringPreview')}</button>
-    )
-  ) : (
-    <button className="btn-primary" onClick={saveSession}>
-      {`📅 ${t(lang, 'bookSessionBtn')}${form.clientIds.length > 1 ? ` (${form.clientIds.length} ${t(lang, 'client')})` : ''}`}
-    </button>
-  );
+    ),
+    single: (
+      <button className="btn-primary" onClick={saveSession}>
+        {`📅 ${t(lang, 'bookSessionBtn')}${form.clientIds.length > 1 ? ` (${form.clientIds.length} ${t(lang, 'client')})` : ''}`}
+      </button>
+    ),
+  }[mode];
 
   return (
     <div>
@@ -367,12 +389,12 @@ export default function Schedule({ state, dispatch, lang }) {
 
       {/* Booking Modal */}
       {showForm && (
-        <Modal title={editingSession ? t(lang, 'editSession') : t(lang, 'bookSessionBtn')}
-          onClose={() => { setShowForm(false); setPreview(null); setRepeat(false); }}
+        <Modal title={mode === 'edit' ? t(lang, 'editSession') : t(lang, 'bookSessionBtn')}
+          onClose={() => { setShowForm(false); resetRepeat(); }}
           action={bookingAction}>
           {/* v2.10: Repeat toggle — only visible in create mode; switches client selector
               to single-select and unlocks weekday chips + count input below time picker. */}
-          {!editingSession && (
+          {mode !== 'edit' && (
             <label className="repeat-toggle">
               <input type="checkbox" checked={repeat} onChange={e => {
                 const on = e.target.checked;
@@ -392,13 +414,13 @@ export default function Schedule({ state, dispatch, lang }) {
               v2.10.1: repeat mode gets DIFFERENT text — createRecurring is calendar-only
               and never dispatches RENEW_PACKAGE, so the "will auto-renew" promise was
               false there. The PT is told to renew explicitly instead. */}
-          {!preview && form.clientIds.some(cid => renewalDueIds.has(cid)) && (
+          {mode !== 'repeatPreview' && form.clientIds.some(cid => isDue(cid)) && (
             <div className="booking-renewal-banner">
-              ⚠️ {t(lang, 'packageLimitHit')} — {t(lang, repeat ? 'repeatNoAutoRenew' : 'willAutoRenew')}
+              ⚠️ {t(lang, 'packageLimitHit')} — {t(lang, mode === 'repeatConfig' ? 'repeatNoAutoRenew' : 'willAutoRenew')}
             </div>
           )}
           {/* ── Preview step: hide all input fields, show checkable date rows ── */}
-          {preview ? (
+          {mode === 'repeatPreview' && preview ? (
             <div className="recurring-preview">
               {preview.map((r, i) => {
                 // v2.10.1: formatDate IS this exact format — the inline toLocaleDateString
@@ -420,7 +442,7 @@ export default function Schedule({ state, dispatch, lang }) {
               <div className="field">
                 <label className="field-label">{t(lang, 'client')}</label>
                 {/* Repeat mode: single-client select (no chips, no multi-select) */}
-                {repeat ? (
+                {mode === 'repeatConfig' ? (
                   <select className="select" value={form.clientIds[0] || ''} onChange={e =>
                     setForm(p => ({ ...p, clientIds: e.target.value ? [e.target.value] : [] }))}>
                     <option value="">{t(lang, 'selectClient')}</option>
@@ -465,7 +487,7 @@ export default function Schedule({ state, dispatch, lang }) {
                             const simSessions = state.sessions.map(s => s.id === editingSession.id ? moved : s);
                             ({ auto: chipAuto, effective: chipEffective, override: chipOverride } =
                               getEffectiveSessionCount(c, moved, simSessions));
-                          } else if (renewalDueIds.has(c.id)) {
+                          } else if (isDue(c.id)) {
                             chipAuto = 1; chipEffective = 1; chipOverride = null;
                           } else {
                             const previewSession = { id: '__preview__', clientId: c.id, date: form.date, time: form.time, status: 'scheduled' };
@@ -478,7 +500,7 @@ export default function Schedule({ state, dispatch, lang }) {
                               {chipOverride
                                 ? <span style={{ opacity: 0.85, fontSize: 11 }}>({chipAuto}→{chipEffective})</span>
                                 : <span style={{ opacity: 0.6, fontSize: 11 }}>({chipAuto})</span>}
-                              {!editingSession && (
+                              {mode !== 'edit' && (
                                 <span className="client-chip-x" onClick={() => setForm(p => ({ ...p, clientIds: p.clientIds.filter(cid => cid !== id) }))}>×</span>
                               )}
                             </span>
@@ -487,7 +509,7 @@ export default function Schedule({ state, dispatch, lang }) {
                       </div>
                     )}
                     {/* Dropdown to add clients — hidden in edit mode */}
-                    {!editingSession && (
+                    {mode !== 'edit' && (
                       <select className="select" style={{ marginTop: form.clientIds.length > 0 ? 8 : 0 }} value="" onChange={e => {
                         if (e.target.value) setForm(p => ({ ...p, clientIds: [...p.clientIds, e.target.value] }));
                       }}>
@@ -554,7 +576,7 @@ export default function Schedule({ state, dispatch, lang }) {
                 </div>
               </div>
               {/* ── v2.10: Weekday chips + count — only in repeat mode ── */}
-              {repeat && !editingSession && (
+              {mode === 'repeatConfig' && (
                 <>
                   <div className="field">
                     <label className="field-label">{t(lang, 'recurringWeekdays')}</label>

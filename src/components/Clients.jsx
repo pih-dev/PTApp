@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Modal from './Modal';
 import { WhatsAppIcon, EditIcon, TrashIcon, PhoneIcon, ChevronIcon } from './Icons';
-import { genId, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, getSessionType, getFocusTags, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, applyOverride, isRenewalDue, getCurrentPackage, getEffectivePeriod, getPeriodSessionCount, getEffectiveClientCount, today, friendly, openWhatsApp } from '../utils';
+import { genId, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, getSessionType, getFocusTags, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, applyOverride, getRenewalDueMap, getCurrentPackage, getEffectivePeriod, getPeriodSessionCount, getEffectiveClientCount, today, friendly, openWhatsApp } from '../utils';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import RenewalModal from './RenewalModal';
 import SessionCountPair from './SessionCountPair';
@@ -24,6 +24,10 @@ export default function Clients({ state, dispatch, lang }) {
   const [renewClient, setRenewClient] = useState(null); // client pending renewal, null = modal hidden
   // long-press timer ref — 500ms hold opens the help popup (same pattern as debug panel)
   const overrideHoldRef = useRef(null);
+
+  // v2.10.3 (review P5): shared renewal selector — same map Schedule and Dashboard read,
+  // memoized in utils on the (clients, sessions) array pair. One rule, three tabs.
+  const renewalDueMap = getRenewalDueMap(state.clients, state.sessions);
 
   const openAdd = () => {
     setForm({
@@ -185,12 +189,13 @@ export default function Clients({ state, dispatch, lang }) {
           const monthTotal = isExpanded ? getMonthlySessionCount(state.sessions, c.id, viewMonth) : 0;
           const completedCount = isExpanded ? monthSessions.filter(s => s.status === 'completed').length : 0;
           const cancelledCount = isExpanded ? monthSessions.filter(s => s.status === 'cancelled').length : 0;
-          // Hoist renewal state to one call per card (gate wrapper class, pill, and Renew button).
-          // isRenewalDue walks state.sessions; calling it 3× per card + a redundant getEffectiveClientCount
-          // in the pill IIFE would be 4 passes per client — noticeable on the search input re-render.
-          const renewalDue = isRenewalDue(c, state.sessions);
-          const renewalPkg = renewalDue ? getCurrentPackage(c) : null;
-          const renewalEffective = renewalDue ? getEffectiveClientCount(c, state.sessions).effective : 0;
+          // v2.10.3 (review P5): one map read per card (gate wrapper class, pill, Renew
+          // button) — the per-card isRenewalDue + getCurrentPackage + getEffectiveClientCount
+          // passes now happen once per data change inside getRenewalDueMap.
+          const renewalEntry = renewalDueMap.get(c.id);
+          const renewalDue = renewalEntry?.due === true;
+          const renewalPkg = renewalDue ? renewalEntry.pkg : null;
+          const renewalEffective = renewalDue ? renewalEntry.effective : 0;
           return (
           <div key={c.id} className={`card${renewalDue ? ' card-renewal-due' : ''}`} style={{ cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}

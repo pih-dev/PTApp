@@ -4,6 +4,12 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.10.3 — Internal cleanup, nothing visible (June 10, 2026)
+
+**Housekeeping under the hood.** Two structural cleanups from the June review, with zero visible change: the repeat-booking feature now builds its sessions through the exact same code as normal bookings (so future features can't accidentally apply to one and not the other), and the "due for renewal" calculation — previously written three slightly different ways in three tabs — is now computed once and shared, so the renewal rule can never drift between screens.
+
+---
+
 ## v2.10.2 — Historical session numbers fixed (June 10, 2026)
 
 **Old sessions now show the number they really were.** For clients on contracts, every session from before a renewal used to display the same wrong number — the app always counted within the *current* package, so a March session of a client renewed in April showed "current count + 1" instead of its real place in March. The app now works out which package each session belonged to by its date (skipping the empty zero-day package leftovers some clients have from renewal experiments) and numbers it within that package. A count override stays locked to the package it was set in — it can't bleed into history or into the current period.

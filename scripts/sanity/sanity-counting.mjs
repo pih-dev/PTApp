@@ -124,4 +124,22 @@ const withFuture = getEffectiveClientCount(clientWithContract, contractWithFutur
 assert(withFuture.effective === 10, `contract 9 past + 1 future = 10 (got ${withFuture.effective})`);
 assert(isRenewalDue(clientWithContract, contractWithFuture), 'future session triggers renewal-due');
 
+// 7. getRenewalDueMap (v2.10.3, P5): one shared selector for all tabs
+const { getRenewalDueMap } = utils;
+const allClients = [clientNoContract, clientWithContract, clientOverride];
+const dueSessions = [...makeSessions('c2', 10, '2026-03-05'), ...makeSessions('c3', 8, '2026-03-05')];
+const dueMap = getRenewalDueMap(allClients, dueSessions);
+assert(!dueMap.has('c1'), 'sliding (no-contract) client absent from renewal map');
+assert(dueMap.get('c2').due === isRenewalDue(clientWithContract, dueSessions),
+  'map.due agrees with isRenewalDue (the single rule)');
+assert(dueMap.get('c2').effective === 10 && dueMap.get('c2').contractSize === 10,
+  `map carries effective/contractSize (got ${dueMap.get('c2').effective}/${dueMap.get('c2').contractSize})`);
+assert(dueMap.get('c3').due === true && dueMap.get('c3').effective === 10,
+  'override-induced due is visible through the map');
+assert(dueMap.get('c2').pkg === clientWithContract.packages[0], 'map exposes the current package by reference');
+assert(getRenewalDueMap(allClients, dueSessions) === dueMap,
+  'same (clients, sessions) arrays → same Map instance (memoized)');
+assert(getRenewalDueMap(allClients, [...dueSessions]) !== dueMap,
+  'new sessions array → recomputed Map');
+
 console.log('\nCounting sanity: PASS');
