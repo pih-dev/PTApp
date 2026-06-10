@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { formatDate, SESSION_TYPES, getEffectiveSessionCount, FOCUS_TAGS, DURATIONS, TIMES, getStatus, haptic } from '../utils';
+import { formatDate, SESSION_TYPES, getSessionType, getEffectiveSessionCount, getFocusTags, DURATIONS, TIMES, getStatus, haptic } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import { t } from '../i18n';
 
 // Editable focus tags + notes for completed sessions
 function EditableFocus({ session, dispatch, lang }) {
-  const tags = FOCUS_TAGS[session.type] || FOCUS_TAGS.Custom;
+  const tags = getFocusTags(session.type);
   const focus = session.focus || [];
   const toggleFocus = (tag) => {
     const updated = focus.includes(tag) ? focus.filter(f => f !== tag) : [...focus, tag];
@@ -74,7 +74,7 @@ export default function Sessions({ state, dispatch, lang }) {
         </div>
       ) : (
         sorted.map(session => {
-          const stype = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
+          const stype = getSessionType(session.type);
           const status = getStatus(session.status, lang, t);
           const client = state.clients.find(c => c.id === session.clientId);
           // v2.8: effective count honours the PT's manual override for this period

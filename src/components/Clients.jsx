@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Modal from './Modal';
 import { WhatsAppIcon, EditIcon, TrashIcon, PhoneIcon, ChevronIcon } from './Icons';
-import { genId, formatPhone, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, SESSION_TYPES, FOCUS_TAGS, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic, parseSessionCountOverride, isRenewalDue, getCurrentPackage, getEffectivePeriod, getPeriodSessionCount, getEffectiveClientCount, today } from '../utils';
+import { genId, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, getSessionType, getFocusTags, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, applyOverride, isRenewalDue, getCurrentPackage, getEffectivePeriod, getPeriodSessionCount, getEffectiveClientCount, today, friendly, openWhatsApp } from '../utils';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import RenewalModal from './RenewalModal';
 import SessionCountPair from './SessionCountPair';
@@ -38,13 +38,8 @@ export default function Clients({ state, dispatch, lang }) {
   const openEdit = (c) => {
     const pkg = getCurrentPackage(c);
     const period = getEffectivePeriod(pkg, today());
-    const ov = pkg.sessionCountOverride;
-    const overrideIsCurrent = ov && ov.periodStart === period.start;
-    const overrideStr = overrideIsCurrent
-      ? (ov.type === 'delta'
-          ? (ov.value >= 0 ? '+' : '') + ov.value
-          : String(ov.value))
-      : '';
+    // v2.10.1: serialization shared with Schedule.jsx via formatOverrideDraft
+    const overrideStr = formatOverrideDraft(pkg, period);
     setForm({
       name: c.name, nickname: c.nickname || '', phone: c.phone, gender: c.gender || '',
       birthdate: c.birthdate || '', notes: c.notes || '',
@@ -235,8 +230,10 @@ export default function Clients({ state, dispatch, lang }) {
                     {t(lang, 'renewContract')}
                   </button>
                 )}
+                {/* v2.10.1: greeting via i18n (was hardcoded English in Arabic mode) and
+                    wa.me URL via the shared openWhatsApp helper (was a third inline copy). */}
                 <button className="btn-whatsapp" style={{ padding: '8px 10px' }}
-                  onClick={() => window.open(`https://wa.me/${formatPhone(c.phone)}?text=${encodeURIComponent(`Hi ${c.nickname || c.name.split(' ')[0]}! 💪`)}`, '_blank')}>
+                  onClick={() => openWhatsApp(c, t(lang, 'quickGreeting').replace('{name}', friendly(c)))}>
                   <WhatsAppIcon size={18} />
                 </button>
                 <button className="btn-ghost" onClick={() => openEdit(c)}>
@@ -272,9 +269,9 @@ export default function Clients({ state, dispatch, lang }) {
                   </div>
                 ) : (
                   monthSessions.map(s => {
-                    const st = SESSION_TYPES.find(stype => stype.label === s.type) || SESSION_TYPES[5];
+                    const st = getSessionType(s.type);
                     const status = getStatus(s.status, lang, t);
-                    const tags = FOCUS_TAGS[s.type] || FOCUS_TAGS.Custom;
+                    const tags = getFocusTags(s.type);
                     const focus = s.focus || [];
                     const toggleFocus = (tag) => {
                       const updated = focus.includes(tag) ? focus.filter(f => f !== tag) : [...focus, tag];
@@ -331,7 +328,7 @@ export default function Clients({ state, dispatch, lang }) {
           action={<button className="btn-primary" onClick={save}>{editingClient ? t(lang, 'saveChanges') : t(lang, 'addClient')}</button>}>
           <div className="field">
             <label className="field-label">{t(lang, 'fullName')}</label>
-            <input className="input" placeholder="e.g. Ahmad Khalil" value={form.name}
+            <input className="input" placeholder={t(lang, 'namePlaceholder')} value={form.name}
               onChange={e => {
                 const name = e.target.value;
                 const firstName = capitalizeName(name).split(' ')[0];
@@ -342,7 +339,7 @@ export default function Clients({ state, dispatch, lang }) {
           </div>
           <div className="field">
             <label className="field-label">{t(lang, 'nickname')} <span style={{ fontWeight: 400, color: 'var(--t4)' }}>{t(lang, 'nickLabel')}</span></label>
-            <input className="input" placeholder="e.g. Ahmad" value={form.nickname}
+            <input className="input" placeholder={t(lang, 'nicknamePlaceholder')} value={form.nickname}
               onChange={e => setForm(p => ({ ...p, nickname: e.target.value }))} />
           </div>
           <div className="field">
@@ -356,7 +353,7 @@ export default function Clients({ state, dispatch, lang }) {
                   setDefaultCountryCode(val);
                 }}
               />
-              <input className="input" style={{ flex: 1 }} placeholder="e.g. 71 123 456" value={form.phone}
+              <input className="input" style={{ flex: 1 }} placeholder={t(lang, 'phonePlaceholder')} value={form.phone}
                 onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
             </div>
           </div>
@@ -377,7 +374,7 @@ export default function Clients({ state, dispatch, lang }) {
           </div>
           <div className="field">
             <label className="field-label">{t(lang, 'notesOpt')}</label>
-            <input className="input" placeholder="e.g. Bad knee, prefers mornings" value={form.notes}
+            <input className="input" placeholder={t(lang, 'clientNotesPlaceholder')} value={form.notes}
               onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
           </div>
           {/* Billing — period + contract. Edits the current open package. */}
@@ -443,9 +440,16 @@ export default function Clients({ state, dispatch, lang }) {
               ? getPeriodSessionCount(state.sessions, editingClient.id, period.start, period.end)
               : 0;
             const parsed = parseSessionCountOverride(form.sessionOverride);
-            const effective = parsed
-              ? (parsed.type === 'absolute' ? parsed.value : Math.max(0, auto + parsed.value))
-              : auto;
+            // v2.10.1: same kernel as the count helpers (applyOverride) — this preview
+            // previously re-implemented the absolute/delta math inline, so a semantics
+            // change in utils would have left the form showing a different number than
+            // every card (the v2.9.6 "two semantics" trap). Stamp the draft override
+            // with the preview period start so applyOverride treats it as active.
+            const { effective } = applyOverride(
+              auto,
+              parsed ? { ...parsed, periodStart: period.start } : null,
+              period.start
+            );
             return (
               <div className="field period-override-row">
                 <label className="field-label">{t(lang, 'countAuto')}</label>
@@ -485,6 +489,7 @@ export default function Clients({ state, dispatch, lang }) {
       <RenewalModal
         show={!!renewClient}
         client={renewClient}
+        clients={state.clients}
         sessions={state.sessions}
         onClose={() => setRenewClient(null)}
         dispatch={dispatch}

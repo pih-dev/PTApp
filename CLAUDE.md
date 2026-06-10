@@ -12,21 +12,22 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.10.0
-Recurring session generator — book a whole protocol in one pass. Calendar-only, no schema change, no migration. See `docs/instructions-v2.10.0.md`.
-- **Repeat mode in the booking form.** A "Repeat" toggle (gated `!editingSession`) switches the form to: single-client select + 7 weekday chips (Mon-first, localized) + one time + a session count (1–60). `generateRecurringDates(startDate, weekdays, count)` walks forward from the start date collecting matching weekdays until `count` is reached (local-time only, 730-iter safety cap).
-- **Preview + deselect.** `buildPreview()` renders the computed dates each pre-ticked; `hasClientSlotConflict` flags same-client same-slot duplicates "Already booked" (pre-unticked). `createRecurring()` commits ticked rows via ONE `ADD_SESSIONS` dispatch (new batch reducer action, stamps `_modified`, honors the "single dispatches in loops" trap), then jumps the week strip to the first date.
-- **Calendar-only by design (D1).** No `RENEW_PACKAGE`, no `contractSize` touch — recurring generation never renews. Existing contract logic counts these like any other session. No WhatsApp at generate time (no backend; day-before reminders deferred as a separate feature).
-- **Non-repeat path untouched.** Existing multi-client chip block gated `!repeat`, preserved verbatim (incl. v2.9.6 ordinal sim). `saveSession` unchanged. Verified by independent spec review.
-- **Feature #1 of 3** the PT requested. #2 = evaluation protocol (timed/chart-normed — CONFLICTS with the paused Apr 21 "observe & grade 1–5" eval spec + outstanding PT Excel; reconcile before designing). #3 = auto program proposal (depends on #2). New `scripts/sanity/sanity-recurring.mjs` (21 assertions).
+## Current Version: v2.10.1
+Whole-codebase review fix pack (Fable 5 fresh-eyes review, 2026-06-10). No schema change, no migration. See `docs/instructions-v2.10.1.md`.
+- **Review report = work order.** `docs/reviews/2026-06-10-fable5-codebase-review.md` — C1–C4 critical + M1–M16 medium ALL FIXED; **P1–P8 preserved for a future session** (start there when picking up refactor work); W1–W3 deliberate non-fixes with reasons. Live data snapshot pre-change: `_archive/PTApp/data-snapshots/2026-06-10-pre-fable5-review-data.json`.
+- **Critical fixes:** chunked `toBase64` + compact uploads (iOS ~65K arg limit; data.json was already 110KB — sync outage imminent); `mergeData`/`mergeBackup` now migrate foreign blobs by their OWN `_dataVersion` before merging (old-device/old-backup records were frozen un-migrated forever); `getFocusTags`/`getSessionType` helpers replace 11 dead/positional inline fallbacks (`FOCUS_TAGS.Custom` was `undefined` since v2.9.5 — unmapped type white-screened the tab); RenewalModal cross-device guard actually works now (live last-package-id comparison; old check was doubly unreachable).
+- **New shared helpers in utils.js:** `applyOverride`, `formatOverrideDraft`, `getFocusTags`, `getSessionType`, `openWhatsApp`, `friendly` (exported), `makeTemplateSender`. Always use these — never re-inline the math/fallbacks they own.
+- **New sanity script:** `scripts/sanity/sanity-merge-migration.mjs` (17 checks; uses the real archived snapshot when present). 4 new traps in `docs/traps.md`.
 
-## Previous Version: v2.9.6
-Single-file UI fix — booking-form chip now reads `(1)` for a brand-new client (was `(0)`). Three screens (chip, post-booking popup, WhatsApp) now show the same number. See `docs/instructions-v2.9.6.md`.
-- **Chip helper switched to ordinal semantics.** `Schedule.jsx:295` was using `getEffectiveClientCount` (pre-booking snapshot, returns `0` for a new client). Now uses `getEffectiveSessionCount` against a render-local `previewSession` at `form.date`/`form.time` — same helper the post-booking popup uses, so the numbers match by construction.
-- **TRAP added — same number, two semantics, two adjacent screens.** When a parenthetical or badge appears on screen A (pre-action) and again on screen B (post-action) of the same flow, both surfaces must use the same semantics. Fix: use the post-action helper on both screens (with a simulated event on the pre-action one).
-- **No data write, no schema change, no migration.**
+## Previous Version: v2.10.0
+Recurring session generator — book a whole protocol in one pass. Calendar-only, no schema change, no migration. See `docs/instructions-v2.10.0.md`.
+- **Repeat mode in the booking form.** A "Repeat" toggle (gated `!editingSession`) switches the form to: single-client select + 7 weekday chips (Mon-first, localized) + one time + a session count (1–60). `generateRecurringDates(startDate, weekdays, count)` walks forward collecting matching weekdays until `count` (local-time only, 730-iter cap).
+- **Preview + deselect.** `buildPreview()` renders computed dates pre-ticked; `hasClientSlotConflict` flags same-client same-slot duplicates (pre-unticked). `createRecurring()` commits via ONE `ADD_SESSIONS` dispatch, then jumps the week strip to the first date.
+- **Calendar-only by design (D1).** No `RENEW_PACKAGE`, no `contractSize` touch — recurring generation never renews. No WhatsApp at generate time (day-before reminders deferred).
+- **Feature #1 of 3** the PT requested. #2 = evaluation protocol (reconciled 2026-06-09: raw-value input, per-test below/avg/good; awaiting PT's filled xlsx). #3 = auto program proposal (depends on #2). `scripts/sanity/sanity-recurring.mjs` (21 assertions).
 
 ## Older Versions (one-line pointers — full details in `docs/instructions-v*.md`)
+- **v2.9.6** — Booking-form chip switched to post-booking ordinal semantics (was pre-booking count); chip/popup/WhatsApp now agree by construction. TRAP: same number, two semantics, two adjacent screens.
 - **v2.9.5** — `Arms` focus tag split into `Bi`+`Tri`; `Custom` session type renamed `Endurance`; one-shot v3→v4 migration (per-client chronological Bi/Tri alternation + Custom→Endurance). `sanity-arms-migration.mjs` (17 assertions). Snapshot tag `snapshot-pre-v2.9.5`.
 - **v2.9.4** — Schedule inline type-selector preserves focus tags (retroactive fix to Apr 2 decision `eb29798` only applied to Dashboard). TRAP: architected behavior not propagated + missing from changelog.
 - **v2.9.3** — Top-level React error boundary (`ErrorBoundary.jsx` wrapping `<App />` in `main.jsx`) with Backup / Try again / Reset recovery UI. Sanity scripts moved `tmp/` → `scripts/sanity/`. No schema change.
@@ -136,6 +137,10 @@ Full hard-won lessons live in **`docs/traps.md`** — read before touching the r
 - **Per-feature author-site drift (Apr 21 v2.9.2)** — when refactoring storage location, grep EVERY read+write of old field across the whole codebase, not just the file you're in.
 - **Hardcoded date stamps in test fixtures rot (May 2 v2.9.5 followup)** — fixture stamps that must match a `today()`-derived value will silently break when the calendar moves; compute at runtime using the same logic the production code uses.
 - **Same number, two semantics, two adjacent screens (May 4 v2.9.6)** — when a parenthetical/badge appears on screen A (pre-action) and again on screen B (post-action) of the same flow, both must use the same semantics. Booking chip showed "(0)" pre-action, popup showed "#1" post-action — looked like a glitch. Fix: simulate the action on the pre-action screen and use the SAME helper as the post-action screen.
+- **Spread into function arguments breaks at engine limits (Jun 10 v2.10.1)** — `fn(...userScaledArray)` throws once data grows past ~65K elements on iOS. Chunk with `.apply` instead; audit every `...` whose operand scales with data.
+- **Renamed catalog key kills `|| CATALOG.oldKey` fallbacks (Jun 10 v2.10.1)** — property-access references don't match quoted-string greps; the safety fallback becomes the crash. Fallbacks live in one helper next to the catalog (`getFocusTags`, `getSessionType`).
+- **Merge paths must migrate foreign blobs (Jun 10 v2.10.1)** — `_dataVersion` is per-blob, records travel. Sync merge / backup restore must `migrateData` the FOREIGN blob by its own version before merging (on a clone — see trap). Covered by `sanity-merge-migration.mjs`.
+- **Guards that can never fire (Jun 10 v2.10.1)** — re-read a helper's fallback contract before guarding its return (`getCurrentPackage` never returns a closed package); "did the world change while open" checks must read LIVE state and compare stable IDs, not prop snapshots.
 
 ---
 
@@ -168,7 +173,7 @@ Use `getStatus(status, lang, t)` for translated label. Badge colors via CSS clas
 | `EDIT_CLIENT` | `{id, ...fields}` | Detects current-package field changes → `package_edited` / `override_set` / `override_cleared` audit entries |
 | `DELETE_CLIENT` | `clientId` | Also deletes their sessions |
 | `ADD_SESSION` | `{id, clientId, ...}` | |
-| `ADD_SESSIONS` | `[{id, clientId, ...}, ...]` | v2.10: batch-append a recurring series in ONE dispatch (each stamped `_modified`). One re-render, one sync push. Calendar-only — never renews packages. |
+| `ADD_SESSIONS` | `[{id, clientId, ...}, ...]` | v2.10: batch-append in ONE dispatch (each stamped `_modified`). Used by the recurring generator AND (v2.10.1) the multi-client booking path. Never renews packages. |
 | `UPDATE_SESSION` | `{id, ...fields}` | Merges fields |
 | `BATCH_COMPLETE` | `[id, id, ...]` | Marks all completed in one dispatch |
 | `DELETE_SESSION` | `sessionId` | |
@@ -182,8 +187,7 @@ Use `getStatus(status, lang, t)` for translated label. Badge colors via CSS clas
 ## KNOWN ISSUES / TECH DEBT
 
 ### Should fix soon
-- **No error boundary** — corrupted localStorage crashes the app to a white screen. A top-level boundary would let the user access backup/export.
-- **Duplicated session card rendering** — Dashboard, Schedule, Sessions render their own session cards (~50-80 lines each). A shared `SessionCard` component would eliminate this.
+- **P1–P8 from the v2.10.1 review** — see `docs/reviews/2026-06-10-fable5-codebase-review.md`. Highest impact: P1 (historical session ordinals display wrong for contract clients — counting kernel) and P2 (O(n²) ordinal computation per rendered card — will jank at a few thousand sessions). P3 folds the SessionCard refactor (Dashboard/Schedule/Clients/Sessions each render their own card; `EditableFocus` already exists in Sessions.jsx). P4 (repeat-mode fork hygiene) should land BEFORE eval feature #2 adds session fields.
 
 ### App name
 - "PTApp" is a working title. Need a unique name (not trademarked in fitness/trainer space) before App Store / Play Store submission.
@@ -215,7 +219,7 @@ After every commit:
 - Phone numbers must include country code (e.g. +961 for Lebanon)
 - Session types: Strength, Cardio, Flexibility, HIIT, Recovery, Custom
 - Session statuses: Scheduled → auto-completes → Completed (or Cancelled with count/forgive)
-- Auto-complete: lapsed sessions batch-marked completed on app load
+- Auto-complete: lapsed sessions batch-marked completed continuously (effect re-runs on every session mutation — deliberate, it's what completes sessions across midnight in an open PWA; see W2 in the v2.10.1 review)
 - UX simplicity is the priority — the PT adopted the app because it's simple. Don't add friction.
 - Billing periods (v2.9+): live inside `client.packages[]`. Each package has `periodUnit` ('day'/'week'/'month') + `periodValue` (number). Optional `contractSize` extends the period until contract met (no month-end reset).
 
@@ -235,6 +239,8 @@ npm run build
 node -e "const fs=require('fs'),h=fs.readFileSync('dist/index.html','utf8'),s=h.indexOf('<script>')+8,e=h.lastIndexOf('</script>');fs.writeFileSync('test-bundle.js',h.substring(s,e))" && node --check test-bundle.js && rm test-bundle.js
 
 # 3. Bump version in App.jsx debug panel (e.g. v2.9.1 → v2.9.2), rebuild if changed
+#    For feature releases: also bump DOCS.instructions in General.jsx to the new
+#    docs/instructions-vX.Y.md (it served v2.9 docs for two releases unnoticed)
 
 # 4. Commit and push source to master
 git add <files> && git commit -m "message" && git push origin master

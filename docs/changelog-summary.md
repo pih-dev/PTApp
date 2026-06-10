@@ -4,6 +4,20 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.10.1 — Health check and fix pack (June 10, 2026)
+
+**A fresh pair of eyes over the whole app.** With a new, stronger AI model available, we ran a top-to-bottom review of the entire codebase — every file, seven different review angles, every finding independently double-checked. About 30 real issues surfaced. This release fixes the urgent and easy ones; the big-ticket items are written up and queued.
+
+**The scariest find: sync was close to breaking on the PT's iPhone.** The code that uploads data to the cloud had a hidden size limit (~65 thousand characters on iPhones), and the data file had already grown past 110 thousand. One growth spurt away from every sync attempt failing permanently with a red dot. Fixed by encoding in small chunks — and the upload is now about half the size too, which matters on Beirut internet.
+
+**Second: old data sneaking past the upgrade machinery.** When a device running an outdated cached copy of the app synced in, or when an old backup file was restored, its records skipped the data-upgrade step and stayed in the old format forever — which could even crash a tab (a leftover safety net had been quietly broken since the v2.9.5 tag rename). Both holes are closed and covered by a new 17-check test that runs against a copy of the PT's real data.
+
+**A round of small annoyances fixed.** Arabic WhatsApp messages no longer contain English dates. Tomorrow's 6pm session no longer glows amber during today's 6pm hour. "This Week" counted 8 days; now 7. The repeat-booking form no longer promises an auto-renewal it doesn't do. The client form is fully translated in Arabic mode. The in-app "App Instructions" button was serving two-versions-old docs — fixed, and bumping it is now part of the release checklist. Plus a faster, smoother feel on the Dashboard and booking form (lots of recomputation eliminated).
+
+**What's deliberately left for next time.** The review also found deeper issues — most notably that historical session numbers display wrong for clients on contracts (every pre-renewal session shows the same number), and that session lists will get slow as history grows into the thousands. Those need careful design, not a quick patch. Everything is written up in `docs/reviews/2026-06-10-fable5-codebase-review.md` so the next work session starts with a ready-made list.
+
+---
+
 ## v2.10.0 — Recurring session generator (June 9, 2026)
 
 **Booking a whole protocol in one go.** Lots of the PT's clients train on a fixed weekly rhythm — Mon/Wed/Fri at 8:15, say. Until now he booked each of those ten sessions by hand. v2.10.0 adds a **Repeat** toggle to the booking form: pick the client, tap the weekdays, set one time, type a number of sessions, and the app lays the whole series onto the calendar. Ten sessions on Mon/Wed/Fri simply land across the next ~3.3 weeks — the count is what decides how far it runs, not a fixed number of weeks.

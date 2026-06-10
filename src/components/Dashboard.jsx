@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon, ChevronIcon } from './Icons';
-import { today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendReminderWhatsApp, getEffectiveSessionCount, timeToMinutes, localDateStr, getStatus, haptic, isRenewalDue, getCurrentPackage, getEffectiveClientCount } from '../utils';
+import { today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendReminderWhatsApp, getEffectiveSessionCount, timeToMinutes, localDateStr, getStatus, haptic, isRenewalDue, getCurrentPackage, getEffectiveClientCount } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import RenewalModal from './RenewalModal';
 import { t } from '../i18n';
@@ -15,17 +15,31 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
   const [form, setForm] = useState({ clientId: '', type: 'Strength', date: today(), time: '09:00', duration: 45 });
   const [renewClient, setRenewClient] = useState(null);
 
+  // v2.10.1: the derivations below are useMemo'd. They previously recomputed on
+  // EVERY render — including each keystroke in the edit modal and every focus-tag
+  // tap — with per-session Date allocations inside the filter callbacks. Memo deps
+  // are the state slices they read; `now`-dependent values are captured at memo
+  // time, which is fine because every data change re-renders via a dispatch anyway
+  // and none of these are precise deadlines.
+  const todayStr = today();
+
   // todaySessions still feeds the "Today" stat card (middle of stat row).
   // It is NOT used as the section list anymore — `upcoming` is.
-  const todaySessions = state.sessions
-    .filter(s => s.date === today() && s.status !== 'cancelled')
-    .sort((a, b) => a.time.localeCompare(b.time));
-  // Highlight all sessions currently in progress (started but not yet ended)
+  const todaySessions = useMemo(() => state.sessions
+    .filter(s => s.date === todayStr && s.status !== 'cancelled')
+    .sort((a, b) => a.time.localeCompare(b.time)), [state.sessions, todayStr]);
+
+  // Highlight sessions currently in progress (started but not yet ended).
+  // v2.10.1: must be TODAY's session — `upcoming` contains future dates since v2.7,
+  // and without the date check every future card at the current time-of-day glowed
+  // amber (e.g. all of a recurring Mon/Wed/Fri 18:00 series during today's 18:00).
   const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
   const isNowSession = (s) => {
+    if (s.date !== todayStr) return false;
     const start = timeToMinutes(s.time);
     return nowMinutes >= start && nowMinutes < start + (s.duration || 45);
   };
+
   // Upcoming Sessions: future + today's sessions that aren't cancelled.
   // Extra rule (v2.9.1, 2026-04-21): once a session is `completed` AND its
   // end time is 2+ hours in the past, hide it. Pierre reported scrolling past
@@ -33,34 +47,44 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
   // a short "still visible right after it ended" window, then the list clears
   // out. No-shows left as `scheduled` stay visible (the PT still needs to act
   // on them). The `date < todayStr` guard stays as a stale-scheduled safeguard.
-  const todayStr = today();
-  const nowMs = Date.now();
-  const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
-  const upcoming = state.sessions
-    .filter(s => {
-      if (s.status === 'cancelled') return false;
-      if (s.date < todayStr) return false;
-      if (s.status === 'completed') {
-        // Missing/empty time would yield Invalid Date → NaN → comparison always false →
-        // the session would stay in Upcoming forever. The booking form requires a time so
-        // this is only a defensive guard for legacy/imported data, but cheap to add.
-        // DST note: in a spring-forward / fall-back hour the wall-clock end can drift ±1h
-        // against the 2h window. Acceptable — the rolloff isn't a precise deadline.
-        if (!s.time) return false;
-        const endMs = new Date(`${s.date}T${s.time}`).getTime() + (s.duration || 45) * 60000;
-        if (nowMs - endMs >= TWO_HOURS_MS) return false;
-      }
-      return true;
-    })
-    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  const upcoming = useMemo(() => {
+    const nowMs = Date.now();
+    const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+    return state.sessions
+      .filter(s => {
+        if (s.status === 'cancelled') return false;
+        if (s.date < todayStr) return false;
+        if (s.status === 'completed') {
+          // Missing/empty time would yield Invalid Date → NaN → comparison always false →
+          // the session would stay in Upcoming forever. The booking form requires a time so
+          // this is only a defensive guard for legacy/imported data, but cheap to add.
+          // DST note: in a spring-forward / fall-back hour the wall-clock end can drift ±1h
+          // against the 2h window. Acceptable — the rolloff isn't a precise deadline.
+          if (!s.time) return false;
+          const endMs = new Date(`${s.date}T${s.time}`).getTime() + (s.duration || 45) * 60000;
+          if (nowMs - endMs >= TWO_HOURS_MS) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  }, [state.sessions, todayStr]);
+
   // Clients whose current contract is exhausted or expired — shown in the renewal banner
-  const renewalDueClients = state.clients.filter(c => isRenewalDue(c, state.sessions));
-  // Compare date strings to avoid fractional day math errors near midnight
-  const weekSessions = state.sessions.filter(s => {
-    const todayStr = today();
-    const weekEnd = new Date(new Date(todayStr + 'T00:00:00').getTime() + 7 * 86400000);
-    return s.date >= todayStr && s.date <= localDateStr(weekEnd) && s.status !== 'cancelled';
-  });
+  const renewalDueClients = useMemo(
+    () => state.clients.filter(c => isRenewalDue(c, state.sessions)),
+    [state.clients, state.sessions]
+  );
+
+  // "This Week" stat: today + the next 6 days (7 calendar days total).
+  // v2.10.1: was `+ 7 days` with inclusive <=, silently counting 8 days.
+  // Compare date strings to avoid fractional day math errors near midnight.
+  const weekSessions = useMemo(() => {
+    const we = new Date(todayStr + 'T00:00:00');
+    we.setDate(we.getDate() + 6);
+    const weekEndStr = localDateStr(we);
+    return state.sessions.filter(s =>
+      s.date >= todayStr && s.date <= weekEndStr && s.status !== 'cancelled');
+  }, [state.sessions, todayStr]);
 
   const getClientName = (id) => state.clients.find(c => c.id === id)?.name || 'Unknown';
 
@@ -150,12 +174,12 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
           </div>
         ) : (
           upcoming.map((session, idx) => {
-            const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
+            const st = getSessionType(session.type);
             const status = getStatus(session.status, lang, t);
             const client = state.clients.find(c => c.id === session.clientId);
             // v2.8: effective count honours the PT's manual override for this period
             const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
-            const tags = FOCUS_TAGS[session.type] || FOCUS_TAGS.Custom;
+            const tags = getFocusTags(session.type);
             const focus = session.focus || [];
             const isNext = isNowSession(session);
             const toggleFocus = (tag) => {
@@ -249,7 +273,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
           </div>
         ) : (
           upcoming.map(session => {
-            const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
+            const st = getSessionType(session.type);
             const status = getStatus(session.status, lang, t);
             const client = state.clients.find(c => c.id === session.clientId);
             // v2.8: effective count honours the PT's manual override for this period
@@ -283,7 +307,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
       {/* Action Sheet Modal */}
       {activeSession && (() => {
         const session = activeSession;
-        const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
+        const st = getSessionType(session.type);
         const status = getStatus(session.status, lang, t);
         const client = state.clients.find(c => c.id === session.clientId);
         return (
@@ -391,6 +415,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
       <RenewalModal
         show={!!renewClient}
         client={renewClient}
+        clients={state.clients}
         sessions={state.sessions}
         onClose={() => setRenewClient(null)}
         dispatch={dispatch}

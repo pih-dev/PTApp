@@ -101,7 +101,13 @@ export default function App() {
     });
   }, [connected]);
 
-  // Auto-complete lapsed sessions — batch into a single dispatch to avoid N re-renders + N API pushes
+  // Auto-complete lapsed sessions — batch into a single dispatch to avoid N re-renders + N API pushes.
+  // DELIBERATE (v2.10.1 review, W2): deps include state.sessions, so this sweep runs on
+  // every session mutation, not only at app load. That continuous re-run is the ONLY
+  // mechanism that completes sessions lapsing while the app stays open (e.g. across
+  // midnight in a PWA that's never reloaded) — do not narrow the deps to [initialLoad].
+  // Side effect accepted: a session booked retroactively for a past slot completes
+  // immediately (it IS lapsed).
   useEffect(() => {
     if (initialLoad) return;
     const now = new Date();
@@ -229,7 +235,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.10.0</div>
+          <div><strong>Version:</strong> v2.10.1</div>
           <div><strong>Sync:</strong> {syncStatus}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>

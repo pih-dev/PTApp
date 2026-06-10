@@ -25,7 +25,14 @@ class ErrorBoundary extends React.Component {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `ptapp-backup-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+      // Local-time filename (UTC trap): toISOString() stamped a crash at 00:30 Beirut
+      // with YESTERDAY's date, so the freshest forensic backup sorted as a day old.
+      // Inlined (not imported from utils) — this file deliberately has zero imports
+      // beyond React, because anything it imports could be the thing that crashed.
+      const n = new Date();
+      const p = (x) => String(x).padStart(2, '0');
+      const stamp = `${n.getFullYear()}-${p(n.getMonth() + 1)}-${p(n.getDate())}T${p(n.getHours())}-${p(n.getMinutes())}-${p(n.getSeconds())}`;
+      a.download = `ptapp-backup-${stamp}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

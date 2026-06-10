@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon } from './Icons';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, FOCUS_TAGS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, getEffectiveClientCount, localDateStr, getStatus, haptic, parseSessionCountOverride, isRenewalDue, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict } from '../utils';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, getEffectiveClientCount, localDateStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, isRenewalDue, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import { t, dateLocale } from '../i18n';
@@ -58,9 +58,17 @@ export default function Schedule({ state, dispatch, lang }) {
     if (overrideHoldRef.current) { clearTimeout(overrideHoldRef.current); overrideHoldRef.current = null; }
   };
 
-  const daySessions = state.sessions
+  const daySessions = useMemo(() => state.sessions
     .filter(s => s.date === selectedDate)
-    .sort((a, b) => a.time.localeCompare(b.time));
+    .sort((a, b) => a.time.localeCompare(b.time)), [state.sessions, selectedDate]);
+
+  // v2.10.1: memoized — this was an IIFE inside the time-picker JSX, re-filtering the
+  // ENTIRE sessions array on every form interaction (each chip toggle, type tap,
+  // weekday tap) even though the slot map only depends on the chosen date.
+  const occupiedSlots = useMemo(
+    () => getOccupiedSlots(state.sessions, state.clients, form.date),
+    [state.sessions, state.clients, form.date]
+  );
 
   const openBooking = () => {
     setEditingSession(null);
@@ -109,13 +117,21 @@ export default function Schedule({ state, dispatch, lang }) {
           });
         }
       }
-      // Create mode: one independent session per selected client
-      const created = form.clientIds.map(clientId => {
-        const { clientIds, ...rest } = form;
-        const session = { id: genId(), clientId, ...rest, status: 'scheduled', createdAt: localDateStr(new Date()) };
-        dispatch({ type: 'ADD_SESSION', payload: session });
-        return { client: state.clients.find(c => c.id === clientId), session };
-      }).filter(c => c.client);
+      // Create mode: one independent session per selected client.
+      // v2.10.1: committed as ONE ADD_SESSIONS dispatch (the batch action added for the
+      // recurring generator) instead of N ADD_SESSION dispatches in the .map — the
+      // "single dispatches in loops" convention. The RENEW_PACKAGE loop above stays:
+      // each renewal is a distinct per-client state transition with its own audit entry.
+      const { clientIds, ...rest } = form;
+      const created = form.clientIds
+        .map(clientId => ({
+          client: state.clients.find(c => c.id === clientId),
+          session: { id: genId(), clientId, ...rest, status: 'scheduled', createdAt: localDateStr(new Date()) },
+        }))
+        .filter(c => c.client);
+      if (created.length > 0) {
+        dispatch({ type: 'ADD_SESSIONS', payload: created.map(c => c.session) });
+      }
       setShowForm(false);
       if (created.length > 0) {
         setConfirmMsg({ items: created, index: 0 });
@@ -259,7 +275,7 @@ export default function Schedule({ state, dispatch, lang }) {
         </div>
       ) : (
         daySessions.map(session => {
-          const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
+          const st = getSessionType(session.type);
           const status = getStatus(session.status, lang, t);
           const client = state.clients.find(c => c.id === session.clientId);
           // v2.8: effective count honours the PT's manual override for this period
@@ -315,7 +331,7 @@ export default function Schedule({ state, dispatch, lang }) {
               </div>
               {/* Focus tags — tappable, auto-save */}
               {(() => {
-                const tags = FOCUS_TAGS[session.type] || FOCUS_TAGS.Custom;
+                const tags = getFocusTags(session.type);
                 const focus = session.focus || [];
                 const toggleFocus = (tag) => {
                   const updated = focus.includes(tag) ? focus.filter(f => f !== tag) : [...focus, tag];
@@ -372,18 +388,22 @@ export default function Schedule({ state, dispatch, lang }) {
               booking will auto-advance their package. Placed BEFORE the book button fires
               so it appears while PT is reviewing the selection. After booking the renewal
               already happened so isRenewalDue returns false and the banner vanishes.
-              Hidden during preview step (no new input needed, action is just confirm/back). */}
+              Hidden during preview step (no new input needed, action is just confirm/back).
+              v2.10.1: repeat mode gets DIFFERENT text — createRecurring is calendar-only
+              and never dispatches RENEW_PACKAGE, so the "will auto-renew" promise was
+              false there. The PT is told to renew explicitly instead. */}
           {!preview && form.clientIds.some(cid => renewalDueIds.has(cid)) && (
             <div className="booking-renewal-banner">
-              ⚠️ {t(lang, 'packageLimitHit')} — {t(lang, 'willAutoRenew')}
+              ⚠️ {t(lang, 'packageLimitHit')} — {t(lang, repeat ? 'repeatNoAutoRenew' : 'willAutoRenew')}
             </div>
           )}
           {/* ── Preview step: hide all input fields, show checkable date rows ── */}
           {preview ? (
             <div className="recurring-preview">
               {preview.map((r, i) => {
-                const dt = new Date(r.date + 'T00:00:00');
-                const label = dt.toLocaleDateString(dateLocale(lang), { weekday: 'short', month: 'short', day: 'numeric' });
+                // v2.10.1: formatDate IS this exact format — the inline toLocaleDateString
+                // copy would silently diverge from every other screen on the next change.
+                const label = formatDate(r.date, lang);
                 return (
                   <label key={r.date} className={`preview-row${r.conflict ? ' conflict' : ''}`}>
                     <input type="checkbox" checked={r.keep} onChange={() =>
@@ -499,34 +519,29 @@ export default function Schedule({ state, dispatch, lang }) {
               {/* ── Time picker ── */}
               <div className="field">
                 <label className="field-label">{t(lang, 'time')}</label>
-                {(() => {
-                  const occupied = getOccupiedSlots(state.sessions, state.clients, form.date);
-                  return (
-                    <div className="time-grid" ref={el => {
-                      // Auto-scroll to selected time when grid mounts
-                      if (el && !el.dataset.scrolled) {
-                        const idx = TIMES.indexOf(form.time);
-                        const row = Math.floor(idx / 4);
-                        el.scrollTop = Math.max(0, row * 42 - 60);
-                        el.dataset.scrolled = '1';
-                      }
-                    }}>
-                      {TIMES.map(tm => {
-                        const isSelected = form.time === tm;
-                        const occ = occupied[tm];
-                        let cls = 'time-slot';
-                        if (isSelected) cls += ' selected';
-                        if (occ) cls += ' occupied';
-                        return (
-                          <button key={tm} className={cls} onClick={() => setForm(p => ({ ...p, time: tm }))}>
-                            <span>{tm}</span>
-                            {occ && <span className="time-slot-name">{occ[0].clientName}</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
+                <div className="time-grid" ref={el => {
+                  // Auto-scroll to selected time when grid mounts
+                  if (el && !el.dataset.scrolled) {
+                    const idx = TIMES.indexOf(form.time);
+                    const row = Math.floor(idx / 4);
+                    el.scrollTop = Math.max(0, row * 42 - 60);
+                    el.dataset.scrolled = '1';
+                  }
+                }}>
+                  {TIMES.map(tm => {
+                    const isSelected = form.time === tm;
+                    const occ = occupiedSlots[tm];
+                    let cls = 'time-slot';
+                    if (isSelected) cls += ' selected';
+                    if (occ) cls += ' occupied';
+                    return (
+                      <button key={tm} className={cls} onClick={() => setForm(p => ({ ...p, time: tm }))}>
+                        <span>{tm}</span>
+                        {occ && <span className="time-slot-name">{occ[0].clientName}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               {/* ── v2.10: Weekday chips + count — only in repeat mode ── */}
               {repeat && !editingSession && (
@@ -605,17 +620,11 @@ export default function Schedule({ state, dispatch, lang }) {
         };
         // Initialize the input from the current package's override (only if its
         // periodStart matches the current effective period — stale stamps render blank).
+        // v2.10.1: serialization shared with Clients.jsx via formatOverrideDraft.
         const openOverrideEdit = () => {
           const pkg = getCurrentPackage(client);
           const period = getEffectivePeriod(pkg, session.date);
-          const ov = pkg.sessionCountOverride;
-          const isCurrent = ov && ov.periodStart === period.start;
-          const draft = isCurrent
-            ? (ov.type === 'delta'
-                ? (ov.value >= 0 ? '+' : '') + ov.value
-                : String(ov.value))
-            : '';
-          setOverrideDraft(draft);
+          setOverrideDraft(formatOverrideDraft(pkg, period));
           setEditingOverride(true);
         };
         return (

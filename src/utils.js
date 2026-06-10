@@ -90,8 +90,8 @@ export const phoneMatchesQuery = (storedPhone, query) => {
 // "Strength Endurance", a complement to Strength rather than a generic catch-all. The
 // type's color/emoji and tag list (anatomical: Chest, Back, Shoulders, Bi, Tri, Legs,
 // Core, Glutes, Full Body) intentionally mirror Strength so the same body parts can be
-// logged under either modality. Renaming (not adding) keeps SESSION_TYPES.length stable
-// — the [5] fallback at line ~860 still resolves to a valid type.
+// logged under either modality. Unknown-type fallback lives in getSessionType below
+// (v2.10.1 — replaced the old positional `|| SESSION_TYPES[5]` copies).
 export const SESSION_TYPES = [
   { label: 'Strength', color: '#6366F1', emoji: '💪' },
   { label: 'Cardio', color: '#3B82F6', emoji: '🏃' },
@@ -100,6 +100,13 @@ export const SESSION_TYPES = [
   { label: 'Recovery', color: '#10B981', emoji: '🧊' },
   { label: 'Endurance', color: '#6B7280', emoji: '🎯' },
 ];
+
+// Resolve a session's type entry with ONE owned fallback (last entry = Endurance,
+// the former catch-all). v2.10.1: replaces seven copy-pasted `|| SESSION_TYPES[5]`
+// call sites — positional fallbacks silently shift meaning when the array changes
+// (the "per-feature author-site drift" trap).
+export const getSessionType = (label) =>
+  SESSION_TYPES.find(s => s.label === label) || SESSION_TYPES[SESSION_TYPES.length - 1];
 
 // ─── Focus Tags (per session type) ───
 // Tappable tags for recording what was done during a session.
@@ -119,6 +126,13 @@ export const FOCUS_TAGS = {
   Endurance:   ['Chest', 'Back', 'Shoulders', 'Bi', 'Tri', 'Legs', 'Core', 'Glutes', 'Full Body'],
 };
 
+// Resolve a session type's focus-tag list. v2.10.1: the four inline call sites used
+// `FOCUS_TAGS[type] || FOCUS_TAGS.Custom`, but the 'Custom' key was renamed 'Endurance'
+// in v2.9.5 — the fallback had been `undefined` ever since, so any unmapped type
+// (e.g. a record merged in from an old device) made `tags.map(...)` white-screen the
+// tab. One helper owns the fallback now; an unknown type just renders zero tags.
+export const getFocusTags = (type) => FOCUS_TAGS[type] || [];
+
 // ─── Session Statuses ───
 // Colors/backgrounds are theme-independent; labels come from i18n when lang is provided
 const STATUS_STYLES = {
@@ -128,10 +142,6 @@ const STATUS_STYLES = {
   cancelled: { color: '#EF4444', bg: '#FEF2F2' },
 };
 const STATUS_FALLBACK = { scheduled: 'Scheduled', confirmed: 'Confirmed', completed: 'Completed', cancelled: 'Cancelled' };
-// STATUS_MAP kept as default English export for backward compatibility
-export const STATUS_MAP = Object.fromEntries(
-  Object.entries(STATUS_STYLES).map(([k, v]) => [k, { ...v, label: STATUS_FALLBACK[k] }])
-);
 // Use this to get translated status labels — pass lang from component
 export const getStatus = (status, lang, tFn) => {
   const s = STATUS_STYLES[status] || STATUS_STYLES.scheduled;
@@ -204,18 +214,7 @@ export const generateRecurringDates = (startDate, weekdays, count) => {
 export const hasClientSlotConflict = (sessions, clientId, date, time) =>
   sessions.some(s => s.clientId === clientId && s.date === date && s.time === time && s.status !== 'cancelled');
 
-// ─── Monthly session count ───
-// ─── Billing Period ───
-// Each client can have a custom billing period (periodStart + periodLength).
-// Default (no fields set): calendar month (1st to last day of month).
-// periodLength options: '1month', '4weeks', '2weeks', '1week', or number of days.
-export const PERIOD_OPTIONS = [
-  { value: '1month', label: '1 Month' },
-  { value: '4weeks', label: '4 Weeks' },
-  { value: '2weeks', label: '2 Weeks' },
-  { value: '1week', label: '1 Week' },
-];
-
+// ─── Session counting ───
 // Count sessions for a client in a given month (YYYY-MM) — used for calendar month views
 // Includes: scheduled, confirmed, completed, and cancelled-but-counted sessions
 export const getMonthlySessionCount = (sessions, clientId, month) => {
@@ -410,24 +409,41 @@ export const parseSessionCountOverride = (raw) => {
   return null;
 };
 
+// The single source of truth for override math. "Active override" = override.periodStart
+// matches the given period start (same semantic as v2.8 — works for both sliding-window
+// and contract packages). Returns { auto, effective, override }.
+// v2.10.1: extracted — this expression previously existed in THREE copies (both count
+// helpers below + the Clients form live preview), the exact drift class behind the
+// v2.9.6 "same number, two semantics" trap.
+export const applyOverride = (auto, override, periodStart) => {
+  if (!override || override.periodStart !== periodStart) {
+    return { auto, effective: auto, override: null };
+  }
+  const effective = override.type === 'absolute'
+    ? override.value
+    : Math.max(0, auto + override.value);
+  return { auto, effective, override };
+};
+
+// Inverse of parseSessionCountOverride for pre-filling the override input: active
+// override → "10" / "+2" / "-1"; stale or absent → "". v2.10.1: extracted from two
+// character-identical copies in Clients.jsx openEdit and Schedule.jsx openOverrideEdit
+// (parse and format are an inverse pair — they must live next to each other).
+export const formatOverrideDraft = (pkg, period) => {
+  const ov = pkg.sessionCountOverride;
+  if (!ov || ov.periodStart !== period.start) return '';
+  return ov.type === 'delta'
+    ? (ov.value >= 0 ? '+' : '') + ov.value
+    : String(ov.value);
+};
+
 // Compute auto + effective count for a specific session within its client's current package.
-// "Active override" = override.periodStart matches the current package's effective period start
-// (same semantic as v2.8 — works for both sliding-window and contract packages).
 // Returns { auto, effective, override } — preserved shape for backward compat.
 export const getEffectiveSessionCount = (client, session, sessions) => {
   const pkg = getCurrentPackage(client);
   const period = getEffectivePeriod(pkg, session.date);
   const auto = getSessionOrdinal(sessions, session.id, session.clientId, period.start, period.end);
-
-  const override = pkg.sessionCountOverride;
-  if (!override || override.periodStart !== period.start) {
-    return { auto, effective: auto, override: null };
-  }
-
-  const effective = override.type === 'absolute'
-    ? override.value
-    : Math.max(0, auto + override.value);
-  return { auto, effective, override };
+  return applyOverride(auto, pkg.sessionCountOverride, period.start);
 };
 
 // Compute auto + effective count for a client (not anchored to a specific session) as of refDate.
@@ -436,16 +452,7 @@ export const getEffectiveClientCount = (client, sessions, refDateStr = today()) 
   const pkg = getCurrentPackage(client);
   const period = getEffectivePeriod(pkg, refDateStr);
   const auto = getPeriodSessionCount(sessions, client.id, period.start, period.end);
-
-  const override = pkg.sessionCountOverride;
-  if (!override || override.periodStart !== period.start) {
-    return { auto, effective: auto, override: null };
-  }
-
-  const effective = override.type === 'absolute'
-    ? override.value
-    : Math.max(0, auto + override.value);
-  return { auto, effective, override };
+  return applyOverride(auto, pkg.sessionCountOverride, period.start);
 };
 
 // True when the client's current package has a contract and the effective count has reached it.
@@ -461,7 +468,6 @@ export const isRenewalDue = (client, sessions) => {
 // NEVER use toISOString() for display dates — it converts to UTC, so midnight in
 // Beirut (UTC+3) becomes the previous day. All date→string must use local time.
 export const today = () => localDateStr(new Date());
-export const currentMonth = () => localMonthStr(new Date());
 
 // Convert a Date object to YYYY-MM-DD using LOCAL time (not UTC)
 export const localDateStr = (d) =>
@@ -638,7 +644,7 @@ function migrateData(data) {
       for (const s of clientSessions) {
         if (Array.isArray(s.focus) && s.focus.includes('Arms')) {
           const replacement = armsCount % 2 === 0 ? 'Bi' : 'Tri';
-          s.focus = s.focus.map(t => t === 'Arms' ? replacement : t);
+          s.focus = s.focus.map(tag => tag === 'Arms' ? replacement : tag);
           armsCount++;
         }
       }
@@ -702,6 +708,17 @@ const mergeById = (localArr, remoteArr) => {
 export function mergeData(local, remote) {
   if (!remote) return local;
   if (!local) return remote;
+  // v2.10.1: migrate the remote blob by its OWN _dataVersion before union-merging.
+  // Without this, records pushed by a device running an older cached bundle (clients
+  // without packages[], 'Arms' tags, 'Custom' type) were merged in raw, then stamped
+  // with Math.max(_dataVersion) below — so loadData's migrateData never touched them
+  // again and they stayed broken forever. Local is always migrated already (it comes
+  // from loadData or reducer state). No-op when remote is current (version gates).
+  // Migrate a CLONE, not the caller's object: reconcile() in App.jsx compares the
+  // merged result against its `remote` reference to decide whether to push — mutating
+  // it in place would make merged look identical to "what the server has" and skip
+  // the push that would upgrade the server's old-format blob.
+  remote = migrateData(JSON.parse(JSON.stringify(remote)));
   const localTs = local._lastModified || '';
   const remoteTs = remote._lastModified || '';
   const preferLocal = localTs > remoteTs;
@@ -935,8 +952,15 @@ export function reducer(state, action) {
 }
 
 // ─── WhatsApp helpers ───
-// Use nickname for friendly messages, fall back to full name
-const friendly = (client) => client.nickname || client.name.split(' ')[0];
+// Use nickname for friendly messages, fall back to full name.
+// v2.10.1: exported — Clients.jsx quick-message re-implemented this inline.
+export const friendly = (client) => client.nickname || client.name.split(' ')[0];
+
+// Open WhatsApp with a prefilled message. The ONE place that builds wa.me URLs —
+// phone-normalization changes (deferred revisit) must only ever land here.
+export const openWhatsApp = (client, msg) => {
+  window.open(`https://wa.me/${formatPhone(client.phone)}?text=${encodeURIComponent(msg)}`, '_blank');
+};
 
 // Default message templates — editable by PT in General panel
 // Placeholders: {name} {type} {emoji} {date} {time} {duration} {number} {periodEnd}
@@ -954,8 +978,11 @@ export const DEFAULT_TEMPLATES = {
 // Replace placeholders in a template with actual session values.
 // Uses client's current package for {number} and {periodEnd} (unchanged semantics).
 // v2.9: adds {packageProgress} — "N/M" for contract packages, empty string otherwise.
-const fillTemplate = (template, client, session, sessions) => {
-  const st = SESSION_TYPES.find(stype => stype.label === session.type) || SESSION_TYPES[5];
+// v2.10.1: takes lang and threads it into formatDateLong — Arabic templates were
+// shipping with en-US dates ("Wednesday, June 10, 2026" inside an Arabic message)
+// because the lang default was silently used here.
+const fillTemplate = (template, client, session, sessions, lang = 'en') => {
+  const st = getSessionType(session.type);
   const pkg = getCurrentPackage(client);
   const period = getEffectivePeriod(pkg, session.date);
   const { effective } = sessions
@@ -972,27 +999,24 @@ const fillTemplate = (template, client, session, sessions) => {
     .replace(/\{name\}/g, friendly(client))
     .replace(/\{type\}/g, session.type)
     .replace(/\{emoji\}/g, st.emoji)
-    .replace(/\{date\}/g, formatDateLong(session.date))
+    .replace(/\{date\}/g, formatDateLong(session.date, lang))
     .replace(/\{time\}/g, session.time)
     .replace(/\{duration\}/g, String(session.duration || 45))
     .replace(/\{number\}/g, String(effective))
-    .replace(/\{periodEnd\}/g, formatDateLong(periodEndDisplay))
+    .replace(/\{periodEnd\}/g, formatDateLong(periodEndDisplay, lang))
     .replace(/\{packageProgress\}/g, packageProgress);
 };
 
-export const sendBookingWhatsApp = (client, session, templates, lang = 'en', sessions = []) => {
-  const phone = formatPhone(client.phone);
-  const tpl = (templates && templates.booking) || DEFAULT_TEMPLATES[lang].booking;
-  const msg = fillTemplate(tpl, client, session, sessions);
-  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+// v2.10.1: booking/reminder senders were byte-identical apart from the template key —
+// collapsed into one factory so a fix to one can never miss the other (the v2.9.6
+// "two semantics" drift class).
+const makeTemplateSender = (kind) => (client, session, templates, lang = 'en', sessions = []) => {
+  const tpl = (templates && templates[kind]) || DEFAULT_TEMPLATES[lang][kind];
+  openWhatsApp(client, fillTemplate(tpl, client, session, sessions, lang));
 };
 
-export const sendReminderWhatsApp = (client, session, templates, lang = 'en', sessions = []) => {
-  const phone = formatPhone(client.phone);
-  const tpl = (templates && templates.reminder) || DEFAULT_TEMPLATES[lang].reminder;
-  const msg = fillTemplate(tpl, client, session, sessions);
-  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-};
+export const sendBookingWhatsApp = makeTemplateSender('booking');
+export const sendReminderWhatsApp = makeTemplateSender('reminder');
 
 // ─── Backup export/import with merge ───
 export const exportBackup = (state) => {
@@ -1007,6 +1031,13 @@ export const exportBackup = (state) => {
 
 // Merge backup into live data: fills gaps, doesn't replace existing
 export const mergeBackup = (live, backup) => {
+  // v2.10.1: migrate the backup by its OWN _dataVersion before merging. The previous
+  // code only migrated the MERGED blob — which inherits live's _dataVersion (4) via
+  // the spread below, so migrateData no-oped and records restored from an old backup
+  // (pre-v3 clients without packages[], 'Arms'/'Custom' sessions) entered live state
+  // permanently un-migrated. Migrating the backup first also guards malformed files
+  // (missing clients/sessions arrays) before the .filter calls below.
+  backup = migrateData(backup);
   const merged = { ...live };
   // Merge clients by ID — backup fills missing, doesn't overwrite existing
   const liveClientIds = new Set(live.clients.map(c => c.id));
@@ -1020,9 +1051,16 @@ export const mergeBackup = (live, backup) => {
   const liveTodoIds = new Set((live.todos || []).map(todo => todo.id));
   const restoredTodos = (backup.todos || []).filter(todo => !liveTodoIds.has(todo.id));
   merged.todos = [...(live.todos || []), ...restoredTodos];
-  // Merge auditLog by ID — append-only forensic log; keep all entries from both sides
+  // Merge auditLog by ID — append-only forensic log; keep all entries from both sides.
+  // v2.10.1: the migrateData(backup) call above synthesizes 'migration v2→v3'
+  // package_created entries for EVERY client in an old backup — including clients
+  // that already exist live (whose synthesized packages were just discarded by the
+  // restoredClients filter). Drop those orphan entries; keep migration entries only
+  // for clients actually being restored.
   const liveAuditIds = new Set((live.auditLog || []).map(e => e.id));
-  const restoredAudit = (backup.auditLog || []).filter(e => !liveAuditIds.has(e.id));
+  const restoredAudit = (backup.auditLog || []).filter(e =>
+    !liveAuditIds.has(e.id) &&
+    !(e.trigger && e.trigger.reason === 'migration v2→v3' && liveClientIds.has(e.clientId)));
   merged.auditLog = [...(live.auditLog || []), ...restoredAudit];
   // Keep whichever has custom templates (live wins if both have them)
   merged.messageTemplates = live.messageTemplates || backup.messageTemplates || {};

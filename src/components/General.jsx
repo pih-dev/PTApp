@@ -4,9 +4,12 @@ import { exportBackup, mergeBackup, genId, DEFAULT_TEMPLATES, haptic } from '../
 import { getToken, saveSnapshot, listSnapshots, fetchSnapshot } from '../sync';
 import { t } from '../i18n';
 
-// Raw GitHub URLs for docs — fetched at runtime, not bundled
+// Raw GitHub URLs for docs — fetched at runtime, not bundled.
+// v2.10.1: the instructions URL was still pointing at v2.9 two releases later —
+// the in-app "App Instructions" button silently served stale docs. Bumping this
+// is now an explicit step in the CLAUDE.md deploy checklist.
 const DOCS = {
-  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.9.md',
+  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.10.0.md',
   changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
 };
 
@@ -96,8 +99,9 @@ function renderMarkdown(text) {
           i++;
         }
       }
+      // paddingInlineStart (not paddingLeft) — flips correctly in Arabic RTL
       elements.push(
-        <ol key={key++} style={{ margin: '6px 0', paddingLeft: 20, fontSize: 13, color: 'var(--t3)', lineHeight: 1.7 }}>
+        <ol key={key++} style={{ margin: '6px 0', paddingInlineStart: 20, fontSize: 13, color: 'var(--t3)', lineHeight: 1.7 }}>
           {items.map((item, idx) => <li key={idx}>{inline(item)}</li>)}
         </ol>
       );
@@ -111,8 +115,9 @@ function renderMarkdown(text) {
         items.push(lines[i].slice(2));
         i++;
       }
+      // paddingInlineStart (not paddingLeft) — flips correctly in Arabic RTL
       elements.push(
-        <ul key={key++} style={{ margin: '6px 0', paddingLeft: 20, fontSize: 13, color: 'var(--t3)', lineHeight: 1.7 }}>
+        <ul key={key++} style={{ margin: '6px 0', paddingInlineStart: 20, fontSize: 13, color: 'var(--t3)', lineHeight: 1.7 }}>
           {items.map((item, idx) => <li key={idx}>{inline(item)}</li>)}
         </ul>
       );
@@ -337,7 +342,11 @@ export default function General({ state, dispatch, onClose, lang, setLang, theme
               )}
             </button>
             {editingTodo === todo.id ? (
-              <input className="input" style={{ flex: 1, fontSize: 13, padding: '6px 10px' }}
+              /* key tied to todo.text (defaultValue trap): if a synced remote edit lands
+                 while this input is open, the remount drops the stale DOM value — otherwise
+                 onBlur's dirty-check would dispatch the OLD text with a newer _modified
+                 stamp and silently revert the other device's edit on every device. */
+              <input key={todo.text} className="input" style={{ flex: 1, fontSize: 13, padding: '6px 10px' }}
                 autoFocus
                 defaultValue={todo.text}
                 onBlur={e => {

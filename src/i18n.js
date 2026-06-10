@@ -195,6 +195,14 @@ const T = {
     willAutoRenew: 'booking this session will auto-renew',
     renewalAlreadyClosed: 'This package was already renewed (likely from another device). Close this dialog and check the latest state.',
     editCount: 'Edit count',
+
+    // v2.10.1 keys
+    repeatNoAutoRenew: 'recurring booking does NOT auto-renew — renew from the client’s page',
+    namePlaceholder: 'e.g. Ahmad Khalil',
+    nicknamePlaceholder: 'e.g. Ahmad',
+    phonePlaceholder: 'e.g. 71 123 456',
+    clientNotesPlaceholder: 'e.g. Bad knee, prefers mornings',
+    quickGreeting: 'Hi {name}! 💪',
   },
   ar: {
     // App
@@ -388,6 +396,14 @@ const T = {
     willAutoRenew: 'حجز هذه الجلسة سيجدد الباقة تلقائياً',
     renewalAlreadyClosed: 'تم تجديد هذه الباقة مسبقاً (على الأرجح من جهاز آخر). أغلق هذا المربع وتحقق من الحالة الحالية.',
     editCount: 'تعديل العدد',
+
+    // v2.10.1 keys
+    repeatNoAutoRenew: 'الحجز المتكرر لا يجدد الباقة تلقائياً — جدّدها من صفحة العميل',
+    namePlaceholder: 'مثلاً أحمد خليل',
+    nicknamePlaceholder: 'مثلاً أحمد',
+    phonePlaceholder: 'مثلاً 71 123 456',
+    clientNotesPlaceholder: 'مثلاً ركبة مصابة، يفضّل الصباح',
+    quickGreeting: 'مرحبا {name}! 💪',
   },
 };
 

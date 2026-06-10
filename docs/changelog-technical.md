@@ -4,6 +4,37 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.10.1 — Fable 5 whole-codebase review fix pack (2026-06-10)
+
+**Trigger:** Pierre asked for a fresh-eyes code review on the new Fable 5 model, then "knock out all minor and medium stuff." Process: 7 parallel finder agents (3 correctness, reuse, simplification, efficiency, altitude) → 42 candidates → dedup to ~30 → every candidate verified CONFIRMED by independent verifier agents or direct grep → fix pack → independent diff review before commit. **Full report with severity triage: `docs/reviews/2026-06-10-fable5-codebase-review.md`** (C1–C4 critical, M1–M16 medium — all fixed; P1–P8 preserved; W1–W3 wont-fix with reasons). Live snapshot archived first: `_archive/PTApp/data-snapshots/2026-06-10-pre-fable5-review-data.json` (v4, 15 clients, 204 sessions, 110,864 bytes).
+
+### Critical
+- **`sync.js` toBase64 chunking (C1).** `String.fromCharCode(...bytes)` spreads the payload as call arguments — JSC (iOS Safari) caps ~65K args; live data.json is 110KB+ pretty-printed. Now encodes in 0x8000-byte chunks via `String.fromCharCode.apply`. Also `serialize()` drops the `null, 2` indent (machine-read file; ~2× upload size on every debounced push).
+- **`mergeData`/`mergeBackup` migrate foreign blobs (C2).** Both now run `migrateData` on the remote/backup by its OWN `_dataVersion` before union-merging — previously merged-in pre-v3/v4 records were stamped `Math.max(_dataVersion)` and frozen un-migrated forever. `mergeData` migrates a **clone** (`JSON.parse(JSON.stringify(remote))`): reconcile() compares merged vs its `remote` reference to decide whether to push, so mutating in place would skip the push that upgrades the server blob. `mergeBackup` also filters migration-synthesized `package_created` audit entries for clients already in live (their synthesized packages were discarded — orphan forensics). New `scripts/sanity/sanity-merge-migration.mjs` (17 checks incl. no-mutation + no-orphan-audit, runs against the real snapshot when present).
+- **`getFocusTags` / `getSessionType` (C3).** `FOCUS_TAGS[type] || FOCUS_TAGS.Custom` (4 copies) was dead since v2.9.5 renamed Custom→Endurance — unmapped type ⇒ `tags.map` TypeError ⇒ ErrorBoundary screen. The 7 positional `|| SESSION_TYPES[5]` copies were the same drift class. Both fallbacks now live in one helper each in utils.js (`|| []` / last entry). Third occurrence of the "per-feature author-site drift" trap.
+- **RenewalModal live-id pre-check (C4).** The v2.9.2 "already renewed on another device" guard was doubly dead: read the stale `client` prop AND tested `getCurrentPackage(...).end != null`, unreachable by that helper's contract (it never returns a closed package). The reducer guard can't catch the race either (after a remote renewal the last package is the NEW open one — a second dispatch would close it and stack a duplicate). Fix: modal takes a live `clients` prop (both call sites pass `state.clients`); confirm() compares live last-package id vs the open-time snapshot's; mismatch ⇒ `renewalAlreadyClosed` banner. Package edits keep their id, so no false positives.
+
+### Medium
+- `fillTemplate(template, client, session, sessions, lang)` — `lang` threads into both `formatDateLong` calls (Arabic templates had en-US dates). Senders collapsed: `makeTemplateSender(kind)` factory; `sendBookingWhatsApp`/`sendReminderWhatsApp` are one-liners. New `openWhatsApp(client, msg)` is THE wa.me builder; `friendly` exported (Clients quick-message had inlined both + a hardcoded English greeting → now `quickGreeting` i18n key).
+- Dashboard: `isNowSession` requires `s.date === todayStr` (future cards glowed amber at matching time-of-day); week window `+6` days inclusive (was +7 ⇒ 8 days); `todaySessions`/`upcoming`/`renewalDueClients`/`weekSessions` useMemo'd (were recomputed with per-session Date allocations on every keystroke). Accepted tradeoff: `Date.now()` freezes between dispatches — 2h roll-off can lag in an idle PWA.
+- Schedule: multi-client create commits via ONE `ADD_SESSIONS` (was N×`ADD_SESSION` in `.map`; RENEW_PACKAGE loop stays — per-client transitions with own audit entries). Behavior delta: missing-client filter now runs BEFORE dispatch, so a client deleted mid-form no longer yields an orphan session. Repeat-mode renewal banner shows `repeatNoAutoRenew` (createRecurring is calendar-only — the "will auto-renew" promise was false). `occupiedSlots` useMemo replaces a per-render IIFE. Preview labels via `formatDate`.
+- Override plumbing deduped: `applyOverride(auto, override, periodStart)` (math existed 3×: both count helpers + Clients form preview) and `formatOverrideDraft(pkg, period)` (serialization existed 2×: Clients openEdit + Schedule openOverrideEdit). The v2.8 `.type/.mode` and v2.9.6 "two semantics" drift classes.
+- General: todo edit input `key={todo.text}` (defaultValue trap — mid-edit sync revert); `paddingInlineStart` on doc-viewer ol/ul (RTL); `DOCS.instructions` v2.9→v2.10.0 (stale two releases; now a deploy-checklist step).
+- ErrorBoundary backup filename local-time (UTC trap; inlined — file stays import-free by design).
+- Clients form placeholders i18n'd (4 keys EN+AR). i18n: 6 new keys ×2 languages.
+- Dead exports deleted: `STATUS_MAP`, `PERIOD_OPTIONS`, `currentMonth` (grep-verified zero consumers). `t`→`tag` in the v3→v4 migration (shadowing trap, latent — utils.js has no imports).
+
+### Deliberate non-fixes
+W1 per-dispatch `saveData` (crash durability beats perf); W2 auto-complete sweep on every mutation (only mechanism completing sessions across midnight in an open PWA — comment added in App.jsx; CLAUDE.md "on app load" wording was inaccurate); W3 `_modified`/audit `toISOString()` stamps are correct (machine timestamps, not display).
+
+### Preserved for next session (P1–P8 — see review report for fix directions)
+P1 historical ordinals wrong for contract clients (counting kernel — sessions before current package start all render `#(count+1)`); P2 O(n²) ordinal computation at scale; P3 EditableFocus ×4 → SessionCard refactor; P4 repeat-mode fork hygiene (buildSession + mode enum) — do BEFORE feature #2 adds session fields; P5 shared renewal-due selector; P6 Session-#0 band-aid altitude; P7 `EDIT_CURRENT_PACKAGE` reducer action; P8 edit-mode chip semantics (v2.9.6 carve-out).
+
+### Testing
+All sanity suites pass (arms-migration 17, counting, migration, recurring, reducer, slidingwindow 13, new merge-migration 17). Chunked base64 round-trips the real 110KB snapshot and a 1.1MB synthetic (incl. Arabic multi-byte). Bundle `node --check` clean.
+
+---
+
 ## v2.10.0 — Recurring session generator (2026-06-09)
 
 **Trigger:** PT requested fixed recurring schedules — "every Mon/Wed/Fri at 8:15, N sessions, per client, populate the calendar." Refined in brainstorming: the session count is a free input (not a hardcoded 10), and the feature is calendar-only.

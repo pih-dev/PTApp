@@ -209,3 +209,31 @@ Both correct in isolation — they answer different questions. But the user can'
 **Where it bit us:** `Schedule.jsx:295` (booking-form chip) shipped Apr 21 (v2.9.2) using the snapshot helper, while the popup at `:393` used the ordinal helper. Fixed in v2.9.6 by switching the chip to the ordinal helper with a preview session, plus a renewal-due short-circuit that mirrors `RENEW_PACKAGE`'s "fresh package, no override" outcome.
 
 **Why this kept slipping past review:** Each helper read correctly when audited alone. The bug lives in the *transition* between screens — only visible when the two are stacked in the actual user flow. Lesson: when reviewing a flow, mentally screenshot every intermediate state and read the labels as the user would read them, with no helper-name knowledge.
+
+## TRAP: Spread-into-arguments breaks at engine argument limits — toBase64 sync near-outage (2026-06-10)
+**What happened:** `sync.js` encoded uploads with `btoa(String.fromCharCode(...new TextEncoder().encode(str)))`. The spread passes EVERY byte as a separate function argument. JS engines cap argument counts (iOS Safari/JSC ≈65,536; V8 fails somewhere past ~150K with a stack overflow). The PT's live data.json was already 110,864 bytes pretty-printed — one growth spurt away from every push throwing RangeError, i.e. a permanent sync outage on his iPhone, on the app's most critical path.
+
+**Root cause:** `fn(...arr)` is O(arr.length) ARGUMENTS, not a stream. It works in tests with small fixtures and fails only in production once real data grows past an invisible, engine-specific threshold. Nothing in code review screams "size limit" — the line looks idiomatic.
+
+**Rule:** Never spread an unbounded array into function arguments (`String.fromCharCode(...bytes)`, `Math.max(...hugeArr)`, `arr.push(...hugeArr)`). Chunk it (`for (i; i += 0x8000) String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000))`) or loop/reduce. Audit every `...` whose operand scales with user data.
+
+**Bonus from the same review:** the upload was pretty-printed (`JSON.stringify(data, null, 2)`) — machine-read files should be compact; the indent doubled every push over Beirut internet.
+
+## TRAP: Renaming a catalog key silently kills every `|| CATALOG.oldKey` fallback (2026-06-10)
+**What happened:** v2.9.5 renamed `FOCUS_TAGS.Custom` → `FOCUS_TAGS.Endurance`. Four components carried the copy-pasted fallback `FOCUS_TAGS[session.type] || FOCUS_TAGS.Custom`. After the rename, `FOCUS_TAGS.Custom` was `undefined` — so the fallback that existed precisely to protect against unmapped types now GUARANTEED a `tags.map is not a function` white-screen for any unmapped type. The safety net became the crash. Latent for 5 weeks; found by 4 of 7 review angles independently.
+
+**Root cause:** A fallback referencing a catalog key by name is invisible to the rename. Grepping for `'Custom'` during v2.9.5 found the catalog and the migration, but `FOCUS_TAGS.Custom` (property access, no quotes) didn't match the string search. Same class: 7 copies of `|| SESSION_TYPES[5]` — a POSITIONAL fallback that silently changes meaning if the array is ever reordered.
+
+**Rule:** Fallbacks for catalog lookups live in ONE exported helper next to the catalog (`getFocusTags(type)` → `|| []`, `getSessionType(label)` → last entry), never inline at call sites. When renaming any exported key/constant, grep for the bare property access (`\.OldName\b`) in addition to the quoted string.
+
+## TRAP: Merge paths must migrate foreign blobs — `_dataVersion` is per-BLOB, records travel (2026-06-10)
+**What happened:** `mergeData` union-merged remote records and stamped the result `Math.max(local._dataVersion, remote._dataVersion)`; `mergeBackup` spread `{...live}` (inheriting `_dataVersion: 4`) and only migrated the MERGED result — a no-op. Consequence: records arriving from a device running an old cached bundle, or restored from an old backup file, entered live state in their OLD shape (clients without `packages[]`, `Arms` tags, `Custom` type) and — because the blob was already stamped v4 — `loadData`'s `migrateData` never touched them again. Frozen broken forever, including shapes that crash renders.
+
+**Root cause:** `migrateData` is version-GATED (`if (v < 3) ...`) and `_dataVersion` describes the blob, not the records inside it. Any path that imports records from OUTSIDE the local blob (sync merge, 409 retry, backup restore, future import features) bypasses the only gate.
+
+**Rule:** Every entry point where foreign records join local state must run `migrateData` on the FOREIGN blob by its OWN `_dataVersion` BEFORE merging. Migrate a clone if the caller still compares against the original reference afterward (reconcile() uses `dataEquals(merged, remote)` to decide whether to push — mutating `remote` in place would skip the push that upgrades the server). Covered by `scripts/sanity/sanity-merge-migration.mjs`.
+
+## TRAP: A guard that can never fire — check the helper's contract at the call site (2026-06-10)
+**What happened:** v2.9.2 added a pre-check to RenewalModal: `if (getCurrentPackage(client).end != null) showError(...)` to surface "another device already renewed while this modal was open." It was dead code twice over: (a) `getCurrentPackage` BY CONTRACT never returns a closed package (it returns a synthetic open default instead), so `.end != null` is unreachable on ANY input; (b) `client` was the prop snapshot captured at modal open — sync updates `state.clients`, never that snapshot. The guard shipped, was documented in the changelog as protection, and protected nothing for 7 weeks; the race it targeted would instead silently stack a duplicate renewal.
+
+**Rule:** When writing a guard around a helper's return value, re-read the helper's full contract INCLUDING its fallback branches — a defensive helper that "never returns bad shapes" also never returns the bad shape your guard tests for. And in React, any "did the world change while this dialog was open" check must read LIVE state (pass `state.clients` down), never the props captured at open. Detect cross-device changes by comparing stable IDs (package id at open vs now), not by testing for states the data model normalizes away.

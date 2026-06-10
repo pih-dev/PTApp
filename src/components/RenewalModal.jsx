@@ -5,7 +5,9 @@ import { getCurrentPackage, today, localDateStr } from '../utils';
 
 // Renewal modal — closes the client's current package and opens a new one.
 // Called from Clients tab card Renew button + Dashboard "Due for renewal" section rows.
-export default function RenewalModal({ show, client, sessions, onClose, dispatch, lang }) {
+// `clients` (v2.10.1) is the LIVE state.clients array — `client` is a snapshot captured
+// when the modal opened and never refreshes if a sync lands while it's open.
+export default function RenewalModal({ show, client, clients, sessions, onClose, dispatch, lang }) {
   const [contractSize, setContractSize] = useState('');
   const [periodStart, setPeriodStart] = useState('');
   const [periodUnit, setPeriodUnit] = useState('month');
@@ -57,11 +59,22 @@ export default function RenewalModal({ show, client, sessions, onClose, dispatch
     const cs = contractSize.trim();
     const contractNum = cs === '' ? null : (Number.isInteger(+cs) && +cs >= 1 ? +cs : null);
     if (!periodStart) return;
-    // Pre-check the reducer's silent-noop condition: if the current package was already
-    // closed (e.g. another device renewed during the modal session), surface that and
-    // keep the modal open so the PT understands nothing happened.
-    const livePkg = getCurrentPackage(client);
-    if (livePkg && livePkg.end != null) {
+    // v2.10.1: detect "another device already renewed while this modal was open".
+    // The v2.9.2 pre-check was dead code, twice over: it read the stale `client` prop
+    // (snapshot from modal open, never updated by sync), and it tested
+    // `getCurrentPackage(...).end != null` — which is unreachable because that helper
+    // BY CONTRACT never returns a closed package. The reducer guard doesn't catch the
+    // race either: after a remote renewal the client's last package is the NEW open
+    // one, so a second RENEW_PACKAGE would close the fresh package and stack a
+    // duplicate. Real check: compare the LIVE client's last-package id against the
+    // snapshot's — a different id means a renewal landed in between (package edits
+    // keep their id, so those don't false-positive).
+    const liveClient = (clients || []).find(c => c.id === client.id) || client;
+    const snapPkgs = client.packages || [];
+    const livePkgs = liveClient.packages || [];
+    const snapLastId = snapPkgs.length ? snapPkgs[snapPkgs.length - 1].id : null;
+    const liveLastId = livePkgs.length ? livePkgs[livePkgs.length - 1].id : null;
+    if (snapLastId !== liveLastId) {
       setError(t(lang, 'renewalAlreadyClosed'));
       return;
     }
