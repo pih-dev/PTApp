@@ -52,6 +52,7 @@ check('old session type Custom→Endurance', ms.type === 'Endurance');
 check('old session Arms tag rewritten', !ms.focus.includes('Arms') && ms.focus.includes('Bi'));
 check('live records untouched', merged.clients.length === live.clients.length + 1 && merged.sessions.length === live.sessions.length + 1);
 check('merged _dataVersion is 5', merged._dataVersion === 5);
+check('merged evaluations[] exists (v4→v5 ran on foreign blob)', Array.isArray(merged.evaluations));
 // mergeData must NOT mutate the caller's remote — reconcile() compares merged against
 // it to decide whether to push the upgraded blob back to the server.
 check('caller remote object NOT mutated', remoteOld.clients[0].periodStart === remoteRef.clients[0].periodStart && remoteOld._dataVersion === 2);

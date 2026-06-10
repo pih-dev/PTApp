@@ -111,6 +111,9 @@ function assert(cond, msg) {
 // (v2.9.5 added v3→v4 Arms/Endurance; v2.11 added v4→v5 evaluations[]).
 // We assert the latest version and that v3-introduced shape (packages[]) survives.
 assert(migrated._dataVersion === 5, 'dataVersion bumped through to 5');
+// Guards the v4→v5 step specifically: if it were removed, the version assertion above
+// could still pass via the defaults block, but this would not.
+assert(Array.isArray(migrated.evaluations), 'evaluations[] exists after full-chain migration');
 assert(Array.isArray(migrated.auditLog), 'auditLog is an array');
 assert(migrated.auditLog.length === 5, 'five package_created audit entries');
 
