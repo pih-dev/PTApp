@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
+import NormChartsView from './NormChartsView';
 import { exportBackup, mergeBackup, genId, DEFAULT_TEMPLATES, haptic } from '../utils';
 import { getToken, saveSnapshot, listSnapshots, fetchSnapshot } from '../sync';
 import { t } from '../i18n';
@@ -148,6 +149,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, theme
   const [newTodo, setNewTodo] = useState('');
   const [editingTodo, setEditingTodo] = useState(null); // id of todo being edited
   const [notification, setNotification] = useState(null); // { text, type: 'success'|'error' }
+  const [showCharts, setShowCharts] = useState(false);
 
   // Auto-dismiss notification after 4 seconds
   useEffect(() => {
@@ -445,6 +447,10 @@ export default function General({ state, dispatch, onClose, lang, setLang, theme
             onClick={() => openDoc(DOCS.changelog, t(lang, 'whatChanged'))}>
             {t(lang, 'whatChanged')}
           </button>
+          <button className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px' }}
+            onClick={() => setShowCharts(true)}>
+            {t(lang, 'normCharts')}
+          </button>
         </div>
       </div>
 
@@ -454,6 +460,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, theme
           {renderMarkdown(docContent.text)}
         </Modal>
       )}
+      {showCharts && <NormChartsView lang={lang} onClose={() => setShowCharts(false)} />}
     </Modal>
   );
 }
