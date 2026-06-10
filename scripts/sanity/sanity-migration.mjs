@@ -5,7 +5,7 @@
 // Use import.meta.url directly — new URL('../../src/utils.js', import.meta.url) already
 // produces a file:// URL with the correct path; no need to re-wrap in pathToFileURL.
 const utilsUrl = new URL('../../src/utils.js', import.meta.url).href;
-const { loadData, mergeBackup, computeSlidingWindow } = await import(utilsUrl);
+const { loadData, mergeBackup, computeSlidingWindow, today } = await import(utilsUrl);
 
 // Craft a v2 blob in localStorage-like shape
 const v2Blob = {
@@ -66,8 +66,13 @@ const v2Blob = {
   _lastModified: '2026-04-15T10:00:00Z',
 };
 
-const todayStr = new Date().toISOString().slice(0, 10);
-const [ty, tm, td] = todayStr.split('-').map(Number);
+// Use today() from utils (local-time date string) for all runtime date anchors.
+// new Date().toISOString() returns a UTC date which can differ from the local date
+// that today() (and therefore migrateData's pkgStart) uses — causing fixture rot
+// whenever the UTC and local dates straddle midnight. See docs/traps.md
+// "Hardcoded date stamps in test fixtures rot" and "Session-context date drift".
+const todayStr = today();
+const [ty, tm] = todayStr.split('-').map(Number);
 
 // Client A's overridePeriodStart must equal the *current* sliding-window start computed
 // from anchor 2026-03-02 monthly — otherwise the migration treats the override as stale
@@ -76,12 +81,11 @@ const aliceWindow = computeSlidingWindow('2026-03-02', 'month', 1, todayStr);
 v2Blob.clients.find(c => c.id === 'cA').overridePeriodStart = aliceWindow.start;
 
 // Client D's overridePeriodStart must match what legacy getClientPeriod would have produced
-// when periodStart was absent (anchor = today()). Reconstruct it here using the same
-// month-anchor-clamp rule so the test stays calendar-agnostic.
-// Anchor day = today's day. This month's start = that day clamped to month length.
-const thisMonthLen = new Date(ty, tm, 0).getDate();
-const thisStartDay = Math.min(td, thisMonthLen);
-const legacyCurStart = `${ty}-${String(tm).padStart(2, '0')}-${String(thisStartDay).padStart(2, '0')}`;
+// when periodStart was absent (anchor = today()). The migration sets pkgStart = today() and
+// then checks computeSlidingWindow(today(), month, 1, today()).start, which always equals
+// today() itself. So the fixture simply stamps the override with today() — calendar-agnostic
+// and immune to UTC/local midnight drift.
+const legacyCurStart = todayStr;
 v2Blob.clients.find(c => c.id === 'cD').overridePeriodStart = legacyCurStart;
 
 // Client E's overridePeriodStart is stamped with v2's calendar-month anchor (1st of current month).
