@@ -9,7 +9,7 @@ import { t } from '../i18n';
 // the in-app "App Instructions" button silently served stale docs. Bumping this
 // is now an explicit step in the CLAUDE.md deploy checklist.
 const DOCS = {
-  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.10.0.md',
+  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.10.2.md',
   changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
 };
 

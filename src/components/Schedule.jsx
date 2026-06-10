@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon } from './Icons';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, getEffectiveClientCount, localDateStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, isRenewalDue, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict } from '../utils';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, localDateStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, isRenewalDue, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import { t, dateLocale } from '../i18n';
@@ -441,8 +441,12 @@ export default function Schedule({ state, dispatch, lang }) {
                           // all three places. Why this matters: PT was repeatedly confused
                           // by the chip reading "(0)" for a brand-new client, then seeing
                           // "#1" on the next screen. Two semantics for the same idea.
-                          //   Edit mode      → existing behavior (current period count of the
-                          //                    client whose session is being edited).
+                          //   Edit mode      → simulate the session at its NEW form.date/form.time
+                          //                    and show the ordinal it WILL have after saving
+                          //                    (v2.10.2, review P8 — was today's-window count
+                          //                    regardless of form.date, a v2.9.6 carve-out that
+                          //                    broke the "one number, one semantic" rule when
+                          //                    rescheduling across period boundaries).
                           //   Renewal-due    → saveSession dispatches RENEW_PACKAGE first; new
                           //                    package starts fresh (sessionCountOverride: null
                           //                    in the reducer), so this session is #1.
@@ -453,8 +457,14 @@ export default function Schedule({ state, dispatch, lang }) {
                           //                    are identical by construction.
                           let chipAuto, chipEffective, chipOverride;
                           if (editingSession) {
+                            const moved = {
+                              ...editingSession,
+                              date: form.date || editingSession.date,
+                              time: form.time || editingSession.time,
+                            };
+                            const simSessions = state.sessions.map(s => s.id === editingSession.id ? moved : s);
                             ({ auto: chipAuto, effective: chipEffective, override: chipOverride } =
-                              getEffectiveClientCount(c, state.sessions));
+                              getEffectiveSessionCount(c, moved, simSessions));
                           } else if (renewalDueIds.has(c.id)) {
                             chipAuto = 1; chipEffective = 1; chipOverride = null;
                           } else {

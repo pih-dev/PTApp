@@ -4,6 +4,29 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.10.2 — Counting kernel: historical ordinals + memoized index (2026-06-10)
+
+**Trigger:** Pierre asked to start on the v2.10.1 review's preserved findings, beginning with P1+P2 (they share the counting kernel). P8 folded in (the review marked it "revisit when touching P1"). TDD: `scripts/sanity/sanity-historical-ordinals.mjs` written first (39 assertions), watched fail, then implemented.
+
+### P1 — historical session ordinals (utils.js)
+- **`getPackageForDate(client, dateStr)`** resolves the package whose range contains the date. Containment walks newest→oldest so the newest package wins where closed ranges overlap (live data has re-done renewals sharing one start). **Zero-day artifact packages (`end` = `start` − 1, from RENEW_PACKAGE accepting `start <= oldStart` — May 11 leave-as-is decision) are excluded from resolution entirely** via a `validPackages` filter; uncontained dates attach to the package they lead into (oldest with `start >` date), falling back to the last package.
+- **`resolvePackagePeriod(client, dateStr)`** returns `{pkg, period}`. Dates at/after `pkg.start` use `getEffectivePeriod`. Dates before it: sliding packages keep backward window extrapolation (pre-v2.9 behavior); contract packages get a synthetic **pre-era bucket** `[prev valid pkg end + 1 .. start − 1]` (epoch-floored when no predecessor) — a contract range can't be extrapolated, and reusing the package's own range would resurrect the findIndex −1 fallback. The bucket's start never matches an override's `periodStart`, so overrides go inactive in the pre-era by construction.
+- **`getEffectiveSessionCount`** now uses `resolvePackagePeriod` (was `getCurrentPackage` — every pre-renewal session of a contract client rendered `#(current count + 1)`). The resolved package's own `sessionCountOverride` applies — period-scoped, so history and present can't cross-contaminate.
+- **`getEffectivePeriod`** caps at `pkg.end` for closed packages (contract: `{start, end: pkg.end}`; sliding: window end clamped) so a window straddling a renewal can't swallow the next package's sessions.
+- **Live-data diff: 0/204 ordinals change** on today's snapshot. First implementation changed 4 (Elie Jabbour's pre-package sessions all → `#7`: a zero-day package with an active `+6` override won resolution and its empty period triggered the `length+1` fallback + override). Synthetic fixtures alone missed this — the messy-shapes fixture in the sanity script is modeled directly on his live package array.
+
+### P2 — O(n²) ordinal computation (utils.js)
+- **`getClientCountedSessions(sessions, clientId)`**: counted sessions (cancelled-uncounted excluded) grouped per client and sorted by date+time, built ONCE per sessions array and cached in a `WeakMap` keyed on the array reference — safe because the reducer is immutable; every mutation produces a new array. Hand-built arrays at call sites (`[...state.sessions, preview]`) miss the cache and pay one O(n log n) rebuild, the pre-fix cost of a single card.
+- `getSessionOrdinal` / `getPeriodSessionCount` rewritten on the index: per-card cost drops from filter+sort of ALL sessions to a filter of one client's sessions. No signature changes — all component call sites untouched.
+
+### P8 — edit-mode booking chip (Schedule.jsx)
+- Edit mode now simulates the session at its new `form.date`/`form.time` (replacing it in a copy of `state.sessions`) and asks `getEffectiveSessionCount` — the ordinal the session WILL have after saving, same helper as the popup/WhatsApp, numbers agree by construction (v2.9.6 rule). Was `getEffectiveClientCount` = today's-window count regardless of `form.date` (explicit v2.9.6 carve-out, now removed). `getEffectiveClientCount` dropped from Schedule's imports.
+
+### Process note (same-day sync incident)
+Investigated before this work: the PT's iPhone stopped pushing after June 2 (v2.10.1's C1 spread crash — the June 9 recurring-test batch pushed the payload over the engine arg cap), so sessions after June 3 never reached the cloud and remote history was never overwritten. Forensics + pre-recovery baseline: `_archive/PTApp/incidents/2026-06-10-stranded-sync-*`. The PT is re-entering the lost bookings from memory.
+
+---
+
 ## v2.10.1 — Fable 5 whole-codebase review fix pack (2026-06-10)
 
 **Trigger:** Pierre asked for a fresh-eyes code review on the new Fable 5 model, then "knock out all minor and medium stuff." Process: 7 parallel finder agents (3 correctness, reuse, simplification, efficiency, altitude) → 42 candidates → dedup to ~30 → every candidate verified CONFIRMED by independent verifier agents or direct grep → fix pack → independent diff review before commit. **Full report with severity triage: `docs/reviews/2026-06-10-fable5-codebase-review.md`** (C1–C4 critical, M1–M16 medium — all fixed; P1–P8 preserved; W1–W3 wont-fix with reasons). Live snapshot archived first: `_archive/PTApp/data-snapshots/2026-06-10-pre-fable5-review-data.json` (v4, 15 clients, 204 sessions, 110,864 bytes).

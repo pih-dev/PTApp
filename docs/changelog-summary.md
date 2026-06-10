@@ -4,6 +4,18 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.10.2 — Historical session numbers fixed (June 10, 2026)
+
+**Old sessions now show the number they really were.** For clients on contracts, every session from before a renewal used to display the same wrong number — the app always counted within the *current* package, so a March session of a client renewed in April showed "current count + 1" instead of its real place in March. The app now works out which package each session belonged to by its date (skipping the empty zero-day package leftovers some clients have from renewal experiments) and numbers it within that package. A count override stays locked to the package it was set in — it can't bleed into history or into the current period.
+
+**Editing a booking shows the right count too.** The number chip next to the client's name when *editing* a session used to show today's count regardless of the date you were moving it to. It now shows the number the session will actually have at its new date — the same number the confirmation popup and WhatsApp message will use.
+
+**Built for the long run.** Session numbers used to be recomputed from the entire history for every card on screen — fine at 200 sessions, visibly slow at a few thousand. The counting now happens once per data change and is reused by every card, so the Sessions and Dashboard tabs stay fast as history grows into the years.
+
+**Verified against real data.** A first version of the package-matching logic looked right on clean test data but produced nonsense for one real client whose package history contains artifacts from renewal experiments. A new 39-check test now covers exactly those messy real-world shapes, and the final fix was confirmed to change nothing on a copy of today's live data.
+
+---
+
 ## v2.10.1 — Health check and fix pack (June 10, 2026)
 
 **A fresh pair of eyes over the whole app.** With a new, stronger AI model available, we ran a top-to-bottom review of the entire codebase — every file, seven different review angles, every finding independently double-checked. About 30 real issues surfaced. This release fixes the urgent and easy ones; the big-ticket items are written up and queued.

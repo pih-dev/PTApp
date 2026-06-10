@@ -140,7 +140,7 @@ trap exists because the failure is silent. Renamed.
 
 ## PRESERVED for a future session (large / design-level)
 
-### P1. Historical session ordinals wrong for contract clients
+### P1. Historical session ordinals wrong for contract clients — FIXED in v2.10.2
 `Sessions.jsx:81` + `utils.js getEffectivePeriod` — sessions dated before the current
 package's start are excluded from their own ordinal list → findIndex −1 → **every**
 pre-renewal session of a contract client renders the same `#(current count + 1)`.
@@ -149,7 +149,7 @@ Sliding-window clients are immune (window extrapolates backward). Real fix: reso
 always using the current package. Touches `getEffectivePeriod`/`getEffectiveSessionCount`
 contracts + sanity-counting fixtures. Design carefully — this is the counting kernel.
 
-### P2. Sessions/Dashboard ordinal computation is O(n²)
+### P2. Sessions/Dashboard ordinal computation is O(n²) — FIXED in v2.10.2
 `getEffectiveSessionCount` per rendered card does a full filter+sort of `state.sessions`.
 At a few thousand career sessions this is multi-second jank on iPhone. Fix direction: one
 memoized `Map<clientId, sortedPeriodSessions>` per `state.sessions` change; cards read by
@@ -184,7 +184,7 @@ Replace-last-package writes are hand-rolled at 2+ author sites (Clients save, Sc
 commitOverride) — the v2.9.2 incident class. Fix direction: one reducer action owning
 replace-last, override stamping, `_modified`, audit diffing.
 
-### P8. Edit-mode booking chip count semantics
+### P8. Edit-mode booking chip count semantics — FIXED in v2.10.2
 `Schedule.jsx:435-437` edit branch shows today's-window count regardless of `form.date`
 (explicit v2.9.6 carve-out comment "existing behavior"). Revisit when touching P1 —
 same counting-kernel surface.

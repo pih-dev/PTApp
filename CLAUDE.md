@@ -12,14 +12,22 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.10.1
+## Current Version: v2.10.2
+Counting-kernel fix pack — review findings P1 + P2 (+P8 folded in). No schema change, no migration. See `docs/instructions-v2.10.2.md`.
+- **P1 — historical ordinals.** `getEffectiveSessionCount` resolves the package CONTAINING the session's date via new `resolvePackagePeriod`/`getPackageForDate` (utils.js) — was always `getCurrentPackage`, so every pre-renewal session of a contract client showed `#(current count + 1)`. Resolution: containment newest-first (overlapping closed packages exist live), **zero-day artifact packages (`end` < `start`) excluded entirely**, uncontained dates attach to the package they lead into; pre-era dates of contract packages get a synthetic bucket `[prev end + 1 .. start − 1]`, sliding keeps backward extrapolation. Overrides stay period-scoped — history and present can't cross-contaminate. Live diff: 0/204 ordinals changed on today's data.
+- **P2 — O(n²) counting.** `getClientCountedSessions(sessions, clientId)`: per-client sorted counted-sessions index, built once per sessions array, cached in a WeakMap on the array reference (reducer is immutable). `getSessionOrdinal`/`getPeriodSessionCount` read it; signatures unchanged, zero component edits.
+- **P8 — edit-mode chip.** Edit mode simulates the session at its new form.date/time through `getEffectiveSessionCount` (was today's-window count regardless of date — the v2.9.6 carve-out removed).
+- **New sanity script:** `scripts/sanity/sanity-historical-ordinals.mjs` (39 assertions incl. a `messy` fixture cloned from live pathological package shapes). New trap: synthetic fixtures vs live data — diff counting-kernel changes against the archived snapshot before commit.
+- **Same-day incident:** PT's iPhone had been failing to push since June 2 (the C1 spread crash v2.10.1 fixed) — sessions after June 3 never reached the cloud; remote was never overwritten. Forensics: `_archive/PTApp/incidents/2026-06-10-stranded-sync-*`. PT re-entering lost bookings from memory.
+
+## Previous Version: v2.10.1
 Whole-codebase review fix pack (Fable 5 fresh-eyes review, 2026-06-10). No schema change, no migration. See `docs/instructions-v2.10.1.md`.
-- **Review report = work order.** `docs/reviews/2026-06-10-fable5-codebase-review.md` — C1–C4 critical + M1–M16 medium ALL FIXED; **P1–P8 preserved for a future session** (start there when picking up refactor work); W1–W3 deliberate non-fixes with reasons. Live data snapshot pre-change: `_archive/PTApp/data-snapshots/2026-06-10-pre-fable5-review-data.json`.
-- **Critical fixes:** chunked `toBase64` + compact uploads (iOS ~65K arg limit; data.json was already 110KB — sync outage imminent); `mergeData`/`mergeBackup` now migrate foreign blobs by their OWN `_dataVersion` before merging (old-device/old-backup records were frozen un-migrated forever); `getFocusTags`/`getSessionType` helpers replace 11 dead/positional inline fallbacks (`FOCUS_TAGS.Custom` was `undefined` since v2.9.5 — unmapped type white-screened the tab); RenewalModal cross-device guard actually works now (live last-package-id comparison; old check was doubly unreachable).
+- **Review report = work order.** `docs/reviews/2026-06-10-fable5-codebase-review.md` — C1–C4 critical + M1–M16 medium ALL FIXED; P1/P2/P8 fixed in v2.10.2; **P3–P7 still open** (P4 before eval feature #2); W1–W3 deliberate non-fixes with reasons. Live data snapshot pre-change: `_archive/PTApp/data-snapshots/2026-06-10-pre-fable5-review-data.json`.
+- **Critical fixes:** chunked `toBase64` + compact uploads (iOS ~65K arg limit; data.json was already 110KB — sync outage imminent, and in fact already live: see the June 10 incident above); `mergeData`/`mergeBackup` migrate foreign blobs by their OWN `_dataVersion` before merging; `getFocusTags`/`getSessionType` helpers replace 11 dead/positional inline fallbacks; RenewalModal cross-device guard actually works (live last-package-id comparison).
 - **New shared helpers in utils.js:** `applyOverride`, `formatOverrideDraft`, `getFocusTags`, `getSessionType`, `openWhatsApp`, `friendly` (exported), `makeTemplateSender`. Always use these — never re-inline the math/fallbacks they own.
 - **New sanity script:** `scripts/sanity/sanity-merge-migration.mjs` (17 checks; uses the real archived snapshot when present). 4 new traps in `docs/traps.md`.
 
-## Previous Version: v2.10.0
+## Older Previous Version: v2.10.0
 Recurring session generator — book a whole protocol in one pass. Calendar-only, no schema change, no migration. See `docs/instructions-v2.10.0.md`.
 - **Repeat mode in the booking form.** A "Repeat" toggle (gated `!editingSession`) switches the form to: single-client select + 7 weekday chips (Mon-first, localized) + one time + a session count (1–60). `generateRecurringDates(startDate, weekdays, count)` walks forward collecting matching weekdays until `count` (local-time only, 730-iter cap).
 - **Preview + deselect.** `buildPreview()` renders computed dates pre-ticked; `hasClientSlotConflict` flags same-client same-slot duplicates (pre-unticked). `createRecurring()` commits via ONE `ADD_SESSIONS` dispatch, then jumps the week strip to the first date.
@@ -141,6 +149,7 @@ Full hard-won lessons live in **`docs/traps.md`** — read before touching the r
 - **Renamed catalog key kills `|| CATALOG.oldKey` fallbacks (Jun 10 v2.10.1)** — property-access references don't match quoted-string greps; the safety fallback becomes the crash. Fallbacks live in one helper next to the catalog (`getFocusTags`, `getSessionType`).
 - **Merge paths must migrate foreign blobs (Jun 10 v2.10.1)** — `_dataVersion` is per-blob, records travel. Sync merge / backup restore must `migrateData` the FOREIGN blob by its own version before merging (on a clone — see trap). Covered by `sanity-merge-migration.mjs`.
 - **Guards that can never fire (Jun 10 v2.10.1)** — re-read a helper's fallback contract before guarding its return (`getCurrentPackage` never returns a closed package); "did the world change while open" checks must read LIVE state and compare stable IDs, not prop snapshots.
+- **Synthetic fixtures vs live data (Jun 10 v2.10.2)** — fixtures model designed shapes; live data contains every shape the reducer ever allowed (zero-day packages, duplicate starts, overlapping ranges). Diff counting-kernel/date-resolution changes against the archived live snapshot before commit; encode live pathologies as permanent fixtures.
 
 ---
 
@@ -187,7 +196,7 @@ Use `getStatus(status, lang, t)` for translated label. Badge colors via CSS clas
 ## KNOWN ISSUES / TECH DEBT
 
 ### Should fix soon
-- **P1–P8 from the v2.10.1 review** — see `docs/reviews/2026-06-10-fable5-codebase-review.md`. Highest impact: P1 (historical session ordinals display wrong for contract clients — counting kernel) and P2 (O(n²) ordinal computation per rendered card — will jank at a few thousand sessions). P3 folds the SessionCard refactor (Dashboard/Schedule/Clients/Sessions each render their own card; `EditableFocus` already exists in Sessions.jsx). P4 (repeat-mode fork hygiene) should land BEFORE eval feature #2 adds session fields.
+- **P3–P7 from the v2.10.1 review** — see `docs/reviews/2026-06-10-fable5-codebase-review.md` (P1/P2/P8 fixed in v2.10.2). P4 (repeat-mode fork hygiene) should land BEFORE eval feature #2 adds session fields. P3 folds the SessionCard refactor (Dashboard/Schedule/Clients/Sessions each render their own card; `EditableFocus` already exists in Sessions.jsx; parked brainstorm awaits Pierre's scope decision). P5 (renewal-due selector ×3), P6 (Session #0 band-aid altitude), P7 (`EDIT_CURRENT_PACKAGE` reducer action).
 
 ### App name
 - "PTApp" is a working title. Need a unique name (not trademarked in fitness/trainer space) before App Store / Play Store submission.

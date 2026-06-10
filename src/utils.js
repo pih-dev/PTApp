@@ -227,12 +227,37 @@ export const getMonthlySessionCount = (sessions, clientId, month) => {
 
 // Count sessions for a client within a date range (billing period).
 // periodEnd can be null for open-ended contract packages — treat as "no upper bound".
+// ─── Per-client counted-session index (v2.10.2, P2) ───
+// Every rendered card used to filter+sort ALL of state.sessions to compute one ordinal —
+// O(n²) across a list render, multi-second jank territory at a few thousand career sessions.
+// Instead: group + sort counted sessions per client ONCE per sessions array. The cache is
+// keyed on the array reference itself (WeakMap), which is safe because the reducer is
+// immutable — any session mutation produces a new array. Hand-built arrays at call sites
+// (e.g. `[...state.sessions, preview]`) simply miss the cache and pay one rebuild, which
+// is the pre-v2.10.2 cost for a single card.
+const countedSessionsCache = new WeakMap();
+export const getClientCountedSessions = (sessions, clientId) => {
+  let byClient = countedSessionsCache.get(sessions);
+  if (!byClient) {
+    byClient = new Map();
+    for (const s of sessions) {
+      if (s.status === 'cancelled' && !s.cancelCounted) continue; // forgiven cancels don't count
+      let arr = byClient.get(s.clientId);
+      if (!arr) byClient.set(s.clientId, (arr = []));
+      arr.push(s);
+    }
+    for (const arr of byClient.values()) {
+      arr.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+    }
+    countedSessionsCache.set(sessions, byClient);
+  }
+  return byClient.get(clientId) || [];
+};
+
 export const getPeriodSessionCount = (sessions, clientId, periodStart, periodEnd) => {
-  return sessions.filter(s =>
-    s.clientId === clientId &&
+  return getClientCountedSessions(sessions, clientId).filter(s =>
     s.date >= periodStart &&
-    (periodEnd == null || s.date <= periodEnd) &&
-    (s.status !== 'cancelled' || s.cancelCounted)
+    (periodEnd == null || s.date <= periodEnd)
   ).length;
 };
 
@@ -241,13 +266,9 @@ export const getPeriodSessionCount = (sessions, clientId, periodStart, periodEnd
 // isn't found in the filtered list (stale array during ADD_SESSION), return length + 1 to
 // prevent "Session #0" from leaking into WhatsApp messages.
 export const getSessionOrdinal = (sessions, sessionId, clientId, periodStart, periodEnd) => {
-  const periodSessions = sessions
-    .filter(s =>
-      s.clientId === clientId &&
-      s.date >= periodStart &&
-      (periodEnd == null || s.date <= periodEnd) &&
-      (s.status !== 'cancelled' || s.cancelCounted))
-    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  const periodSessions = getClientCountedSessions(sessions, clientId).filter(s =>
+    s.date >= periodStart &&
+    (periodEnd == null || s.date <= periodEnd));
   const idx = periodSessions.findIndex(s => s.id === sessionId);
   return idx === -1 ? periodSessions.length + 1 : idx + 1;
 };
@@ -363,15 +384,77 @@ export const getCurrentPackage = (client) => {
   };
 };
 
+// Packages that cover at least one calendar day. Live data contains "zero-day artifacts"
+// (end = start − 1) from RENEW_PACKAGE accepting start <= oldStart (May 11 decision:
+// renewal flow left as-is) — those must never win date resolution or leak their overrides.
+const validPackages = (client) =>
+  ((client && client.packages) || []).filter(p => p.end == null || p.end >= p.start);
+
+// Day arithmetic on YYYY-MM-DD strings in LOCAL time (never toISOString — UTC trap).
+const addDaysStr = (dateStr, delta) => {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  return localDateStr(d);
+};
+
+// Resolve the package whose date range contains `dateStr` (v2.10.2, P1).
+// Containment first, walking newest → oldest so the newest package wins when closed
+// ranges overlap (live data has re-done renewals sharing the same start). A date no
+// package contains (pre-adoption sessions, renewal gaps) attaches to the package whose
+// era it LEADS INTO (oldest package starting after it); dates after every package
+// fall back to the last package.
+export const getPackageForDate = (client, dateStr) => {
+  const pkgs = validPackages(client);
+  if (pkgs.length === 0) return getCurrentPackage(client); // un-migrated edge case → synthetic default
+  for (let i = pkgs.length - 1; i >= 0; i--) {
+    const p = pkgs[i];
+    if (dateStr >= p.start && (p.end == null || dateStr <= p.end)) return p;
+  }
+  return pkgs.find(p => p.start > dateStr) || pkgs[pkgs.length - 1];
+};
+
+// {pkg, period} for counting a session dated `dateStr`. For dates inside the resolved
+// package this is just getEffectivePeriod. For dates BEFORE the resolved package's start:
+//   sliding  → backward-extrapolated window (pre-v2.9 behavior, computeSlidingWindow
+//              handles refDate < anchor natively)
+//   contract → synthetic "pre-era" bucket [prev valid package end + 1 .. start − 1]
+//              (floored at the epoch when no previous package exists). Contract periods
+//              are fixed ranges — there is nothing to extrapolate, and reusing the
+//              package's own range would exclude the session and resurrect the
+//              findIndex −1 fallback this fix removes.
+// The synthetic bucket's start never matches an override's periodStart, so overrides
+// can't leak into the pre-era — applyOverride goes inactive by construction.
+export const resolvePackagePeriod = (client, dateStr) => {
+  const pkg = getPackageForDate(client, dateStr);
+  if (dateStr >= pkg.start || pkg.contractSize == null) {
+    return { pkg, period: getEffectivePeriod(pkg, dateStr) };
+  }
+  const pkgs = validPackages(client);
+  const idx = pkgs.indexOf(pkg);
+  const prev = idx > 0 ? pkgs[idx - 1] : null;
+  return {
+    pkg,
+    period: {
+      start: prev && prev.end != null ? addDaysStr(prev.end, 1) : '0000-01-01',
+      end: addDaysStr(pkg.start, -1),
+    },
+  };
+};
+
 // Returns {start, end} window used for session counting/display.
-//   Contract package    → { start: pkg.start, end: null }  (open-ended until renewal)
-//   No-contract package → sliding time window anchored at pkg.start, stepped by unit*value
+//   Open contract package   → { start: pkg.start, end: null }      (open-ended until renewal)
+//   Closed contract package → { start: pkg.start, end: pkg.end }   (capped at renewal)
+//   No-contract package     → sliding time window anchored at pkg.start, stepped by unit*value;
+//                             capped at pkg.end for closed packages so a window straddling a
+//                             renewal can't swallow the next package's sessions.
 export const getEffectivePeriod = (pkg, refDateStr = today()) => {
   if (!pkg) return { start: refDateStr, end: null };
   if (pkg.contractSize != null) {
-    return { start: pkg.start, end: null };
+    return { start: pkg.start, end: pkg.end != null ? pkg.end : null };
   }
-  return computeSlidingWindow(pkg.start, pkg.periodUnit, pkg.periodValue, refDateStr);
+  const win = computeSlidingWindow(pkg.start, pkg.periodUnit, pkg.periodValue, refDateStr);
+  if (pkg.end != null && win.end > pkg.end) win.end = pkg.end;
+  return win;
 };
 
 // ─── Session count override (v2.8) ───
@@ -437,11 +520,14 @@ export const formatOverrideDraft = (pkg, period) => {
     : String(ov.value);
 };
 
-// Compute auto + effective count for a specific session within its client's current package.
+// Compute auto + effective count for a specific session within the package CONTAINING the
+// session's date (v2.10.2, P1 — was getCurrentPackage, which gave every pre-renewal session
+// of a contract client the same "current count + 1" ordinal via the findIndex −1 fallback).
+// The resolved package's own sessionCountOverride applies — overrides are period-scoped,
+// so a current-package override can never rewrite history and vice versa.
 // Returns { auto, effective, override } — preserved shape for backward compat.
 export const getEffectiveSessionCount = (client, session, sessions) => {
-  const pkg = getCurrentPackage(client);
-  const period = getEffectivePeriod(pkg, session.date);
+  const { pkg, period } = resolvePackagePeriod(client, session.date);
   const auto = getSessionOrdinal(sessions, session.id, session.clientId, period.start, period.end);
   return applyOverride(auto, pkg.sessionCountOverride, period.start);
 };
