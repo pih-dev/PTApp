@@ -168,3 +168,47 @@ assert(merged2.evaluations.find(ev => ev.id === 'e1').raw.pushup === 11,
   'newer _modified wins per record');
 
 console.log('\nAll migration/merge assertions passed.');
+
+// === Part 2b: reducer actions + ageAtDate ===
+const { ageAtDate } = await import(utilsUrl);
+
+assert(ageAtDate('2000-06-15', '2026-06-10') === 25, 'ageAtDate: birthday not yet reached');
+assert(ageAtDate('2000-06-10', '2026-06-10') === 26, 'ageAtDate: birthday today counts');
+assert(ageAtDate('2000-06-01', '2026-06-10') === 26, 'ageAtDate: birthday passed');
+
+const evalRec = {
+  id: 'ev1', clientId: 'c1', date: '2026-06-10', branch: 'mass', pullVariant: 'pullup',
+  raw: { pushup: 18, pull: 7, squat: 36, runSec: 520, sitReachCm: 3 },
+  frozen: { age: 25, gender: 'male', scores: { pushup: 3, pull: 3, squat: 3, run: 'average', sitReach: 3 },
+    muscleAvg: 3, classification: 'intA', chartsVersion: 1 },
+};
+const s0 = { clients: [{ id: 'c1', name: 'Test One', packages: [] }], sessions: [],
+  todos: [], auditLog: [], messageTemplates: {}, evaluations: [] };
+
+const s1 = baseReducer(s0, { type: 'ADD_EVALUATION', payload: evalRec });
+assert(s1.evaluations.length === 1 && s1.evaluations[0]._modified, 'ADD_EVALUATION appends + stamps');
+assert(s1.auditLog.length === 0, 'ADD writes no audit entry (the record IS the evidence)');
+
+const s2 = baseReducer(s1, { type: 'EDIT_EVALUATION', payload: {
+  ...evalRec, raw: { ...evalRec.raw, pushup: 22 },
+  frozen: { ...evalRec.frozen, scores: { ...evalRec.frozen.scores, pushup: 4 },
+    muscleAvg: 3.33, classification: 'intA' } } });
+assert(s2.evaluations[0].raw.pushup === 22, 'EDIT_EVALUATION replaces fields');
+assert(s2.evaluations[0].frozen.scores.pushup === 4, 'EDIT re-freeze travels in payload');
+assert(s2.auditLog.length === 1 && s2.auditLog[0].event === 'evaluation_edited',
+  'EDIT appends evaluation_edited audit entry');
+assert(s2.auditLog[0].before.raw.pushup === 18 && s2.auditLog[0].after.raw.pushup === 22,
+  'audit entry carries before/after');
+
+const s3 = baseReducer(s2, { type: 'DELETE_EVALUATION', payload: 'ev1' });
+assert(s3.evaluations.length === 0, 'DELETE_EVALUATION removes');
+assert(s3.auditLog.length === 2 && s3.auditLog[1].event === 'evaluation_deleted'
+  && s3.auditLog[1].before.id === 'ev1', 'DELETE appends forensic audit entry with the record');
+
+const s4 = baseReducer(s1, { type: 'DELETE_CLIENT', payload: 'c1' });
+assert(s4.evaluations.length === 0, 'DELETE_CLIENT cascades to evaluations');
+
+const sNoop = baseReducer(s1, { type: 'EDIT_EVALUATION', payload: { ...evalRec, id: 'missing' } });
+assert(sNoop === s1, 'EDIT of unknown id is a no-op (returns same state)');
+
+console.log('\nAll reducer assertions passed.');

@@ -610,6 +610,17 @@ export const formatDateLong = (dateStr, lang = 'en') => {
   return d.toLocaleDateString(locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 };
 
+// Age in whole years on a given local date (both args YYYY-MM-DD). Used by the
+// evaluation system — norm-chart lookups need age AT THE EVAL DATE, not today,
+// so editing an old eval re-scores against the age the client was back then.
+export const ageAtDate = (birthdate, onDate) => {
+  const b = new Date(birthdate + 'T00:00:00');
+  const d = new Date(onDate + 'T00:00:00');
+  let age = d.getFullYear() - b.getFullYear();
+  if (d.getMonth() < b.getMonth() || (d.getMonth() === b.getMonth() && d.getDate() < b.getDate())) age--;
+  return age;
+};
+
 // ─── Data versioning & migration ───
 // Increment DATA_VERSION when the schema changes. Add a migration function
 // for each version bump. Existing data is NEVER discarded — only migrated forward.
@@ -998,6 +1009,8 @@ export function baseReducer(state, action) {
         ...state,
         clients: state.clients.filter(c => c.id !== action.payload),
         sessions: state.sessions.filter(s => s.clientId !== action.payload),
+        // v2.11: a client's evaluations go with them (same rule as sessions)
+        evaluations: (state.evaluations || []).filter(ev => ev.clientId !== action.payload),
       };
     case 'ADD_SESSION':
       return { ...state, sessions: [...state.sessions, { ...action.payload, _modified: now() }] };
@@ -1090,6 +1103,48 @@ export function baseReducer(state, action) {
         ...state,
         clients: state.clients.map(c => c.id === clientId ? updatedClient : c),
         auditLog: [...(state.auditLog || []), logEntry],
+      };
+    }
+    case 'ADD_EVALUATION':
+      // v2.11: append-only eval history (PT re-evaluates every ~8 weeks). The frozen
+      // scores arrive in the payload — computed by computeEvalFrozen in the form, the
+      // same kernel that rendered the live preview chips.
+      return { ...state, evaluations: [...(state.evaluations || []), { ...action.payload, _modified: now() }] };
+    case 'EDIT_EVALUATION': {
+      // Full-record replacement (the form re-froze scores for the edited raws/date).
+      // Audited: evals are business records — silent edits would be invisible forensics.
+      const stamp = now();
+      const oldEval = (state.evaluations || []).find(ev => ev.id === action.payload.id);
+      if (!oldEval) return state;
+      const newEval = { ...oldEval, ...action.payload, _modified: stamp };
+      const client = state.clients.find(c => c.id === newEval.clientId);
+      return {
+        ...state,
+        evaluations: state.evaluations.map(ev => ev.id === newEval.id ? newEval : ev),
+        auditLog: [...(state.auditLog || []), {
+          id: 'log_' + genId(), ts: stamp,
+          clientId: newEval.clientId, clientName: client ? client.name : '',
+          event: 'evaluation_edited', packageId: null, newPackageId: null,
+          before: oldEval, after: newEval, trigger: null,
+        }],
+      };
+    }
+    case 'DELETE_EVALUATION': {
+      // Confirm-guarded in the UI. The deleted record rides in the audit entry —
+      // "preserve history" means a delete is recoverable forensically.
+      const stamp = now();
+      const oldEval = (state.evaluations || []).find(ev => ev.id === action.payload);
+      if (!oldEval) return state;
+      const client = state.clients.find(c => c.id === oldEval.clientId);
+      return {
+        ...state,
+        evaluations: state.evaluations.filter(ev => ev.id !== action.payload),
+        auditLog: [...(state.auditLog || []), {
+          id: 'log_' + genId(), ts: stamp,
+          clientId: oldEval.clientId, clientName: client ? client.name : '',
+          event: 'evaluation_deleted', packageId: null, newPackageId: null,
+          before: oldEval, after: null, trigger: null,
+        }],
       };
     }
     case 'REPLACE_ALL': {
