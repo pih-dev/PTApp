@@ -291,6 +291,7 @@ git checkout master
 
 **Critical notes:**
 - Pushing to `master` alone does NOT deploy. The live site serves from `gh-pages`.
+- **Pushing to `gh-pages` does not guarantee deployment either.** After every gh-pages push, verify the Pages run actually deployed: `gh api repos/pih-dev/PTApp/pages/builds/latest --jq .status` must reach `built` (a successful `git push` only means the commit landed). Jun 11 incident: two gh-pages pushes 5 min apart hit a GitHub artifact race ("Multiple artifacts named github-pages"), the deploy step failed, and the stale build record showed `building` for 24h with no run in flight. Fix: `gh api -X POST repos/pih-dev/PTApp/pages/builds` to request a fresh build, then re-verify (and diff live HTML against `dist/index.html` for certainty). Avoid rapid back-to-back gh-pages pushes.
 - For schema changes, run a live-data byte-diff gate before deploying. Current gate: `scripts/sanity/sanity-live-v5-diff.mjs` (v4→v5). **`sanity-live-migration.mjs` is v2→v3-era STALE** — it asserts `_dataVersion === 3` and will misfire on current data. Modernize or retire it at the next schema change; do not use it as the gate.
 - Sanity scripts (in `scripts/sanity/`): `sanity-reducer.mjs`, `sanity-counting.mjs`, `sanity-slidingwindow.mjs`, `sanity-migration.mjs`, `sanity-live-migration.mjs` (stale — see note above), `sanity-evaluations.mjs`, `sanity-live-v5-diff.mjs`.
 
