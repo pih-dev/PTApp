@@ -366,6 +366,35 @@ button:active { transform: scale(0.97); }
 .eval-chip-4 { background: #10B981; }
 .eval-chip-5 { background: #059669; }
 
+/* ─── Evaluation measurement console (v2.11.1) ─── */
+.eval-console {
+  border: 1px solid var(--sep);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 14px;
+  background: var(--sep);
+}
+.eval-timer-display {
+  font-size: 40px;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  color: var(--t1);
+  margin: 6px 0 10px;
+}
+/* Brief highlight on a test row when its countdown ends — draws the eye so the PT
+   taps it to type the rep count (no programmatic focus on iOS). The amber matches the
+   app's active-glow accent (#F59E0B); a transient animation tint, like card-now. */
+@keyframes evalRowFlash {
+  0% { background: rgba(245, 158, 11, 0.35); }
+  100% { background: transparent; }
+}
+.eval-row-flash {
+  animation: evalRowFlash 1.5s ease-out;
+  border-radius: 8px;
+}
+
 /* ─── Modal ─── */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 200;
