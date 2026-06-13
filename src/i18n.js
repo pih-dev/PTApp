@@ -246,6 +246,17 @@ const T = {
     classIntA: 'Intermediate A',
     classIntB: 'Intermediate B',
     classPro: 'Pro',
+    // Evaluation measurement console (v2.11.1)
+    measureHeading: 'Measure',
+    nowDoing: 'Now doing',
+    timerStart: 'Start',
+    timerStop: 'Stop',
+    timerReset: 'Reset',
+    nextTest: 'Next →',
+    enterCountPrompt: 'Time up — enter the count',
+    enterCmPrompt: 'Enter cm (no timer)',
+    runTimerHint: 'Time it, or just type the reported time',
+    secondsAbbrev: 's',
   },
   ar: {
     // App
@@ -490,6 +501,17 @@ const T = {
     classIntA: 'متوسط أ',
     classIntB: 'متوسط ب',
     classPro: 'محترف',
+    // Evaluation measurement console (v2.11.1)
+    measureHeading: 'القياس',
+    nowDoing: 'التمرين الحالي',
+    timerStart: 'ابدأ',
+    timerStop: 'إيقاف',
+    timerReset: 'تصفير',
+    nextTest: 'التالي →',
+    enterCountPrompt: 'انتهى الوقت — أدخل العدد',
+    enterCmPrompt: 'أدخل السم (بدون مؤقّت)',
+    runTimerHint: 'استخدم المؤقّت، أو اكتب الوقت المُبلّغ',
+    secondsAbbrev: 'ث',
   },
 };
 
