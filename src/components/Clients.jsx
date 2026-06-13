@@ -271,6 +271,8 @@ export default function Clients({ state, dispatch, lang }) {
             {/* Expanded: month navigator + session list */}
             {isExpanded && (
               <div style={{ marginTop: 12, borderTop: '1px solid var(--sep)', paddingTop: 12 }}>
+                {/* v2.11.1: evaluations moved to the TOP of the expanded card (was below sessions) */}
+                <EvalSection client={c} state={state} dispatch={dispatch} lang={lang} />
                 {/* Month navigator */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <button className="btn-ghost" style={{ padding: '4px 8px', fontSize: 18 }} onClick={() => shiftMonth(-1)}>‹</button>
@@ -338,8 +340,6 @@ export default function Clients({ state, dispatch, lang }) {
                     );
                   })
                 )}
-                {/* v2.11: evaluations — history + Evaluate action */}
-                <EvalSection client={c} state={state} dispatch={dispatch} lang={lang} />
               </div>
             )}
           </div>
