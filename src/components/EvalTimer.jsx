@@ -132,9 +132,9 @@ export default function EvalTimer({ activeTest, onSelect, onCountdownEnd, onStop
       ) : (
         <>
           <div className="eval-timer-display">
-            {mode === 'countdown'
-              ? `0:${String(remaining).padStart(2, '0')}`
-              : formatRunTime(elapsed)}
+            {/* formatRunTime (mm:ss) for both — the countdown duration is adjustable up
+                to 300s, so a hardcoded "0:NN" would render "0:120" at 2 minutes. */}
+            {formatRunTime(mode === 'countdown' ? remaining : elapsed)}
           </div>
           {mode === 'stopwatch' && (
             <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--t5)', marginBottom: 8 }}>

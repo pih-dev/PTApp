@@ -57,7 +57,11 @@ export default function EvalForm({ client, evalRecord, dispatch, lang, onClose }
   };
   const onStopwatchStop = (sec) => {
     setForm(p => ({ ...p, run: formatRunTime(sec) }));
-    advance();
+    // Can't call advance() here: it reads form.run from this render's closure, which is
+    // still empty until setForm flushes — it would re-select 'run'. Advance manually,
+    // treating run as just-filled.
+    const next = orderOf.find(k => k !== 'run' && !isFilled(k));
+    if (next) setActiveTest(next);
   };
 
   // Parse the draft. Muscle raws: non-negative integers, required.
