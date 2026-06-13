@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
+import EvalTimer from './EvalTimer';
 import { genId, today, ageAtDate, haptic } from '../utils';
 import { computeEvalFrozen, parseRunTime, formatRunTime } from '../normCharts';
 import { t } from '../i18n';
@@ -36,6 +37,28 @@ export default function EvalForm({ client, evalRecord, dispatch, lang, onClose }
     pushup: '', pull: '', squat: '', run: '', sitReach: '',
   });
   const set = (k) => (e) => setForm(p => ({ ...p, [k]: e.target.value }));
+
+  // Measurement console (v2.11.1). activeTest = which test the timer is driving.
+  const [activeTest, setActiveTest] = useState('pushup');
+  const [flashTest, setFlashTest] = useState(null); // brief row highlight when a countdown ends
+
+  const orderOf = ['pushup', 'pull', 'squat', 'run', 'sitReach'];
+  const isFilled = (testKey) => String(form[testKey] ?? '').trim() !== '';
+  const advance = () => {
+    const next = orderOf.find(k => !isFilled(k));
+    if (next) setActiveTest(next);
+  };
+  // Countdown ended → flash the active rep row for ~1.5s (no focus(): a timer callback
+  // isn't a user gesture, so iOS won't open the keyboard; the PT taps the row to type).
+  const onCountdownEnd = () => {
+    const which = activeTest;
+    setFlashTest(which);
+    setTimeout(() => setFlashTest(f => (f === which ? null : f)), 1500);
+  };
+  const onStopwatchStop = (sec) => {
+    setForm(p => ({ ...p, run: formatRunTime(sec) }));
+    advance();
+  };
 
   // Parse the draft. Muscle raws: non-negative integers, required.
   // Run: mm:ss, optional. Sit-and-reach: cm past toes, may be negative, optional.
@@ -78,7 +101,7 @@ export default function EvalForm({ client, evalRecord, dispatch, lang, onClose }
 
   // One labeled raw-value row with its live verdict chip
   const testRow = (labelKey, hintKey, field, chip, extra) => (
-    <div className="field">
+    <div className={`field${flashTest === field ? ' eval-row-flash' : ''}`}>
       <label className="field-label">
         {t(lang, labelKey)} <span style={{ fontWeight: 400, color: 'var(--t4)' }}>{t(lang, hintKey)}{extra || ''}</span>
       </label>
@@ -125,10 +148,19 @@ export default function EvalForm({ client, evalRecord, dispatch, lang, onClose }
         <input type="date" className="input" value={form.date} onChange={set('date')} />
       </div>
 
+      <EvalTimer
+        activeTest={activeTest}
+        onSelect={setActiveTest}
+        onCountdownEnd={onCountdownEnd}
+        onStopwatchStop={onStopwatchStop}
+        onNext={advance}
+        lang={lang}
+      />
+
       {testRow('testPushup', 'repsIn30s', 'pushup', chipFor('pushup'))}
 
       {/* Pull variant toggle — inverted row is the PT's stated equivalent */}
-      <div className="field">
+      <div className={`field${flashTest === 'pull' ? ' eval-row-flash' : ''}`}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
           {['pullup', 'invertedRow'].map(v => (
             <button key={v} className={`filter-tab${form.pullVariant === v ? ' active' : ''}`}
