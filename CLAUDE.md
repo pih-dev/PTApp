@@ -12,7 +12,15 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.11.0
+## Current Version: v2.11.1
+UI-only point release on the evaluation system. No schema change, nothing persisted. Spec/plan: `docs/superpowers/{specs,plans}/2026-06-13-eval-ux-timer*`.
+- **`src/components/EvalTimer.jsx`** — in-form measurement console: active-test chips, 30s countdown for rep tests (±5s, clamp 5–300; Web-Audio beep + `haptic()` + row-flash at 0), count-up stopwatch for the run (fills mm:ss), none for sit-reach. **Timer state is ephemeral** — duration, remaining, and test order are NOT stored; the console only writes into the same `form` fields the rows use (single source of truth).
+- **Effect-driven tick** (self-rescheduling `setTimeout`, not a `setInterval` ref, no side effects in a state updater). Switching the active test resets the timer via `useEffect([activeTest])`. AudioContext unlocked on the Start gesture (iOS audio rule).
+- **No programmatic `focus()` from the countdown-end callback** — a timer tick isn't a user gesture, so iOS won't open the keyboard; flash the row instead, the PT taps to type. Stopwatch-stop fills run + auto-advances to the next unfilled test; rep tests advance via Next/chip (never mid-typing).
+- **Evaluate section moved to the TOP of the expanded client card** (was below the session list).
+- Reversed the Jun-9 "no in-app timer" decision — Pierre's call 2026-06-13.
+
+## Previous Version: v2.11.0
 Evaluation system — mass-population battery (PT feature #2, stage 1 of 2). Schema v4→v5 (purely additive).
 - **`src/normCharts.js` owns ALL chart data + scoring.** Never inline thresholds in components. `CHARTS_VERSION = 1`. Bump it when any chart table changes — old records keep their frozen scores, new evaluations use the updated table.
 - **`computeEvalFrozen(rawInputs, gender, age)`** is THE single scoring kernel. Both EvalForm live chips AND the save path call it — by construction they can never disagree. Do not reimplement the 1–5 lookup or classify logic anywhere else.

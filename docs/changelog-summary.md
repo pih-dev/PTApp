@@ -4,6 +4,16 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.11.1 — Evaluation timer & quicker access (June 13, 2026)
+
+**The Evaluate button is now at the top of a client's card.** Open any client and it's right there under their info — no more scrolling past every session to reach it.
+
+**A built-in timer for running the tests.** During an evaluation you pick the test you're doing, then run a 30-second countdown for the rep tests (push-ups, pull-ups/row, squats) — it beeps and vibrates when time's up — or a count-up stopwatch for the 1-mile run. You can adjust the countdown length on the fly (−5/+5 seconds).
+
+**Still fully manual when you need it.** Every number stays editable by hand, so when the 1-mile run was done without you, just type the time the client reported. After the run timer stops it jumps to the next test automatically.
+
+---
+
 ## v2.11.0 — Client Fitness Evaluations (June 11, 2026)
 
 **The PT can now score clients against published norms.** v2.11 adds a full fitness evaluation battery directly inside each client's card. The PT measures five tests by hand — push-ups, pull-ups (or inverted row) and bodyweight squats timed at 30 seconds each, plus an optional 1-mile run and sit-and-reach — types the raw numbers into the app, and gets a scored result on the spot.

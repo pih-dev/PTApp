@@ -4,6 +4,27 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.11.1 — Eval measurement console (UI only, no schema change) (2026-06-13)
+
+**Trigger:** Pierre, 2026-06-13 — move the Evaluate button up, select the activity during eval, add a timer. Reverses the Jun-9 "no in-app timer" decision. Spec: `docs/superpowers/specs/2026-06-13-eval-ux-timer-design.md`. Plan: `docs/superpowers/plans/2026-06-13-eval-ux-timer.md`.
+
+### New component: `src/components/EvalTimer.jsx`
+- Active-test chips (push/pull/squat/run/sit-reach). 30s **countdown** for rep tests (±5s, clamp 5–300) with Web-Audio beep + `haptic()` + a row-flash at 0; count-up **stopwatch** for the run (fills `mm:ss`); **none** for sit-reach.
+- Effect-driven tick: a self-rescheduling `setTimeout` keyed on `[running, remaining, elapsed, mode]` (not a `setInterval` in a ref, and no side effects in a state updater — avoids the StrictMode double-fire anti-pattern). Countdown-end is its own `useEffect` watching `remaining === 0 && running`, so beep/vibrate/callback fire exactly once.
+- AudioContext is created/resumed on the Start tap (user gesture) so the later programmatic beep is allowed on iOS. All audio wrapped in try/catch — never breaks the timer.
+
+### `EvalForm.jsx`
+- `activeTest` state (default `pushup`); `<EvalTimer>` rendered above the five rows. The console writes into the same `form` fields — single source of truth, no parallel store.
+- `onStopwatchStop(sec)` → `form.run = formatRunTime(sec)` + auto-advance to next unfilled test (`order = [pushup, pull, squat, run, sitReach]`).
+- `onCountdownEnd()` → transient `eval-row-flash` on the active row (NOT programmatic `focus()` — a timer callback isn't a user gesture, so iOS wouldn't open the keyboard; the PT taps to type).
+- All rows stay hand-editable; verdict chips + classification unchanged.
+
+### `Clients.jsx`
+- `<EvalSection>` relocated from the bottom of the expanded card to the top (before the month navigator).
+
+### Scope
+- No reducer/normCharts/utils/schema change; timer, countdown duration, and test order are ephemeral (not persisted). No new sanity script — UI-only.
+
 ## v2.11.0 — Evaluation system: mass-population battery (2026-06-11)
 
 **Trigger:** PT feature #2 (stage 1 of 2). Design spec: `docs/superpowers/specs/2026-06-10-evaluation-v2-mass-battery-design.md`. Plan: `docs/superpowers/plans/2026-06-10-evaluation-v2-mass-battery.md`. PT deliverable: `docs/superpowers/artifacts/2026-06-09-evaluation-v2/PT-Norms-As-Implemented.xlsx` (archived copy at `_archive/PTApp/eval-artifacts/`).
