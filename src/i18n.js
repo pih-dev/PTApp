@@ -257,6 +257,17 @@ const T = {
     enterCmPrompt: 'Enter cm (no timer)',
     runTimerHint: 'Time it, or just type the reported time',
     secondsAbbrev: 's',
+
+    // 1RM battery (v2.12)
+    testBench: 'Bench press',
+    testSquat1rm: 'Squat',
+    testDeadlift: 'Deadlift',
+    bodyweightLabel: 'Bodyweight',
+    kgHint: 'kg',
+    oneRmHint: '1RM in kg',
+    liftAvg: 'Lift average',
+    bwRatio: '× BW',
+    oneRmStandardsLabel: 'Strength standards (until coach chart arrives)',
   },
   ar: {
     // App
@@ -512,6 +523,17 @@ const T = {
     enterCmPrompt: 'أدخل السم (بدون مؤقّت)',
     runTimerHint: 'استخدم المؤقّت، أو اكتب الوقت المُبلّغ',
     secondsAbbrev: 'ث',
+
+    // 1RM battery (v2.12)
+    testBench: 'ضغط الصدر (بنش)',
+    testSquat1rm: 'سكوات',
+    testDeadlift: 'الرفعة الميتة',
+    bodyweightLabel: 'وزن الجسم',
+    kgHint: 'كغ',
+    oneRmHint: '1RM بالكغ',
+    liftAvg: 'معدّل الرفعات',
+    bwRatio: '× وزن الجسم',
+    oneRmStandardsLabel: 'معايير القوة (حتى وصول جدول المدرّب)',
   },
 };
 
