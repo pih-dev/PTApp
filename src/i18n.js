@@ -268,6 +268,9 @@ const T = {
     liftAvg: 'Lift average',
     bwRatio: '× BW',
     oneRmStandardsLabel: 'Strength standards (until coach chart arrives)',
+    // Token update (v2.12.1)
+    updateToken: 'Update sync token',
+    tokenExpiredMsg: 'The GitHub sync token has expired or was revoked. Paste the new token below to reconnect — everything on this phone is safe and will sync up once connected.',
   },
   ar: {
     // App
@@ -534,6 +537,9 @@ const T = {
     liftAvg: 'معدّل الرفعات',
     bwRatio: '× وزن الجسم',
     oneRmStandardsLabel: 'معايير القوة (حتى وصول جدول المدرّب)',
+    // Token update (v2.12.1)
+    updateToken: 'تحديث رمز المزامنة',
+    tokenExpiredMsg: 'انتهت صلاحية رمز المزامنة أو تم إلغاؤه. الصق الرمز الجديد أدناه لإعادة الاتصال — كل البيانات على هذا الهاتف آمنة وستتم مزامنتها فور الاتصال.',
   },
 };
 

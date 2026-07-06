@@ -140,7 +140,7 @@ function renderMarkdown(text) {
   return elements;
 }
 
-export default function General({ state, dispatch, onClose, lang, setLang, theme, setTheme }) {
+export default function General({ state, dispatch, onClose, lang, setLang, theme, setTheme, onUpdateToken }) {
   const [snapshots, setSnapshots] = useState(null);
   const [snapshotLoading, setSnapshotLoading] = useState(false);
   const [snapshotMsg, setSnapshotMsg] = useState('');
@@ -231,6 +231,12 @@ export default function General({ state, dispatch, onClose, lang, setLang, theme
               {t(lang, 'cloudBackup')}
             </button>
           )}
+          {/* v2.12.1 (Jun-30 incident): tokens expire; there must always be a way to
+              enter a new one without wiping local data. Opens App's TokenUpdateModal. */}
+          <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
+            onClick={onUpdateToken}>
+            {t(lang, 'updateToken')}
+          </button>
         </div>
 
         <div className="flex-row" style={{ gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>

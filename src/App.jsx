@@ -4,6 +4,7 @@ import Clients from './components/Clients';
 import Schedule from './components/Schedule';
 import Sessions from './components/Sessions';
 import TokenSetup from './components/TokenSetup';
+import TokenUpdateModal from './components/TokenUpdateModal';
 import General from './components/General';
 import { reducer, loadData, saveData, today, timeToMinutes, haptic, initElasticScroll, mergeData, dataEquals } from './utils';
 import { getToken, fetchRemoteData, pushRemoteData } from './sync';
@@ -13,7 +14,7 @@ import { t } from './i18n';
 // dispatches fire in quick succession (e.g. auto-completing several sessions).
 // Status callback surfaces sync state to the UI instead of swallowing errors.
 let syncTimer = null;
-const debouncedSync = (token, data, onStatus) => {
+const debouncedSync = (token, data, onStatus, onTokenExpired) => {
   clearTimeout(syncTimer);
   if (onStatus) onStatus('syncing');
   syncTimer = setTimeout(() => {
@@ -22,6 +23,9 @@ const debouncedSync = (token, data, onStatus) => {
       .catch((err) => {
         console.error('Sync push failed:', err.message);
         if (onStatus) onStatus('failed');
+        // v2.12.1: a 401 means the PAT expired/was revoked — retrying is pointless.
+        // Surface it so the red-dot tap routes to token re-entry, not retry.
+        if (err.message === 'TOKEN_EXPIRED' && onTokenExpired) onTokenExpired();
       });
   }, 1000);
 };
@@ -36,6 +40,10 @@ export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('ptapp-theme') || 'dark');
   const [syncStatus, setSyncStatus] = useState('idle');
   const [showDebug, setShowDebug] = useState(false);
+  // v2.12.1 (Jun-30 token-expiry incident): when sync fails with a 401 the token is
+  // dead — tapping the red dot must open token re-entry instead of a doomed retry.
+  const [tokenExpired, setTokenExpired] = useState(false);
+  const [showTokenUpdate, setShowTokenUpdate] = useState(false);
   const skipSync = useRef(true);
   // syncReady: true only after a successful remote fetch. Prevents stale localStorage
   // from being pushed to GitHub when the initial fetch fails (see data loss incident Apr 13).
@@ -85,6 +93,7 @@ export default function App() {
       // Data safe in localStorage, red dot shown, tap to retry.
       console.error('Sync reconcile failed:', err.message);
       setSyncStatus('failed');
+      if (err.message === 'TOKEN_EXPIRED') setTokenExpired(true);
     }
   };
 
@@ -137,7 +146,7 @@ export default function App() {
     }
     const token = getToken();
     if (token) {
-      debouncedSync(token, state, setSyncStatus);
+      debouncedSync(token, state, setSyncStatus, () => setTokenExpired(true));
     }
   }, [state, initialLoad]);
 
@@ -203,7 +212,9 @@ export default function App() {
           <div className="header-right">
             {syncStatus !== 'idle' && (
               <button className={`sync-btn ${syncStatus}`}
-                onClick={syncStatus === 'failed' ? handleRetrySync : undefined}>
+                onClick={syncStatus === 'failed'
+                  ? (tokenExpired ? () => setShowTokenUpdate(true) : handleRetrySync)
+                  : undefined}>
                 <span className={`sync-dot ${syncStatus}`} />
               </button>
             )}
@@ -229,14 +240,28 @@ export default function App() {
       </div>
 
       {showGeneral && <General state={state} dispatch={dispatch} onClose={() => setShowGeneral(false)}
-          lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} />}
+          lang={lang} setLang={setLang} theme={theme} setTheme={setTheme}
+          onUpdateToken={() => setShowTokenUpdate(true)} />}
+
+      {/* v2.12.1: token re-entry — reachable from the red dot (when 401) and from
+          General. onSaved retries via reconcile(), the merge-not-overwrite path, so
+          a week of stranded local records lands in the cloud without data loss. */}
+      {showTokenUpdate && (
+        <TokenUpdateModal lang={lang}
+          onClose={() => setShowTokenUpdate(false)}
+          onSaved={() => {
+            setTokenExpired(false);
+            setShowTokenUpdate(false);
+            handleRetrySync();
+          }} />
+      )}
 
       {/* Debug panel — long-press version badge to toggle */}
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.12.0</div>
-          <div><strong>Sync:</strong> {syncStatus}</div>
+          <div><strong>Version:</strong> v2.12.1</div>
+          <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>
           <div><strong>Clients:</strong> {state.clients?.length || 0}</div>
