@@ -1,35 +1,18 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { CHARTS, formatRunTime } from '../normCharts';
+import { CHARTS } from '../normCharts';
 import { t } from '../i18n';
 
-const TEST_LABELS = {
-  pushup: 'testPushup', pullup: 'testPullup', invertedRow: 'testInvertedRow',
-  squat: 'testSquat', run: 'testRun', sitReach: 'testSitReach',
-};
+// v2.12: the reference shows the ACTIVE battery only — the 1RM strength
+// standards. Mass charts remain in CHARTS (frozen-record audit trail + in-file
+// documentation) but are no longer displayed. Rendered FROM the CHARTS data the
+// scoring engine uses, so the reference can never drift from what the app
+// actually scores (v2.9.6 two-sources trap).
+const ONE_RM_TESTS = ['bench1rm', 'squat1rm', 'deadlift1rm'];
+const TEST_LABELS = { bench1rm: 'testBench', squat1rm: 'testSquat1rm', deadlift1rm: 'testDeadlift' };
 
-const bandLabel = (b) => {
-  if (b.minAge === 0 && b.maxAge === 999) return '—';
-  if (b.maxAge === 999) return `${b.minAge}+`;
-  if (b.minAge === 0) return `≤${b.maxAge}`;
-  return `${b.minAge}–${b.maxAge}`;
-};
-
-// App-wide read-only norm-chart reference (opened from General).
-// Rendered FROM the CHARTS data the scoring engine uses, so the reference can
-// never drift from what the app actually scores (v2.9.6 two-sources trap).
-// Rep/cm tests: columns = "reach level N at ≥ threshold". Run: max times per verdict.
 export default function NormChartsView({ lang, onClose }) {
   const [gender, setGender] = useState('male');
-  const [openTest, setOpenTest] = useState('pushup');
-
-  const headerRow = (cols) => (
-    <div style={{ display: 'flex', fontSize: 11, fontWeight: 600, color: 'var(--t3)',
-      borderBottom: '1px solid var(--sep)', padding: '4px 0' }}>
-      <div style={{ flex: 1 }}>{t(lang, 'ageHeader')}</div>
-      {cols.map(c => <div key={c} style={{ flex: 1, textAlign: 'center' }}>{c}</div>)}
-    </div>
-  );
 
   return (
     <Modal title={t(lang, 'normCharts')} onClose={onClose}>
@@ -42,41 +25,26 @@ export default function NormChartsView({ lang, onClose }) {
         ))}
       </div>
 
-      {Object.keys(CHARTS).map(testId => (
-        <div key={testId} style={{ marginBottom: 10 }}>
-          <button className="btn-secondary" style={{ width: '100%', fontSize: 13, padding: '10px 14px' }}
-            onClick={() => setOpenTest(openTest === testId ? null : testId)}>
-            {t(lang, TEST_LABELS[testId])}
-            {testId === 'sitReach' ? ` · ${t(lang, 'ymcaLabel')}` : ''}
-          </button>
-          {openTest === testId && (
-            <div style={{ padding: '8px 4px' }}>
-              {testId === 'run'
-                ? headerRow([t(lang, 'level5'), t(lang, 'level4'), t(lang, 'level3'), t(lang, 'runPoor')])
-                : headerRow([t(lang, 'level2'), t(lang, 'level3'), t(lang, 'level4'), t(lang, 'level5')])}
-              {CHARTS[testId][gender].map(band => (
-                <div key={band.minAge} style={{ display: 'flex', fontSize: 12, color: 'var(--t2)',
-                  borderBottom: '1px solid var(--sep)', padding: '5px 0' }}>
-                  <div style={{ flex: 1, color: 'var(--t4)' }}>{bandLabel(band)}</div>
-                  {testId === 'run' ? (
-                    <>
-                      <div style={{ flex: 1, textAlign: 'center' }}>{'<' + formatRunTime(band.t[0])}</div>
-                      <div style={{ flex: 1, textAlign: 'center' }}>{'≤' + formatRunTime(band.t[1])}</div>
-                      <div style={{ flex: 1, textAlign: 'center' }}>{'≤' + formatRunTime(band.t[2])}</div>
-                      <div style={{ flex: 1, textAlign: 'center' }}>{'>' + formatRunTime(band.t[2])}</div>
-                    </>
-                  ) : band.t.map((min, i) => (
-                    <div key={i} style={{ flex: 1, textAlign: 'center' }}>≥{min}</div>
-                  ))}
-                </div>
-              ))}
-              {testId === 'sitReach' && (
-                <div style={{ fontSize: 11, color: 'var(--t5)', marginTop: 6 }}>
-                  {t(lang, 'sitReachHint')}
-                </div>
-              )}
-            </div>
-          )}
+      <div style={{ fontSize: 11, color: 'var(--t5)', marginBottom: 10 }}>
+        {t(lang, 'oneRmStandardsLabel')}
+      </div>
+
+      {/* One row per lift: threshold ratios to REACH levels 2..5 (below min2 = level 1).
+          Values are 1RM ÷ bodyweight — flat for all ages (pull-up chart precedent). */}
+      <div style={{ display: 'flex', fontSize: 11, fontWeight: 600, color: 'var(--t3)',
+        borderBottom: '1px solid var(--sep)', padding: '4px 0' }}>
+        <div style={{ flex: 1.4 }} />
+        {[2, 3, 4, 5].map(n => (
+          <div key={n} style={{ flex: 1, textAlign: 'center' }}>{t(lang, `level${n}`)}</div>
+        ))}
+      </div>
+      {ONE_RM_TESTS.map(testId => (
+        <div key={testId} style={{ display: 'flex', fontSize: 12, color: 'var(--t2)',
+          borderBottom: '1px solid var(--sep)', padding: '6px 0' }}>
+          <div style={{ flex: 1.4, color: 'var(--t4)' }}>{t(lang, TEST_LABELS[testId])}</div>
+          {CHARTS[testId][gender][0].t.map((min, i) => (
+            <div key={i} style={{ flex: 1, textAlign: 'center' }}>≥{min}{t(lang, 'bwRatio')}</div>
+          ))}
         </div>
       ))}
     </Modal>
