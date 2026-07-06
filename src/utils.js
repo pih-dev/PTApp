@@ -1107,8 +1107,9 @@ export function baseReducer(state, action) {
     }
     case 'ADD_EVALUATION':
       // v2.11: append-only eval history (PT re-evaluates every ~8 weeks). The frozen
-      // scores arrive in the payload — computed by computeEvalFrozen in the form, the
-      // same kernel that rendered the live preview chips.
+      // scores arrive in the payload — computed by the branch's freeze kernel in the
+      // form (compute1RMFrozen since v2.12; computeEvalFrozen for legacy mass records),
+      // the same kernel that rendered the live preview chips.
       return { ...state, evaluations: [...(state.evaluations || []), { ...action.payload, _modified: now() }] };
     case 'EDIT_EVALUATION': {
       // CONTRACT: callers MUST pass the FULL record (raw + re-frozen scores together).

@@ -78,7 +78,11 @@ export default function EvalSection({ client, state, dispatch, lang }) {
                 <div key={labelKey} style={{ display: 'flex', justifyContent: 'space-between',
                   alignItems: 'center', padding: '3px 0', fontSize: 12, color: 'var(--t3)' }}>
                   <span>{t(lang, labelKey)}: <strong style={{ color: 'var(--t2)' }}>{rawText}</strong></span>
-                  <span className={scoreChipClass(score, levelKey)}>{scoreLabel(lang, score, levelKey)}</span>
+                  {/* unscored rows (e.g. 1rm bodyweight) get no chip — a bare eval-chip
+                      span would render invisible padded whitespace */}
+                  {(score != null || levelKey != null) && (
+                    <span className={scoreChipClass(score, levelKey)}>{scoreLabel(lang, score, levelKey)}</span>
+                  )}
                 </div>
               ))}
               <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
