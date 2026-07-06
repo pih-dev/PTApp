@@ -22,8 +22,16 @@ export default function EvalSection({ client, state, dispatch, lang }) {
     .sort((a, b) => b.date.localeCompare(a.date) || (b._modified || '').localeCompare(a._modified || ''));
   const profileReady = !!(client.gender && client.birthdate);
 
-  // Per-test display rows for an expanded record: [labelKey, rawText, score, levelKey]
-  const detailRows = (ev) => [
+  // Per-test display rows for an expanded record: [labelKey, rawText, score, levelKey].
+  // Branch-aware: '1rm' records (v2.12+) show kg + live-derived BW ratio; legacy
+  // 'mass' records (v2.11) render exactly as before — preserved forever, view-only.
+  const ratioTxt = (kg, bw) => `${kg} ${t(lang, 'kgHint')} (${(kg / bw).toFixed(2)}${t(lang, 'bwRatio')})`;
+  const detailRows = (ev) => ev.branch === '1rm' ? [
+    ['bodyweightLabel', `${ev.raw.bodyweightKg} ${t(lang, 'kgHint')}`, null, null],
+    ['testBench', ratioTxt(ev.raw.benchKg, ev.raw.bodyweightKg), ev.frozen.scores.bench, null],
+    ['testSquat1rm', ratioTxt(ev.raw.squatKg, ev.raw.bodyweightKg), ev.frozen.scores.squat, null],
+    ['testDeadlift', ratioTxt(ev.raw.deadliftKg, ev.raw.bodyweightKg), ev.frozen.scores.deadlift, null],
+  ] : [
     ['testPushup', `${ev.raw.pushup}`, ev.frozen.scores.pushup, null],
     [ev.pullVariant === 'pullup' ? 'testPullup' : 'testInvertedRow', `${ev.raw.pull}`, ev.frozen.scores.pull, null],
     ['testSquat', `${ev.raw.squat}`, ev.frozen.scores.squat, null],
@@ -55,7 +63,9 @@ export default function EvalSection({ client, state, dispatch, lang }) {
             <div style={{ color: 'var(--t2)' }}>
               {formatDate(ev.date, lang)}
               <span style={{ color: 'var(--t5)', marginInlineStart: 8 }}>
-                {t(lang, 'muscleAvg')} {ev.frozen.muscleAvg}
+                {ev.branch === '1rm'
+                  ? <>{t(lang, 'liftAvg')} {ev.frozen.liftAvg ?? '—'}</>
+                  : <>{t(lang, 'muscleAvg')} {ev.frozen.muscleAvg ?? '—'}</>}
               </span>
             </div>
             <span className={`badge badge-class-${ev.frozen.classification}`}>
@@ -72,8 +82,12 @@ export default function EvalSection({ client, state, dispatch, lang }) {
                 </div>
               ))}
               <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                <button className="btn-ghost" style={{ fontSize: 12 }}
-                  onClick={() => setFormTarget(ev)}>{t(lang, 'edit')}</button>
+                {/* Legacy mass records are VIEW-ONLY (spec §3): the mass form no
+                    longer exists to edit them. Delete stays for both branches. */}
+                {ev.branch === '1rm' && (
+                  <button className="btn-ghost" style={{ fontSize: 12 }}
+                    onClick={() => setFormTarget(ev)}>{t(lang, 'edit')}</button>
+                )}
                 <button className="btn-ghost" style={{ fontSize: 12, color: '#EF4444' }}
                   onClick={() => { haptic(); setDeleteTarget(ev); }}>{t(lang, 'delete')}</button>
               </div>
