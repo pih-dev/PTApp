@@ -70,12 +70,12 @@ assert(lookupScore('bench1rm', 'male', 70, 1.0).score === 3, 'bench chart is age
 assert(lookupScore('bench1rm', 'female', 30, 0.7).score === 3, 'bench F ratio 0.7 → 3');
 assert(lookupScore('squat1rm', 'male', 30, 1.5).score === 3, 'squat1rm M ratio 1.5 → 3');
 assert(lookupScore('squat1rm', 'female', 30, 1.85).score === 5, 'squat1rm F ratio 1.85 → 5');
-assert(lookupScore('deadlift1rm', 'male', 30, 2.0).score === 3, 'deadlift M ratio 2.0 → 3 (gap inherits lower)');
+assert(lookupScore('deadlift1rm', 'male', 30, 2.0).score === 3, 'deadlift M ratio 2.0 → 3 (min3 boundary)');
 assert(lookupScore('deadlift1rm', 'female', 30, 0.99).score === 1, 'deadlift F ratio 0.99 → 1');
 
 // === compute1RMFrozen — all-intermediate male ===
-const f1 = compute1RMFrozen('male', 25, { bodyweightKg: 80, benchKg: 80, squatKg: 120, deadliftKg: 148 });
-assert(f1.scores.bench === 3 && f1.scores.squat === 3 && f1.scores.deadlift === 3, '80kg M: 80/120/148 → 3/3/3');
+const f1 = compute1RMFrozen('male', 25, { bodyweightKg: 80, benchKg: 80, squatKg: 120, deadliftKg: 160 });
+assert(f1.scores.bench === 3 && f1.scores.squat === 3 && f1.scores.deadlift === 3, '80kg M: 80/120/160 → 3/3/3 (ratios 1.0/1.5/2.0)');
 assert(f1.liftAvg === 3 && f1.classification === 'intA', 'liftAvg 3 → intA');
 assert(f1.chartsVersion === 2, 'frozen stamps chartsVersion 2');
 
@@ -383,8 +383,9 @@ export default function EvalForm({ client, evalRecord, dispatch, lang, onClose }
       {liftRow('testSquat1rm', 'squat', 'squat')}
       {liftRow('testDeadlift', 'deadlift', 'deadlift')}
 
-      {/* Classification — appears once all four numbers are valid */}
-      {frozen && (
+      {/* Classification — appears once all four numbers are valid AND the kernel
+          resolved a classification (null = gender drift → visibly incomplete) */}
+      {frozen && frozen.classification && (
         <div className="field" style={{ borderTop: '1px solid var(--sep)', paddingTop: 12, marginTop: 4,
           display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 13, color: 'var(--t3)' }}>
@@ -402,7 +403,7 @@ export default function EvalForm({ client, evalRecord, dispatch, lang, onClose }
 
 Notes for the implementer:
 - The branch-picker row, `EvalTimer` import/render, pull-variant toggle, and all mass-battery parse logic are GONE — that is the point. `src/components/EvalTimer.jsx` is NOT deleted; it just loses its only consumer.
-- `frozen.classification` can be null (unknown gender) while `frozen` itself is non-null — but the footer renders only when `frozen` exists AND save is possible; with null classification the badge would read `badge-class-null`. Guard the footer with `frozen && frozen.classification` instead of bare `frozen` if you prefer — but keep the `canSave` gate as written (a null classification is still a saveable, visibly-incomplete record per the kernel contract? **No** — for the FORM, all four inputs valid but null classification means gender drift; the record would freeze incomplete. Render the footer only when `frozen.classification` is non-null: change the guard to `{frozen && frozen.classification && (` — this is the required implementation).
+- `frozen.classification` can be null (unknown gender) while `frozen` itself is non-null; the footer guard `{frozen && frozen.classification && (` in the code above prevents a `badge-class-null` badge. Keep the `canSave` gate as written.
 
 - [ ] **Step 2: Build + bundle check**
 
