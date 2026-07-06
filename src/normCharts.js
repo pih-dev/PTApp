@@ -11,7 +11,8 @@
 //
 // Bump CHARTS_VERSION on ANY chart data change — frozen eval records carry the
 // version they were scored with, so history stays auditable.
-export const CHARTS_VERSION = 1;
+// v2: added 1RM battery tables (bench1rm/squat1rm/deadlift1rm).
+export const CHARTS_VERSION = 2;
 
 // Canonical 5 levels. Score 1..5 ↔ levelKey; run is the 4-level exception (verdict only,
 // never part of the muscle average) and uses 'poor' instead of 'weak'/'belowAvg'.
@@ -111,6 +112,26 @@ export const CHARTS = {
       { minAge: 66, maxAge: 999, t: [-5.1, 0, 5.1, 12.7] },
     ],
   },
+  // ─── 1RM battery (v2.12) ───
+  // Thresholds are 1RM-to-BODYWEIGHT RATIOS (1RM kg ÷ bodyweight kg), per gender,
+  // ONE flat age band — same precedent as the pull-up chart (PT to confirm age handling).
+  // PLACEHOLDER values simplified from published adult strength standards
+  // (ExRx.net / Kraemer & Fleck-style tables, ratio-normalized) until the PT
+  // confirms or supplies his own chart — the sit-and-reach YMCA precedent.
+  // Same t = [min2, min3, min4, min5] contract as the rep charts (lookupScore
+  // is reused unchanged; it compares the ratio against these minimums).
+  bench1rm: {
+    male: [{ minAge: 0, maxAge: 999, t: [0.75, 1.0, 1.35, 1.65] }],
+    female: [{ minAge: 0, maxAge: 999, t: [0.5, 0.7, 0.9, 1.1] }],
+  },
+  squat1rm: {
+    male: [{ minAge: 0, maxAge: 999, t: [1.25, 1.5, 2.0, 2.5] }],
+    female: [{ minAge: 0, maxAge: 999, t: [0.75, 1.0, 1.5, 1.85] }],
+  },
+  deadlift1rm: {
+    male: [{ minAge: 0, maxAge: 999, t: [1.5, 2.0, 2.5, 3.0] }],
+    female: [{ minAge: 0, maxAge: 999, t: [1.0, 1.25, 1.75, 2.25] }],
+  },
 };
 
 const RUN_LEVELS = ['excellent', 'good', 'average', 'poor'];
@@ -178,6 +199,41 @@ export function computeEvalFrozen(gender, age, pullVariant, raw) {
     age, gender,
     scores: { pushup, pull, squat, run, sitReach },
     muscleAvg: Math.round(exact * 100) / 100,  // display value; classification uses exact
+    classification: classify(exact),
+    chartsVersion: CHARTS_VERSION,
+  };
+}
+
+// ─── The 1RM freeze kernel (v2.12) ───
+// Mirrors computeEvalFrozen exactly: the eval form's live chips AND the save path
+// both call this, so the preview can never disagree with the stored record (the
+// v2.9.6 "same number, two semantics" trap class). Do NOT reimplement the ratio
+// math or the 1-5 lookup anywhere else.
+// raw = { bodyweightKg, benchKg, squatKg, deadliftKg } — all positive kg numbers.
+export function compute1RMFrozen(gender, age, raw) {
+  // Ratio is null (not 0, not Infinity) on any bad input — a null score must
+  // surface as a visibly incomplete record, same rule as the mass kernel.
+  const ratio = (kg) =>
+    Number.isFinite(kg) && kg > 0 && Number.isFinite(raw.bodyweightKg) && raw.bodyweightKg > 0
+      ? kg / raw.bodyweightKg : null;
+  const bench = lookupScore('bench1rm', gender, age, ratio(raw.benchKg)).score;
+  const squat = lookupScore('squat1rm', gender, age, ratio(raw.squatKg)).score;
+  const deadlift = lookupScore('deadlift1rm', gender, age, ratio(raw.deadliftKg)).score;
+
+  if (bench == null || squat == null || deadlift == null) {
+    return {
+      age, gender,
+      scores: { bench, squat, deadlift },
+      liftAvg: null, classification: null,
+      chartsVersion: CHARTS_VERSION,
+    };
+  }
+
+  const exact = (bench + squat + deadlift) / 3;
+  return {
+    age, gender,
+    scores: { bench, squat, deadlift },
+    liftAvg: Math.round(exact * 100) / 100,  // display value; classification uses exact
     classification: classify(exact),
     chartsVersion: CHARTS_VERSION,
   };
