@@ -1,6 +1,6 @@
-// Sanity: v2.12 1RM battery — ratio-threshold lookups + compute1RMFrozen kernel.
+// Sanity: v2.12 1RM battery — ratio-threshold lookups + compute1RMFrozen kernel (part 1)
+// plus reducer-coexistence assertions for 1rm/mass evaluation records (part 2).
 // Run: node scripts/sanity/sanity-1rm.mjs
-// Part 2 (reducer coexistence assertions) is appended by a later task.
 const chartsUrl = new URL('../../src/normCharts.js', import.meta.url).href;
 const { lookupScore, compute1RMFrozen, CHARTS, CHARTS_VERSION } = await import(chartsUrl);
 
@@ -54,3 +54,44 @@ const g3 = compute1RMFrozen('female', 25, { bodyweightKg: 60, benchKg: null, squ
 assert(g3.scores.bench === null && g3.classification === null, 'null lift → visibly incomplete record');
 
 console.log('sanity-1rm part 1: ALL PASS');
+
+// ═══ Part 2: reducer coexistence — 1rm and mass records live side by side ═══
+const utilsUrl = new URL('../../src/utils.js', import.meta.url).href;
+const { baseReducer } = await import(utilsUrl);
+
+const massRec = {  // legacy v2.11 shape — must survive every path untouched
+  id: 'ev-mass', clientId: 'c1', date: '2026-06-12', branch: 'mass', pullVariant: 'pullup',
+  raw: { pushup: 18, pull: 7, squat: 36, runSec: null, sitReachCm: null },
+  frozen: { age: 30, gender: 'male', scores: { pushup: 3, pull: 4, squat: 4, run: null, sitReach: null },
+    muscleAvg: 3.67, classification: 'intA', chartsVersion: 1 },
+  _modified: '2026-06-12T10:00:00Z',
+};
+const rmFrozen = compute1RMFrozen('male', 30, { bodyweightKg: 80, benchKg: 80, squatKg: 120, deadliftKg: 160 });
+const rmRec = {
+  id: 'ev-1rm', clientId: 'c1', date: '2026-07-06', branch: '1rm',
+  raw: { bodyweightKg: 80, benchKg: 80, squatKg: 120, deadliftKg: 160 },
+  frozen: rmFrozen,
+};
+
+const state0 = {
+  _dataVersion: 5,
+  clients: [{ id: 'c1', name: 'Test', packages: [], _modified: '2026-01-01T00:00:00Z' }],
+  sessions: [], evaluations: [massRec], todos: [], messageTemplates: {}, auditLog: [],
+  _lastModified: '2026-01-01T00:00:00Z',
+};
+
+const s1 = baseReducer(state0, { type: 'ADD_EVALUATION', payload: rmRec });
+assert(s1.evaluations.length === 2, 'ADD_EVALUATION appends the 1rm record beside the mass record');
+assert(JSON.stringify(s1.evaluations[0]) === JSON.stringify(massRec), 'legacy mass record byte-identical after add');
+assert(!!s1.evaluations[1]._modified, '1rm record stamped _modified');
+
+const edited = { ...rmRec, raw: { ...rmRec.raw, benchKg: 85 },
+  frozen: compute1RMFrozen('male', 30, { bodyweightKg: 80, benchKg: 85, squatKg: 120, deadliftKg: 160 }) };
+const s2 = baseReducer(s1, { type: 'EDIT_EVALUATION', payload: edited });
+assert(s2.evaluations.find(e => e.id === 'ev-1rm').raw.benchKg === 85, 'EDIT_EVALUATION full-record replace works on 1rm shape');
+assert(JSON.stringify(s2.evaluations.find(e => e.id === 'ev-mass')) === JSON.stringify(massRec), 'mass record untouched by 1rm edit');
+
+const s3 = baseReducer(s2, { type: 'DELETE_CLIENT', payload: 'c1' });
+assert(s3.evaluations.length === 0, 'DELETE_CLIENT cascades BOTH record shapes (no orphans)');
+
+console.log('sanity-1rm part 2: ALL PASS');
