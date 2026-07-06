@@ -4,6 +4,22 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.12.0 — 1RM strength battery replaces the mass-test battery (July 6, 2026)
+
+**Evaluations now measure raw strength.** Instead of push-ups, pull-ups, and
+timed squats, "Evaluate" records a **1RM test**: the client's bodyweight plus
+their max single-rep bench press, squat, and deadlift. Each lift gets a live
+verdict (Weak … Excellent) based on how it compares to bodyweight, plus the
+same overall classification (Beginner A … Pro) as before.
+
+**Old evaluations are kept, view-only.** Every 30-second-battery evaluation
+already in a client's history stays there — you can look at it or delete it,
+but the old form to edit it is gone.
+
+**Norm Charts updated.** General → Norm Charts now shows the strength-standard
+ratios instead of the old rep-count tables. These are published general values
+until the coach sends his own numbers to confirm.
+
 ## v2.11.1 — Evaluation timer & quicker access (June 13, 2026)
 
 **The Evaluate button is now at the top of a client's card.** Open any client and it's right there under their info — no more scrolling past every session to reach it.

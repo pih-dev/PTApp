@@ -12,7 +12,16 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.11.1
+## Current Version: v2.12.0
+1RM strength battery replaces the v2.11 mass-population battery — Pierre's call 2026-07-06. No schema change, DATA_VERSION stays 5 (purely additive `branch:'1rm'` records alongside existing `branch:'mass'` records). Spec: `docs/superpowers/specs/2026-07-06-1rm-battery-replaces-mass-design.md`.
+- **`compute1RMFrozen(gender, age, raw)` in `normCharts.js` is THE single 1RM scoring kernel** (`raw = { bodyweightKg, benchKg, squatKg, deadliftKg }`). Both EvalForm live chips and the save path call it — never reimplement the ratio lookup or classify logic anywhere else (same rule as the retired `computeEvalFrozen`).
+- **New chart keys `bench1rm/squat1rm/deadlift1rm`** (lift-to-bodyweight ratio tables). `CHARTS_VERSION` bumped 1 → 2. Ratios are derived from `raw` at display time, never frozen — only the 1–5 scores + classification are frozen per record.
+- **Placeholder standards until the PT confirms** — same pattern as the sit-&-reach YMCA placeholder. When his numbers arrive: edit the three tables in `normCharts.js` and bump `CHARTS_VERSION` to 3. No migration needed.
+- **Old (`branch:'mass'`) evaluation records are view-only** — `EvalSection` is branch-aware, Edit is hidden for mass records (the old form is gone), Delete still works. History is preserved, never dropped.
+- **`EvalTimer.jsx` retained in the repo but unrendered** — 1RM attempts aren't timed, so the measurement console from v2.11.1 isn't shown in the new form. Do not delete the file; a future rep-based battery could reuse it.
+- New sanity: `sanity-1rm.mjs` (kernel boundaries, null guards, reducer coexistence with mass-branch records).
+
+## Previous Version: v2.11.1
 UI-only point release on the evaluation system. No schema change, nothing persisted. Spec/plan: `docs/superpowers/{specs,plans}/2026-06-13-eval-ux-timer*`.
 - **`src/components/EvalTimer.jsx`** — in-form measurement console: active-test chips, 30s countdown for rep tests (±5s, clamp 5–300; Web-Audio beep + `haptic()` + row-flash at 0), count-up stopwatch for the run (fills mm:ss), none for sit-reach. **Timer state is ephemeral** — duration, remaining, and test order are NOT stored; the console only writes into the same `form` fields the rows use (single source of truth).
 - **Effect-driven tick** (self-rescheduling `setTimeout`, not a `setInterval` ref, no side effects in a state updater). Switching the active test resets the timer via `useEffect([activeTest])`. AudioContext unlocked on the Start gesture (iOS audio rule).
@@ -26,8 +35,8 @@ Evaluation system — mass-population battery (PT feature #2, stage 1 of 2). Sch
 - **`computeEvalFrozen(rawInputs, gender, age)`** is THE single scoring kernel. Both EvalForm live chips AND the save path call it — by construction they can never disagree. Do not reimplement the 1–5 lookup or classify logic anywhere else.
 - **`EDIT_EVALUATION` full-record contract** — the entire record is replaced (re-frozen by `computeEvalFrozen` at call site). Partial patches are forbidden; `scores` + `classification` must stay internally consistent.
 - **`evaluations[]` follows the sessions[] pattern** in every merge path (`mergeData`, `mergeBackup`, `REPLACE_ALL`). `DELETE_CLIENT` cascades to evaluations. Never let evaluations become orphaned.
-- **Sit & reach = YMCA placeholder** until the PT sends his own chart. When it arrives: edit the `SITREACH` table in `normCharts.js` and bump `CHARTS_VERSION`. No migration needed — old frozen records are unaffected.
-- **Pro/Elite 1RM parked for v2.12.** Visible-disabled in EvalForm. Three open questions before enabling: Elite boundary, 1RM verdict phrasing, bodyweight captured per eval or from client profile.
+- **Sit & reach = YMCA placeholder** until the PT sends his own chart. When it arrives: edit the `SITREACH` table in `normCharts.js` and bump `CHARTS_VERSION`. No migration needed — old frozen records are unaffected. (v2.12: the mass battery — including sit & reach — is no longer authorable; existing records stay view-only, so this table now only matters for historical re-freezing, not new entries.)
+- **Pro/Elite 1RM parked for v2.12.** Visible-disabled in EvalForm. Three open questions before enabling: Elite boundary, 1RM verdict phrasing, bodyweight captured per eval or from client profile. (Superseded: v2.12 replaced the whole battery with 1RM — see Current Version.)
 - New components: `EvalForm.jsx`, `EvalSection.jsx`, `NormChartsView.jsx`. New sanity: `sanity-evaluations.mjs` (3 parts), `sanity-live-v5-diff.mjs` (live-data byte-diff gate).
 
 ## Previous Version: v2.10.4
@@ -301,7 +310,7 @@ git checkout master
 - Pushing to `master` alone does NOT deploy. The live site serves from `gh-pages`.
 - **Pushing to `gh-pages` does not guarantee deployment either.** After every gh-pages push, verify the Pages run actually deployed: `gh api repos/pih-dev/PTApp/pages/builds/latest --jq .status` must reach `built` (a successful `git push` only means the commit landed). Jun 11 incident: two gh-pages pushes 5 min apart hit a GitHub artifact race ("Multiple artifacts named github-pages"), the deploy step failed, and the stale build record showed `building` for 24h with no run in flight. Fix: `gh api -X POST repos/pih-dev/PTApp/pages/builds` to request a fresh build, then re-verify (and diff live HTML against `dist/index.html` for certainty). Avoid rapid back-to-back gh-pages pushes.
 - For schema changes, run a live-data byte-diff gate before deploying. Current gate: `scripts/sanity/sanity-live-v5-diff.mjs` (v4→v5). **`sanity-live-migration.mjs` is v2→v3-era STALE** — it asserts `_dataVersion === 3` and will misfire on current data. Modernize or retire it at the next schema change; do not use it as the gate.
-- Sanity scripts (in `scripts/sanity/`): `sanity-reducer.mjs`, `sanity-counting.mjs`, `sanity-slidingwindow.mjs`, `sanity-migration.mjs`, `sanity-live-migration.mjs` (stale — see note above), `sanity-evaluations.mjs`, `sanity-live-v5-diff.mjs`.
+- Sanity scripts (in `scripts/sanity/`): `sanity-reducer.mjs`, `sanity-counting.mjs`, `sanity-slidingwindow.mjs`, `sanity-migration.mjs`, `sanity-live-migration.mjs` (stale — see note above), `sanity-evaluations.mjs`, `sanity-live-v5-diff.mjs`, `sanity-1rm.mjs`.
 
 ## Sibling Projects
 PTApp is the most mature web app in Pierre's project ecosystem. Its UI/UX patterns serve as reference for other projects:

@@ -4,6 +4,21 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.12.0 — 1RM battery replaces Mass battery (2026-07-06)
+
+**Trigger:** Pierre, 2026-07-06 — reverses the v2.11 "Mass battery is the evaluation" product decision. Spec: `docs/superpowers/specs/2026-07-06-1rm-battery-replaces-mass-design.md`.
+
+- 1RM battery replaces Mass battery (spec 2026-07-06). `branch:'1rm'` records,
+  additive shape, no migration (DATA_VERSION 5).
+- `normCharts.js`: `bench1rm/squat1rm/deadlift1rm` BW-ratio charts (placeholder
+  published standards, PT to confirm), `compute1RMFrozen` kernel, `CHARTS_VERSION` 2.
+- `EvalForm.jsx` rewritten (bodyweight + 3 lifts, decimal pads, live ratio +
+  chips, EvalTimer + branch picker removed). `EvalSection` branch-aware; mass
+  records view-only (Edit hidden, Delete kept). `NormChartsView` shows 1RM table.
+- `scripts/sanity/sanity-1rm.mjs` (kernel boundaries, null guards, reducer
+  coexistence). Reverses the v2.11 "Mass battery is the evaluation" decision —
+  Pierre's call 2026-07-06.
+
 ## v2.11.1 — Eval measurement console (UI only, no schema change) (2026-06-13)
 
 **Trigger:** Pierre, 2026-06-13 — move the Evaluate button up, select the activity during eval, add a timer. Reverses the Jun-9 "no in-app timer" decision. Spec: `docs/superpowers/specs/2026-06-13-eval-ux-timer-design.md`. Plan: `docs/superpowers/plans/2026-06-13-eval-ux-timer.md`.
