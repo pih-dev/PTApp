@@ -4,6 +4,28 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.12.1 — Token-expiry surfacing + Update sync token UI (2026-07-07)
+
+**Trigger:** Jun-30 incident — the makdissi-dev fine-grained PAT expired; every device 401'd into a generic red dot for a week; no UI existed to replace a stored token. Full trap write-up: `docs/traps.md` ("The sync credential is infrastructure with an expiry date").
+
+- `App.jsx`: new `tokenExpired` state set from all three sync failure paths
+  (`reconcile` catch, `debouncedSync` catch via new 4th arg, retry reuses
+  reconcile). Red-dot tap routes to `TokenUpdateModal` when `tokenExpired`,
+  doomed retry otherwise unchanged. Debug panel shows `(token expired)`.
+- New `TokenUpdateModal.jsx`: validate-then-save (same flow as TokenSetup),
+  never touches local data; `onSaved` clears the flag and retries via
+  `reconcile()` — the merge-not-overwrite path, which is what recovered the
+  stranded week (+22 sessions, +1 client) with zero loss.
+- `General.jsx`: always-available **Update sync token** button (Backup row),
+  opens App's modal via new `onUpdateToken` prop.
+- i18n: `updateToken`, `tokenExpiredMsg` (EN+AR).
+- Ops: new token `PTApp-sync-2026` (makdissi-dev, ptapp-data Contents R/W)
+  **expires 2027-07-06 — renew June 2027.** Incident snapshots:
+  `_archive/PTApp/incidents/2026-07-07-post-token-recovery-data.json` and
+  `_archive/PTApp/data-snapshots/2026-07-06-pre-v2.12-data.json`.
+
+---
+
 ## v2.12.0 — 1RM battery replaces Mass battery (2026-07-06)
 
 **Trigger:** Pierre, 2026-07-06 — reverses the v2.11 "Mass battery is the evaluation" product decision. Spec: `docs/superpowers/specs/2026-07-06-1rm-battery-replaces-mass-design.md`.

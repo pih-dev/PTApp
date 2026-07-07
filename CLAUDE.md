@@ -12,7 +12,13 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.12.0
+## Current Version: v2.12.1
+Token-expiry incident fix (Jun-30: the sync PAT expired, every device went generic-red for a week, a week of bookings stranded on the PT's iPhone — recovered same-session, zero loss). See `docs/traps.md` "sync credential is infrastructure".
+- **401 ⇒ `tokenExpired`** in App.jsx (all 3 sync failure paths); red-dot tap opens `TokenUpdateModal.jsx` instead of a doomed retry. General → Backup has an always-available **Update sync token** button.
+- **Token replacement NEVER touches local data** — validate, save, then `reconcile()` (merge path). That merge is what recovered the stranded week.
+- **SYNC TOKEN EXPIRY: 2027-07-06** (`PTApp-sync-2026` on makdissi-dev, ptapp-data Contents R/W only). **Renew it in June 2027** — create the new token, enter it on both phones via Update sync token. Record the new date here when rotated.
+
+## Previous Version: v2.12.0
 1RM strength battery replaces the v2.11 mass-population battery — Pierre's call 2026-07-06. No schema change, DATA_VERSION stays 5 (purely additive `branch:'1rm'` records alongside existing `branch:'mass'` records). Spec: `docs/superpowers/specs/2026-07-06-1rm-battery-replaces-mass-design.md`.
 - **`compute1RMFrozen(gender, age, raw)` in `normCharts.js` is THE single 1RM scoring kernel** (`raw = { bodyweightKg, benchKg, squatKg, deadliftKg }`). Both EvalForm live chips and the save path call it — never reimplement the ratio lookup or classify logic anywhere else (same rule as the retired `computeEvalFrozen`).
 - **New chart keys `bench1rm/squat1rm/deadlift1rm`** (lift-to-bodyweight ratio tables). `CHARTS_VERSION` bumped 1 → 2. Ratios are derived from `raw` at display time, never frozen — only the 1–5 scores + classification are frozen per record.

@@ -4,6 +4,19 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.12.1 — Sync token can now be replaced in the app (July 7, 2026)
+
+**The red sync dot got smarter.** The cloud sync key (a GitHub token) expired
+on June 30 and every phone showed a permanently red dot with no way to fix it —
+a week of bookings sat waiting on the coach's phone until we shipped this.
+Now, when the key has expired, tapping the red dot opens an **Update sync
+token** dialog (also always available under General → Backup). Paste the new
+key, tap Connect, and everything the phone was holding syncs up — nothing on
+the phone is ever touched or lost. The stranded week (22 sessions and a new
+client) was recovered the same day.
+
+---
+
 ## v2.12.0 — 1RM strength battery replaces the mass-test battery (July 6, 2026)
 
 **Evaluations now measure raw strength.** Instead of push-ups, pull-ups, and
