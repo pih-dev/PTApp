@@ -51,7 +51,10 @@ check('old client root periodStart removed', mc.periodStart === undefined);
 check('old session type Custom→Endurance', ms.type === 'Endurance');
 check('old session Arms tag rewritten', !ms.focus.includes('Arms') && ms.focus.includes('Bi'));
 check('live records untouched', merged.clients.length === live.clients.length + 1 && merged.sessions.length === live.sessions.length + 1);
-check('merged _dataVersion is 5', merged._dataVersion === 5);
+// v2.13: DATA_VERSION bumped 5→6 (program generation) — mergeData migrates the
+// foreign old-format blob up to the CURRENT version. Pure version-literal update;
+// behavior unchanged (was 4 at write time, then 5, now 6 — see comment history).
+check('merged _dataVersion is 6 (current DATA_VERSION)', merged._dataVersion === 6);
 check('merged evaluations[] exists (v4→v5 ran on foreign blob)', Array.isArray(merged.evaluations));
 // mergeData must NOT mutate the caller's remote — reconcile() compares merged against
 // it to decide whether to push the upgraded blob back to the server.

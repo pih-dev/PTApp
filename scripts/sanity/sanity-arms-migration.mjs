@@ -67,8 +67,9 @@ function check(label, actual, expected) {
 }
 
 // Sanity that the full chain ran (v3→v4 Arms/Endurance is this script's focus;
-// v4→v5 added evaluations[] in v2.11 — the sentinel tracks the CURRENT version)
-check('DATA_VERSION is 5', result._dataVersion, 5);
+// v4→v5 added evaluations[] in v2.11; v5→v6 added programs[] in v2.13 —
+// the sentinel tracks the CURRENT version)
+check('DATA_VERSION is 6', result._dataVersion, 6);
 
 // Find sessions by id (post-migration order may have changed)
 const byId = Object.fromEntries(result.sessions.map(s => [s.id, s]));

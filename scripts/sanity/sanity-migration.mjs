@@ -107,10 +107,11 @@ function assert(cond, msg) {
   console.log('✓', msg);
 }
 
-// migrateData runs all forward steps in one pass, so a v2 input now lands at v5
-// (v2.9.5 added v3→v4 Arms/Endurance; v2.11 added v4→v5 evaluations[]).
+// migrateData runs all forward steps in one pass, so a v2 input now lands at v6
+// (v2.9.5 added v3→v4 Arms/Endurance; v2.11 added v4→v5 evaluations[];
+// v2.13 added v5→v6 programs[]).
 // We assert the latest version and that v3-introduced shape (packages[]) survives.
-assert(migrated._dataVersion === 5, 'dataVersion bumped through to 5');
+assert(migrated._dataVersion === 6, 'dataVersion bumped through to 6');
 // Guards the v4→v5 step specifically: if it were removed, the version assertion above
 // could still pass via the defaults block, but this would not.
 assert(Array.isArray(migrated.evaluations), 'evaluations[] exists after full-chain migration');

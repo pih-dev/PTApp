@@ -156,3 +156,40 @@ assert(pullDay0.exercises[0].name === 'Deadlift' && pullDay0.exercises[0].bucket
   'Deadlift anchor leads pull day, bucketed as Back');
 assert(!pullDay0.exercises.some(e => e.bucket === 'Legs'), 'no stray Legs bucket on pull day');
 console.log('kernel OK');
+
+// === part 4: reducer + merge coexistence ===
+const utilsUrl = new URL('../../src/utils.js', import.meta.url).href;
+const { reducer, migrateData, mergeData } = await import(utilsUrl);
+
+const base = { clients: [{ id: 'c1', name: 'A' }], sessions: [], evaluations: [], programs: [],
+  todos: [], auditLog: [], messageTemplates: {}, _dataVersion: 6 };
+const rec = { ...prog, id: 'p9' };                            // reuse the kernel output from part 3
+
+let s = reducer(base, { type: 'ADD_PROGRAM', payload: rec });
+assert(s.programs.length === 1 && s.programs[0]._modified, 'ADD_PROGRAM appends + stamps _modified');
+// NOTE: audit entries in this file use `event`, never `type` (see evaluation_deleted,
+// package_edited, etc.) — brief's test snippet said `a.type`; corrected to match the
+// codebase's real idiom, same class of copy-paste artifact as the livePracticeIds note.
+assert(s.auditLog.some(a => a.event === 'program_generated'), 'ADD_PROGRAM audit-logged');
+
+const swapped = { ...rec, blocks: rec.blocks.slice() };       // full-record replace (swap-exercise path)
+s = reducer(s, { type: 'EDIT_PROGRAM', payload: swapped });
+assert(s.programs.length === 1, 'EDIT_PROGRAM replaces, never duplicates');
+
+s = reducer(s, { type: 'DELETE_PROGRAM', payload: 'p9' });
+assert(s.programs.length === 0 && s.auditLog.some(a => a.event === 'program_deleted'), 'DELETE_PROGRAM + audit');
+
+s = reducer({ ...base, programs: [{ ...rec, id: 'px' }] }, { type: 'DELETE_CLIENT', payload: 'c1' });
+assert(s.programs.length === 0, 'DELETE_CLIENT cascades to programs');
+
+// migration: v5 blob (no programs) → v6 seeds []
+const migrated = migrateData({ clients: [], sessions: [], evaluations: [], _dataVersion: 5 });
+assert(Array.isArray(migrated.programs) && migrated._dataVersion === 6, 'v5→v6 seeds programs[]');
+
+// merge: programs union-by-ID with newest-_modified-wins, evaluations pattern
+const local = { ...base, programs: [{ id: 'pA', _modified: '2026-07-01T00:00:00Z' }] };
+const remote = { ...base, programs: [{ id: 'pA', _modified: '2026-07-02T00:00:00Z' }, { id: 'pB', _modified: '2026-07-01T00:00:00Z' }] };
+const merged = mergeData(local, remote);
+assert(merged.programs.length === 2, 'merge unions programs by ID');
+assert(merged.programs.find(p => p.id === 'pA')._modified === '2026-07-02T00:00:00Z', 'newer _modified wins');
+console.log('reducer/merge OK');

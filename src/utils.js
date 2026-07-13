@@ -624,13 +624,16 @@ export const ageAtDate = (birthdate, onDate) => {
 // ─── Data versioning & migration ───
 // Increment DATA_VERSION when the schema changes. Add a migration function
 // for each version bump. Existing data is NEVER discarded — only migrated forward.
-const DATA_VERSION = 5;
+const DATA_VERSION = 6;
 
 // Capitalize each word: "pierre ghorra" → "Pierre Ghorra"
 export const capitalizeName = (name) =>
   name.replace(/\b\w/g, c => c.toUpperCase());
 
-function migrateData(data) {
+// v2.13: exported (was module-private) so sanity-programs.mjs part 4 can assert the
+// v5→v6 seeding step directly, same import style as reducer/mergeData/mergeBackup below.
+// No behavior change — visibility only.
+export function migrateData(data) {
   let v = data._dataVersion || 0;
 
   // v1 → v2: Add nickname field (first name), capitalize existing names
@@ -799,10 +802,19 @@ function migrateData(data) {
     v = 5;
   }
 
+  // v5 → v6: program generation (v2.13). Adds top-level programs[] — frozen
+  // 6-month training plans (sessions/evaluations pattern: per-record _modified,
+  // union-by-ID merge). Purely additive: nothing existing is reshaped.
+  if (v < 6) {
+    data.programs = data.programs || [];
+    v = 6;
+  }
+
   data.clients = data.clients || [];
   data.sessions = data.sessions || [];
   data.todos = data.todos || [];
   data.evaluations = data.evaluations || [];
+  data.programs = data.programs || [];
   data.messageTemplates = data.messageTemplates || {};
   // auditLog may be absent on fresh state or data fetched from remote before v3
   data.auditLog = data.auditLog || [];
@@ -869,6 +881,8 @@ export function mergeData(local, remote) {
     todos: mergeById(local.todos, remote.todos),
     // evaluations merge exactly like sessions — per-record _modified, union by ID
     evaluations: mergeById(local.evaluations, remote.evaluations),
+    // programs merge exactly like evaluations — per-record _modified, union by ID
+    programs: mergeById(local.programs, remote.programs),
     // auditLog entries are append-only and have IDs — union-merge like sessions/todos
     auditLog: mergeById(local.auditLog, remote.auditLog),
     // Templates don't have per-record timestamps — prefer side with newer _lastModified
@@ -1011,6 +1025,8 @@ export function baseReducer(state, action) {
         sessions: state.sessions.filter(s => s.clientId !== action.payload),
         // v2.11: a client's evaluations go with them (same rule as sessions)
         evaluations: (state.evaluations || []).filter(ev => ev.clientId !== action.payload),
+        // v2.13: a client's generated programs go with them (same rule as evaluations)
+        programs: (state.programs || []).filter(p => p.clientId !== action.payload),
       };
     case 'ADD_SESSION':
       return { ...state, sessions: [...state.sessions, { ...action.payload, _modified: now() }] };
@@ -1150,11 +1166,54 @@ export function baseReducer(state, action) {
         }],
       };
     }
+    case 'ADD_PROGRAM': {
+      // v2.13: append-only program history (regeneration ADDS, viewer shows newest —
+      // spec §8). The payload is the complete, already-frozen kernel output; nothing
+      // here recomputes it. Audited like evaluations — a generated program is a
+      // business record the PT acts on for 6 months.
+      const stamp = now();
+      const newProg = { ...action.payload, _modified: stamp };
+      const client = state.clients.find(c => c.id === newProg.clientId);
+      return {
+        ...state,
+        programs: [...(state.programs || []), newProg],
+        auditLog: [...(state.auditLog || []), {
+          id: 'log_' + genId(), ts: stamp,
+          clientId: newProg.clientId, clientName: client ? client.name : '',
+          event: 'program_generated', packageId: null, newPackageId: null,
+          before: null, after: newProg, trigger: null,
+        }],
+      };
+    }
+    case 'EDIT_PROGRAM': {
+      // FULL-RECORD contract (EDIT_EVALUATION precedent): swap-exercise re-dispatches
+      // the whole record — partial patches forbidden, blocks stay internally consistent.
+      const newProg = { ...action.payload, _modified: now() };
+      return { ...state, programs: (state.programs || []).map(p => p.id === newProg.id ? newProg : p) };
+    }
+    case 'DELETE_PROGRAM': {
+      // Confirm-guarded in the UI. The deleted record rides in the audit entry —
+      // "preserve history" means a delete is recoverable forensically.
+      const stamp = now();
+      const oldProg = (state.programs || []).find(p => p.id === action.payload);
+      if (!oldProg) return state;
+      const client = state.clients.find(c => c.id === oldProg.clientId);
+      return {
+        ...state,
+        programs: (state.programs || []).filter(p => p.id !== action.payload),
+        auditLog: [...(state.auditLog || []), {
+          id: 'log_' + genId(), ts: stamp,
+          clientId: oldProg.clientId, clientName: client ? client.name : '',
+          event: 'program_deleted', packageId: null, newPackageId: null,
+          before: oldProg, after: null, trigger: null,
+        }],
+      };
+    }
     case 'REPLACE_ALL': {
       // Ensure all fields exist after replacing state (remote data may lack new fields).
       // Preserves remote's _lastModified if it exists; sets it if remote is legacy data
       // without timestamps (prevents "Modified: none" in debug panel).
-      const replaced = { todos: [], auditLog: [], messageTemplates: {}, evaluations: [], ...action.payload };
+      const replaced = { todos: [], auditLog: [], messageTemplates: {}, evaluations: [], programs: [], ...action.payload };
       replaced._lastModified = replaced._lastModified || new Date().toISOString();
       return replaced;
     }
@@ -1288,6 +1347,10 @@ export const mergeBackup = (live, backup) => {
   const liveEvalIds = new Set((live.evaluations || []).map(ev => ev.id));
   const restoredEvals = (backup.evaluations || []).filter(ev => !liveEvalIds.has(ev.id));
   merged.evaluations = [...(live.evaluations || []), ...restoredEvals];
+  // Merge programs by ID — backup fills missing, doesn't overwrite existing (evaluations pattern)
+  const liveProgramIds = new Set((live.programs || []).map(p => p.id));
+  const restoredPrograms = (backup.programs || []).filter(p => !liveProgramIds.has(p.id));
+  merged.programs = [...(live.programs || []), ...restoredPrograms];
   // Keep whichever has custom templates (live wins if both have them)
   merged.messageTemplates = live.messageTemplates || backup.messageTemplates || {};
   return migrateData(merged);

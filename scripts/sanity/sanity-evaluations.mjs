@@ -152,7 +152,10 @@ const localV5 = {
 const merged = mergeData(localV5, v4blob);
 assert(Array.isArray(merged.evaluations) && merged.evaluations.length === 1,
   'merge v5-local + v4-remote: local evaluations survive');
-assert(merged._dataVersion === 5, 'merged blob is v5');
+// v2.13: DATA_VERSION bumped 5→6 (program generation) — mergeData migrates the
+// foreign v4 blob up to the CURRENT version, not to localV5's version, so the
+// merged result now reports 6. Pure version-literal update; behavior unchanged.
+assert(merged._dataVersion === 6, 'merged blob is v6 (current DATA_VERSION)');
 assert(merged.clients.length === 1, 'remote client unions in');
 
 // Two devices each holding different evals → union, newer _modified wins on collision
