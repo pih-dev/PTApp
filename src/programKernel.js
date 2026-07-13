@@ -1,0 +1,139 @@
+// THE program-generation kernel (spec §6). ONE entry point, pure + deterministic:
+// the setup sheet's preview and the save path call the SAME function with the
+// SAME args (compute1RMFrozen precedent — preview can never disagree with what
+// gets stored). No Date.now()/Math.random(): caller supplies id + timestamps.
+//
+// Program record shape (frozen at generation, schema v6):
+// { id, clientId, evalId, createdAt, startDate, fatPct, rulesVersion, bankVersion,
+//   classification, ranks: {weak,mid,strong},
+//   blocks: [{ index, methodId, objective, strategy, startDate,
+//              days: [{ slot, exercises: [{ name, bucket, type, advanced, sets,
+//                        repsText, pctText, setKg|null, restSec }] }],
+//              daysAlt: circuit days (endurance blocks only) }] }
+import { EXERCISES, EXERCISE_BANK_VERSION, MUSCLE_GROUPS, bankForBucket } from './exerciseBank.js';
+import { PROGRAM_RULES_VERSION, METHODS, rankGroups, majorQuotas, minorQuota, dayOrder } from './programRules.js';
+
+// The three lifts with known 1RMs — the only exercises that show kg (spec §6).
+export const ANCHORS = {
+  push: { name: 'Flat Barbell Press', rawKey: 'benchKg' },
+  legs: { name: 'Back Squat', rawKey: 'squatKg' },
+  pull: { name: 'Deadlift', rawKey: 'deadliftKg' },
+};
+
+const roundPlate = (kg) => Math.round(kg / 2.5) * 2.5;      // 2.5 kg plate rounding
+// pctText is a display string like '80-85%' or '30%' (uniform-intensity methods
+// with no setPcts array — fiveOfFive, doOrDie, statoDynamic, endurance). The
+// anchor still needs a real kg load, so average the range and apply it to every
+// set (deviation from the brief: brief's `method.setPcts ? ... : null` left the
+// anchor's setKg null for these methods, failing "anchor with kg in EVERY
+// non-endurance block" for blocks 2/3/4 — see task-3-report.md).
+const avgPct = (pctText) => {
+  const nums = pctText.match(/\d+(\.\d+)?/g).map(Number);
+  return nums.reduce((a, b) => a + b, 0) / nums.length;
+};
+const addDays = (iso, n) => {
+  const d = new Date(iso + 'T12:00:00');                     // noon guard: no UTC date-shift (toISOString trap)
+  d.setDate(d.getDate() + n);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+// Deterministic candidate list for a bucket: compounds first then isolations
+// (stable bank order inside each), beginner filter applied, anchor excluded
+// (it is placed explicitly), rotated by blockIndex so consecutive blocks pick
+// different variants. Rotation offset only advances through blocks that USE
+// this bucket, which every block does — blockIndex is a valid clock.
+function candidates(bucket, blockIndex, isBeginner, anchorName) {
+  let pool = bankForBucket(bucket).filter(e => e.name !== anchorName);
+  if (isBeginner) {
+    const safe = pool.filter(e => !e.advanced);
+    if (safe.length >= 3) pool = safe;                       // only filter when alternatives exist (spec §6)
+  }
+  const comp = pool.filter(e => e.type === 'compound');
+  const iso = pool.filter(e => e.type === 'isolation');
+  const rot = (arr) => arr.length ? arr.map((_, i) => arr[(i + blockIndex * 2) % arr.length]) : arr;
+  return [...rot(comp), ...rot(iso)];
+}
+
+// Materialize one bucket's exercises for a day: exact `target` total sets,
+// `per` sets per exercise, anchor (if any) first with per-set kg.
+function fillBucket({ bucket, target, method, blockIndex, isBeginner, anchor, anchorKg }) {
+  const per = method.setsPerExercise;
+  const out = [];
+  let remaining = target;
+  if (anchor && remaining >= per) {
+    const anchorSetKg = method.setPcts
+      ? method.setPcts.map(p => roundPlate(anchorKg * p / 100))
+      : Array(per).fill(roundPlate(anchorKg * avgPct(method.pctText) / 100));
+    out.push(exerciseEntry(anchorStub(anchor, bucket), per, method, anchorSetKg));
+    remaining -= per;
+  }
+  const pool = candidates(bucket, blockIndex, isBeginner, anchor ? anchor.name : null);
+  for (let i = 0; remaining > 0 && i < pool.length; i++) {
+    const sets = remaining >= per * 2 ? per : remaining;     // last exercise absorbs the remainder exactly
+    out.push(exerciseEntry(pool[i], Math.min(sets, remaining), method, null));
+    remaining -= Math.min(sets, remaining);
+  }
+  return out;
+}
+const anchorStub = (anchor, bucket) =>
+  EXERCISES.find(e => e.name === anchor.name) || { name: anchor.name, bucket, type: 'compound', advanced: true };
+const exerciseEntry = (ex, sets, method, setKg) => ({
+  name: ex.name, bucket: ex.bucket, type: ex.type, advanced: !!ex.advanced,
+  sets,
+  repsText: method.repsPerSet ? method.repsPerSet.join('/') : method.repsText,
+  pctText: method.setPcts ? method.setPcts.map(p => p + '%').join('/') : method.pctText,
+  setKg, restSec: method.restSec,
+});
+
+// One standard PPL day for a block.
+function buildDay({ slot, majors, method, blockIndex, isBeginner, raw }) {
+  const group = MUSCLE_GROUPS[slot];
+  const majorSets = majors[slot];
+  const anchor = ANCHORS[slot];
+  const exercises = fillBucket({
+    bucket: group.major, target: majorSets, method, blockIndex, isBeginner,
+    anchor, anchorKg: raw[anchor.rawKey],
+  });
+  for (const minor of group.minors)
+    exercises.push(...fillBucket({ bucket: minor, target: minorQuota(majorSets), method, blockIndex, isBeginner, anchor: null }));
+  return { slot, exercises };
+}
+
+// Endurance circuit day: 7 stations × 4 rounds, one per bucket spread across the
+// whole body (spec §4) — deterministic pick = first unused candidate per bucket.
+function buildCircuitDay(blockIndex, dayIdx, isBeginner) {
+  const c = METHODS.endurance.circuit;
+  const stations = ['Chest', 'Back', 'Legs', 'Shoulders', 'Legs', 'Abs', 'Biceps'];
+  const exercises = stations.map((bucket, i) => {
+    const pool = candidates(bucket, blockIndex + dayIdx + i, isBeginner, null);
+    const ex = pool[0];
+    return { name: ex.name, bucket: ex.bucket, type: ex.type, advanced: !!ex.advanced,
+      sets: c.rounds, repsText: c.repsText, pctText: METHODS.endurance.pctText,
+      setKg: null, restSec: c.restBetweenExSec };
+  });
+  return { slot: 'circuit', exercises };
+}
+
+export function generateProgram({ id, client, evalRecord, fatPct, includeFatLoss, methods, startDate, createdAt }) {
+  const classification = evalRecord.frozen.classification;
+  const ranks = rankGroups(evalRecord.frozen.scores);
+  const isBeginner = classification === 'begA' || classification === 'begB';
+  const blocks = methods.map((methodId, index) => {
+    const method = METHODS[methodId];
+    const strategy = index % 2 === 0 ? 'top' : 'steal';
+    const majors = majorQuotas(classification, strategy, ranks, method.objective === 'strength');
+    const blockStart = addDays(startDate, index * 28);       // six 4-week blocks (spec §5)
+    const order = dayOrder(strategy, ranks);
+    const days = order.map(slot => buildDay({ slot, majors, method, blockIndex: index, isBeginner, raw: evalRecord.raw }));
+    const block = { index, methodId, objective: method.objective, strategy, startDate: blockStart, days };
+    if (methodId === 'endurance')                            // weeks 1&3 run daysAlt (circuits), 2&4 run days
+      block.daysAlt = [0, 1, 2].map(d => buildCircuitDay(index, d, isBeginner));
+    return block;
+  });
+  return {
+    id, clientId: client.id, evalId: evalRecord.id, createdAt, startDate,
+    fatPct: fatPct ?? null, includeFatLoss: !!includeFatLoss,
+    rulesVersion: PROGRAM_RULES_VERSION, bankVersion: EXERCISE_BANK_VERSION,
+    classification, ranks, blocks,
+  };
+}
