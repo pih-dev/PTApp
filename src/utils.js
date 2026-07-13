@@ -1174,6 +1174,19 @@ export function baseReducer(state, action) {
       const stamp = now();
       const newProg = { ...action.payload, _modified: stamp };
       const client = state.clients.find(c => c.id === newProg.clientId);
+      // WHY a summary, not the full record: embedding the full ~38KB program in
+      // auditLog doubled data.json burn on every generation. auditLog is
+      // append-only and union-merged forever (mergeById never drops entries), so
+      // that cost compounds across every future push. The GitHub contents API
+      // stops inlining content past 1MB — this is what would tip us over and turn
+      // sync permanently red. The full record still lives in state.programs (and,
+      // if deleted, in DELETE_PROGRAM's audit `before` — that copy is deliberate).
+      const auditSummary = {
+        id: newProg.id, clientId: newProg.clientId, evalId: newProg.evalId,
+        startDate: newProg.startDate, classification: newProg.classification,
+        rulesVersion: newProg.rulesVersion, bankVersion: newProg.bankVersion,
+        methods: (newProg.blocks || []).map(b => b.methodId),
+      };
       return {
         ...state,
         programs: [...(state.programs || []), newProg],
@@ -1181,13 +1194,17 @@ export function baseReducer(state, action) {
           id: 'log_' + genId(), ts: stamp,
           clientId: newProg.clientId, clientName: client ? client.name : '',
           event: 'program_generated', packageId: null, newPackageId: null,
-          before: null, after: newProg, trigger: null,
+          before: null, after: auditSummary, trigger: null,
         }],
       };
     }
     case 'EDIT_PROGRAM': {
       // FULL-RECORD contract (EDIT_EVALUATION precedent): swap-exercise re-dispatches
       // the whole record — partial patches forbidden, blocks stay internally consistent.
+      // Unknown-id no-op guard (EDIT_EVALUATION precedent): a stale/already-deleted
+      // id must not stamp _lastModified or flip merge preference for a write that
+      // changes nothing.
+      if (!(state.programs || []).some(p => p.id === action.payload.id)) return state;
       const newProg = { ...action.payload, _modified: now() };
       return { ...state, programs: (state.programs || []).map(p => p.id === newProg.id ? newProg : p) };
     }

@@ -41,6 +41,40 @@ option and document the change in the changelog.
 - **Revisit trigger:** design it lighter from day one unless reporting
   requirements explicitly demand more.
 
+### Program generation (v2.13+)
+
+- **Path:** heavy
+- **Current knob:** new surfaces `ProgramSetup.jsx` / `ProgramViewer.jsx`; new
+  data collection `state.programs[]`, append-only (regeneration ADDS, never
+  overwrites — viewer shows newest). Each record ~27–38KB frozen at generation
+  (blocks/days/exercises fully expanded, no lazy re-derivation). That puts the
+  budget at roughly 25–30 programs total before data.json alone would approach
+  the GitHub contents API's 1MB no-inline ceiling (before clients/sessions/
+  evaluations/auditLog are even counted).
+- **Overhead:**
+  - Exercise bank regeneration whenever Elie revises exercise selection/
+    prescriptions — full re-review of `exerciseBank.js` content, not a
+    mechanical bump.
+  - Version discipline: `PROGRAM_RULES_VERSION` (`programRules.js`) and
+    `EXERCISE_BANK_VERSION` (`exerciseBank.js`) must bump on ANY change to
+    their respective tables — frozen program records carry the version they
+    were generated under, so old records keep their frozen output.
+  - No `DELETE_PROGRAM` UI yet, though the reducer action + full audit-trail
+    forensic copy exist. The i18n keys tied to a delete affordance are
+    deliberately unused for now, not dead-code drift.
+- **Heavier option:** per-block lazy exercise expansion (store method + params,
+  re-derive exercise list from the bank at render time) — cuts record size
+  significantly but breaks the "frozen forever" guarantee if the bank changes
+  underneath an old program.
+- **Lighter option:** cap history — keep only the N most recent programs per
+  client, archive older ones out of the synced blob.
+- **Retention:** forever, append-only. No trim yet.
+- **Revisit trigger:**
+  - `state.programs.length` approaching the ~25–30 budget above
+  - OR data blob > 1MB (contents API inlining ceiling)
+  - OR Elie asks for a bank/rules change more than once a quarter (regeneration
+    overhead starts to dominate maintenance time)
+
 ### (add future medium/heavy-path features here)
 
 ---

@@ -54,10 +54,15 @@ export default function ProgramViewer({ program, dispatch, lang, onClose }) {
               {e.sets}×{e.repsText} · {e.pctText}{e.setKg ? ` · ${e.setKg.join('/')} kg` : ''} · {restText(e.restSec)}
             </span>
           </span>
-          <button className="btn-ghost" style={{ fontSize: 11, padding: '10px 12px' }}
-            onClick={() => { haptic(); setSwap({ blockIdx: bi, dayKey, dayIdx: di, exIdx: ei }); }}>
-            {t(lang, 'swapExercise')}
-          </button>
+          {/* Anchors (bench/squat/deadlift) are un-swappable — their kg comes from the
+              eval 1RM and a swap would carry deadlift kilos onto the replacement
+              (spec §6: anchors appear in every block; setKg only exists on them). */}
+          {!e.setKg && (
+            <button className="btn-ghost" style={{ fontSize: 11, padding: '10px 12px' }}
+              onClick={() => { haptic(); setSwap({ blockIdx: bi, dayKey, dayIdx: di, exIdx: ei }); }}>
+              {t(lang, 'swapExercise')}
+            </button>
+          )}
         </div>
       ))}
     </div>
