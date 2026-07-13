@@ -302,12 +302,13 @@ export const EXERCISES = [
   {
     "name": "Bent-Over Lateral Raise",
     "muscles": [
+      "Rear Delts",
       "Shoulders"
     ],
-    "primary": "Shoulders",
+    "primary": "Rear Delts",
     "type": "isolation",
-    "slot": "push",
-    "bucket": "Shoulders",
+    "slot": "pull",
+    "bucket": "Rear Delts",
     "advanced": false
   },
   {
@@ -379,12 +380,13 @@ export const EXERCISES = [
   {
     "name": "Low-Pulley Bent-Over Lateral Raise",
     "muscles": [
+      "Rear Delts",
       "Shoulders"
     ],
-    "primary": "Shoulders",
+    "primary": "Rear Delts",
     "type": "isolation",
-    "slot": "push",
-    "bucket": "Shoulders",
+    "slot": "pull",
+    "bucket": "Rear Delts",
     "advanced": false
   },
   {
@@ -412,12 +414,13 @@ export const EXERCISES = [
   {
     "name": "Pec-Deck Rear Delt Raise",
     "muscles": [
+      "Rear Delts",
       "Shoulders"
     ],
-    "primary": "Shoulders",
+    "primary": "Rear Delts",
     "type": "isolation",
-    "slot": "push",
-    "bucket": "Shoulders",
+    "slot": "pull",
+    "bucket": "Rear Delts",
     "advanced": false
   },
   {

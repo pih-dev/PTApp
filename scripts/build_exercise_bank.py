@@ -47,6 +47,13 @@ COMPOUND_OVERRIDE = {"Glute Ham Raise", "Back Extension", "Nordic Hamstring Curl
 # (anchors are exempt in the kernel, not here).
 ADVANCED = re.compile(r"barbell|deficit|halting|power rack|push press|nordic|pistol|plyometric", re.I)
 
+# Rear-delt curation: the source xlsx labels rear-delt movements as generic
+# "Shoulders" (e.g. "Pec-Deck Rear Delt Raise" -> ["Shoulders"]), leaving the
+# Rear Delts bucket too thin to program (1 exercise vs the ≥3 quota floor).
+# Reclassify by name pattern here — Elie confirms at bank review via the
+# as-implemented export. Do NOT lower the sanity threshold instead.
+REAR_DELT_PAT = re.compile(r"rear delt|bent-over lateral raise|bent over lateral raise|w raise", re.I)
+
 wb = openpyxl.load_workbook(SRC, data_only=True)
 ws = wb.worksheets[0]
 seen, out = set(), []
@@ -61,6 +68,13 @@ for name_cell, muscles_cell in ws.iter_rows(min_row=2, values_only=True):
     unknown = [m for m in muscles if m not in BUCKET]
     if unknown: raise SystemExit(f"UNKNOWN MUSCLE {unknown} in '{name}' — extend CANON/BUCKET")
     primary = muscles[0]
+    # Rear-delt reclassification (see REAR_DELT_PAT comment above): force primary
+    # to 'Rear Delts' for name-matched movements whose primary came in as the
+    # generic 'Shoulders' label. Only this classification is touched.
+    if REAR_DELT_PAT.search(name) and primary in ("Shoulders", "Rear Delts"):
+        primary = "Rear Delts"
+        if "Rear Delts" not in muscles:
+            muscles = ["Rear Delts"] + muscles
     slot, bucket = BUCKET[primary]
     is_comp = (name in COMPOUND_OVERRIDE) or (
         bool(COMPOUND_PAT.search(name)) and not any(o.lower() in name.lower() for o in ISOLATION_OVERRIDE))
