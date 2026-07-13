@@ -60,12 +60,23 @@ function fillBucket({ bucket, target, method, blockIndex, isBeginner, anchor, an
   const per = method.setsPerExercise;
   const out = [];
   let remaining = target;
-  if (anchor && remaining >= per) {
+  if (anchor && remaining > 0) {
+    // ALWAYS place the anchor when the day has one — "anchors in every block" is a
+    // spec invariant (§6) and must not silently depend on the quota being ≥ per
+    // (review finding, Task 3). If the quota is tighter than `per`, the anchor takes
+    // what's left (kg pyramid sliced to match) rather than vanishing.
+    const sets = Math.min(per, remaining);
     const anchorSetKg = method.setPcts
-      ? method.setPcts.map(p => roundPlate(anchorKg * p / 100))
-      : Array(per).fill(roundPlate(anchorKg * avgPct(method.pctText) / 100));
-    out.push(exerciseEntry(anchorStub(anchor, bucket), per, method, anchorSetKg));
-    remaining -= per;
+      ? method.setPcts.slice(0, sets).map(p => roundPlate(anchorKg * p / 100))
+      : Array(sets).fill(roundPlate(anchorKg * avgPct(method.pctText) / 100));
+    const entry = exerciseEntry(anchorStub(anchor, bucket), sets, method, anchorSetKg);
+    // Anchor bucket is the DAY'S MAJOR by definition (spec §6), not the bank record's
+    // primary-muscle bucket: Deadlift's bank primary is Quads (bucket 'Legs'), but as
+    // the Pull-day anchor its sets count toward Back (§3 maps deadlift→Pull). Without
+    // this override the Back major runs `per` sets short in every block (review finding).
+    entry.bucket = bucket;
+    out.push(entry);
+    remaining -= sets;
   }
   const pool = candidates(bucket, blockIndex, isBeginner, anchor ? anchor.name : null);
   for (let i = 0; remaining > 0 && i < pool.length; i++) {

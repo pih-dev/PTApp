@@ -144,4 +144,15 @@ assert(begChest.every(e => !e.advanced), 'begA: no advanced non-anchor chest exe
 const noFat = generateProgram({ ...args, includeFatLoss: false,
   methods: ['progLoad', 'descPyramid', 'fiveOfFive', 'doOrDie', 'statoDynamic', 'fiveOfFive'] });
 assert(noFat.blocks[5].methodId === 'fiveOfFive', 'slot 6 fallback');
+
+// pull-day Back quota must be exact — the Deadlift anchor counts as Back (spec §6),
+// even though its bank primary is Quads (review finding, Task 3).
+// NOTE: quota is 14, not the review's proposed 16 — this fixture's deadlift score (4)
+// is its BEST lift, so pull is the STRONG group (tier floor 14). The review's 16
+// assumed part 2's hand-built ranks {mid: pull}, which this eval does not produce.
+const pullDay0 = prog.blocks[0].days.find(x => x.slot === 'pull');
+assert(setsFor(pullDay0, 'Back') === 14, 'pull day: Back major lands exactly on 14 (top strategy strong)');
+assert(pullDay0.exercises[0].name === 'Deadlift' && pullDay0.exercises[0].bucket === 'Back',
+  'Deadlift anchor leads pull day, bucketed as Back');
+assert(!pullDay0.exercises.some(e => e.bucket === 'Legs'), 'no stray Legs bucket on pull day');
 console.log('kernel OK');
