@@ -43,7 +43,7 @@ Tiers (sets per muscle per week): begA 9–11 · begB 11–13 · intA 14–17 ·
 
 Lift→group mapping: bench→Push(Chest) · squat→Legs · deadlift→Pull(Back).
 Rank the three lift scores: weakest / middle / strongest (ties broken squat > deadlift > bench,
-i.e. legs first — Elie's "squat low hence more work on legs" example; confirm at review).
+i.e. legs first — CONFIRMED by Elie 2026-07-13).
 
 - **Odd blocks (1st, 3rd, 5th) — "top of range + day emphasis":** weak major trains at the
   tier's TOP, middle at midpoint, strong at BOTTOM. The weak group's day LEADS the week and
@@ -166,7 +166,7 @@ bank version) — regenerating with identical inputs reproduces the identical pr
 
 ## 10. Open items for Pierre's review
 
-1. Weak-point tie-break order (spec says squat > deadlift > bench priority when scores tie).
+1. ~~Weak-point tie-break order~~ — squat > deadlift > bench confirmed by Elie 2026-07-13.
 2. `EDIT_PROGRAM` full-record vs a narrower `SWAP_EXERCISE` action — spec prefers full-record
    for consistency with EDIT_EVALUATION; Pierre may prefer the narrower audit trail.
 3. Where old programs' history surfaces in UI (v1: nowhere, just retained in data).
