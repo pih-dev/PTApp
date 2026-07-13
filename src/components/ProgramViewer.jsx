@@ -39,18 +39,22 @@ export default function ProgramViewer({ program, dispatch, lang, onClose }) {
   const dayRows = (b, bi, dayKey) => (b[dayKey] || []).map((day, di) => (
     <div key={dayKey + di} style={{ marginTop: 8 }}>
       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t2)' }}>
-        {day.slot === 'circuit' ? `${t(lang, 'roundsLabel')} ×4` : day.slot.toUpperCase()}
+        {/* I1: localized day headers (push/pull/legs) — raw .toUpperCase() showed English in AR mode */}
+        {day.slot === 'circuit' ? `${t(lang, 'roundsLabel')} ×4`
+          : t(lang, 'slot' + day.slot.charAt(0).toUpperCase() + day.slot.slice(1))}
       </div>
       {day.exercises.map((e, ei) => (
         <div key={ei} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           padding: '4px 0', fontSize: 12, borderBottom: '1px solid var(--sep)' }}>
           <span style={{ color: 'var(--t2)' }}>
             {e.name}
-            <span style={{ color: 'var(--t5)', marginInlineStart: 6 }}>
+            {/* I3: mixed digits/kg/min inside an RTL paragraph reorder without bidi
+                isolation — force LTR + isolate so the prescription reads correctly in AR */}
+            <span style={{ direction: 'ltr', unicodeBidi: 'isolate', marginInlineStart: 6, color: 'var(--t5)' }}>
               {e.sets}×{e.repsText} · {e.pctText}{e.setKg ? ` · ${e.setKg.join('/')} kg` : ''} · {restText(e.restSec)}
             </span>
           </span>
-          <button className="btn-ghost" style={{ fontSize: 11 }}
+          <button className="btn-ghost" style={{ fontSize: 11, padding: '10px 12px' }}
             onClick={() => { haptic(); setSwap({ blockIdx: bi, dayKey, dayIdx: di, exIdx: ei }); }}>
             {t(lang, 'swapExercise')}
           </button>
@@ -63,7 +67,8 @@ export default function ProgramViewer({ program, dispatch, lang, onClose }) {
     <Modal title={`${t(lang, 'programs')} · ${formatDate(program.startDate, lang)}`} onClose={onClose}>
       {program.blocks.map((b, bi) => (
         <div key={bi} style={{ padding: '8px 0', borderBottom: '1px solid var(--sep)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer', fontSize: 14 }}
+          {/* I2: 12px vertical padding keeps this tappable row ≥44px (iOS target size) */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer', fontSize: 14, padding: '12px 0' }}
             onClick={() => setOpenBlock(openBlock === bi ? null : bi)}>
             <span style={{ fontWeight: 600 }}>{t(lang, 'blockLabel')} {bi + 1} · {methodLabel(lang, b.methodId)}</span>
             <span style={{ color: 'var(--t4)', fontSize: 12 }}>{objLabel(lang, b.objective)} · {formatDate(b.startDate, lang)}</span>

@@ -305,6 +305,10 @@ const T = {
     noPrograms: 'No program yet',
     viewProgram: 'View program',
     weekOf: 'Week of',
+    // day-slot headers in the program viewer (I1 fix: were raw English .toUpperCase())
+    slotPush: 'Push',
+    slotPull: 'Pull',
+    slotLegs: 'Legs',
   },
   ar: {
     // App
@@ -608,6 +612,10 @@ const T = {
     noPrograms: 'لا يوجد برنامج بعد',
     viewProgram: 'عرض البرنامج',
     weekOf: 'أسبوع',
+    // day-slot headers — AR phrasing pending Elie review (Lebanese gyms often keep English terms)
+    slotPush: 'دفع',
+    slotPull: 'سحب',
+    slotLegs: 'أرجل',
   },
 };
 

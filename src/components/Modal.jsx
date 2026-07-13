@@ -49,6 +49,16 @@ export default function Modal({ onClose, title, children, action }) {
     let dragging = false;
 
     const onTouchStart = (e) => {
+      // Nested-modal guard (v2.13 swap picker): touches inside a NESTED modal
+      // bubble up to THIS (outer) modal's listeners too — without this check,
+      // swiping the inner sheet (ProgramViewer's swap picker) would dismiss
+      // BOTH sheets. Scope the gesture to touches whose nearest .modal-content
+      // is our own element. Deliberately NOT stopPropagation — that would
+      // blind React's root-delegated synthetic events.
+      if (e.target.closest('.modal-content') !== el) {
+        dragging = false;
+        return;
+      }
       // Don't start drag if the user is tapping a focusable element —
       // otherwise iOS might treat the tap as the start of a gesture and
       // never fire focus on the input/button/textarea.
