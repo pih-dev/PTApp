@@ -74,6 +74,12 @@ option and document the change in the changelog.
   - OR data blob > 1MB (contents API inlining ceiling)
   - OR Elie asks for a bank/rules change more than once a quarter (regeneration
     overhead starts to dominate maintenance time)
+- **PRUNING PRECONDITION (Pierre's standing rule, 2026-07-13):** before any
+  program-pruning implementation runs against live data, download data.json
+  from makdissi-dev/ptapp-data to the PC first — archive as
+  `C:\projects\_archive\PTApp\data-snapshots\YYYY-MM-DD-pre-prune-data.json`.
+  Pruning deletes are irreversible in the cloud; the local archive is the
+  recovery copy (same mechanism as pre-deploy snapshots).
 
 ### (add future medium/heavy-path features here)
 
