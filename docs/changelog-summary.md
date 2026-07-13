@@ -4,6 +4,41 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.13.0 — Auto-generated 6-month training programs (July 13, 2026)
+
+**The trainer can now generate a full training program from a client's 1RM
+evaluation.** Once a client has a completed strength test on file, a
+**Generate program** button on their card builds a 6-month plan: six 4-week
+blocks of 3-day Push/Pull/Legs training, with exercises, sets, reps, and
+%1RM already filled in.
+
+**The plan adapts to the client.** Total volume comes from their fitness
+class (Beginner A through Pro), and whichever lift scored weakest — bench,
+squat, or deadlift — gets extra attention on its muscle group, with the
+emphasis alternating style block to block so training doesn't get lopsided
+over the six months.
+
+**A quick setup sheet before generating.** The trainer sees the class, the
+three lift scores with the weak one flagged, picks a method for each of the
+six blocks (sensible defaults pre-filled), enters body-fat % (auto-suggests
+including a fat-loss block above 18% for men / 25% for women), and picks a
+start date.
+
+**The three main lifts (bench, squat, deadlift) show real kilograms** —
+calculated from the client's own 1RM — while every other exercise shows a
+percentage and rep range for the trainer to judge by feel. Any exercise can
+be **swapped** for a similar alternative. Sets and reps are intentionally
+not editable in the app — the trainer adjusts on the spot by how the client
+performs that day.
+
+**Old programs are never lost.** Regenerating creates a new program and
+keeps the previous one in history.
+
+**No data at risk.** This is a purely additive change — nothing about
+existing clients, sessions, or evaluations changes.
+
+---
+
 ## v2.12.1 — Sync token can now be replaced in the app (July 7, 2026)
 
 **The red sync dot got smarter.** The cloud sync key (a GitHub token) expired

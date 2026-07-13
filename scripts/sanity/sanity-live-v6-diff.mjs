@@ -4,7 +4,11 @@
 // is the v2.11 historical gate, kept untouched; this is the precise gate for THIS release.)
 import fs from 'fs';
 
-const SNAP = 'C:/projects/_archive/PTApp/data-snapshots/2026-07-06-pre-v2.12-data.json';
+// Pick the newest snapshot in the archive by filename (ISO-date-prefixed, so
+// lexical sort == chronological sort) rather than hardcoding one — each
+// release should gate against the freshest live pull, not a stale prior one.
+const SNAP_DIR = 'C:/projects/_archive/PTApp/data-snapshots';
+const SNAP = SNAP_DIR + '/' + fs.readdirSync(SNAP_DIR).filter(f => f.endsWith('.json')).sort().pop();
 const rawJson = fs.readFileSync(SNAP, 'utf8');
 const before = JSON.parse(rawJson);
 

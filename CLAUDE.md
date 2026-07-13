@@ -12,11 +12,15 @@ A mobile-first web app for a personal trainer (the end user) to manage his gym c
 - **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
 - **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
 
-## Current Version: v2.12.1
-Token-expiry incident fix (Jun-30: the sync PAT expired, every device went generic-red for a week, a week of bookings stranded on the PT's iPhone — recovered same-session, zero loss). See `docs/traps.md` "sync credential is infrastructure".
-- **401 ⇒ `tokenExpired`** in App.jsx (all 3 sync failure paths); red-dot tap opens `TokenUpdateModal.jsx` instead of a doomed retry. General → Backup has an always-available **Update sync token** button.
-- **Token replacement NEVER touches local data** — validate, save, then `reconcile()` (merge path). That merge is what recovered the stranded week.
-- **SYNC TOKEN EXPIRY: 2027-07-06** (`PTApp-sync-2026` on makdissi-dev, ptapp-data Contents R/W only). **Renew it in June 2027** — create the new token, enter it on both phones via Update sync token. Record the new date here when rotated.
+## Current Version: v2.13.0
+Program generation from 1RM evaluation — PT feature #3 of the roadmap ("auto program proposal"). Schema v5→v6 (purely additive `state.programs[]`). Spec: `docs/superpowers/specs/2026-07-13-program-generation-design.md`.
+- **`generateProgram(...)` in `src/programKernel.js` is THE single generation kernel.** `ProgramSetup.jsx`'s live preview and the save path call the identical function with identical args — by construction preview can never disagree with what's stored (same rule as `compute1RMFrozen`/`computeEvalFrozen`). Never reimplement the volume math, weak-point ranking, or exercise-fill logic anywhere else.
+- **Frozen at generation** — `PROGRAM_RULES_VERSION` (`programRules.js`) + `EXERCISE_BANK_VERSION` (`exerciseBank.js`, generated file, regenerate via `scripts/build_exercise_bank.py`) are stamped per record; later rule/bank changes never rewrite stored programs. Bump either constant on ANY change to volume tiers, method catalog, fat-loss thresholds, or the exercise bank.
+- **`EDIT_PROGRAM` full-record contract** — same shape as `EDIT_EVALUATION`; a swap-exercise edit re-dispatches the entire record, partial patches forbidden.
+- **`programs[]` follows the `evaluations[]` pattern** in every merge path (`mergeData`, `mergeBackup`, `REPLACE_ALL`). `DELETE_CLIENT` cascades to programs. Never let programs become orphaned.
+- **Blocks store `days` (+`daysAlt` for the endurance/fat-loss block only), not 4 duplicated weeks** — every other method is identical week to week within a block, so 4 copies would be pure redundant weight in `data.json` for zero information gain. This is the deliberate deviation from the spec's plain-English "weeks" framing.
+- **Deadlift anchor counts toward Back, not its bank primary (Quads)** — spec §6 maps Deadlift to the Pull day, so `fillBucket` force-overrides the anchor's `bucket` to the day's major; without this override Back would run a full exercise short every block.
+- **New live-diff gate:** `scripts/sanity/sanity-live-v6-diff.mjs` (replaces `sanity-live-v5-diff.mjs`, now historical). New sanity: `sanity-programs.mjs`.
 
 ## Previous Version: v2.12.0
 1RM strength battery replaces the v2.11 mass-population battery — Pierre's call 2026-07-06. No schema change, DATA_VERSION stays 5 (purely additive `branch:'1rm'` records alongside existing `branch:'mass'` records). Spec: `docs/superpowers/specs/2026-07-06-1rm-battery-replaces-mass-design.md`.
@@ -73,6 +77,7 @@ Whole-codebase review fix pack (Fable 5 fresh-eyes review, 2026-06-10). No schem
 - **New sanity script:** `scripts/sanity/sanity-merge-migration.mjs` (17 checks; uses the real archived snapshot when present). 4 new traps in `docs/traps.md`.
 
 ## Older Versions (one-line pointers — full details in `docs/instructions-v*.md`)
+- **v2.12.1** — Token-expiry surfacing: 401 ⇒ `tokenExpired` in App.jsx, red-dot tap opens `TokenUpdateModal.jsx`, General → Backup "Update sync token" button; token replacement never touches local data, merges via `reconcile()`. **SYNC TOKEN EXPIRES 2027-07-06 — renew June 2027** (`PTApp-sync-2026` on makdissi-dev, ptapp-data Contents R/W only).
 - **v2.10.4** — `EDIT_CURRENT_PACKAGE` reducer action: THE owner of replace-last-package writes; shared `buildPackageAuditEntries` with EDIT_CLIENT; no hand-rolled `packages.slice(0,-1)` at call sites. Pure refactor, review finding P7.
 - **v2.10.0** — Recurring session generator: "Repeat" toggle → single client + weekday chips + count (1–60) → `buildPreview()` with conflict flags → ONE `ADD_SESSIONS`. Calendar-only by design (never renews, no WhatsApp at generate time). Feature #1 of 3 PT asks; #2 = evaluation protocol (awaiting PT's filled xlsx), #3 = auto program proposal. `sanity-recurring.mjs` (21 assertions).
 - **v2.9.6** — Booking-form chip switched to post-booking ordinal semantics (was pre-booking count); chip/popup/WhatsApp now agree by construction. TRAP: same number, two semantics, two adjacent screens.
@@ -221,7 +226,7 @@ Use `getStatus(status, lang, t)` for translated label. Badge colors via CSS clas
 | `ADD_CLIENT` | `{id, name, packages: [pkg], ...}` | New clients seeded with one open package |
 | `EDIT_CLIENT` | `{id, ...fields}` | Detects current-package field changes → `package_edited` / `override_set` / `override_cleared` audit entries |
 | `EDIT_CURRENT_PACKAGE` | `{clientId, pkg}` | v2.10.4: THE owner of replace-last-package writes. Reads live client by id, stamps `_modified`, shares audit diffing with EDIT_CLIENT. Use this — never hand-roll `packages.slice(0,-1)` at call sites. |
-| `DELETE_CLIENT` | `clientId` | Also deletes their sessions and evaluations |
+| `DELETE_CLIENT` | `clientId` | Also deletes their sessions, evaluations, and (v2.13) programs |
 | `ADD_SESSION` | `{id, clientId, ...}` | |
 | `ADD_SESSIONS` | `[{id, clientId, ...}, ...]` | v2.10: batch-append in ONE dispatch (each stamped `_modified`). Used by the recurring generator AND (v2.10.1) the multi-client booking path. Never renews packages. |
 | `UPDATE_SESSION` | `{id, ...fields}` | Merges fields |
@@ -231,6 +236,9 @@ Use `getStatus(status, lang, t)` for translated label. Badge colors via CSS clas
 | `ADD_EVALUATION` | `full record` | Appends to `state.evaluations`, stamps `_modified` |
 | `EDIT_EVALUATION` | `{full record}` | Full-record contract — partial patches forbidden; `scores` + `classification` must be re-frozen by `computeEvalFrozen` at call site before dispatch |
 | `DELETE_EVALUATION` | `evalId` | Audit-logged (`evaluation_deleted`), confirm-guarded at UI layer |
+| `ADD_PROGRAM` | `full record` | v2.13: appends to `state.programs`, stamps `_modified`, audits `program_generated`. Built by the ONE kernel, `generateProgram()` — never construct a program record anywhere else |
+| `EDIT_PROGRAM` | `{full record}` | Full-record contract (same shape as `EDIT_EVALUATION`) — swap-exercise re-dispatches the whole record, partial patches forbidden |
+| `DELETE_PROGRAM` | `programId` | Audit-logged (`program_deleted`), confirm-guarded at UI layer |
 | `ADD_TODO` / `EDIT_TODO` / `TOGGLE_TODO` / `DELETE_TODO` | varies | |
 | `SET_TEMPLATES` | `{booking?, reminder?}` | |
 | `REPLACE_ALL` | full state | Used by cloud sync; bypasses `_lastModified` stamp |
@@ -315,8 +323,8 @@ git checkout master
 **Critical notes:**
 - Pushing to `master` alone does NOT deploy. The live site serves from `gh-pages`.
 - **Pushing to `gh-pages` does not guarantee deployment either.** After every gh-pages push, verify the Pages run actually deployed: `gh api repos/pih-dev/PTApp/pages/builds/latest --jq .status` must reach `built` (a successful `git push` only means the commit landed). Jun 11 incident: two gh-pages pushes 5 min apart hit a GitHub artifact race ("Multiple artifacts named github-pages"), the deploy step failed, and the stale build record showed `building` for 24h with no run in flight. Fix: `gh api -X POST repos/pih-dev/PTApp/pages/builds` to request a fresh build, then re-verify (and diff live HTML against `dist/index.html` for certainty). Avoid rapid back-to-back gh-pages pushes.
-- For schema changes, run a live-data byte-diff gate before deploying. Current gate: `scripts/sanity/sanity-live-v5-diff.mjs` (v4→v5). **`sanity-live-migration.mjs` is v2→v3-era STALE** — it asserts `_dataVersion === 3` and will misfire on current data. Modernize or retire it at the next schema change; do not use it as the gate.
-- Sanity scripts (in `scripts/sanity/`): `sanity-reducer.mjs`, `sanity-counting.mjs`, `sanity-slidingwindow.mjs`, `sanity-migration.mjs`, `sanity-live-migration.mjs` (stale — see note above), `sanity-evaluations.mjs`, `sanity-live-v5-diff.mjs`, `sanity-1rm.mjs`.
+- For schema changes, run a live-data byte-diff gate before deploying. Current gate: `scripts/sanity/sanity-live-v6-diff.mjs` (v5→v6). **`sanity-live-v5-diff.mjs` (v4→v5) and `sanity-live-migration.mjs` (v2→v3-era, asserts `_dataVersion === 3`) are both historical/STALE** — do not use either as the gate; keep them for archaeology only.
+- Sanity scripts (in `scripts/sanity/`): `sanity-reducer.mjs`, `sanity-counting.mjs`, `sanity-slidingwindow.mjs`, `sanity-migration.mjs`, `sanity-live-migration.mjs` (stale), `sanity-evaluations.mjs`, `sanity-live-v5-diff.mjs` (stale), `sanity-1rm.mjs`, `sanity-programs.mjs`, `sanity-live-v6-diff.mjs`.
 
 ## Sibling Projects
 PTApp is the most mature web app in Pierre's project ecosystem. Its UI/UX patterns serve as reference for other projects:
