@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { genId, today, haptic } from '../utils';
+import { genId, haptic } from '../utils';
 import { t } from '../i18n';
 import { DEFAULT_SEQUENCE, METHODS, FAT_THRESHOLD } from '../programRules';
 import { generateProgram } from '../programKernel';

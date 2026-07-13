@@ -3,6 +3,8 @@ import Modal from './Modal';
 import { formatDate, haptic } from '../utils';
 import { formatRunTime } from '../normCharts';
 import EvalForm, { scoreLabel, scoreChipClass } from './EvalForm';
+import ProgramSetup from './ProgramSetup';
+import ProgramViewer from './ProgramViewer';
 import { t } from '../i18n';
 
 // classification can legitimately be null (computeEvalFrozen emits it when a muscle
@@ -100,6 +102,9 @@ export default function EvalSection({ client, state, dispatch, lang }) {
         </div>
       ))}
 
+      {/* ─── v2.13: programs (spec §7). Gate: latest eval is 1RM with all lifts scored ─── */}
+      <ProgramBlock client={client} state={state} dispatch={dispatch} lang={lang} evals={evals} />
+
       {formTarget && (
         <EvalForm client={client} evalRecord={formTarget === 'new' ? null : formTarget}
           dispatch={dispatch} lang={lang} onClose={() => setFormTarget(null)} />
@@ -127,6 +132,39 @@ export default function EvalSection({ client, state, dispatch, lang }) {
             {t(lang, 'confirmDelete')}
           </button>
         </Modal>
+      )}
+    </div>
+  );
+}
+
+function ProgramBlock({ client, state, dispatch, lang, evals }) {
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const latest1rm = evals.find(ev => ev.branch === '1rm'
+    && ev.frozen.scores.bench != null && ev.frozen.scores.squat != null && ev.frozen.scores.deadlift != null);
+  const progs = (state.programs || [])
+    .filter(p => p.clientId === client.id)
+    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  const latest = progs[0];
+  return (
+    <div style={{ marginTop: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: 14, fontWeight: 600 }}>{t(lang, 'programs')}</div>
+        <button className="btn-sm" disabled={!latest1rm}
+          onClick={() => { haptic(); setSetupOpen(true); }}>{t(lang, 'generateProgram')}</button>
+      </div>
+      {!latest1rm && <div style={{ fontSize: 12, color: 'var(--t4)' }}>{t(lang, 'needs1rmEval')}</div>}
+      {latest ? (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, padding: '6px 0' }}>
+          <span style={{ color: 'var(--t3)' }}>{formatDate(latest.startDate, lang)} · {latest.blocks.length} {t(lang, 'blockLabel')}</span>
+          <button className="btn-ghost" style={{ fontSize: 12 }} onClick={() => setViewerOpen(true)}>{t(lang, 'viewProgram')}</button>
+        </div>
+      ) : latest1rm && <div style={{ fontSize: 13, color: 'var(--t4)', padding: '4px 0' }}>{t(lang, 'noPrograms')}</div>}
+      {setupOpen && latest1rm && (
+        <ProgramSetup client={client} evalRecord={latest1rm} dispatch={dispatch} lang={lang} onClose={() => setSetupOpen(false)} />
+      )}
+      {viewerOpen && latest && (
+        <ProgramViewer program={latest} dispatch={dispatch} lang={lang} onClose={() => setViewerOpen(false)} />
       )}
     </div>
   );
