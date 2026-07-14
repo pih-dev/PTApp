@@ -6,6 +6,8 @@ import { DEFAULT_SEQUENCE, METHODS, FAT_THRESHOLD } from '../programRules';
 import { generateProgram } from '../programKernel';
 
 const methodLabel = (lang, id) => t(lang, 'method' + id.charAt(0).toUpperCase() + id.slice(1));
+const classLabel = (lang, id) => t(lang, 'class' + id.charAt(0).toUpperCase() + id.slice(1));
+const CLASS_IDS = ['begA', 'begB', 'intA', 'intB', 'pro'];
 
 // Next Monday from today — programs start on a fresh week (spec §7).
 function nextMonday() {
@@ -23,6 +25,10 @@ export default function ProgramSetup({ client, evalRecord, dispatch, lang, onClo
   const [includeFat, setIncludeFat] = useState(false);
   const [methods, setMethods] = useState(DEFAULT_SEQUENCE);
   const [startDate, setStartDate] = useState(nextMonday());
+  // Level = volume tier. Eval's classification is only the pre-selected SUGGESTION —
+  // the trainer taps another chip to override (Elie's Option 1 pick, 2026-07-14:
+  // strength ratios ≠ training experience). Kernel stamps auto/manual on the record.
+  const [classification, setClassification] = useState(evalRecord.frozen.classification);
 
   const threshold = FAT_THRESHOLD[client.gender] ?? FAT_THRESHOLD.male;
   const fatNum = parseFloat(fatPct);
@@ -37,7 +43,7 @@ export default function ProgramSetup({ client, evalRecord, dispatch, lang, onClo
     // fat-loss OFF ⇒ any endurance slot falls back to fiveOfFive (spec §5)
     const effective = methods.map(m => (!fatOn && m === 'endurance') ? 'fiveOfFive' : m);
     const record = generateProgram({
-      id: genId(), client, evalRecord,
+      id: genId(), client, evalRecord, classification,
       fatPct: Number.isFinite(fatNum) ? fatNum : null, includeFatLoss: fatOn,
       methods: effective, startDate, createdAt: new Date().toISOString(),
     });
@@ -49,12 +55,24 @@ export default function ProgramSetup({ client, evalRecord, dispatch, lang, onClo
   return (
     <Modal title={t(lang, 'programSetupTitle')} onClose={onClose}
       action={<button className="btn-primary" style={{ width: '100%' }} onClick={save}>{t(lang, 'generateProgram')}</button>}>
-      {/* derived context — read-only */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--t3)', marginBottom: 10 }}>
-        <span className={`badge badge-class-${evalRecord.frozen.classification}`}>
-          {t(lang, 'class' + evalRecord.frozen.classification.charAt(0).toUpperCase() + evalRecord.frozen.classification.slice(1))}
-        </span>
-        <span>{t(lang, 'weakPointLabel')}: B{scores.bench} · S{scores.squat} · D{scores.deadlift}</span>
+      {/* weak-point context — read-only */}
+      <div style={{ fontSize: 13, color: 'var(--t3)', marginBottom: 10 }}>
+        {t(lang, 'weakPointLabel')}: B{scores.bench} · S{scores.squat} · D{scores.deadlift}
+      </div>
+
+      {/* level chips — pre-selected from the eval, tappable override (weekday-chip reuse) */}
+      <div className="field-label">{t(lang, 'levelLabel')}</div>
+      <div className="weekday-row">
+        {CLASS_IDS.map(id => (
+          <button key={id} type="button"
+            className={`weekday-chip${classification === id ? ' selected' : ''}`}
+            onClick={() => { haptic(); setClassification(id); }}>
+            {classLabel(lang, id)}
+          </button>
+        ))}
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--t4)', margin: '-6px 0 10px' }}>
+        {t(lang, 'levelSuggested')}: {classLabel(lang, evalRecord.frozen.classification)}
       </div>
 
       <div className="field-label">{t(lang, 'bodyFatPct')}</div>

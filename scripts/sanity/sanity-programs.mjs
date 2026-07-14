@@ -156,6 +156,18 @@ assert(pullDay0.exercises[0].name === 'Deadlift' && pullDay0.exercises[0].bucket
   'Deadlift anchor leads pull day, bucketed as Back');
 assert(!pullDay0.exercises.some(e => e.bucket === 'Legs'), 'no stray Legs bucket on pull day');
 
+// classification override (Elie Option 1, 2026-07-14): omitted arg = eval's level
+// stamped 'auto'; explicit different level is honored, stamped 'manual', and drives
+// the volume tier (begA ceiling 11 < the fixture's 14-set strong-group quota).
+assert(prog.classificationSource === 'auto', 'no override → classificationSource auto');
+const overridden = generateProgram({ ...args, classification: 'begA' });
+assert(overridden.classification === 'begA' && overridden.classificationSource === 'manual',
+  'override honored + stamped manual');
+const ovPull0 = overridden.blocks[0].days.find(x => x.slot === 'pull');
+assert(setsFor(ovPull0, 'Back') <= 11, 'override drives volume tier (begA ceiling 11)');
+assert(generateProgram({ ...args, classification: evalRec.frozen.classification }).classificationSource === 'auto',
+  'explicitly passing the eval level still counts as auto');
+
 // rules v2 (Elie, 2026-07-14): Deadlift is ONLY the pull-day anchor — never a legs-day
 // accessory (its bank bucket is Legs) and never a circuit station. Sweep every day of
 // every block, daysAlt included, across the standard AND beginner programs.

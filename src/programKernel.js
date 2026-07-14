@@ -128,8 +128,13 @@ function buildCircuitDay(blockIndex, dayIdx, isBeginner) {
   return { slot: 'circuit', exercises };
 }
 
-export function generateProgram({ id, client, evalRecord, fatPct, includeFatLoss, methods, startDate, createdAt }) {
-  const classification = evalRecord.frozen.classification;
+export function generateProgram({ id, client, evalRecord, fatPct, includeFatLoss, methods, startDate, createdAt, classification: classificationArg }) {
+  // Trainer's level override (Elie's Option 1 pick, 2026-07-14): the eval-derived
+  // level is only a SUGGESTION — strength ratios ≠ training experience (a naturally
+  // strong novice must not get Intermediate volume), so the setup sheet lets the
+  // trainer pick the level at generation time. Omitted arg = eval's level, which
+  // keeps every pre-override call site and sanity fixture valid.
+  const classification = classificationArg || evalRecord.frozen.classification;
   const ranks = rankGroups(evalRecord.frozen.scores);
   const isBeginner = classification === 'begA' || classification === 'begB';
   const blocks = methods.map((methodId, index) => {
@@ -148,6 +153,10 @@ export function generateProgram({ id, client, evalRecord, fatPct, includeFatLoss
     id, clientId: client.id, evalId: evalRecord.id, createdAt, startDate,
     fatPct: fatPct ?? null, includeFatLoss: !!includeFatLoss,
     rulesVersion: PROGRAM_RULES_VERSION, bankVersion: EXERCISE_BANK_VERSION,
-    classification, ranks, blocks,
+    classification,
+    // 'manual' = trainer overrode the eval's suggestion — kept on the frozen record
+    // so a later reader knows the volume tier was a coaching call, not the scores'.
+    classificationSource: classification === evalRecord.frozen.classification ? 'auto' : 'manual',
+    ranks, blocks,
   };
 }
