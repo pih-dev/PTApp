@@ -4,6 +4,33 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.14.0 — Trainer picks the training days (July 14, 2026)
+
+**Program generation is no longer stuck at 3 days a week.** The setup sheet
+now has a **Days** row — 3, 4, 5, or 6 — pre-picked from the client's level
+(more experienced clients get suggested more days) but always overridable
+with one tap.
+
+**Picking more than 3 days duplicates a Push, Pull, or Legs day** rather than
+inventing a new kind of split. A second chip row lets the trainer choose
+which day repeats — pre-ticked from the client's weakest lift so the muscle
+that needs the most attention gets the extra session automatically. A
+counter keeps Generate disabled until the picks add up correctly.
+
+**A repeated day is a genuinely different workout**, not a copy: same
+muscle groups, different exercises, so the client never does the identical
+session twice in one week. The main barbell lift (bench/squat/deadlift) only
+shows up on the first of the two days — the second day is %1RM/reps like
+every accessory exercise. Weekly set totals stay the same as before; they're
+just spread across the extra day. In the viewer, a repeated day's header
+shows a small "2" (e.g. "Push 2") so it's obvious which one it is.
+
+**Nothing changes for programs already generated.** They keep rendering
+exactly as before — this is a purely additive change, no migration, no data
+at risk.
+
+---
+
 ## v2.13.1–v2.13.3 — The trainer's review, applied (July 14, 2026)
 
 Elie reviewed the new program generator and the strength standards, and his

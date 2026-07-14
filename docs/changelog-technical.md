@@ -4,6 +4,107 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.14.0 — Multi-day split program generation (2026-07-14)
+
+**Trigger:** Elie, in-session same day as the v2.13.1–.3 fix run — 3 days/week
+is wrong for Intermediate-and-above clients; the trainer must choose the
+number of training days and which days duplicate. Spec:
+`docs/superpowers/specs/2026-07-14-multi-day-split-design.md` (decisions
+D1–D10). No schema change — `PROGRAM_RULES_VERSION` 2 → 3, DATA_VERSION
+stays 6 (new fields are additive inside program records, no migration).
+
+- **`programRules.js`**: two new pure suggestion helpers — `suggestedDaysPerWeek(classification)`
+  (D9: begA/begB → 3, intA → 4, intB → 5, pro → 5; 6 is manual-only) and
+  `suggestedDuplicates(ranks, daysPerWeek)` (D6: pre-picks `daysPerWeek - 3`
+  slots from the weak-point ranking, weakest first then mid; 6 days picks
+  all three). Both are pure functions over existing `rankGroups` output —
+  no new state shape.
+- **`programKernel.js` — `generateProgram(...)` new args** `daysPerWeek`
+  (default 3) and `duplicatedSlots` (default `[]`). Throws if
+  `duplicatedSlots.length !== daysPerWeek - 3`, has duplicate entries, or
+  contains a non-push/pull/legs value (UI can't produce this; guards non-UI
+  callers). Per block:
+  - **Day list** (D7): `dayOrder(strategy, ranks)` gives the base
+    Push/Pull/Legs round; duplicated slots are appended in the same
+    relative order with `rep: 2`.
+  - **Majors** (D4): unchanged weekly quota `q` from `majorQuotas(...)`.
+    Non-duplicated slot keeps `q` on its one day. Duplicated slot:
+    `ceil(q/2)` on rep-1, `floor(q/2)` on rep-2 — odd remainder goes to
+    rep-1.
+  - **Anchor** (D3): placed on rep-1 only via the existing `fillBucket`
+    anchor path (bucket still force-overridden to the day's major — the
+    v2.13.1 Deadlift/Back rule is untouched). Rep-2 calls `fillBucket` with
+    `anchor: null`.
+  - **Variant exclusion** (D2): rep-2's candidate pool excludes every
+    exercise name already placed on rep-1 of the same slot/block (majors
+    AND minors). New `exclude` param threaded `buildDay` → `fillBucket` →
+    `candidates`. Pool-exhaustion fallback: if a bucket's candidates run out
+    under exclusion (small minor buckets, or beginner-filtered pools),
+    exclusion is dropped for that bucket only so the quota still fills —
+    volume is guaranteed, variety is best-effort. Deadlift stays excluded
+    from every non-anchor pool regardless (v2.13.1 invariant, unaffected).
+  - **Minors** (D5): each day of a duplicated slot gets the FULL
+    `minorQuota(weeklyMajorSets)` — deliberately not split (Elie's explicit
+    pick), so weekly minor volume grows with the extra day.
+  - **Endurance/fat-loss block** (D8): `daysAlt` now builds `daysPerWeek`
+    circuit days (`buildCircuitDay` already took a day index); `days` gets
+    the same N-day split as every other block.
+  - **D10 regression invariant**: `daysPerWeek: 3` (or omitted) produces
+    byte-identical training content to pre-v2.14 output — only the new
+    metadata fields (`daysPerWeek`, `duplicatedSlots`, per-day `rep`,
+    `rulesVersion: 3`) differ. Enforced by sanity, not just asserted.
+- **Record shape (additive, no migration)**: top-level `daysPerWeek`,
+  `duplicatedSlots` (stored as chosen, even when `3`/`[]`); each day entry
+  gains `rep: 1 | 2`. Old records lack all three fields — every reader
+  treats a missing `rep` as `1` and a missing `daysPerWeek` as `3`, so old
+  programs render unchanged.
+- **`ProgramSetup.jsx`**: two new chip rows under Level — **Days** (`3·4·5·6`,
+  `weekday-chip` reuse) and **Extra days** (`Push·Pull·Legs`, multi-select,
+  shown only when days > 3). Both follow the `fatTouched` pattern —
+  suggestions re-derive from Level/Days changes until the trainer taps the
+  row himself (`daysTouched`/`dupsTouched` flags), then his pick sticks and
+  survives further Level changes (stale manual picks shrink, never silently
+  regrow, when day count drops — `pickDays`/`pickLevel` slice
+  `dupSlots.slice(0, Math.max(0, d - 3))`). `dupsValid = dupSlots.length ===
+  daysPerWeek - 3` gates `save()` (also visually — disabled + dimmed
+  Generate button) so a mismatched pick count can't reach the kernel.
+  `generateProgram` call site passes `daysPerWeek, duplicatedSlots: dupSlots`
+  — same one-kernel invariant as every prior release, preview and save call
+  the identical function with identical args.
+- **`ProgramViewer.jsx`**: a day's header renders the slot label plus a "2"
+  suffix when `rep === 2` (new `repDayTag` i18n key, e.g. "Push 2"); `rep`
+  undefined (old records) renders exactly as before. Swap-exercise picker
+  is unchanged — kept as bucket-mates-minus-shown, no same-week exclusion
+  applied to manual swaps (spec's explicit call: the trainer owns manual
+  swaps).
+- **i18n**: `daysPerWeekLabel`, `extraDaysLabel`, `repDayTag` (EN+AR). Slot
+  chip labels reuse the existing English-literal `slotPush/slotPull/slotLegs`
+  keys (v2.13.1 decision — Lebanese gyms use PPL terms in both languages).
+- **`sanity-programs.mjs` — new multi-day section** (D1–D10, all ten
+  decisions have a dedicated assertion block): D10 regression (3-day output
+  deep-equals pre-v2.14 after stripping new metadata fields), D4 split
+  arithmetic (even 14→7/7, odd 15→8/7, non-duplicated slot keeps full
+  quota), D3 anchor-once sweep (every block, rep-1 only, Deadlift pull-only
+  preserved), D5 minor-full-both-days, D2 zero-name-overlap + pool-exhaustion
+  fallback, D7 day-order (base round then repeats), D8 endurance
+  `daysAlt.length === daysPerWeek`, D9/D6 suggestion-helper unit tests (all
+  five classes → expected day count; ranks → expected duplicate pre-picks),
+  kernel throw on malformed `duplicatedSlots`, reducer/merge coexistence
+  (a 5-day record merges beside 3-day records, `programs[]` pattern
+  untouched). `PROGRAM_RULES_VERSION === 3` assertion updated.
+- Commits: `d8ff0cb` (kernel: day list, quota split, anchor-once, circuits —
+  D1,D3,D4,D5,D7,D8,D10), `48282d7` (fix: `duplicatedSlots` entries must be
+  real slot names — review finding), `6631206` (variant exclusion + pool-
+  exhaustion fallback — D2), `d036cf1` (test: minor-bucket quota totals
+  under exclusion — review finding), `a536dcd` (setup-sheet day-count +
+  extra-day chips with suggestions — D6/D9, UI), `b4e884a` (fix: extra-days
+  counter shows picked/required, red on mismatch — review finding),
+  `2bb905e` (fix: `pickLevel` shrinks stale manual duplicate picks, same
+  rule as `pickDays`), `4a3e0ed` (viewer labels duplicated days "Push 2" —
+  old records unchanged).
+
+---
+
 ## v2.13.1–v2.13.3 — Elie domain-review fix run (2026-07-14)
 
 **Trigger:** Elie answered the v2.13.0 release-review questions (E1–E3, M1, M5, the 1RM-standards placeholders, and the classification problem) directly in-session. Full narrative: `docs/instructions-v2.13.md` (appended section).
