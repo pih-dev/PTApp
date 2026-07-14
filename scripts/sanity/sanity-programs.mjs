@@ -236,6 +236,49 @@ threw = false;
 try { generateProgram({ ...args, daysPerWeek: 4, duplicatedSlots: ['glutes'] }); } catch (e) { threw = true; }
 assert(threw, 'kernel throws on unknown slot name');
 
+// D2: a duplicated day uses different variants — zero name overlap per slot/block.
+// EXCEPTION verified by hand (see task-3-report.md): block 5 (endurance week,
+// 'steal' strategy) legs/Calves. Legs is the weak group here so major=19 ⇒
+// minorQuota(19)=10 sets/day against a 5-exercise Calves bank; excluding rep-1's
+// 3 picks leaves only 2, which cover 6 sets before the pool-exhaustion fallback
+// (D2) must reuse one rep-1 name to reach the full 10-set quota — mathematically
+// unavoidable with this bank size, and the ONLY (block,slot,bucket) triple this
+// fixture hits. D2's own text sanctions exactly this: "except when a bucket's
+// pool is too small — then volume wins." Both days still land on the full
+// 10-set quota (checked below) — this is pure variety loss on one exercise, not
+// a starved quota.
+for (const b of p5.blocks) {
+  for (const slot of ['pull', 'legs']) {
+    const d1 = b.days.find(d => d.slot === slot && d.rep === 1);
+    const d2 = b.days.find(d => d.slot === slot && d.rep === 2);
+    if (!d1 || !d2) continue;
+    const names1 = new Set(d1.exercises.map(e => e.name));
+    const overlap = d2.exercises.filter(e =>
+      names1.has(e.name) && !(b.index === 5 && slot === 'legs' && e.bucket === 'Calves'));
+    assert(overlap.length === 0, `no variant overlap (block ${b.index} ${slot}: ${overlap.map(e => e.name)})`);
+  }
+}
+{
+  const b5 = p5.blocks[5];
+  const d1 = b5.days.find(d => d.slot === 'legs' && d.rep === 1);
+  const d2 = b5.days.find(d => d.slot === 'legs' && d.rep === 2);
+  assert(setsForDay(d1, 'Calves') === 10 && setsForDay(d2, 'Calves') === 10,
+    'block 5 legs Calves: exhaustion exception still fills full 10-set quota both days');
+}
+// Pool exhaustion never starves the quota: beginner 6-day (smallest filtered pools)
+const p6beg = generateProgram({ ...args, evalRecord: begEval, daysPerWeek: 6, duplicatedSlots: ['push', 'pull', 'legs'] });
+for (const b of p6beg.blocks) {
+  for (const slot of ['push', 'pull', 'legs']) {
+    const d1 = b.days.find(d => d.slot === slot && d.rep === 1);
+    const d2 = b.days.find(d => d.slot === slot && d.rep === 2);
+    const major = { push: 'Chest', pull: 'Back', legs: 'Legs' }[slot];
+    assert(setsForDay(d1, major) >= setsForDay(d2, major) && setsForDay(d1, major) + setsForDay(d2, major) > 0,
+      `6-day beginner ${slot} major quota filled (block ${b.index})`);
+    for (const day of [d1, d2])
+      for (const e of day.exercises) assert(e.sets > 0, 'no zero-set entries under exclusion');
+  }
+}
+
 // rules v2 (Elie, 2026-07-14): Deadlift is ONLY the pull-day anchor — never a legs-day
 // accessory (its bank bucket is Legs) and never a circuit station. Sweep every day of
 // every block, daysAlt included, across the standard AND beginner programs.

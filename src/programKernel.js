@@ -92,6 +92,19 @@ function fillBucket({ bucket, target, method, blockIndex, isBeginner, anchor, an
     out.push(exerciseEntry(pool[i], Math.min(sets, remaining), method, null));
     remaining -= Math.min(sets, remaining);
   }
+  // Pool-exhaustion rule (spec D2): exclusion is best-effort. If the excluded
+  // pool couldn't fill the quota (small minor buckets — Rear Delts has 4
+  // exercises; beginner filter shrinks pools further), refill from the
+  // UNEXCLUDED pool: weekly volume is guaranteed, variety only when possible.
+  if (remaining > 0 && exclude.size > 0) {
+    const fallback = candidates(bucket, blockIndex, isBeginner, anchor ? anchor.name : null)
+      .filter(e => !out.some(o => o.name === e.name));
+    for (let i = 0; remaining > 0 && i < fallback.length; i++) {
+      const sets = remaining >= per * 2 ? per : remaining;
+      out.push(exerciseEntry(fallback[i], Math.min(sets, remaining), method, null));
+      remaining -= Math.min(sets, remaining);
+    }
+  }
   return out;
 }
 const anchorStub = (anchor, bucket) =>
@@ -174,7 +187,11 @@ export function generateProgram({ id, client, evalRecord, fatPct, includeFatLoss
       slot, rep: 2,
       majorTarget: Math.floor(majors[slot] / 2),
       weeklyMajorSets: majors[slot],
-      method, blockIndex: index, isBeginner, raw: evalRecord.raw, exclude: NO_EXCLUDE,
+      method, blockIndex: index, isBeginner, raw: evalRecord.raw,
+      // D2: the rep-2 day must use different variants — exclude EVERY name the
+      // slot's rep-1 day already placed (majors AND minors; anchors are excluded
+      // from pools anyway).
+      exclude: new Set(baseDays.find(d => d.slot === slot).exercises.map(e => e.name)),
     }));
     const days = [...baseDays, ...repDays];
     const block = { index, methodId, objective: method.objective, strategy, startDate: blockStart, days };
