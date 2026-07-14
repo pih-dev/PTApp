@@ -204,8 +204,8 @@ Pierre's terminal. Three point releases shipped same day:
 - `PROGRAM_RULES_VERSION` stays 2 — tier tables untouched, only which tier
   applies became selectable.
 
-### Still open after this session
-- Rear-delt reclassification (4 exercises → Pull day): Elie's confirmation
-  still ambiguous — re-ask before regenerating the bank.
+### Closed later the same day
+- Rear-delt reclassification (4 exercises → Pull day): CONFIRMED by Elie
+  ("yes keep them") — bank v1 stands as generated.
 - "Rehab button" idea (Elie): prehab exercises stay out of auto-programs for
   now; possible future feature, parked.
