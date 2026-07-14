@@ -10,7 +10,7 @@ function assert(cond, msg) {
 }
 
 // === chart-set version bumped for the new tables ===
-assert(CHARTS_VERSION === 2, 'CHARTS_VERSION bumped to 2');
+assert(CHARTS_VERSION === 3, 'CHARTS_VERSION bumped to 3 (age-banded 1RM, Elie 2026-07-14)');
 
 // === legacy keys untouched (renamed-catalog-key trap) ===
 for (const k of ['pushup', 'pullup', 'invertedRow', 'squat', 'run', 'sitReach'])
@@ -22,7 +22,15 @@ assert(lookupScore('bench1rm', 'male', 30, 0.75).score === 2, 'bench M ratio 0.7
 assert(lookupScore('bench1rm', 'male', 30, 1.0).score === 3, 'bench M ratio 1.0 → 3');
 assert(lookupScore('bench1rm', 'male', 30, 1.35).score === 4, 'bench M ratio 1.35 → 4');
 assert(lookupScore('bench1rm', 'male', 30, 1.65).score === 5, 'bench M ratio 1.65 → 5');
-assert(lookupScore('bench1rm', 'male', 70, 1.0).score === 3, 'bench chart is age-flat (70 same as 30)');
+// === age bands (charts v3, Elie 2026-07-14): older clients get scaled-down thresholds ===
+// 70+ male bench t = [0.44, 0.58, 0.79, 0.96] — a 1.0 ratio that scores 3 at age 30 scores 5 at 70.
+assert(lookupScore('bench1rm', 'male', 70, 1.0).score === 5, 'bench M ratio 1.0 at 70 → 5 (age-banded)');
+assert(lookupScore('bench1rm', 'male', 45, 0.92).score === 3, 'bench M ratio 0.92 at 45 → 3 (40-49 min3 boundary)');
+assert(lookupScore('bench1rm', 'male', 39, 1.0).score === 3, 'age 39 still baseline band');
+assert(lookupScore('bench1rm', 'male', 40, 1.0).score === 3, 'age 40: 1.0 ≥ min3 0.92 but < min4 1.24 → still 3');
+assert(lookupScore('squat1rm', 'female', 55, 0.8).score === 3, 'squat F ratio 0.8 at 55 → 3 (50-59 band)');
+assert(lookupScore('deadlift1rm', 'male', 72, 1.8).score === 5, 'deadlift M ratio 1.8 at 72 → 5 (70+ band)');
+assert(lookupScore('deadlift1rm', 'female', 63, 0.69).score === 1, 'deadlift F ratio 0.69 at 63 → 1 (below 60-69 min2 0.7)');
 
 // === female tables + other lifts — spot checks ===
 assert(lookupScore('bench1rm', 'female', 30, 0.7).score === 3, 'bench F ratio 0.7 → 3');
@@ -35,7 +43,7 @@ assert(lookupScore('deadlift1rm', 'female', 30, 0.99).score === 1, 'deadlift F r
 const f1 = compute1RMFrozen('male', 25, { bodyweightKg: 80, benchKg: 80, squatKg: 120, deadliftKg: 160 });
 assert(f1.scores.bench === 3 && f1.scores.squat === 3 && f1.scores.deadlift === 3, '80kg M: 80/120/160 → 3/3/3 (ratios 1.0/1.5/2.0)');
 assert(f1.liftAvg === 3 && f1.classification === 'intA', 'liftAvg 3 → intA');
-assert(f1.chartsVersion === 2, 'frozen stamps chartsVersion 2');
+assert(f1.chartsVersion === CHARTS_VERSION, 'frozen stamps current chartsVersion');
 
 // === decimals (2.5 kg plates) + exact classify boundary ===
 const f2 = compute1RMFrozen('male', 25, { bodyweightKg: 80, benchKg: 108, squatKg: 160, deadliftKg: 200 });

@@ -12,7 +12,8 @@
 // Bump CHARTS_VERSION on ANY chart data change — frozen eval records carry the
 // version they were scored with, so history stays auditable.
 // v2: added 1RM battery tables (bench1rm/squat1rm/deadlift1rm).
-export const CHARTS_VERSION = 2;
+// v3: 1RM tables age-banded (Elie 2026-07-14) — placeholder flat band replaced.
+export const CHARTS_VERSION = 3;
 
 // Canonical 5 levels. Score 1..5 ↔ levelKey; run is the 4-level exception (verdict only,
 // never part of the muscle average) and uses 'poor' instead of 'weak'/'belowAvg'.
@@ -112,25 +113,63 @@ export const CHARTS = {
       { minAge: 66, maxAge: 999, t: [-5.1, 0, 5.1, 12.7] },
     ],
   },
-  // ─── 1RM battery (v2.12) ───
-  // Thresholds are 1RM-to-BODYWEIGHT RATIOS (1RM kg ÷ bodyweight kg), per gender,
-  // ONE flat age band — same precedent as the pull-up chart (PT to confirm age handling).
-  // PLACEHOLDER values simplified from published adult strength standards
-  // (ExRx.net / Kraemer & Fleck-style tables, ratio-normalized) until the PT
-  // confirms or supplies his own chart — the sit-and-reach YMCA precedent.
+  // ─── 1RM battery (v2.12, age-banded v2.13.2) ───
+  // Thresholds are 1RM-to-BODYWEIGHT RATIOS (1RM kg ÷ bodyweight kg), per gender.
+  // 18-39 rows = the levels Elie approved 2026-07-14 ("the numbers are good").
+  // Older bands = those levels scaled by the per-lift/per-gender decline factors
+  // from Elie's age-range tables (screenshots, 2026-07-14) — his chosen method:
+  // "keep the 18-39 thresholds, lower them by the same percentage for older ages".
+  // Factors are each band's benchmark ÷ the 18-39 benchmark; results rounded to
+  // 2 decimals. Derivation script inline in the v2.13.2 session/commit.
   // Same t = [min2, min3, min4, min5] contract as the rep charts (lookupScore
   // is reused unchanged; it compares the ratio against these minimums).
   bench1rm: {
-    male: [{ minAge: 0, maxAge: 999, t: [0.75, 1.0, 1.35, 1.65] }],
-    female: [{ minAge: 0, maxAge: 999, t: [0.5, 0.7, 0.9, 1.1] }],
+    male: [
+      { minAge: 0, maxAge: 39, t: [0.75, 1.0, 1.35, 1.65] },   // baseline (Elie 18-39)
+      { minAge: 40, maxAge: 49, t: [0.69, 0.92, 1.24, 1.51] }, // ×(1.10/1.20)
+      { minAge: 50, maxAge: 59, t: [0.63, 0.83, 1.13, 1.38] }, // ×(1.00/1.20)
+      { minAge: 60, maxAge: 69, t: [0.53, 0.71, 0.96, 1.17] }, // ×(0.85/1.20)
+      { minAge: 70, maxAge: 999, t: [0.44, 0.58, 0.79, 0.96] }, // ×(0.70/1.20)
+    ],
+    female: [
+      { minAge: 0, maxAge: 39, t: [0.5, 0.7, 0.9, 1.1] },      // baseline (Elie 18-39)
+      { minAge: 40, maxAge: 49, t: [0.45, 0.63, 0.82, 1.0] },  // ×(0.68/0.75)
+      { minAge: 50, maxAge: 59, t: [0.4, 0.56, 0.72, 0.88] },  // ×(0.60/0.75)
+      { minAge: 60, maxAge: 69, t: [0.35, 0.49, 0.62, 0.76] }, // ×(0.52/0.75)
+      { minAge: 70, maxAge: 999, t: [0.28, 0.39, 0.5, 0.62] }, // ×(0.42/0.75)
+    ],
   },
   squat1rm: {
-    male: [{ minAge: 0, maxAge: 999, t: [1.25, 1.5, 2.0, 2.5] }],
-    female: [{ minAge: 0, maxAge: 999, t: [0.75, 1.0, 1.5, 1.85] }],
+    male: [
+      { minAge: 0, maxAge: 39, t: [1.25, 1.5, 2.0, 2.5] },     // baseline (Elie 18-39)
+      { minAge: 40, maxAge: 49, t: [1.13, 1.35, 1.8, 2.25] },  // ×(1.35/1.50)
+      { minAge: 50, maxAge: 59, t: [1.0, 1.2, 1.6, 2.0] },     // ×(1.20/1.50)
+      { minAge: 60, maxAge: 69, t: [0.88, 1.05, 1.4, 1.75] },  // ×(1.05/1.50)
+      { minAge: 70, maxAge: 999, t: [0.71, 0.85, 1.13, 1.42] }, // ×(0.85/1.50)
+    ],
+    female: [
+      { minAge: 0, maxAge: 39, t: [0.75, 1.0, 1.5, 1.85] },    // baseline (Elie 18-39)
+      { minAge: 40, maxAge: 49, t: [0.68, 0.9, 1.35, 1.67] },  // ×(0.90/1.00)
+      { minAge: 50, maxAge: 59, t: [0.6, 0.8, 1.2, 1.48] },    // ×(0.80/1.00)
+      { minAge: 60, maxAge: 69, t: [0.52, 0.7, 1.05, 1.3] },   // ×(0.70/1.00)
+      { minAge: 70, maxAge: 999, t: [0.41, 0.55, 0.83, 1.02] }, // ×(0.55/1.00)
+    ],
   },
   deadlift1rm: {
-    male: [{ minAge: 0, maxAge: 999, t: [1.5, 2.0, 2.5, 3.0] }],
-    female: [{ minAge: 0, maxAge: 999, t: [1.0, 1.25, 1.75, 2.25] }],
+    male: [
+      { minAge: 0, maxAge: 39, t: [1.5, 2.0, 2.5, 3.0] },      // baseline (Elie 18-39)
+      { minAge: 40, maxAge: 49, t: [1.37, 1.83, 2.29, 2.74] }, // ×(1.60/1.75)
+      { minAge: 50, maxAge: 59, t: [1.24, 1.66, 2.07, 2.49] }, // ×(1.45/1.75)
+      { minAge: 60, maxAge: 69, t: [1.07, 1.43, 1.79, 2.14] }, // ×(1.25/1.75)
+      { minAge: 70, maxAge: 999, t: [0.9, 1.2, 1.5, 1.8] },    // ×(1.05/1.75)
+    ],
+    female: [
+      { minAge: 0, maxAge: 39, t: [1.0, 1.25, 1.75, 2.25] },   // baseline (Elie 18-39)
+      { minAge: 40, maxAge: 49, t: [0.92, 1.15, 1.61, 2.07] }, // ×(1.15/1.25)
+      { minAge: 50, maxAge: 59, t: [0.8, 1.0, 1.4, 1.8] },     // ×(1.00/1.25)
+      { minAge: 60, maxAge: 69, t: [0.7, 0.88, 1.23, 1.58] },  // ×(0.88/1.25)
+      { minAge: 70, maxAge: 999, t: [0.58, 0.72, 1.01, 1.3] }, // ×(0.72/1.25)
+    ],
   },
 };
 
