@@ -81,8 +81,8 @@ stays 6 (new fields are additive inside program records, no migration).
   chip labels reuse the existing English-literal `slotPush/slotPull/slotLegs`
   keys (v2.13.1 decision — Lebanese gyms use PPL terms in both languages).
 - **`sanity-programs.mjs` — new multi-day section** (D1–D10, all ten
-  decisions have a dedicated assertion block): D10 regression (3-day output
-  deep-equals pre-v2.14 after stripping new metadata fields), D4 split
+  decisions have a dedicated assertion block): D10 regression (explicit 3-day
+  === omitted args, plus pre-existing 3-day content assertions), D4 split
   arithmetic (even 14→7/7, odd 15→8/7, non-duplicated slot keeps full
   quota), D3 anchor-once sweep (every block, rep-1 only, Deadlift pull-only
   preserved), D5 minor-full-both-days, D2 zero-name-overlap + pool-exhaustion
