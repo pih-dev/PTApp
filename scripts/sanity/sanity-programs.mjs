@@ -28,9 +28,10 @@ console.log('bank OK');
 // === part 2: rules ===
 const rulesUrl = new URL('../../src/programRules.js', import.meta.url).href;
 const { TIERS, METHODS, DEFAULT_SEQUENCE, FAT_THRESHOLD, PROGRAM_RULES_VERSION,
-        rankGroups, majorQuotas, minorQuota, dayOrder } = await import(rulesUrl);
+        rankGroups, majorQuotas, minorQuota, dayOrder,
+        suggestedDaysPerWeek, suggestedDuplicates } = await import(rulesUrl);
 
-assert(PROGRAM_RULES_VERSION === 2, 'PROGRAM_RULES_VERSION is 2 (v2: Deadlift pull-anchor-only)');
+assert(PROGRAM_RULES_VERSION === 3, 'PROGRAM_RULES_VERSION is 3 (v3: multi-day split)');
 assert(JSON.stringify(TIERS.intA) === '[14,17]' && JSON.stringify(TIERS.pro) === '[21,24]', 'tier table matches spec §3');
 assert(DEFAULT_SEQUENCE.join() === 'progLoad,descPyramid,fiveOfFive,doOrDie,statoDynamic,endurance', 'default block sequence = Client X');
 assert(FAT_THRESHOLD.male === 18 && FAT_THRESHOLD.female === 25, 'fat-loss thresholds 18/25');
@@ -62,6 +63,16 @@ assert(minorQuota(17) === 9 && minorQuota(14) === 7, 'minor = round(major/2)');
 // day order: 'top' leads with weak day; 'steal' keeps standard order
 assert(dayOrder('top', r).join() === 'legs,pull,push', 'top: weak day leads');
 assert(dayOrder('steal', r).join() === 'push,pull,legs', 'steal: standard order');
+
+// multi-day suggestions (spec D6/D9)
+assert(suggestedDaysPerWeek('begA') === 3 && suggestedDaysPerWeek('begB') === 3, 'beginners → 3 days');
+assert(suggestedDaysPerWeek('intA') === 4, 'intA → 4 days');
+assert(suggestedDaysPerWeek('intB') === 5 && suggestedDaysPerWeek('pro') === 5, 'intB/pro → 5 days');
+const rk = { weak: 'legs', mid: 'pull', strong: 'push' };
+assert(JSON.stringify(suggestedDuplicates(rk, 3)) === '[]', '3 days → no duplicates');
+assert(JSON.stringify(suggestedDuplicates(rk, 4)) === '["legs"]', '4 days → weakest duplicated');
+assert(JSON.stringify(suggestedDuplicates(rk, 5)) === '["legs","pull"]', '5 days → weak+mid');
+assert(JSON.stringify(suggestedDuplicates(rk, 6)) === '["legs","pull","push"]', '6 days → all three');
 console.log('rules OK');
 
 // === part 3: kernel ===
@@ -81,7 +92,7 @@ const args = {
 };
 const prog = generateProgram(args);
 
-assert(prog.blocks.length === 6 && prog.rulesVersion === 2 && prog.bankVersion === 1, '6 blocks, versions stamped');
+assert(prog.blocks.length === 6 && prog.rulesVersion === 3 && prog.bankVersion === 1, '6 blocks, versions stamped');
 assert(prog.classification === 'intA' && prog.ranks.weak === 'legs', 'class + weak point derived from eval');
 assert(prog.blocks[0].strategy === 'top' && prog.blocks[1].strategy === 'steal' && prog.blocks[2].strategy === 'top',
   'strategies alternate by block parity');

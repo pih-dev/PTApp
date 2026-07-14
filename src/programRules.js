@@ -3,7 +3,8 @@
 // Bump PROGRAM_RULES_VERSION on ANY change: stored programs are frozen and stamp
 // the version they were generated with (CHARTS_VERSION precedent).
 // v2: Deadlift excluded from all accessory/circuit pools — Pull-day anchor only (Elie, 2026-07-14).
-export const PROGRAM_RULES_VERSION = 2;
+// v3: multi-day split — trainer-selectable 3-6 days/week, duplicated slots (Elie, 2026-07-14).
+export const PROGRAM_RULES_VERSION = 3;
 
 // Sets per MAJOR muscle per week, by eval classification (spec §3).
 export const TIERS = { begA: [9, 11], begB: [11, 13], intA: [14, 17], intB: [18, 21], pro: [21, 24] };
@@ -86,3 +87,16 @@ export const minorQuota = (majorSets) => Math.round(majorSets / 2);
 export function dayOrder(strategy, ranks) {
   return strategy === 'top' ? [ranks.weak, ranks.mid, ranks.strong] : ['push', 'pull', 'legs'];
 }
+
+// ─── Multi-day split suggestions (spec 2026-07-14 D6/D9) ───
+// Both are PRE-SELECTIONS the trainer can override in the setup sheet — the
+// chosen values (not the suggestions) are what gets frozen on the record.
+// Day count by classification: 3-day PPL is wrong for intermediate-and-above
+// (Elie); 6 is never suggested, manual pick only.
+const SUGGESTED_DAYS = { begA: 3, begB: 3, intA: 4, intB: 5, pro: 5 };
+export const suggestedDaysPerWeek = (classKey) => SUGGESTED_DAYS[classKey] ?? 3;
+
+// Which slots duplicate: weakest group first ("squat low → duplicate legs"),
+// then mid, then strong — the same ranking that drives quotas and day order.
+export const suggestedDuplicates = (ranks, daysPerWeek) =>
+  [ranks.weak, ranks.mid, ranks.strong].slice(0, Math.max(0, daysPerWeek - 3));
