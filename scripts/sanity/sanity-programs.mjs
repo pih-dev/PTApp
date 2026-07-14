@@ -179,6 +179,60 @@ assert(setsFor(ovPull0, 'Back') <= 11, 'override drives volume tier (begA ceilin
 assert(generateProgram({ ...args, classification: evalRec.frozen.classification }).classificationSource === 'auto',
   'explicitly passing the eval level still counts as auto');
 
+// ─── multi-day split (rules v3, spec 2026-07-14) ───
+// D10 regression: default and explicit 3-day are identical, all rep 1
+assert(JSON.stringify(generateProgram({ ...args, daysPerWeek: 3, duplicatedSlots: [] })) === JSON.stringify(prog),
+  '3-day explicit === omitted (D10)');
+assert(prog.daysPerWeek === 3 && JSON.stringify(prog.duplicatedSlots) === '[]', '3-day metadata stored');
+assert(prog.blocks[0].days.every(d => d.rep === 1) && prog.blocks[0].days.length === 3, '3-day: 3 days, all rep 1');
+
+// 5-day: duplicate pull+legs on the standard fixture
+const p5 = generateProgram({ ...args, daysPerWeek: 5, duplicatedSlots: ['pull', 'legs'] });
+assert(p5.daysPerWeek === 5 && JSON.stringify(p5.duplicatedSlots) === '["pull","legs"]', '5-day metadata stored');
+const b0 = p5.blocks[0];
+assert(b0.days.length === 5, '5-day block has 5 days');
+assert(b0.days.slice(0, 3).every(d => d.rep === 1) && b0.days.slice(3).every(d => d.rep === 2),
+  'base round first, repeats after (D7)');
+const baseSlots = b0.days.slice(0, 3).map(d => d.slot);
+assert(JSON.stringify(b0.days.slice(3).map(d => d.slot)) ===
+  JSON.stringify(baseSlots.filter(s => ['pull', 'legs'].includes(s))),
+  'rep-2 days follow base relative order (D7)');
+
+// D4: majors split ceil/floor, weekly total preserved; non-duplicated slot untouched
+const setsForDay = (day, bucket) => day.exercises.filter(e => e.bucket === bucket)
+  .reduce((n, e) => n + e.sets, 0);
+const pull1 = b0.days.find(d => d.slot === 'pull' && d.rep === 1);
+const pull2 = b0.days.find(d => d.slot === 'pull' && d.rep === 2);
+const weeklyBack = setsFor(prog.blocks[0].days.find(d => d.slot === 'pull'), 'Back'); // 3-day quota = weekly quota
+assert(setsForDay(pull1, 'Back') + setsForDay(pull2, 'Back') === weeklyBack, 'Back weekly total preserved (D4)');
+assert(setsForDay(pull1, 'Back') - setsForDay(pull2, 'Back') === weeklyBack % 2, 'odd set goes to rep-1 (D4)');
+const push1 = b0.days.find(d => d.slot === 'push');
+assert(setsForDay(push1, 'Chest') === setsFor(prog.blocks[0].days.find(d => d.slot === 'push'), 'Chest'),
+  'non-duplicated slot keeps full weekly quota');
+
+// D5: minors full quota on BOTH days
+const minorSets1 = setsForDay(pull1, 'Biceps'), minorSets2 = setsForDay(pull2, 'Biceps');
+assert(minorSets1 > 0 && minorSets1 === minorSets2, 'minors full quota on both days (D5)');
+
+// D3: anchors once per block, rep-1 only — sweep every block
+for (const b of p5.blocks) {
+  for (const day of b.days) {
+    const anchors = day.exercises.filter(e => e.setKg);
+    if (day.rep === 2) assert(anchors.length === 0, `rep-2 day has no anchor (block ${b.index} ${day.slot})`);
+  }
+}
+assert(p5.blocks[0].days.filter(d => d.exercises.some(e => e.name === 'Deadlift')).length === 1,
+  'Deadlift exactly once a week (D3 + rules v2)');
+
+// D8: endurance circuits follow the day count
+const endur5 = p5.blocks.find(b => b.methodId === 'endurance');
+assert(endur5 && endur5.daysAlt.length === 5, 'circuit weeks have 5 days (D8)');
+
+// validation throw
+let threw = false;
+try { generateProgram({ ...args, daysPerWeek: 5, duplicatedSlots: ['pull'] }); } catch (e) { threw = true; }
+assert(threw, 'kernel throws on inconsistent duplicatedSlots');
+
 // rules v2 (Elie, 2026-07-14): Deadlift is ONLY the pull-day anchor — never a legs-day
 // accessory (its bank bucket is Legs) and never a circuit station. Sweep every day of
 // every block, daysAlt included, across the standard AND beginner programs.
