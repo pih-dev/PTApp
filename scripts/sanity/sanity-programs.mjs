@@ -274,6 +274,18 @@ for (const b of p6beg.blocks) {
     const major = { push: 'Chest', pull: 'Back', legs: 'Legs' }[slot];
     assert(setsForDay(d1, major) >= setsForDay(d2, major) && setsForDay(d1, major) + setsForDay(d2, major) > 0,
       `6-day beginner ${slot} major quota filled (block ${b.index})`);
+    // Review finding (Task 3): the major check above never total-checked MINORS —
+    // the tight-pool buckets where exhaustion actually bites (Calves has 5 exercises,
+    // Rear Delts 4; the beginner filter shrinks pools further). Minors take the FULL
+    // quota on both days (spec D5), and rep-1 runs unexcluded so its total IS the
+    // correct quota — rep-2 falling short of rep-1 is exactly the starvation the
+    // fallback tier must prevent.
+    const minors = { push: ['Shoulders', 'Triceps'], pull: ['Rear Delts', 'Biceps', 'Forearms'], legs: ['Calves', 'Abs'] }[slot];
+    for (const mb of minors) {
+      const m1 = setsForDay(d1, mb), m2 = setsForDay(d2, mb);
+      assert(m1 > 0 && m2 === m1,
+        `6-day beginner minor '${mb}' full quota on both days (block ${b.index}: ${m1} vs ${m2})`);
+    }
     for (const day of [d1, d2])
       for (const e of day.exercises) assert(e.sets > 0, 'no zero-set entries under exclusion');
   }
