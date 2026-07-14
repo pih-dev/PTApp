@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Modal from './Modal';
 import { genId, haptic } from '../utils';
 import { t } from '../i18n';
-import { DEFAULT_SEQUENCE, METHODS, FAT_THRESHOLD } from '../programRules';
+import { DEFAULT_SEQUENCE, METHODS, FAT_THRESHOLD, suggestedDaysPerWeek, suggestedDuplicates, rankGroups } from '../programRules';
 import { generateProgram } from '../programKernel';
 
 const methodLabel = (lang, id) => t(lang, 'method' + id.charAt(0).toUpperCase() + id.slice(1));
@@ -30,6 +30,34 @@ export default function ProgramSetup({ client, evalRecord, dispatch, lang, onClo
   // strength ratios ≠ training experience). Kernel stamps auto/manual on the record.
   const [classification, setClassification] = useState(evalRecord.frozen.classification);
 
+  // Multi-day split (spec 2026-07-14). Suggestions follow the Level chip until
+  // the trainer touches a row himself — then his pick sticks (fatTouched pattern).
+  const ranks = useMemo(() => rankGroups(evalRecord.frozen.scores), [evalRecord]);
+  const [daysPerWeek, setDaysPerWeek] = useState(() => suggestedDaysPerWeek(evalRecord.frozen.classification));
+  const [daysTouched, setDaysTouched] = useState(false);
+  const [dupSlots, setDupSlots] = useState(() =>
+    suggestedDuplicates(ranks, suggestedDaysPerWeek(evalRecord.frozen.classification)));
+  const [dupsTouched, setDupsTouched] = useState(false);
+  const dupsValid = dupSlots.length === daysPerWeek - 3;
+
+  const pickLevel = (id) => {
+    haptic(); setClassification(id);
+    if (!daysTouched) {
+      const d = suggestedDaysPerWeek(id);
+      setDaysPerWeek(d);
+      if (!dupsTouched) setDupSlots(suggestedDuplicates(ranks, d));
+    }
+  };
+  const pickDays = (n) => {
+    haptic(); setDaysTouched(true); setDaysPerWeek(n);
+    if (!dupsTouched) setDupSlots(suggestedDuplicates(ranks, n));
+    else setDupSlots(dupSlots.slice(0, Math.max(0, n - 3)));   // shrink a stale manual pick
+  };
+  const toggleDup = (slot) => {
+    haptic(); setDupsTouched(true);
+    setDupSlots(dupSlots.includes(slot) ? dupSlots.filter(s => s !== slot) : [...dupSlots, slot]);
+  };
+
   const threshold = FAT_THRESHOLD[client.gender] ?? FAT_THRESHOLD.male;
   const fatNum = parseFloat(fatPct);
   const suggested = Number.isFinite(fatNum) && fatNum >= threshold;
@@ -40,10 +68,11 @@ export default function ProgramSetup({ client, evalRecord, dispatch, lang, onClo
 
   const save = () => {
     haptic();
+    if (!dupsValid) return;
     // fat-loss OFF ⇒ any endurance slot falls back to fiveOfFive (spec §5)
     const effective = methods.map(m => (!fatOn && m === 'endurance') ? 'fiveOfFive' : m);
     const record = generateProgram({
-      id: genId(), client, evalRecord, classification,
+      id: genId(), client, evalRecord, classification, daysPerWeek, duplicatedSlots: dupSlots,
       fatPct: Number.isFinite(fatNum) ? fatNum : null, includeFatLoss: fatOn,
       methods: effective, startDate, createdAt: new Date().toISOString(),
     });
@@ -54,7 +83,8 @@ export default function ProgramSetup({ client, evalRecord, dispatch, lang, onClo
   const scores = evalRecord.frozen.scores;
   return (
     <Modal title={t(lang, 'programSetupTitle')} onClose={onClose}
-      action={<button className="btn-primary" style={{ width: '100%' }} onClick={save}>{t(lang, 'generateProgram')}</button>}>
+      action={<button className="btn-primary" style={{ width: '100%', opacity: dupsValid ? 1 : 0.5 }}
+        disabled={!dupsValid} onClick={save}>{t(lang, 'generateProgram')}</button>}>
       {/* weak-point context — read-only */}
       <div style={{ fontSize: 13, color: 'var(--t3)', marginBottom: 10 }}>
         {t(lang, 'weakPointLabel')}: B{scores.bench} · S{scores.squat} · D{scores.deadlift}
@@ -66,7 +96,7 @@ export default function ProgramSetup({ client, evalRecord, dispatch, lang, onClo
         {CLASS_IDS.map(id => (
           <button key={id} type="button"
             className={`weekday-chip${classification === id ? ' selected' : ''}`}
-            onClick={() => { haptic(); setClassification(id); }}>
+            onClick={() => pickLevel(id)}>
             {classLabel(lang, id)}
           </button>
         ))}
@@ -74,6 +104,32 @@ export default function ProgramSetup({ client, evalRecord, dispatch, lang, onClo
       <div style={{ fontSize: 11, color: 'var(--t4)', margin: '-6px 0 10px' }}>
         {t(lang, 'levelSuggested')}: {classLabel(lang, evalRecord.frozen.classification)}
       </div>
+
+      {/* days per week — suggested from the level (spec D9), trainer overrides */}
+      <div className="field-label">{t(lang, 'daysPerWeekLabel')}</div>
+      <div className="weekday-row">
+        {[3, 4, 5, 6].map(n => (
+          <button key={n} type="button"
+            className={`weekday-chip${daysPerWeek === n ? ' selected' : ''}`}
+            onClick={() => pickDays(n)}>{n}</button>
+        ))}
+      </div>
+
+      {daysPerWeek > 3 && (
+        <>
+          {/* which slots duplicate — suggested from weak points (spec D6) */}
+          <div className="field-label">{t(lang, 'extraDaysLabel')} ({daysPerWeek - 3})</div>
+          <div className="weekday-row">
+            {['push', 'pull', 'legs'].map(slot => (
+              <button key={slot} type="button"
+                className={`weekday-chip${dupSlots.includes(slot) ? ' selected' : ''}`}
+                onClick={() => toggleDup(slot)}>
+                {t(lang, 'slot' + slot.charAt(0).toUpperCase() + slot.slice(1))}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       <div className="field-label">{t(lang, 'bodyFatPct')}</div>
       <input className="input" inputMode="decimal" value={fatPct} onChange={onFatPct} />
