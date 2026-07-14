@@ -39,9 +39,11 @@ export default function ProgramViewer({ program, dispatch, lang, onClose }) {
   const dayRows = (b, bi, dayKey) => (b[dayKey] || []).map((day, di) => (
     <div key={dayKey + di} style={{ marginTop: 8 }}>
       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t2)' }}>
-        {/* I1: localized day headers (push/pull/legs) — raw .toUpperCase() showed English in AR mode */}
+        {/* I1: localized day headers (push/pull/legs) — raw .toUpperCase() showed English in AR mode.
+            Multi-day (2026-07-14): rep-2 days render "Push 2" — old records lack `rep`, so they
+            fall through unchanged. Slot words stay English in AR (Elie E3). */}
         {day.slot === 'circuit' ? `${t(lang, 'roundsLabel')} ×4`
-          : t(lang, 'slot' + day.slot.charAt(0).toUpperCase() + day.slot.slice(1))}
+          : t(lang, 'slot' + day.slot.charAt(0).toUpperCase() + day.slot.slice(1)) + (day.rep === 2 ? ' 2' : '')}
       </div>
       {day.exercises.map((e, ei) => (
         <div key={ei} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
