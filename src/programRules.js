@@ -2,7 +2,8 @@
 // every number Elie-approved 2026-07-13). Data + pure functions ONLY — no React, no state.
 // Bump PROGRAM_RULES_VERSION on ANY change: stored programs are frozen and stamp
 // the version they were generated with (CHARTS_VERSION precedent).
-export const PROGRAM_RULES_VERSION = 1;
+// v2: Deadlift excluded from all accessory/circuit pools — Pull-day anchor only (Elie, 2026-07-14).
+export const PROGRAM_RULES_VERSION = 2;
 
 // Sets per MAJOR muscle per week, by eval classification (spec §3).
 export const TIERS = { begA: [9, 11], begB: [11, 13], intA: [14, 17], intB: [18, 21], pro: [21, 24] };

@@ -612,10 +612,11 @@ const T = {
     noPrograms: 'لا يوجد برنامج بعد',
     viewProgram: 'عرض البرنامج',
     weekOf: 'أسبوع',
-    // day-slot headers — AR phrasing pending Elie review (Lebanese gyms often keep English terms)
-    slotPush: 'دفع',
-    slotPull: 'سحب',
-    slotLegs: 'أرجل',
+    // day-slot headers stay ENGLISH in the Arabic app — Elie's call 2026-07-14
+    // (Lebanese gym convention keeps Push/Pull/Legs untranslated)
+    slotPush: 'Push',
+    slotPull: 'Pull',
+    slotLegs: 'Legs',
   },
 };
 

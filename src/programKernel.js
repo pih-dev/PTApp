@@ -43,7 +43,10 @@ const addDays = (iso, n) => {
 // different variants. Rotation offset only advances through blocks that USE
 // this bucket, which every block does — blockIndex is a valid clock.
 function candidates(bucket, blockIndex, isBeginner, anchorName) {
-  let pool = bankForBucket(bucket).filter(e => e.name !== anchorName);
+  // Deadlift is ONLY ever the Pull-day anchor (Elie's call, 2026-07-14): its bank
+  // bucket is 'Legs' (primary Quads), so without this filter it leaked into the
+  // Legs-day accessory pool and circuit stations — programming it twice a week.
+  let pool = bankForBucket(bucket).filter(e => e.name !== anchorName && e.name !== ANCHORS.pull.name);
   if (isBeginner) {
     const safe = pool.filter(e => !e.advanced);
     if (safe.length >= 3) pool = safe;                       // only filter when alternatives exist (spec §6)

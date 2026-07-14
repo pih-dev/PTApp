@@ -30,7 +30,7 @@ const rulesUrl = new URL('../../src/programRules.js', import.meta.url).href;
 const { TIERS, METHODS, DEFAULT_SEQUENCE, FAT_THRESHOLD, PROGRAM_RULES_VERSION,
         rankGroups, majorQuotas, minorQuota, dayOrder } = await import(rulesUrl);
 
-assert(PROGRAM_RULES_VERSION === 1, 'PROGRAM_RULES_VERSION is 1');
+assert(PROGRAM_RULES_VERSION === 2, 'PROGRAM_RULES_VERSION is 2 (v2: Deadlift pull-anchor-only)');
 assert(JSON.stringify(TIERS.intA) === '[14,17]' && JSON.stringify(TIERS.pro) === '[21,24]', 'tier table matches spec §3');
 assert(DEFAULT_SEQUENCE.join() === 'progLoad,descPyramid,fiveOfFive,doOrDie,statoDynamic,endurance', 'default block sequence = Client X');
 assert(FAT_THRESHOLD.male === 18 && FAT_THRESHOLD.female === 25, 'fat-loss thresholds 18/25');
@@ -81,7 +81,7 @@ const args = {
 };
 const prog = generateProgram(args);
 
-assert(prog.blocks.length === 6 && prog.rulesVersion === 1 && prog.bankVersion === 1, '6 blocks, versions stamped');
+assert(prog.blocks.length === 6 && prog.rulesVersion === 2 && prog.bankVersion === 1, '6 blocks, versions stamped');
 assert(prog.classification === 'intA' && prog.ranks.weak === 'legs', 'class + weak point derived from eval');
 assert(prog.blocks[0].strategy === 'top' && prog.blocks[1].strategy === 'steal' && prog.blocks[2].strategy === 'top',
   'strategies alternate by block parity');
@@ -155,6 +155,20 @@ assert(setsFor(pullDay0, 'Back') === 14, 'pull day: Back major lands exactly on 
 assert(pullDay0.exercises[0].name === 'Deadlift' && pullDay0.exercises[0].bucket === 'Back',
   'Deadlift anchor leads pull day, bucketed as Back');
 assert(!pullDay0.exercises.some(e => e.bucket === 'Legs'), 'no stray Legs bucket on pull day');
+
+// rules v2 (Elie, 2026-07-14): Deadlift is ONLY the pull-day anchor — never a legs-day
+// accessory (its bank bucket is Legs) and never a circuit station. Sweep every day of
+// every block, daysAlt included, across the standard AND beginner programs.
+for (const p of [prog, begProg]) {
+  for (const b of p.blocks) {
+    for (const day of [...b.days, ...(b.daysAlt || [])]) {
+      for (const [i, e] of day.exercises.entries()) {
+        assert(e.name !== 'Deadlift' || (day.slot === 'pull' && i === 0),
+          `Deadlift only as pull anchor (found in block ${b.index} ${day.slot} pos ${i})`);
+      }
+    }
+  }
+}
 console.log('kernel OK');
 
 // === part 4: reducer + merge coexistence ===
