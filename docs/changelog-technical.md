@@ -4,7 +4,16 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
-## v2.13.0 — Program generation from 1RM evaluation (2026-07-13)
+## v2.13.1–v2.13.3 — Elie domain-review fix run (2026-07-14)
+
+**Trigger:** Elie answered the v2.13.0 release-review questions (E1–E3, M1, M5, the 1RM-standards placeholders, and the classification problem) directly in-session. Full narrative: `docs/instructions-v2.13.md` (appended section).
+
+- **v2.13.1 (`10ca9c9`)** — `candidates()` excludes `ANCHORS.pull.name` from every accessory/circuit pool: Deadlift's bank bucket is `Legs`, so it double-programmed (pull anchor + legs accessory). `PROGRAM_RULES_VERSION` 1→2. AR `slotPush/slotPull/slotLegs` switched to English literals (Elie: Lebanese gyms keep PPL terms). Confirmed no-change: Upright Row→Shoulders, `methodDoOrDie` stays 'حتى الإجهاد', % not ٪. Sanity: whole-program Deadlift sweep (days + daysAlt, standard + beginner).
+- **v2.13.2 (`ef9a6d4`)** — 1RM ratio tables age-banded (0–39 baseline / 40–49 / 50–59 / 60–69 / 70+): Elie confirmed the 18–39 thresholds and the scale-by-his-decline-factors method (band benchmark ÷ 18–39 benchmark, per lift per gender). `CHARTS_VERSION` 2→3; frozen records untouched (v2.9.6-class freeze rule). Sanity asserts the 39/40 band edge and 70+ rescoring; `chartsVersion` assertion now tracks the constant instead of a literal.
+- **v2.13.3 (`cad978f`)** — classification override (Elie's pick of proposed Option 1): `generateProgram` takes optional `classification` (omitted = `evalRecord.frozen.classification`) and stamps `classificationSource: 'auto'|'manual'` on the record (additive field; old records simply lack it). `ProgramSetup` renders a 5-chip Level row (weekday-chip reuse, 44px+ targets) pre-selected from the eval, with a "suggested" hint line. One-kernel invariant holds: preview and save share the same state → same args. **Decision record:** rejected Option 2 (training-age questionnaire — more friction, rule undefined) and Option 3 (fully manual per-profile level — loses the useful default).
+- **Open:** rear-delt reclassification confirm (Elie's answer was ambiguous); "rehab button" idea parked; his two age-table screenshots archived expectation — see memory.
+
+
 
 **Trigger:** PT feature #3 of the roadmap ("auto program proposal"), requirements gathered live with Elie 2026-07-13. Spec: `docs/superpowers/specs/2026-07-13-program-generation-design.md`. Exercise bank source: `_archive/PTApp/program-source/2026-07-13-exercises-full-list.xlsx`.
 

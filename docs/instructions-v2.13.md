@@ -160,3 +160,52 @@ rotation/determinism (identical inputs ⇒ byte-identical program), beginner
 filter, and reducer/merge coexistence for `programs[]`.
 
 - Spec: `docs/superpowers/specs/2026-07-13-program-generation-design.md`.
+
+---
+
+## v2.13.1 – v2.13.3 — Elie's domain-review answers applied (2026-07-14)
+
+Elie (the PT) answered the release-review questions directly in-session at
+Pierre's terminal. Three point releases shipped same day:
+
+### v2.13.1 — Deadlift pull-only + English day headers
+- **Deadlift is ONLY ever the Pull-day 1RM anchor** (Elie: "deadlift only in
+  back"). Its bank record's bucket is `Legs` (primary Quads), so it was also
+  eligible as a legs-day accessory and a circuit station = programmed twice a
+  week. `candidates()` in `programKernel.js` now excludes `ANCHORS.pull.name`
+  from every pool. `PROGRAM_RULES_VERSION` 1 → 2 (stored programs keep their
+  frozen version). Sanity: full sweep asserting Deadlift appears only as
+  pull-day exercise #0 across all blocks/days/daysAlt, standard + beginner.
+- **Day headers stay English (Push/Pull/Legs) in the Arabic app** — Lebanese
+  gym convention, Elie's explicit pick over دفع/سحب/أرجل.
+- Confirmed as-is (no change): Upright Row under Shoulders; "Do or die" stays
+  'حتى الإجهاد'; % sign (not ٪); 'تدريب دائري'.
+
+### v2.13.2 — Age-banded 1RM standards (CHARTS_VERSION 2 → 3)
+- The v2.12 placeholder flat-band ratio tables are gone. 18–39 keeps the
+  levels Elie approved; 40–49 / 50–59 / 60–69 / 70+ scale them by the decline
+  factors from his age tables (band benchmark ÷ 18–39 benchmark, per lift per
+  gender, rounded to 2 decimals) — method explicitly approved by Elie.
+- Frozen evaluations keep their v2 scores; only new evaluations use the bands.
+- As-implemented workbook regenerated:
+  `docs/superpowers/artifacts/2026-07-06-1rm-battery/PT-1RM-Standards-As-Implemented.xlsx`.
+
+### v2.13.3 — Trainer level override at generation (Elie "Option 1")
+- **Problem (Elie):** deriving the volume tier from lift-score averages is
+  wrong — strength ratios ≠ training experience; a naturally strong novice
+  must not get Intermediate volume.
+- **Fix:** the eval-derived classification is now only a pre-selected
+  SUGGESTION. `ProgramSetup.jsx` shows a 5-chip Level row (`weekday-chip`
+  reuse); the trainer taps to override before generating. The kernel takes an
+  optional `classification` arg (omitted = eval's level, so all old call
+  sites/fixtures stay valid) and stamps `classificationSource: 'auto'|'manual'`
+  on the frozen record. Preview/save one-kernel invariant preserved — both
+  paths pass the same state. New i18n keys `levelLabel`/`levelSuggested`.
+- `PROGRAM_RULES_VERSION` stays 2 — tier tables untouched, only which tier
+  applies became selectable.
+
+### Still open after this session
+- Rear-delt reclassification (4 exercises → Pull day): Elie's confirmation
+  still ambiguous — re-ask before regenerating the bank.
+- "Rehab button" idea (Elie): prehab exercises stay out of auto-programs for
+  now; possible future feature, parked.

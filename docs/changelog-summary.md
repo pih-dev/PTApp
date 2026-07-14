@@ -4,6 +4,33 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.13.1–v2.13.3 — The trainer's review, applied (July 14, 2026)
+
+Elie reviewed the new program generator and the strength standards, and his
+answers shipped the same day in three small releases:
+
+**Deadlift now appears only on Pull day** (v2.13.1). It was also showing up
+as an extra leg-day exercise — twice a week total. Elie: deadlift belongs to
+back training only. Programs already generated are unchanged; new ones follow
+the rule.
+
+**Day names stay in English everywhere** (v2.13.1). Even in the Arabic app,
+the training days read Push / Pull / Legs — that's how Lebanese gyms talk.
+
+**Strength scores now respect age** (v2.13.2). The bench/squat/deadlift
+rating tables were placeholder numbers with no age adjustment. Elie confirmed
+the base numbers and supplied age decline tables, so a 55-year-old is now
+rated against 55-year-old standards, not a 25-year-old's. Old saved
+evaluations keep their original scores.
+
+**The trainer picks the client's level** (v2.13.3). The program's weekly
+volume used to follow the strength scores automatically — but being strong
+doesn't mean being experienced. Now the setup sheet suggests a level from the
+scores and the trainer can change it with one tap before generating. The
+program remembers whether the level was the suggestion or a coaching call.
+
+---
+
 ## v2.13.0 — Auto-generated 6-month training programs (July 13, 2026)
 
 **The trainer can now generate a full training program from a client's 1RM
