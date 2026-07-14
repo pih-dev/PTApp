@@ -210,6 +210,15 @@ const push1 = b0.days.find(d => d.slot === 'push');
 assert(setsForDay(push1, 'Chest') === setsFor(prog.blocks[0].days.find(d => d.slot === 'push'), 'Chest'),
   'non-duplicated slot keeps full weekly quota');
 
+// D4 odd-split hardening (final review): the Back assertion above only exercises pull's
+// EVEN weekly quota (14 → 7/7), leaving the odd branch vacuous. Legs's weekly quota is
+// 17 (odd) — exact same pair-sum + skew pattern, reusing setsFor/setsForDay.
+const legs1 = b0.days.find(d => d.slot === 'legs' && d.rep === 1);
+const legs2 = b0.days.find(d => d.slot === 'legs' && d.rep === 2);
+const weeklyLegs = setsFor(prog.blocks[0].days.find(d => d.slot === 'legs'), 'Legs'); // 3-day quota = weekly quota
+assert(setsForDay(legs1, 'Legs') + setsForDay(legs2, 'Legs') === weeklyLegs, 'Legs weekly total preserved (D4, odd)');
+assert(setsForDay(legs1, 'Legs') - setsForDay(legs2, 'Legs') === weeklyLegs % 2, 'odd set goes to rep-1 (D4, odd)');
+
 // D5: minors full quota on BOTH days
 const minorSets1 = setsForDay(pull1, 'Biceps'), minorSets2 = setsForDay(pull2, 'Biceps');
 assert(minorSets1 > 0 && minorSets1 === minorSets2, 'minors full quota on both days (D5)');
@@ -291,6 +300,15 @@ for (const b of p6beg.blocks) {
   }
 }
 
+// D3 hardening (final review): name-based — a fallback-placed anchor has setKg null,
+// so the setKg check above cannot see it. No anchor NAME may ever appear on a rep-2 day.
+const ANCHOR_NAMES = ['Flat Barbell Press', 'Back Squat', 'Deadlift'];
+for (const p of [p5, p6beg])
+  for (const b of p.blocks)
+    for (const day of b.days.filter(d => d.rep === 2))
+      for (const e of day.exercises)
+        assert(!ANCHOR_NAMES.includes(e.name), `anchor '${e.name}' on rep-2 day (block ${b.index} ${day.slot})`);
+
 // rules v2 (Elie, 2026-07-14): Deadlift is ONLY the pull-day anchor — never a legs-day
 // accessory (its bank bucket is Legs) and never a circuit station. Sweep every day of
 // every block, daysAlt included, across the standard AND beginner programs.
@@ -300,6 +318,23 @@ for (const p of [prog, begProg]) {
       for (const [i, e] of day.exercises.entries()) {
         assert(e.name !== 'Deadlift' || (day.slot === 'pull' && i === 0),
           `Deadlift only as pull anchor (found in block ${b.index} ${day.slot} pos ${i})`);
+      }
+    }
+  }
+}
+
+// F6 hardening (final review): same Deadlift-only-as-pull-anchor sweep extended to the
+// multi-day fixtures (p5, p6beg). Additive second loop rather than reordering the
+// [prog, begProg] sweep above — p5/p6beg aren't defined until later in this section.
+// Rep-2 pull days can never carry Deadlift (D3 anchor-rep-1-only + the name sweep just
+// above), so this passes by construction today; it guards against a future regression
+// where a rep-2 day accidentally inherits an anchor.
+for (const p of [p5, p6beg]) {
+  for (const b of p.blocks) {
+    for (const day of [...b.days, ...(b.daysAlt || [])]) {
+      for (const [i, e] of day.exercises.entries()) {
+        assert(e.name !== 'Deadlift' || (day.slot === 'pull' && i === 0),
+          `Deadlift only as pull anchor (found in block ${b.index} ${day.slot} pos ${i}, multi-day)`);
       }
     }
   }

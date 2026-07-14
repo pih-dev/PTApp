@@ -21,9 +21,12 @@ counter keeps Generate disabled until the picks add up correctly.
 muscle groups, different exercises, so the client never does the identical
 session twice in one week. The main barbell lift (bench/squat/deadlift) only
 shows up on the first of the two days — the second day is %1RM/reps like
-every accessory exercise. Weekly set totals stay the same as before; they're
-just spread across the extra day. In the viewer, a repeated day's header
-shows a small "2" (e.g. "Push 2") so it's obvious which one it is.
+every accessory exercise. Weekly set totals for the big muscle groups stay
+the same — they're just spread across the two days. Small muscle groups
+(shoulders, biceps, calves…) train their full sets on both days, so their
+weekly volume grows with the extra day — the trainer's deliberate choice.
+In the viewer, a repeated day's header shows a small "2" (e.g. "Push 2") so
+it's obvious which one it is.
 
 **Nothing changes for programs already generated.** They keep rendering
 exactly as before — this is a purely additive change, no migration, no data

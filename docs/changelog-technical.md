@@ -49,10 +49,9 @@ stays 6 (new fields are additive inside program records, no migration).
   - **Endurance/fat-loss block** (D8): `daysAlt` now builds `daysPerWeek`
     circuit days (`buildCircuitDay` already took a day index); `days` gets
     the same N-day split as every other block.
-  - **D10 regression invariant**: `daysPerWeek: 3` (or omitted) produces
-    byte-identical training content to pre-v2.14 output — only the new
-    metadata fields (`daysPerWeek`, `duplicatedSlots`, per-day `rep`,
-    `rulesVersion: 3`) differ. Enforced by sanity, not just asserted.
+  - **D10 regression invariant**: explicit `daysPerWeek: 3` and omitted
+    args produce identical output (sanity-asserted); pre-existing 3-day
+    content assertions pin the content unchanged.
 - **Record shape (additive, no migration)**: top-level `daysPerWeek`,
   `duplicatedSlots` (stored as chosen, even when `3`/`[]`); each day entry
   gains `rep: 1 | 2`. Old records lack all three fields — every reader
@@ -71,13 +70,14 @@ stays 6 (new fields are additive inside program records, no migration).
   `generateProgram` call site passes `daysPerWeek, duplicatedSlots: dupSlots`
   — same one-kernel invariant as every prior release, preview and save call
   the identical function with identical args.
-- **`ProgramViewer.jsx`**: a day's header renders the slot label plus a "2"
-  suffix when `rep === 2` (new `repDayTag` i18n key, e.g. "Push 2"); `rep`
-  undefined (old records) renders exactly as before. Swap-exercise picker
+- **`ProgramViewer.jsx`**: viewer renders rep-2 headers with a hardcoded
+  `' 2'` suffix (the spec's `repDayTag` i18n key was deemed unnecessary —
+  slot words are English in both languages per E3); `rep` undefined (old
+  records) renders exactly as before. Swap-exercise picker
   is unchanged — kept as bucket-mates-minus-shown, no same-week exclusion
   applied to manual swaps (spec's explicit call: the trainer owns manual
   swaps).
-- **i18n**: `daysPerWeekLabel`, `extraDaysLabel`, `repDayTag` (EN+AR). Slot
+- **i18n**: `daysPerWeekLabel`, `extraDaysLabel` (EN+AR). Slot
   chip labels reuse the existing English-literal `slotPush/slotPull/slotLegs`
   keys (v2.13.1 decision — Lebanese gyms use PPL terms in both languages).
 - **`sanity-programs.mjs` — new multi-day section** (D1–D10, all ten
