@@ -46,6 +46,7 @@ export default function ProgramSetup({ client, evalRecord, dispatch, lang, onClo
       const d = suggestedDaysPerWeek(id);
       setDaysPerWeek(d);
       if (!dupsTouched) setDupSlots(suggestedDuplicates(ranks, d));
+      else setDupSlots(dupSlots.slice(0, Math.max(0, d - 3)));   // shrink stale manual picks (same rule as pickDays)
     }
   };
   const pickDays = (n) => {
