@@ -141,8 +141,11 @@ export function generateProgram({ id, client, evalRecord, fatPct, includeFatLoss
   // Multi-day split (spec 2026-07-14): the UI enforces this pairing; the throw
   // guards non-UI callers — a silently wrong week would freeze into the record.
   if (!Array.isArray(duplicatedSlots) || duplicatedSlots.length !== daysPerWeek - 3
-      || new Set(duplicatedSlots).size !== duplicatedSlots.length)
-    throw new Error('duplicatedSlots must be exactly daysPerWeek - 3 unique slots');
+      || new Set(duplicatedSlots).size !== duplicatedSlots.length
+      // Unknown slot names would silently vanish in `order.filter(...)` — freezing a
+      // record with daysPerWeek days promised but fewer built (review finding).
+      || !duplicatedSlots.every(s => s === 'push' || s === 'pull' || s === 'legs'))
+    throw new Error('duplicatedSlots must be exactly daysPerWeek - 3 unique slots (push/pull/legs)');
   // Trainer's level override (Elie's Option 1 pick, 2026-07-14): the eval-derived
   // level is only a SUGGESTION — strength ratios ≠ training experience (a naturally
   // strong novice must not get Intermediate volume), so the setup sheet lets the

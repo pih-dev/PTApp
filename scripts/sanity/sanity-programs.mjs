@@ -232,6 +232,9 @@ assert(endur5 && endur5.daysAlt.length === 5, 'circuit weeks have 5 days (D8)');
 let threw = false;
 try { generateProgram({ ...args, daysPerWeek: 5, duplicatedSlots: ['pull'] }); } catch (e) { threw = true; }
 assert(threw, 'kernel throws on inconsistent duplicatedSlots');
+threw = false;
+try { generateProgram({ ...args, daysPerWeek: 4, duplicatedSlots: ['glutes'] }); } catch (e) { threw = true; }
+assert(threw, 'kernel throws on unknown slot name');
 
 // rules v2 (Elie, 2026-07-14): Deadlift is ONLY the pull-day anchor — never a legs-day
 // accessory (its bank bucket is Legs) and never a circuit station. Sweep every day of
