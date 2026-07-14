@@ -117,8 +117,14 @@ export default function ProgramSetup({ client, evalRecord, dispatch, lang, onClo
 
       {daysPerWeek > 3 && (
         <>
-          {/* which slots duplicate — suggested from weak points (spec D6) */}
-          <div className="field-label">{t(lang, 'extraDaysLabel')} ({daysPerWeek - 3})</div>
+          {/* which slots duplicate — suggested from weak points (spec D6).
+              picked/required count doubles as the "why is Generate greyed" hint:
+              red when a Level change re-suggested days while manual picks are stale */}
+          <div className="field-label">{t(lang, 'extraDaysLabel')}{' '}
+            <span style={{ color: dupsValid ? 'inherit' : '#EF4444', fontWeight: dupsValid ? 'inherit' : 600 }}>
+              ({dupSlots.length}/{daysPerWeek - 3})
+            </span>
+          </div>
           <div className="weekday-row">
             {['push', 'pull', 'legs'].map(slot => (
               <button key={slot} type="button"
