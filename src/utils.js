@@ -188,6 +188,29 @@ export const getOccupiedSlots = (sessions, clients, date) => {
   return occupied;
 };
 
+// ─── Booking time suggestion (v2.14.1) ───
+// Elie's request 2026-07-17: the booking form should propose 08:15 (his real
+// first slot of the day) and, on a day that already has sessions, jump to the
+// first FREE slot — so booking a second session never lands on a taken time.
+// Spec: docs/superpowers/specs/2026-07-17-booking-time-suggestion-design.md
+//   - Walks TIMES forward from 08:15; a slot is taken if any non-cancelled
+//     session's span covers it (getOccupiedSlots is duration-aware).
+//   - Deliberately does NOT check that the NEW session's duration fits the
+//     gap — Elie chose "any free start time"; he decides if an overlap is ok.
+//   - If 08:15→22:45 is solid, tries the early-morning slots (05:00→08:00);
+//     a completely full day returns '08:15' and the PT picks manually.
+export const suggestBookingTime = (sessions, clients, date) => {
+  const occupied = getOccupiedSlots(sessions, clients, date);
+  const startIdx = TIMES.indexOf('08:15');
+  for (let i = startIdx; i < TIMES.length; i++) {
+    if (!occupied[TIMES[i]]) return TIMES[i];
+  }
+  for (let i = 0; i < startIdx; i++) {
+    if (!occupied[TIMES[i]]) return TIMES[i];
+  }
+  return '08:15';
+};
+
 // ─── Recurring session generation (v2.10) ───
 // Walk forward day-by-day from startDate (inclusive); collect each date whose
 // weekday is in `weekdays` (0=Sun..6=Sat, JS Date.getDay()) until `count` dates
