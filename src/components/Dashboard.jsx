@@ -12,7 +12,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
   const [editingSession, setEditingSession] = useState(null);
   const [cancelPrompt, setCancelPrompt] = useState(null);
   const [expanded, setExpanded] = useState(true); // true = full cards, false = compact list
-  const [form, setForm] = useState({ clientId: '', type: 'Strength', date: today(), time: '09:00', duration: 45 });
+  const [form, setForm] = useState({ clientId: '', type: 'Strength', date: today(), time: '09:00', duration: 45 }); // defaults are dead: openEdit always overwrites before the (edit-only) modal shows — see 2026-07-17 spec correction
   const [renewClient, setRenewClient] = useState(null);
 
   // v2.10.1: the derivations below are useMemo'd. They previously recomputed on

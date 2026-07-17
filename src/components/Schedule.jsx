@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon } from './Icons';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, localDateStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, getRenewalDueMap, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict } from '../utils';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, localDateStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, getRenewalDueMap, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict, suggestBookingTime } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import { t, dateLocale } from '../i18n';
@@ -30,6 +30,10 @@ export default function Schedule({ state, dispatch, lang }) {
   const [preview, setPreview] = useState(null);
   const [confirmMsg, setConfirmMsg] = useState(null);
   const [cancelPrompt, setCancelPrompt] = useState(null);
+  // v2.14.1: true once the PT taps a time slot in THIS form instance — a manual
+  // pick must survive date changes (spec: "re-suggest unless I picked a time").
+  // Ephemeral by design: reset on every openBooking, never persisted.
+  const [timeTouched, setTimeTouched] = useState(false);
   // v2.8: inline override edit inside the booking confirm popup.
   //   editingOverride — true when the pencil is pressed and the input is shown in place of the pair
   //   overrideDraft   — the in-flight string being typed (committed on blur)
@@ -84,7 +88,11 @@ export default function Schedule({ state, dispatch, lang }) {
 
   const openBooking = () => {
     setEditingSession(null);
-    setForm({ clientIds: [], type: 'Strength', date: selectedDate, time: '09:00', duration: 45 });
+    // v2.14.1: suggest the first free slot of the selected day (08:15 on an
+    // empty day) instead of a hardcoded 09:00 — Elie books back-to-back and
+    // was retapping the grid on every second booking of a day.
+    setForm({ clientIds: [], type: 'Strength', date: selectedDate, time: suggestBookingTime(state.sessions, state.clients, selectedDate), duration: 45 });
+    setTimeTouched(false);
     resetRepeat(); // toggling repeat on a prior booking must not leak into this one
     setShowForm(true);
   };
@@ -539,7 +547,15 @@ export default function Schedule({ state, dispatch, lang }) {
               {/* ── Date ── */}
               <div className="field">
                 <label className="field-label">{t(lang, 'date')}</label>
-                <input type="date" className="input" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} />
+                <input type="date" className="input" value={form.date} onChange={e => {
+                  const date = e.target.value;
+                  // v2.14.1: a new date gets that day's suggestion — but never
+                  // overwrite a manually tapped time, and edit mode always keeps
+                  // the session's own time (no suggestion interference).
+                  setForm(p => (editingSession || timeTouched)
+                    ? { ...p, date }
+                    : { ...p, date, time: suggestBookingTime(state.sessions, state.clients, date) });
+                }} />
               </div>
               {/* ── Duration ── */}
               <div className="field">
@@ -567,7 +583,7 @@ export default function Schedule({ state, dispatch, lang }) {
                     if (isSelected) cls += ' selected';
                     if (occ) cls += ' occupied';
                     return (
-                      <button key={tm} className={cls} onClick={() => setForm(p => ({ ...p, time: tm }))}>
+                      <button key={tm} className={cls} onClick={() => { setTimeTouched(true); setForm(p => ({ ...p, time: tm })); }}>
                         <span>{tm}</span>
                         {occ && <span className="time-slot-name">{occ[0].clientName}</span>}
                       </button>
