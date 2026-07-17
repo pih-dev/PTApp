@@ -590,7 +590,7 @@ const T = {
     bodyFatPct: 'نسبة الدهون %',
     includeFatLossBlock: 'إضافة مرحلة حرق الدهون',
     fatLossSuggested: 'مقترحة عند هذه النسبة من الدهون',
-    blockLabel: 'مرحلة',
+    blockLabel: 'بلوك', // Elie 2026-07-17 (relayed voice note): transliterate, not literal مرحلة
     startDateLabel: 'تاريخ البدء',
     weakPointLabel: 'نقطة الضعف',
     levelLabel: 'المستوى',

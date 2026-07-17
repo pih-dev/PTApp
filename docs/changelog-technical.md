@@ -4,6 +4,20 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.14.3 — Arabic phrasing pass: transliteration rule (2026-07-17)
+
+**Trigger:** Elie's standing rule, relayed via WhatsApp voice note (he was not
+at the keyboard): when literal Arabic wouldn't be understood in the gym, use
+the transliterated English term (his example: "Block" → بلوك). Applied as the
+phrasing-correction loop the v2.14.2 spec pre-authorized.
+
+- **`i18n.js`**: AR `blockLabel` 'مرحلة' → 'بلوك' (his explicit example).
+- **`exerciseNamesAr.js`** (8 entries): Cable Crossover Fly → كروس أوفر
+  بالكيبل; Tornado Ball Twist → التواء كرة تورنادو; Stir the Pot Plank →
+  بلانك ستير ذا بوت; 4× Offset → أوفست; Deficit Deadlift → ديدلفت ديفيسيت;
+  Battling Ropes Rainbow → قوس الحبال (باتل روبس). Standing rule recorded in
+  the map's header comment for future entries.
+
 ## v2.14.2 — Arabic exercise names (2026-07-17)
 
 **Trigger:** Elie, in-session (same day as v2.14.1) — Arabic mode showed

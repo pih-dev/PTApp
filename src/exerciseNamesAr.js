@@ -3,6 +3,9 @@
 // into program records, so old programs get Arabic automatically at display time.
 // Drafted by Claude 2026-07-17 (standard Lebanese-gym terminology, loanwords
 // kept where they ARE the gym vocabulary: بنش برس، سكوات، ديدلفت، كيرل…);
+// Elie's standing rule (voice note relayed 2026-07-17): when a literal Arabic
+// translation wouldn't be understood in the gym, prefer the transliterated
+// English term (his example: "Block" → بلوك) — applied in the v2.14.3 pass;
 // Elie corrects phrasing in follow-up one-line edits — the viewer shows the
 // English original in small text exactly so he can spot entries to fix.
 // Coverage enforced by scripts/sanity/sanity-exercise-names-ar.mjs (all 340,
@@ -57,7 +60,7 @@ export const EXERCISE_NAMES_AR = {
   'Flat Dumbbell Fly': 'فراشة بالدمبل على مقعد مستوٍ',
   'Incline Dumbbell Fly': 'فراشة بالدمبل على مقعد مائل',
   'Pec-Deck Fly': 'فراشة على الجهاز',
-  'Cable Crossover Fly': 'تقاطع كيبل (كروس أوفر)',
+  'Cable Crossover Fly': 'كروس أوفر بالكيبل',
   'Dumbbell Pullover': 'بول أوفر بالدمبل',
   'Reverse Chin-Up': 'عقلة بقبضة عكسية',
   'Pull-Up': 'عقلة',
@@ -143,7 +146,7 @@ export const EXERCISE_NAMES_AR = {
   'Halting Deadlift': 'ديدلفت متوقف',
   'Rack Pull': 'راك بول',
   'Power Shrug': 'باور شراغ',
-  'Deficit Deadlift': 'ديدلفت من مستوى منخفض',
+  'Deficit Deadlift': 'ديدلفت ديفيسيت',
   'Glute Ham Raise': 'جلوت هام ريز',
   'Reverse Hyperextension': 'مد الظهر العكسي',
   'Box Squat': 'سكوات على الصندوق',
@@ -158,7 +161,7 @@ export const EXERCISE_NAMES_AR = {
   'Bent Knees Leg Lower': 'إنزال الرجلين بركبتين مثنيتين',
   'Extended Knees Leg Lower': 'إنزال الرجلين بركبتين ممدودتين',
   'Leg Lower with Ball Balance': 'إنزال الرجلين مع كرة توازن',
-  'Stir the Pot Plank': 'بلانك تحريك القِدر',
+  'Stir the Pot Plank': 'بلانك ستير ذا بوت',
   'Half Kneeling Vertical Pallof Press': 'بالوف برس عمودي بنصف ركوع',
   'Kneeling Vertical Pallof Press': 'بالوف برس عمودي راكعًا',
   'Standing Split Stance Vertical Pallof Press': 'بالوف برس عمودي بوقفة منفصلة',
@@ -268,10 +271,10 @@ export const EXERCISE_NAMES_AR = {
   'Barbell Suitcase Deadlift': 'ديدلفت الحقيبة بالبار',
   'Kettlebell Suitcase Deadlift': 'ديدلفت الحقيبة بالكيتل بل',
   'Off-Bench Lateral Core Hold': 'ثبات جانبي خارج المقعد',
-  'Offset Barbell Deadlift': 'ديدلفت بار غير متوازن',
-  'Offset Barbell Squat': 'سكوات بار غير متوازن',
-  'Offset Dumbbell Squat': 'سكوات دمبل غير متوازن',
-  'Offset Barbell Press': 'برس بار غير متوازن',
+  'Offset Barbell Deadlift': 'ديدلفت بار أوفست',
+  'Offset Barbell Squat': 'سكوات بار أوفست',
+  'Offset Dumbbell Squat': 'سكوات دمبل أوفست',
+  'Offset Barbell Press': 'برس بار أوفست',
   'Roman Chair Side Hold': 'ثبات جانبي على الكرسي الروماني',
   'Anti Lateral Flexion Landmine Rainbow': 'قوس لاندماين مضاد للانحناء الجانبي',
   'Elbow Reverse Plank': 'بلانك عكسي على الكوعين',
@@ -301,7 +304,7 @@ export const EXERCISE_NAMES_AR = {
   'Dumbbell Wood Chop': 'تقطيع الحطّاب بالدمبل',
   'Medicine Ball Wood Chop': 'تقطيع الحطّاب بالكرة الطبية',
   'Landmine Rotation': 'تدوير اللاندماين',
-  'Battling Ropes Rainbow': 'قوس حبال التموج',
+  'Battling Ropes Rainbow': 'قوس الحبال (باتل روبس)',
   'Medicine Ball Rotational Lunge': 'لانج دوراني بالكرة الطبية',
   'Sandbag Rotational Lunge': 'لانج دوراني بكيس الرمل',
   'Medicine Ball Crossover Step Throw': 'رمي الكرة الطبية مع خطوة متقاطعة',
@@ -317,7 +320,7 @@ export const EXERCISE_NAMES_AR = {
   'Medicine Ball Rotational Slam': 'ضرب الكرة الطبية الدوراني',
   'Landmine Hang Clean to Rotational Press': 'لاندماين كلين مع برس دوراني',
   'Landmine Deadlift to Rotational Press': 'لاندماين ديدلفت مع برس دوراني',
-  'Tornado Ball Twist': 'التواء كرة الإعصار',
+  'Tornado Ball Twist': 'التواء كرة تورنادو',
   'Floor Prone Y Raise': 'رفعة Y منبطحًا أرضًا',
   'Stability Ball Prone Y Raise': 'رفعة Y منبطحًا على كرة التوازن',
   'Floor Prone Shoulder Horizontal Abduction': 'فتح الكتف الأفقي منبطحًا أرضًا',

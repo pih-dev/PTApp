@@ -4,6 +4,14 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.14.3 — Arabic phrasing tune-up (July 17, 2026)
+
+Elie's rule (sent by voice note): when a literal Arabic translation wouldn't
+be understood in the gym, use the English term written in Arabic letters —
+his example: "Block" is now **بلوك**, not مرحلة. Nine labels updated to match
+how a coach actually says them (أوفست، ديفيسيت، كروس أوفر…). This rule now
+guides all future translations.
+
 ## v2.14.2 — Exercise names in Arabic (July 17, 2026)
 
 **Arabic mode now shows every program movement in Arabic** — سكوات خلفي,
