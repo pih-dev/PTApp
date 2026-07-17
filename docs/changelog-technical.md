@@ -4,6 +4,29 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.14.2 — Arabic exercise names (2026-07-17)
+
+**Trigger:** Elie, in-session (same day as v2.14.1) — Arabic mode showed
+program movements in English. Spec:
+`docs/superpowers/specs/2026-07-17-exercise-names-arabic-design.md`.
+UI-only: no schema change, no bank regeneration, `EXERCISE_BANK_VERSION`
+untouched, nothing persisted.
+
+- **`src/exerciseNamesAr.js`** (new): handwritten `EXERCISE_NAMES_AR` map —
+  all 340 bank movements keyed by exact English `name` (the string frozen in
+  program records → old programs display Arabic automatically) +
+  `exNameAr(name)` (null for unknown). Deliberately NOT in `i18n.js` (UI
+  labels only) and NOT in the generated bank (display-only content).
+- **`ProgramViewer.jsx`**: `exLabel(lang, name)` — AR mode renders Arabic +
+  small faded English with the I3 `ltr + isolate` bidi treatment; used in
+  exercise rows AND swap-modal buttons (`doSwap`/keys stay on English names —
+  they're the storage key). Missing entry → English, never blank. Day
+  headers stay English (Elie E3 reconfirmed).
+- **New sanity:** `sanity-exercise-names-ar.mjs` — full coverage, no stray
+  keys, Arabic script in every value, helper contract. 11-script suite green.
+- **Provenance:** same in-session governance as v2.14.1; Pierre reviews
+  post-hoc (revert path in `docs/instructions-v2.14.2.md`).
+
 ## v2.14.1 — Booking time suggestion (2026-07-17)
 
 **Trigger:** Elie, directly in-session — booking form should propose 08:15

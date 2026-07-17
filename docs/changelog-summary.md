@@ -4,6 +4,21 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.14.2 — Exercise names in Arabic (July 17, 2026)
+
+**Arabic mode now shows every program movement in Arabic** — سكوات خلفي,
+رفرفة جانبية بالدمبل, بنش برس مائل — with the English original in small faded
+text beside it, since many machines are known by their English names in
+Lebanese gyms. The small English text also lets Elie spot any translation he
+wants phrased differently; each correction is a one-line edit.
+
+All 340 movements in the bank are translated, old programs included — the
+Arabic appears automatically because translation happens when displaying, not
+when the program was generated. English mode is unchanged, and the Push /
+Pull / Legs day headers stay English by Elie's choice.
+
+**Provenance note:** same in-session governance as v2.14.1 below.
+
 ## v2.14.1 — Booking form suggests the next free time (July 17, 2026)
 
 **The booking form now opens on 8:15 instead of 9:00** — Elie's actual first
