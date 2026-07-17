@@ -3,10 +3,30 @@ import Modal from './Modal';
 import { formatDate, haptic } from '../utils';
 import { t } from '../i18n';
 import { bankForBucket } from '../exerciseBank';
+import { exNameAr } from '../exerciseNamesAr';
 
 const methodLabel = (lang, id) => t(lang, 'method' + id.charAt(0).toUpperCase() + id.slice(1));
 const objLabel = (lang, o) => t(lang, 'obj' + o.charAt(0).toUpperCase() + o.slice(1));
 const restText = (sec) => sec >= 120 ? `${Math.round(sec / 60)} min` : `${sec}s`;
+
+// v2.14.2 (Elie): Arabic mode shows the movement in Arabic with the English
+// original in small faded text — Lebanese gyms know many moves by their
+// English names, and the pairing lets Elie spot translations to correct.
+// Missing map entry → English exactly as before, never blank. The English
+// snippet needs the same ltr+isolate bidi treatment as the prescription
+// numbers (I3) so Latin text doesn't reorder inside the RTL row.
+const exLabel = (lang, name) => {
+  const ar = lang === 'ar' ? exNameAr(name) : null;
+  if (!ar) return name;
+  return (
+    <>
+      {ar}
+      <span style={{ fontSize: 10, color: 'var(--t5)', direction: 'ltr', unicodeBidi: 'isolate', marginInlineStart: 6 }}>
+        {name}
+      </span>
+    </>
+  );
+};
 
 // Drill-down viewer (spec §7): blocks → days → exercises. Swap is the ONLY edit;
 // it re-dispatches the FULL record (EDIT_PROGRAM contract). No sets/reps editing
@@ -49,7 +69,7 @@ export default function ProgramViewer({ program, dispatch, lang, onClose }) {
         <div key={ei} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           padding: '4px 0', fontSize: 12, borderBottom: '1px solid var(--sep)' }}>
           <span style={{ color: 'var(--t2)' }}>
-            {e.name}
+            {exLabel(lang, e.name)}
             {/* I3: mixed digits/kg/min inside an RTL paragraph reorder without bidi
                 isolation — force LTR + isolate so the prescription reads correctly in AR */}
             <span style={{ direction: 'ltr', unicodeBidi: 'isolate', marginInlineStart: 6, color: 'var(--t5)' }}>
@@ -96,7 +116,7 @@ export default function ProgramViewer({ program, dispatch, lang, onClose }) {
             .filter(x => x.type === swapTarget.type && x.name !== swapTarget.name)
             .map(x => (
               <button key={x.name} className="btn-ghost" style={{ display: 'block', width: '100%', textAlign: 'start', padding: '10px 4px', fontSize: 13 }}
-                onClick={() => doSwap(x.name)}>{x.name}</button>
+                onClick={() => doSwap(x.name)}>{exLabel(lang, x.name)}</button>
             ))}
         </Modal>
       )}
