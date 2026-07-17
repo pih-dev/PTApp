@@ -54,11 +54,17 @@ Algorithm:
 - The existing auto-scroll-to-selected-time behavior in the time grid means
   the suggested slot is scrolled into view automatically; no new scroll code.
 
-### Dashboard.jsx (Home quick-book)
+### Dashboard.jsx — CORRECTION (found during planning, 2026-07-17)
 
-- Same helper, same rule: initial `form.time` and date-change re-suggestion
-  with a local `timeTouched` flag. The quick-book form defaults to `today()`,
-  so opening it suggests today's next free slot.
+The design conversation assumed Home has a quick-book form. **It does not** —
+Dashboard's only session modal is the Edit modal (`openEdit`), which always
+loads an existing session's own time, and edit mode never re-suggests by
+design. The `time: '09:00'` in Dashboard's initial form state is dead code
+(always overwritten by `openEdit` before the modal shows). So the suggestion
+applies to the **Schedule booking form only**; Dashboard needs no behavior
+change, just a clarifying comment on the dead default. Elie's "both forms"
+answer is still honored in spirit: every place a NEW session can be born gets
+the suggestion.
 
 ### Not doing (YAGNI)
 
