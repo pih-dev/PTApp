@@ -4,6 +4,24 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.14.1 — Booking form suggests the next free time (July 17, 2026)
+
+**The booking form now opens on 8:15 instead of 9:00** — Elie's actual first
+slot of the day — and on a day that already has sessions it jumps straight to
+the **first free slot**, walking past everything booked. Booking a second or
+third session in a row no longer means scrolling and re-tapping the grid;
+the form lands on the right time by itself.
+
+Elie chose the details himself in the design session: the first free *gap*
+wins (not "after the last session"), a short gap still counts even if the
+session wouldn't fully fit (his call to make), and once he taps a time
+manually, changing the date never overwrites his pick. Editing an existing
+session is untouched — it always keeps its own time.
+
+**Provenance note:** requested, designed, and approved by Elie directly
+in-session on July 17 (identity taken on trust; a request for blanket project
+authority was declined). Pierre: review spec + `docs/instructions-v2.14.1.md`.
+
 ## v2.14.0 — Trainer picks the training days (July 14, 2026)
 
 **Program generation is no longer stuck at 3 days a week.** The setup sheet

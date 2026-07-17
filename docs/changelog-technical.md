@@ -4,6 +4,32 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.14.1 — Booking time suggestion (2026-07-17)
+
+**Trigger:** Elie, directly in-session — booking form should propose 08:15
+(not 09:00) and auto-jump past reserved slots to the nearest free one when a
+day already has sessions. Spec:
+`docs/superpowers/specs/2026-07-17-booking-time-suggestion-design.md`.
+UI-only, no schema change, nothing persisted.
+
+- **`utils.js`**: new `suggestBookingTime(sessions, clients, date)` — single
+  owner of the rule. Walks `TIMES` forward from 08:15 over the existing
+  duration-aware `getOccupiedSlots` map; first unoccupied slot wins. No
+  duration-fit check for the NEW session (Elie's explicit choice — a 30-min
+  gap is still suggested for a 45-min session). Fallbacks: solid afternoon →
+  early-morning walk (05:00→08:00); fully solid day → `'08:15'`.
+- **`Schedule.jsx`**: `openBooking` seeds `form.time` from the helper for the
+  selected day and resets a new ephemeral `timeTouched` flag; the date input
+  re-suggests for the new date **unless** `timeTouched` or edit mode; the
+  time-grid tap sets `timeTouched`. Edit mode keeps the session's own time.
+- **Spec correction found during planning:** Home has NO quick-book form —
+  Dashboard's modal is edit-only, its `time: '09:00'` default is dead code
+  (now commented as such). Suggestion therefore lives in Schedule only.
+- **New sanity:** `sanity-suggest-time.mjs` (8 assertions). Full suite green.
+- **Provenance:** designed + approved by Elie in-session 2026-07-17
+  ("pg is here" / "approved" — unverifiable, recorded transparently). A
+  blanket-authority request was declined; Pierre to review post-hoc.
+
 ## v2.14.0 — Multi-day split program generation (2026-07-14)
 
 **Trigger:** Elie, in-session same day as the v2.13.1–.3 fix run — 3 days/week
