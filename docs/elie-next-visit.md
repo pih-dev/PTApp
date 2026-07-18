@@ -37,8 +37,10 @@ either of them mentions the July 17 work.
    multi-day splits). No change needed.
 5. **Exercise-bank export: DECLINED** by Elie 2026-07-18 — no external file
    wanted, the in-app names (EN + AR) are enough. Item closed.
-6. **Still open:** booking smoke test on his iPhone (item 1 below). That's
-   the ONLY remaining item from the July 17 sheet.
+6. **iPhone smoke test: PASSED** (Elie, 2026-07-18, on v2.14.3 — confirms his
+   phone is on the latest build). Booking suggestion, manual-time survival,
+   and Arabic program names all good. Anything he spots later he'll report.
+   **This sheet is now fully closed — zero open items.**
 
 ## What shipped on 2026-07-17 (all live)
 
