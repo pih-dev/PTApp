@@ -24,9 +24,21 @@ either of them mentions the July 17 work.
    are" — including the deliberate shrug mix (هز الكتفين for plain shrugs,
    باور شراغ for Power Shrug). The one-line correction loop stays open for
    anything he spots later in the gym.
-3. **Still open:** booking smoke test on his iPhone (item 1 below), deadlift
-   2×/week question, exercise-bank export, and Pierre's governance checklist
-   (approvals not yet confirmed as of this update).
+3. **Governance: RESOLVED.** Later in the same session Pierre confirmed the
+   July 17 approvals ("rest are approved") and granted Elie standing authority,
+   conditioned on git-rollback discipline + mandatory live-data snapshots at
+   every juncture. Recorded in project `CLAUDE.md` → "Governance — Elie's
+   Standing Authority". Identity on trust as with all in-terminal decisions;
+   Pierre can revoke by editing that section. Baseline snapshot taken:
+   `_archive/PTApp/data-snapshots/2026-07-18-elie-authority-baseline.json`.
+4. **Deadlift 2×/week: CLOSED (was already stale).** Elie reconfirmed
+   2026-07-18: "deadlift once with back or pull" — which is exactly the live
+   behavior since v2.13.1 (Pull-day anchor only, never Legs; rep-1 day only in
+   multi-day splits). No change needed.
+5. **Exercise-bank export: DECLINED** by Elie 2026-07-18 — no external file
+   wanted, the in-app names (EN + AR) are enough. Item closed.
+6. **Still open:** booking smoke test on his iPhone (item 1 below). That's
+   the ONLY remaining item from the July 17 sheet.
 
 ## What shipped on 2026-07-17 (all live)
 
@@ -46,10 +58,13 @@ either of them mentions the July 17 work.
    Report corrections as **"English name → better Arabic"** — each is a
    one-line edit in `src/exerciseNamesAr.js`, deployable in minutes. The
    transliteration rule (voice note) is already the default for new entries.
-3. **Older open items from v2.13** (still pending from his review list):
-   deadlift-2×/week question and exercise-bank export. (The 1RM standards item
-   that used to be listed here was stale — his numbers shipped in v2.13.2;
-   confirmed kept as-is on 2026-07-18, see outcomes above.)
+3. **Older open items from v2.13: ALL CLOSED.** 1RM-standards and
+   deadlift-2×/week were stale (already resolved in v2.13.1/v2.13.2,
+   reconfirmed 2026-07-18). Exercise-bank export DECLINED by Elie 2026-07-18
+   ("as long as they are in the app") — its sign-off purpose was already
+   served in person on July 14; no reference file wanted. The build script
+   stays at `docs/superpowers/artifacts/2026-07-13-program-generation/` if
+   this ever changes.
 
 ## For Pierre FIRST (governance — before more Elie work)
 
