@@ -163,8 +163,8 @@ git checkout master
 
 **Critical notes:**
 - Pushing to `master` alone does NOT deploy — the live site serves from `gh-pages`. **And pushing to `gh-pages` does not guarantee deployment either:** verify `gh api repos/pih-dev/PTApp/pages/builds/latest --jq .status` reaches `built`. (Jun 11: two pushes 5 min apart hit a GitHub artifact race, the deploy step failed, and the stale record showed `building` for 24h. Fix: `gh api -X POST repos/pih-dev/PTApp/pages/builds`, then re-verify. Avoid rapid back-to-back gh-pages pushes.)
-- **Schema changes need a live-data byte-diff gate before deploying.** Current gate: `sanity-live-v6-diff.mjs` (v5→v6). **`sanity-live-v5-diff.mjs` and `sanity-live-migration.mjs` are HISTORICAL — never use either as the gate.**
-- Sanity scripts in `scripts/sanity/` (all prefixed `sanity-`): `reducer`, `counting`, `slidingwindow`, `migration`, `arms-migration`, `historical-ordinals`, `merge-migration`, `recurring`, `evaluations`, `1rm`, `programs`, `suggest-time`, `exercise-names-ar`, `live-v6-diff`.
+- **Schema changes need a live-data byte-diff gate — and all three existing ones are SPENT** (`live-v6-diff`, `live-v5-diff`, `live-migration`). Each asserts the snapshot is still at the pre-release version, and the archive has moved past it, so each now prints "DO NOT DEPLOY" by design, not because anything is wrong. **A v6→v7 change needs a NEW `sanity-live-v7-diff.mjs`, copied from the v6 one.** (It reads the newest file in `_archive/PTApp/data-snapshots/` — so a gate expires the moment a newer snapshot is archived.)
+- Run the whole sanity suite before every deploy: `for f in scripts/sanity/*.mjs; do node "$f"; done`. 13 of the 16 pass on demand; the 3 live-diff gates are the spent ones above.
 
 ### 🔒 Release hygiene — the five rules (added 2026-08-03)
 CLAUDE.md was slimmed 41 KB → 19.5 KB at v2.9.2, then drifted back to 41 KB in five months: every release appended a full section and nothing ever collapsed one. **Do not skip these "just this once" — that is exactly how it regrew.**

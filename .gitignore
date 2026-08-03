@@ -8,11 +8,21 @@ dist/
 .vite/
 .superpowers/
 
-# Live data snapshots contain PT's real client data — never commit.
-# Export these to C:\projects\_archive\PTApp\migrations\ for preservation.
-# Sanity scripts moved tmp/ → scripts/sanity/ in v2.9.3 (Apr 21 2026); keep
-# both patterns until any historical tmp/ workflow is fully retired.
-tmp/live-snapshot-*.json
-tmp/*-snapshot.json
+# Live data snapshots contain the PT's real client data — never commit.
+# THIS REPO IS PUBLIC. Preserve anything that must survive to
+# C:\projects\_archive\PTApp\ (outside the repo), never to a tracked path.
+#
+# tmp/ is ignored WHOLESALE (2026-08-03). The old narrow patterns below only
+# matched *-snapshot.json, and tmp/ was in fact holding two full live-data
+# exports (post-recovery.json, ptapp-live-20260511.json) that neither pattern
+# caught — one `git add -A` from publishing real client names and phone
+# numbers. tmp/ is wipeable scratch by convention, so nothing in it should
+# ever be committed; a directory-wide ignore is the only rule that can't be
+# out-run by a new filename.
+tmp/
+
+# Sanity scripts moved tmp/ → scripts/sanity/ in v2.9.3 (Apr 21 2026);
+# that directory IS tracked, so snapshots dropped there still need patterns.
 scripts/sanity/live-snapshot-*.json
 scripts/sanity/*-snapshot.json
+scripts/sanity/*-data.json
