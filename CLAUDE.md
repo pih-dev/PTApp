@@ -2,309 +2,130 @@
 
 > 🚨 **RESUMING? READ `HANDOFF.md` FIRST — AND ONLY THAT.**
 > Reply with its §0 in ≤5 lines, ask the one question it names, then stop. Do not read this file
-> end-to-end, do not explore, do not start work unprompted. **A 3-part tidy-up work order is
-> queued there** (changelog backfill → CLAUDE.md slim → health check) with the findings already
-> verified, so nothing needs re-deriving.
+> end-to-end, do not explore, do not start work unprompted.
 
 ## Session Startup
-- Always push to master AND deploy to gh-pages after every commit (see deploy section)
+- Always push to master AND deploy to gh-pages after every commit (see the deploy section)
 - Auto-push to GitHub after every commit — do not ask, just push
 (Remote control, commit discipline, memory, and session management are in the global ~/.claude/CLAUDE.md)
 
 ## What This Project Is
-A mobile-first web app for a personal trainer (the end user) to manage his gym clients. Developed by Pierre (pih-dev on GitHub). The PT uses the app on his iPhone; Pierre tests on his Android.
+A mobile-first web app for a personal trainer to manage his gym clients. The PT uses it on his iPhone; Pierre develops and tests on Android.
+- **Developer:** Pierre (pierreishere@gmail.com / GitHub pih-dev).
+- **End user:** Elie, the PT — holds standing authority to drive changes (see Governance).
 
-## Roles
-- **Developer**: Pierre (pierreishere@gmail.com / GitHub: pih-dev). Builds and maintains the app.
-- **End User**: Pierre's personal trainer. Uses the app daily to manage clients, schedule sessions, and send WhatsApp messages.
+**Reference lives in `docs/`, read on demand:** `architecture.md` (features · stack · file tree · design decisions · roadmap · reducer table · sibling projects) · `traps.md` · `design-system.md` · `app-health.md` · `changelog-{summary,technical}.md` · `instructions-v*.md` · `elie-next-visit.md` · `reviews/` · `superpowers/{specs,plans}/`.
 
 ## Current Version: v2.14.3
-Three same-day point releases (2026-07-17), all driven by **Elie directly in-session** (Pierre absent — see the provenance note below). UI-only, no schema changes, `DATA_VERSION` stays 6, `EXERCISE_BANK_VERSION` untouched.
-- **v2.14.1 — booking time suggestion.** `suggestBookingTime(sessions, clients, date)` in `utils.js` is THE owner of the rule: first free 15-min slot walking forward from 08:15 over the duration-aware `getOccupiedSlots` map; no duration-fit check for the new session (Elie's explicit choice); early-morning fallback, then `'08:15'`. `Schedule.jsx` seeds `form.time` in `openBooking` and re-suggests on date change gated by an ephemeral `timeTouched` flag (manual tap always wins; edit mode never re-suggests). **Dashboard has NO quick-book form** — its modal is edit-only, the `time:'09:00'` default is dead code (commented). Spec + plan: `docs/superpowers/{specs,plans}/2026-07-17-booking-time-suggestion*`. Sanity: `sanity-suggest-time.mjs`.
-- **v2.14.2 — Arabic exercise names.** `src/exerciseNamesAr.js` (handwritten, NOT generated, NOT in i18n.js): `EXERCISE_NAMES_AR` covers all 340 bank movements keyed by the exact English `name` frozen in program records → old programs display Arabic automatically. `ProgramViewer.jsx` `exLabel(lang, name)` renders Arabic + small ltr-isolated English in rows AND swap list; missing entry → English, never blank; swap keys/`doSwap` stay on English names (storage key). Day headers stay English (Elie E3 reconfirmed). Spec + plan: `docs/superpowers/{specs,plans}/2026-07-17-exercise-names-arabic*`. Sanity: `sanity-exercise-names-ar.mjs` (full coverage, no stray keys, Arabic-script check).
-- **v2.14.3 — transliteration rule.** Elie's standing rule (relayed voice note): literal Arabic that wouldn't be understood in the gym gives way to the transliterated English term (his example: Block → بلوك; AR `blockLabel` changed in i18n.js + 8 map entries). Rule is recorded in the map's header comment — follow it for all future entries.
-- **PROVENANCE / GOVERNANCE (updated 2026-07-18):** The July 17 releases were requested by Elie at Pierre's keyboard; per-spec "approved" messages were accepted on trust. **On 2026-07-18 (Pierre + Elie both present, identity on trust — typed in-session, unverified) Pierre confirmed those approvals AND granted Elie STANDING AUTHORITY** — see the Governance section below. Revert paths remain in `docs/instructions-v2.14.{1,2}.md` and `docs/elie-next-visit.md`.
+Three same-day point releases (2026-07-17), all driven by **Elie in-session** (Pierre absent). UI-only; `DATA_VERSION` stays 6, `EXERCISE_BANK_VERSION` untouched. Detail: `docs/instructions-v2.14.{1,2,3}.md` + specs/plans in `docs/superpowers/`.
+- **v2.14.1 — booking time suggestion.** `suggestBookingTime(sessions, clients, date)` in `utils.js` OWNS the rule: first free 15-min slot walking forward from 08:15 over the duration-aware `getOccupiedSlots` map; **no duration-fit check** for the new session (Elie's explicit choice). `Schedule.jsx` re-suggests on date change, gated by an ephemeral `timeTouched` flag — a manual tap always wins, edit mode never re-suggests. **Dashboard has NO quick-book form** (edit-only modal; its `time:'09:00'` default is dead code).
+- **v2.14.2 — Arabic exercise names.** `src/exerciseNamesAr.js` — handwritten, NOT generated, NOT in `i18n.js`; all 340 bank movements keyed by the exact English `name` frozen in program records, so old programs show Arabic automatically. `ProgramViewer.jsx`'s `exLabel()` renders Arabic + small ltr-isolated English; **swap keys and `doSwap` stay on English names** (the storage key). Day headers stay English (Elie, reconfirmed).
+- **v2.14.3 — transliteration rule.** Elie's standing rule for all future Arabic — see CONVENTIONS → Arabic/i18n.
+- **PROVENANCE:** requested by Elie at Pierre's keyboard; per-spec approvals accepted on trust. **2026-07-18: Pierre confirmed those approvals and granted Elie standing authority** (below). Revert paths: `docs/instructions-v2.14.{1,2}.md`, `docs/elie-next-visit.md`.
 
 ## Governance — Elie's Standing Authority (granted 2026-07-18)
-Pierre granted Elie standing authority to drive app changes in-session, on these conditions (Pierre's words: "since we're using github we can roll back, make sure data backups are done at every juncture"):
+Pierre granted Elie standing authority to drive app changes in-session, on these conditions (Pierre's words: *"since we're using github we can roll back, make sure data backups are done at every juncture"*):
 - **Everything goes through git** — commit + push every change so anything Elie drives can be rolled back. No un-committed experimentation on live-facing branches.
 - **Live-data snapshot at every juncture (MANDATORY):** before any deploy, schema change, migration, or data-touching operation in an Elie-driven session, save the current `data.json` from makdissi-dev/ptapp-data to `_archive/PTApp/data-snapshots/YYYY-MM-DD-<desc>.json` and verify the byte count against the API's reported size. Baseline: `2026-07-18-elie-authority-baseline.json`.
-- **Provenance discipline continues:** specs, commits, and changelogs still record who asked for what, so Pierre can audit post-hoc. The grant itself was accepted on trust (unverifiable in-terminal identity); Pierre can revoke or re-scope it any time by editing this section.
+- **Provenance discipline continues:** specs, commits and changelogs record who asked for what, so Pierre can audit post-hoc. The grant itself was accepted on trust (identity is unverifiable in-terminal); Pierre can revoke or re-scope it any time by editing this section.
 
-## Previous Version: v2.14.0
-Multi-day split program generation (2026-07-14) — days row 3–6 with level-based suggestion, duplicate-day picker seeded from weak-point ranking; `PROGRAM_RULES_VERSION` 2→3; Elie design session, SDD run. Details: `docs/instructions-v2.14.0.md` + memory `project_v2_14_0_shipped.md`. Program pruning slipped to v2.15 (do it before the 1MB data.json ceiling).
+---
 
-## Previous Version: v2.13.0
-Program generation from 1RM evaluation — PT feature #3 of the roadmap ("auto program proposal"). Schema v5→v6 (purely additive `state.programs[]`). Spec: `docs/superpowers/specs/2026-07-13-program-generation-design.md`.
-- **`generateProgram(...)` in `src/programKernel.js` is THE single generation kernel.** `ProgramSetup.jsx`'s live preview and the save path call the identical function with identical args — by construction preview can never disagree with what's stored (same rule as `compute1RMFrozen`/`computeEvalFrozen`). Never reimplement the volume math, weak-point ranking, or exercise-fill logic anywhere else.
-- **Frozen at generation** — `PROGRAM_RULES_VERSION` (`programRules.js`) + `EXERCISE_BANK_VERSION` (`exerciseBank.js`, generated file, regenerate via `scripts/build_exercise_bank.py`) are stamped per record; later rule/bank changes never rewrite stored programs. Bump either constant on ANY change to volume tiers, method catalog, fat-loss thresholds, or the exercise bank.
-- **`EDIT_PROGRAM` full-record contract** — same shape as `EDIT_EVALUATION`; a swap-exercise edit re-dispatches the entire record, partial patches forbidden.
-- **`programs[]` follows the `evaluations[]` pattern** in every merge path (`mergeData`, `mergeBackup`, `REPLACE_ALL`). `DELETE_CLIENT` cascades to programs. Never let programs become orphaned.
-- **Blocks store `days` (+`daysAlt` for the endurance/fat-loss block only), not 4 duplicated weeks** — every other method is identical week to week within a block, so 4 copies would be pure redundant weight in `data.json` for zero information gain. This is the deliberate deviation from the spec's plain-English "weeks" framing.
-- **Deadlift anchor counts toward Back, not its bank primary (Quads)** — spec §6 maps Deadlift to the Pull day, so `fillBucket` force-overrides the anchor's `bucket` to the day's major; without this override Back would run a full exercise short every block.
-- **New live-diff gate:** `scripts/sanity/sanity-live-v6-diff.mjs` (replaces `sanity-live-v5-diff.mjs`, now historical). New sanity: `sanity-programs.mjs`.
+## Version History
+**Last 6 releases only** — one short line each; older entries drop off to `docs/changelog-summary.md`. Full detail always lives in `docs/instructions-v*.md` + `docs/changelog-{summary,technical}.md`. Rules still in force do NOT live here — they live in TRAPS / CODING CONVENTIONS.
 
-## Previous Version: v2.12.0
-1RM strength battery replaces the v2.11 mass-population battery — Pierre's call 2026-07-06. No schema change, DATA_VERSION stays 5 (purely additive `branch:'1rm'` records alongside existing `branch:'mass'` records). Spec: `docs/superpowers/specs/2026-07-06-1rm-battery-replaces-mass-design.md`.
-- **`compute1RMFrozen(gender, age, raw)` in `normCharts.js` is THE single 1RM scoring kernel** (`raw = { bodyweightKg, benchKg, squatKg, deadliftKg }`). Both EvalForm live chips and the save path call it — never reimplement the ratio lookup or classify logic anywhere else (same rule as the retired `computeEvalFrozen`).
-- **New chart keys `bench1rm/squat1rm/deadlift1rm`** (lift-to-bodyweight ratio tables). `CHARTS_VERSION` bumped 1 → 2. Ratios are derived from `raw` at display time, never frozen — only the 1–5 scores + classification are frozen per record.
-- **Placeholder standards until the PT confirms** — same pattern as the sit-&-reach YMCA placeholder. When his numbers arrive: edit the three tables in `normCharts.js` and bump `CHARTS_VERSION` to 3. No migration needed.
-- **Old (`branch:'mass'`) evaluation records are view-only** — `EvalSection` is branch-aware, Edit is hidden for mass records (the old form is gone), Delete still works. History is preserved, never dropped.
-- **`EvalTimer.jsx` retained in the repo but unrendered** — 1RM attempts aren't timed, so the measurement console from v2.11.1 isn't shown in the new form. Do not delete the file; a future rep-based battery could reuse it.
-- New sanity: `sanity-1rm.mjs` (kernel boundaries, null guards, reducer coexistence with mass-branch records).
+- **v2.14.0** (07-14) — Multi-day split program generation, 3–6 days; `PROGRAM_RULES_VERSION` 2→3. → `v2.14.md`
+- **v2.13.1–.3** (07-14) — Elie domain-review fix run: Deadlift pull-anchor-only, English day headers in AR, age-banded 1RM standards (`CHARTS_VERSION` 2→3), trainer level override. → `v2.13.md`
+- **v2.13.0** (07-13) — Program generation from a 1RM evaluation (PT feature #3). Schema v5→v6, additive `programs[]`. → `v2.13.md`
+- **v2.12.1** (07-07) — Token-expiry surfacing + `TokenUpdateModal.jsx`; replacement never touches local data. → `v2.12.1.md`
+- **v2.12.0** (07-06) — 1RM battery replaces the mass battery; additive `branch:'1rm'`, DATA_VERSION stays 5; mass records view-only. → `v2.12.md`
+- **v2.11.1** (06-13) — Eval measurement console/timer (ephemeral); Evaluate moved to the top of the client card. → `v2.11.1.md`
+- **v2.11.0 and earlier** — `docs/changelog-summary.md` (every version, plain English) + `docs/instructions-v*.md`. Two older facts still load-bearing: **the v2.10.1 shared utils** (`applyOverride`, `formatOverrideDraft`, `getFocusTags`, `getSessionType`, `openWhatsApp`, `friendly`, `makeTemplateSender`) — always use them, never re-inline what they own; and the v3→v4 tag-split rollback tag `snapshot-pre-v2.9.5`.
 
-## Previous Version: v2.11.1
-UI-only point release on the evaluation system. No schema change, nothing persisted. Spec/plan: `docs/superpowers/{specs,plans}/2026-06-13-eval-ux-timer*`.
-- **`src/components/EvalTimer.jsx`** — in-form measurement console: active-test chips, 30s countdown for rep tests (±5s, clamp 5–300; Web-Audio beep + `haptic()` + row-flash at 0), count-up stopwatch for the run (fills mm:ss), none for sit-reach. **Timer state is ephemeral** — duration, remaining, and test order are NOT stored; the console only writes into the same `form` fields the rows use (single source of truth).
-- **Effect-driven tick** (self-rescheduling `setTimeout`, not a `setInterval` ref, no side effects in a state updater). Switching the active test resets the timer via `useEffect([activeTest])`. AudioContext unlocked on the Start gesture (iOS audio rule).
-- **No programmatic `focus()` from the countdown-end callback** — a timer tick isn't a user gesture, so iOS won't open the keyboard; flash the row instead, the PT taps to type. Stopwatch-stop fills run + auto-advances to the next unfilled test; rep tests advance via Next/chip (never mid-typing).
-- **Evaluate section moved to the TOP of the expanded client card** (was below the session list).
-- Reversed the Jun-9 "no in-app timer" decision — Pierre's call 2026-06-13.
-
-## Previous Version: v2.11.0
-Evaluation system — mass-population battery (PT feature #2, stage 1 of 2). Schema v4→v5 (purely additive).
-- **`src/normCharts.js` owns ALL chart data + scoring.** Never inline thresholds in components. `CHARTS_VERSION = 1`. Bump it when any chart table changes — old records keep their frozen scores, new evaluations use the updated table.
-- **`computeEvalFrozen(rawInputs, gender, age)`** is THE single scoring kernel. Both EvalForm live chips AND the save path call it — by construction they can never disagree. Do not reimplement the 1–5 lookup or classify logic anywhere else.
-- **`EDIT_EVALUATION` full-record contract** — the entire record is replaced (re-frozen by `computeEvalFrozen` at call site). Partial patches are forbidden; `scores` + `classification` must stay internally consistent.
-- **`evaluations[]` follows the sessions[] pattern** in every merge path (`mergeData`, `mergeBackup`, `REPLACE_ALL`). `DELETE_CLIENT` cascades to evaluations. Never let evaluations become orphaned.
-- **Sit & reach = YMCA placeholder** until the PT sends his own chart. When it arrives: edit the `SITREACH` table in `normCharts.js` and bump `CHARTS_VERSION`. No migration needed — old frozen records are unaffected. (v2.12: the mass battery — including sit & reach — is no longer authorable; existing records stay view-only, so this table now only matters for historical re-freezing, not new entries.)
-- **Pro/Elite 1RM parked for v2.12.** Visible-disabled in EvalForm. Three open questions before enabling: Elite boundary, 1RM verdict phrasing, bodyweight captured per eval or from client profile. (Superseded: v2.12 replaced the whole battery with 1RM — see Current Version.)
-- New components: `EvalForm.jsx`, `EvalSection.jsx`, `NormChartsView.jsx`. New sanity: `sanity-evaluations.mjs` (3 parts), `sanity-live-v5-diff.mjs` (live-data byte-diff gate).
-
-## Previous Version: v2.10.4
-Pure refactor — review finding P7. No schema change, no user-visible change.
-- **`EDIT_CURRENT_PACKAGE { clientId, pkg }`** is THE owner of replace-last-package writes (was hand-rolled `[...packages.slice(0,-1), pkg]` at 2 author sites — the v2.9.2 incident class). Reads the LIVE client by id (no stale-snapshot clobbering), stamps `_modified`, audits via shared `buildPackageAuditEntries` (extracted from EDIT_CLIENT — both actions use it). Never author package-array surgery at call sites again.
-- Clients `save()` edit branch = EDIT_CLIENT (profile) + EDIT_CURRENT_PACKAGE (package), batched by React 18. Schedule `commitOverride` = EDIT_CURRENT_PACKAGE only.
-- **Remaining review findings:** P3 (SessionCard refactor — blocked on Pierre's scope decision, parked brainstorm), P6 (ordinal-at-booking-time — needs freeze-vs-live display design discussion: the confirm popup must reflect override edits live, so "compute once and store" isn't a drop-in).
-
-## Previous Version: v2.10.3
-Pure refactor — review findings P4 + P5. No schema change, no user-visible change.
-- **P4 — repeat-mode fork hygiene (Schedule.jsx).** `buildSession(clientId, date, time)` is THE single constructor for new sessions from the booking form — `saveSession` AND `createRecurring` both call it (new session fields now reach recurring series automatically). One derived `mode` (`'edit'|'single'|'repeatConfig'|'repeatPreview'`) replaces three free booleans across ~9 JSX sites; `resetRepeat()` owns the 4-setter reset (2 sites were partial).
-- **P5 — shared renewal selector.** `getRenewalDueMap(clients, sessions)` in utils.js → `Map<clientId, {due, auto, effective, override, contractSize, pkg}>`, memoized on the array pair (nested WeakMaps, same pattern as P2). All three tabs read it; the RULE stays in `isRenewalDue` — change it there only.
-- **Process trap:** never round-trip source files through PS5.1 `Get-Content`/`Set-Content` (ANSI default mangles UTF-8 — mojibake was caught and reverted same session). Use the Edit tool for in-file renames.
-
-## Previous Version: v2.10.2
-Counting-kernel fix pack — review findings P1 + P2 (+P8 folded in). No schema change, no migration. See `docs/instructions-v2.10.2.md`.
-- **P1 — historical ordinals.** `getEffectiveSessionCount` resolves the package CONTAINING the session's date via new `resolvePackagePeriod`/`getPackageForDate` (utils.js) — was always `getCurrentPackage`, so every pre-renewal session of a contract client showed `#(current count + 1)`. Resolution: containment newest-first (overlapping closed packages exist live), **zero-day artifact packages (`end` < `start`) excluded entirely**, uncontained dates attach to the package they lead into; pre-era dates of contract packages get a synthetic bucket `[prev end + 1 .. start − 1]`, sliding keeps backward extrapolation. Overrides stay period-scoped — history and present can't cross-contaminate. Live diff: 0/204 ordinals changed on today's data.
-- **P2 — O(n²) counting.** `getClientCountedSessions(sessions, clientId)`: per-client sorted counted-sessions index, built once per sessions array, cached in a WeakMap on the array reference (reducer is immutable). `getSessionOrdinal`/`getPeriodSessionCount` read it; signatures unchanged, zero component edits.
-- **P8 — edit-mode chip.** Edit mode simulates the session at its new form.date/time through `getEffectiveSessionCount` (was today's-window count regardless of date — the v2.9.6 carve-out removed).
-- **New sanity script:** `scripts/sanity/sanity-historical-ordinals.mjs` (39 assertions incl. a `messy` fixture cloned from live pathological package shapes). New trap: synthetic fixtures vs live data — diff counting-kernel changes against the archived snapshot before commit.
-- **Same-day incident:** PT's iPhone had been failing to push since June 2 (the C1 spread crash v2.10.1 fixed) — sessions after June 3 never reached the cloud; remote was never overwritten. Forensics: `_archive/PTApp/incidents/2026-06-10-stranded-sync-*`. PT re-entering lost bookings from memory.
-
-## v2.10.1 (review fix pack — the work order lives here)
-Whole-codebase review fix pack (Fable 5 fresh-eyes review, 2026-06-10). No schema change, no migration. See `docs/instructions-v2.10.1.md`.
-- **Review report = work order.** `docs/reviews/2026-06-10-fable5-codebase-review.md` — C1–C4 critical + M1–M16 medium ALL FIXED; P1/P2/P8 fixed in v2.10.2; P4/P5 fixed in v2.10.3; **P3 (blocked on Pierre's SessionCard scope decision), P6, P7 still open**; W1–W3 deliberate non-fixes with reasons. Live data snapshot pre-change: `_archive/PTApp/data-snapshots/2026-06-10-pre-fable5-review-data.json`.
-- **Critical fixes:** chunked `toBase64` + compact uploads (iOS ~65K arg limit; data.json was already 110KB — sync outage imminent, and in fact already live: see the June 10 incident above); `mergeData`/`mergeBackup` migrate foreign blobs by their OWN `_dataVersion` before merging; `getFocusTags`/`getSessionType` helpers replace 11 dead/positional inline fallbacks; RenewalModal cross-device guard actually works (live last-package-id comparison).
-- **New shared helpers in utils.js:** `applyOverride`, `formatOverrideDraft`, `getFocusTags`, `getSessionType`, `openWhatsApp`, `friendly` (exported), `makeTemplateSender`. Always use these — never re-inline the math/fallbacks they own.
-- **New sanity script:** `scripts/sanity/sanity-merge-migration.mjs` (17 checks; uses the real archived snapshot when present). 4 new traps in `docs/traps.md`.
-
-## Older Versions (one-line pointers — full details in `docs/instructions-v*.md`)
-- **v2.12.1** — Token-expiry surfacing: 401 ⇒ `tokenExpired` in App.jsx, red-dot tap opens `TokenUpdateModal.jsx`, General → Backup "Update sync token" button; token replacement never touches local data, merges via `reconcile()`. **SYNC TOKEN EXPIRES 2027-07-06 — renew June 2027** (`PTApp-sync-2026` on makdissi-dev, ptapp-data Contents R/W only).
-- **v2.10.4** — `EDIT_CURRENT_PACKAGE` reducer action: THE owner of replace-last-package writes; shared `buildPackageAuditEntries` with EDIT_CLIENT; no hand-rolled `packages.slice(0,-1)` at call sites. Pure refactor, review finding P7.
-- **v2.10.0** — Recurring session generator: "Repeat" toggle → single client + weekday chips + count (1–60) → `buildPreview()` with conflict flags → ONE `ADD_SESSIONS`. Calendar-only by design (never renews, no WhatsApp at generate time). Feature #1 of 3 PT asks; #2 = evaluation protocol (awaiting PT's filled xlsx), #3 = auto program proposal. `sanity-recurring.mjs` (21 assertions).
-- **v2.9.6** — Booking-form chip switched to post-booking ordinal semantics (was pre-booking count); chip/popup/WhatsApp now agree by construction. TRAP: same number, two semantics, two adjacent screens.
-- **v2.9.5** — `Arms` focus tag split into `Bi`+`Tri`; `Custom` session type renamed `Endurance`; one-shot v3→v4 migration (per-client chronological Bi/Tri alternation + Custom→Endurance). `sanity-arms-migration.mjs` (17 assertions). Snapshot tag `snapshot-pre-v2.9.5`.
-- **v2.9.4** — Schedule inline type-selector preserves focus tags (retroactive fix to Apr 2 decision `eb29798` only applied to Dashboard). TRAP: architected behavior not propagated + missing from changelog.
-- **v2.9.3** — Top-level React error boundary (`ErrorBoundary.jsx` wrapping `<App />` in `main.jsx`) with Backup / Try again / Reset recovery UI. Sanity scripts moved `tmp/` → `scripts/sanity/`. No schema change.
-- **v2.9.2** — Post-deploy review fixes for v2.9. Critical: `Schedule.jsx` booking-confirm pencil now writes override into `pkg.sessionCountOverride` (was writing to legacy v2 root fields the migration deletes). Plus 5 important fixes (`RenewalModal` cross-device race surfacing, `Schedule` renewal-due `useMemo`, sentinel removal, override equality comparator, `getClientPeriod` shim deletion) + minor cleanups. CLAUDE.md slimmed 41k→19.5k.
-- **v2.9.1** — Dashboard Upcoming filter rolls off completed sessions 2h past their end time. No-shows stay visible. One filter change in `Dashboard.jsx`.
-- **v2.9** — Per-client session contracts. `client.packages: Array<Package>`, current open package = `packages[packages.length - 1]` with `end: null`. Optional `contractSize` triggers red renewal-due state + Dashboard "Due for renewal (N)" section. Two renewal paths: explicit (`RenewalModal.jsx`) + auto-advance on booking (`RENEW_PACKAGE` dispatched before `ADD_SESSION`). New top-level `state.auditLog` (append-only forensic log). Migration v2→v3 in `migrateData`. New utils: `computeSlidingWindow`, `getCurrentPackage`, `getEffectivePeriod`, `isRenewalDue`. WhatsApp placeholder `{packageProgress}` ("7/10" for contract packages).
-- **v2.8** — Per-client manual session count override (absolute or delta) authored in Clients edit form + booking-confirm pencil. Stored in package via v2.9. Long-press / right-click opens help popup. Parser contract: `parseSessionCountOverride` returns `{ type, value }`.
-- **v2.7** — Dashboard renamed "Today's Sessions" → "Upcoming Sessions". Single filter, both Expanded + Compact iterate the same array.
-- **v2.6** — Bulletproof multi-device sync. Per-record `_modified` timestamps; `mergeData` union-by-ID; `pushRemoteData` merges on 409 instead of blind-overwriting; `reconcile()` for initial load + retry handler. Apr 19 Hala Mouzanar data loss fix.
-- **v2.5** — Blue accent color, redesigned light theme, sync status indicator, three-guard stale-push prevention, iOS PWA standalone (`apple-mobile-web-app-capable` + `manifest.json`), debug panel. Apr 13 data loss fix. See `docs/design-system.md` for visual design.
-- **v2.4** — i18n + RTL, dark/light themes, todo list, swipe-to-dismiss modals, language/theme toggles moved to General panel for iPhone reachability.
-
-## Roadmap
-
-### Stage 1 — Web app with cloud sync (CURRENT)
-- Hosted on GitHub Pages: https://pih-dev.github.io/PTApp/
-- Data synced to GitHub repo (makdissi-dev/ptapp-data) via GitHub API
-- Both PT and Pierre see the same data
-- PT bookmarks the URL on his iPhone, Pierre on Android
-
-### Stage 2 — Native app (FUTURE)
-- Wrap web app with Capacitor for iOS/Android native builds
-- Publish to Apple App Store ($99/yr individual) and Google Play ($25 one-time)
-- Requires a final app name (not "PTApp")
-- See `docs/stage2-publishing-guide.md` for full details
-
-## Core Features
-- **Client Management**: Add/edit/delete clients with name, nickname, phone (with country code), gender, birthdate, and notes
-- **Session Scheduling**: Book training sessions with type, date, time, duration. Multi-client booking supported.
-- **Session Tracking**: Scheduled -> auto-completes when time passes (or manual Complete). Cancel with count/forgive.
-- **Focus Tags & Notes**: Per-session muscle group tags + free-text notes for recording what was done
-- **WhatsApp Messaging**: Booking confirmations and reminders via wa.me links. Templates editable by PT.
-- **Dashboard**: Overview stats (clients, today, this week). Expanded view with full inline controls. Compact view for quick glance.
-- **i18n**: Full Arabic/English toggle. RTL layout support. Arabic WhatsApp message templates.
-- **Themes**: Dark (default) and light theme toggle. Blue accent, warm stone light palette.
-- **Cloud Sync**: GitHub API sync to makdissi-dev/ptapp-data. Debounced (1s) pushes. Snapshots for backup.
-- **Offline**: Service worker caches the app for offline use.
-- **Todo List**: Shared todo in General panel with checkboxes (done/delete/edit).
-
-## Tech Stack
-- React 18 (with hooks: useState, useReducer, useEffect, useMemo)
-- Vite for dev server and build (vite-plugin-singlefile inlines all JS/CSS into one HTML file)
-- Pure CSS (no framework) — dark/light themes, mobile-first
-- Google Fonts: DM Sans (loads from internet — device needs connectivity)
-- Service worker for offline support (network-first caching)
-- No backend — all data in browser localStorage + GitHub API cloud sync
-
-## Project Structure
-```
-PTApp/
-├── index.html, package.json, vite.config.js, .gitattributes, CLAUDE.md
-├── public/                   # sw.js, manifest.json (Vite copies to dist)
-├── src/
-│   ├── main.jsx              # React mount point + SW registration
-│   ├── App.jsx               # Routing/tabs, sync, auto-complete, debug panel
-│   ├── sync.js               # GitHub API sync (makdissi-dev/ptapp-data)
-│   ├── i18n.js               # Translations (en/ar) + t() lookup + dateLocale()
-│   ├── styles.css            # All styles (dark + light themes)
-│   ├── utils.js              # Helpers, constants, storage, reducer, date helpers
-│   └── components/
-│       ├── Dashboard.jsx, Clients.jsx, Schedule.jsx, Sessions.jsx, General.jsx
-│       ├── Modal.jsx         # Bottom-sheet modal wrapper
-│       ├── Icons.jsx         # Shared SVG icons
-│       ├── CancelPrompt.jsx  # Cancel session modal
-│       ├── TokenSetup.jsx    # GitHub token first-run
-│       ├── RenewalModal.jsx  # Shared renewal dialog (Clients + Dashboard)
-│       ├── SessionCountPair.jsx, OverrideHelpPopup.jsx
-└── docs/
-    ├── traps.md              # Hard-won lessons / TRAPS (extracted from CLAUDE.md)
-    ├── app-health.md         # Feature Overhead Register
-    ├── design-system.md      # Visual design reference
-    ├── instructions-v*.md    # Per-version feature notes
-    ├── changelog-summary.md, changelog-technical.md
-    └── superpowers/          # Plans + specs from feature work
-```
+---
 
 ## Data Preservation Rules (CRITICAL)
 - **NEVER delete or lose user data.** The PT's clients and sessions are real business records.
-- **Backward compatible always.** When the data schema changes, write a migration in `utils.js` (`migrateData`) that upgrades old data to the new format. Never require the user to re-enter anything.
-- **Version the data.** The `_dataVersion` field in the data tracks the schema version. Increment `DATA_VERSION` and add a migration step for each schema change.
-- **Preserve history.** Even if a feature is removed, keep the data that was collected. Archive it under a different key if needed, but never drop it.
-- **Test migrations.** Before deploying a schema change, run `scripts/sanity/sanity-live-migration.mjs` against the PT's real exported data — synthetic fixtures are necessary but not sufficient. (See `docs/traps.md` "v2→v3 migration dropped active overrides".)
+- **Backward compatible always.** Schema change ⇒ increment `DATA_VERSION` and write a `migrateData` step in `utils.js`. Never make the user re-enter anything. `_dataVersion` tracks the schema per blob.
+- **Preserve history.** Even if a feature is removed, keep its data — archive under another key if needed, never drop it.
+- **Every top-level collection follows the `sessions[]` pattern** in `mergeData`, `mergeBackup` and `REPLACE_ALL`; `DELETE_CLIENT` cascades to that client's sessions, evaluations and programs. Never orphan a record; never let an explicit key list drop a collection.
+- **Test migrations against live data.** Synthetic fixtures are necessary but not sufficient — run the current live-diff gate against the PT's real exported data before deploying a schema change.
 
 ---
 
 ## TRAPS
+Full write-ups in **`docs/traps.md`** — read the relevant one before touching that area. Index:
 
-Full hard-won lessons live in **`docs/traps.md`** — read before touching the relevant area. One-line index:
+**Dates & JS** — `toISOString()` is UTC: use `today`/`localDateStr`/`localMonthStr`/`currentMonth` · never shadow `t` in a `.map`/`.find` callback · `defaultValue` inputs need a `key` tied to state · `fn(...arr)` throws past ~65K elements on iOS, chunk with `.apply` · hardcoded date stamps in fixtures rot, compute them at runtime.
 
-- **`toISOString()` UTC bug** — never use for display/comparison; use local helpers (`today`, `localDateStr`, `localMonthStr`, `currentMonth`).
-- **Variable shadowing of `t`** — never use `t` as a `.map`/`.find` callback param.
-- **`defaultValue` on uncontrolled inputs** — add `key` prop tied to state value to force remount on external changes.
-- **Vite bundle corruption** — `fixForFileProtocol` plugin must use function replacement; string replacement breaks React's minified `$&`.
-- **iPhone safe areas** — `env(safe-area-inset-bottom)`; modal z-index 200+; sticky `modal-footer`; visualViewport resize.
-- **iPhone reachability** — tap targets in bottom 60%; settings live in General panel, not header. Test iPhone ergonomics, not Android.
-- **iOS Safari `readOnly` textareas** — never start `readOnly` and remove in `onFocus`; keyboard never appears.
-- **Swipe-to-dismiss vs scrolling** — only initiate dismiss drag when `scrollTop === 0` at touchstart.
-- **Inline styles + RTL** — use `marginInlineStart`/`borderInlineStart`, never `marginLeft`/`borderLeft`.
-- **`state.X` after `dispatch(ADD_X)` in same handler** — Session #0 bug; merge new item into local copy at call site.
-- **v2→v3 migration override-drop (Apr 21)** — re-read OLD code exactly when migrating; live-data diff before every migration deploy.
-- **Billing period gate field (legacy v2)** — `periodLength` was the master switch (not `periodStart`). v2.9 removed the gate; trap retained for migration debugging.
-- **iOS PWA standalone** — needs both `apple-mobile-web-app-capable` meta tag AND `manifest.json` with `"display": "standalone"`. Old icons need re-add.
-- **Silent `.catch(() => {})` in sync** — Hala Mouzanar data loss; every sync path must surface failures via `setSyncStatus('failed')`.
-- **Single dispatches in loops** — use `BATCH_COMPLETE` pattern; one dispatch per N records, not N dispatches.
-- **Stale device overwriting remote (Apr 13)** — three guards (`initialLoad`, `syncReady`, `skipSync`) must all pass before push.
-- **Parser contract `.type` not `.mode`** — `parseSessionCountOverride` returns `{ type, value }`.
-- **Per-feature author-site drift (Apr 21 v2.9.2)** — when refactoring storage location, grep EVERY read+write of old field across the whole codebase, not just the file you're in.
-- **Hardcoded date stamps in test fixtures rot (May 2 v2.9.5 followup)** — fixture stamps that must match a `today()`-derived value will silently break when the calendar moves; compute at runtime using the same logic the production code uses.
-- **Same number, two semantics, two adjacent screens (May 4 v2.9.6)** — when a parenthetical/badge appears on screen A (pre-action) and again on screen B (post-action) of the same flow, both must use the same semantics. Booking chip showed "(0)" pre-action, popup showed "#1" post-action — looked like a glitch. Fix: simulate the action on the pre-action screen and use the SAME helper as the post-action screen.
-- **Spread into function arguments breaks at engine limits (Jun 10 v2.10.1)** — `fn(...userScaledArray)` throws once data grows past ~65K elements on iOS. Chunk with `.apply` instead; audit every `...` whose operand scales with data.
-- **Renamed catalog key kills `|| CATALOG.oldKey` fallbacks (Jun 10 v2.10.1)** — property-access references don't match quoted-string greps; the safety fallback becomes the crash. Fallbacks live in one helper next to the catalog (`getFocusTags`, `getSessionType`).
-- **Merge paths must migrate foreign blobs (Jun 10 v2.10.1)** — `_dataVersion` is per-blob, records travel. Sync merge / backup restore must `migrateData` the FOREIGN blob by its own version before merging (on a clone — see trap). Covered by `sanity-merge-migration.mjs`.
-- **Guards that can never fire (Jun 10 v2.10.1)** — re-read a helper's fallback contract before guarding its return (`getCurrentPackage` never returns a closed package); "did the world change while open" checks must read LIVE state and compare stable IDs, not prop snapshots.
-- **Synthetic fixtures vs live data (Jun 10 v2.10.2)** — fixtures model designed shapes; live data contains every shape the reducer ever allowed (zero-day packages, duplicate starts, overlapping ranges). Diff counting-kernel/date-resolution changes against the archived live snapshot before commit; encode live pathologies as permanent fixtures.
+**iOS / mobile** — safe-area insets, modal z-index 200+, sticky `modal-footer`, visualViewport resize · tap targets in the bottom 60%, settings in General not the header · never start a textarea `readOnly` and clear it in `onFocus` · swipe-to-dismiss only when `scrollTop === 0` at touchstart · PWA standalone needs BOTH the meta tag AND `manifest.json` `"display":"standalone"`.
+
+**RTL / i18n** — `marginInlineStart`/`borderInlineStart`, never `marginLeft`/`borderLeft`.
+
+**Data & sync** — never `.catch(() => {})` (the Hala Mouzanar data loss) · `initialLoad`+`syncReady`+`skipSync` must ALL pass before a push · never dispatch in a loop · `state.X` read right after `dispatch(ADD_X)` is stale (Session #0) · merge paths must `migrateData` the FOREIGN blob by its own `_dataVersion`, on a clone · `mergeData`'s key list drops collections a stale bundle doesn't know — after a deploy adding one, confirm BOTH phones show the new version first · a 401 must look different from a network blip and route to the replacement UI.
+
+**Refactoring** — grep EVERY read and write when moving a storage location · a renamed catalog key silently kills `|| CATALOG.oldKey` fallbacks (property refs don't match string greps) · re-read a helper's fallback contract before guarding its return; "did the world change" checks read LIVE state and compare stable IDs · `parseSessionCountOverride` returns `{ type, value }`, not `.mode` · legacy `periodLength` was the billing master switch, not `periodStart`.
+
+**Correctness across screens** — a pre-action badge and a post-action badge in one flow must use the same helper (the "(0) → #1" confusion) · synthetic fixtures model what you designed, live data holds what shipped: diff counting/date-resolution/migration changes against the archived snapshot first, and re-read the OLD code exactly when writing a migration.
+
+**Tooling** — `fixForFileProtocol` must use *function* replacement (a string breaks React's minified `$&`) · **PS 5.1 `Get-Content`/`Set-Content` mangles UTF-8** (ANSI default corrupts em-dashes, emoji and all Arabic) — use the **Edit tool**, never round-trip source through a PowerShell pipeline.
 
 ---
 
 ## CODING CONVENTIONS
 
-### Color system
-- **Accent**: `#2563EB` (blue) / `#60A5FA` (light blue). Both themes.
-- **Error/danger**: `#EF4444` (red). Solid red delete buttons. Cancelled badge red.
-- **Success**: `#10B981` (green). Confirmed badge, todo checkmarks.
-- **Active session glow**: Amber `#F59E0B` (`card-now` class).
-- **Session type colors**: Indigo (Strength), Blue (Cardio), Purple (Flexibility), Amber (HIIT), Green (Recovery), Grey (Custom).
-- **Status badges**: CSS classes `badge-scheduled` (blue), `badge-completed` (blue), `badge-confirmed` (green), `badge-cancelled` (red). Solid fill, white text. NEVER inline `style={{ color, background }}` — use `className={`badge badge-${status}`}`.
-- **Filter tabs**: Active = solid blue `#2563EB` + white text. Inactive = subtle outline.
-- **Theme-aware CSS vars**: `--t1`..`--t5` for text opacity, `--sep` for separators. Dark uses `rgba(255,255,255,...)`, light uses `rgba(30,27,75,...)`. Use these in inline styles — never hardcode raw rgba.
-- **Light theme** detail in `docs/design-system.md`.
+### Single-source kernels — never reimplement these
+One function owns the computation, and **both the live preview and the save path call it**, so they cannot disagree by construction.
 
-### Status labels (i18n)
-Use `getStatus(status, lang, t)` for translated label. Badge colors via CSS class, not inline. Components render `<span className={`badge badge-${session.status}`}>{status.label}</span>`.
+| Kernel | Owns | In |
+|---|---|---|
+| `compute1RMFrozen(gender, age, raw)` | 1RM ratio lookup + classification (`computeEvalFrozen` is its mass-battery predecessor — historical re-freezing only) | `normCharts.js` |
+| `generateProgram(...)` | ALL volume math, weak-point ranking, exercise fill | `programKernel.js` |
+| `suggestBookingTime(sessions, clients, date)` | The next-free-slot booking rule | `utils.js` |
+| `getRenewalDueMap(clients, sessions)` | Renewal-due for all three tabs (the rule stays in `isRenewalDue`) | `utils.js` |
+| `getClientCountedSessions(sessions, clientId)` | Per-client counted-session index (WeakMap-cached) | `utils.js` |
+| `buildSession(clientId, date, time)` | The only constructor for a new session from the booking form | `Schedule.jsx` |
+
+- **`normCharts.js` owns ALL chart data + scoring.** Never inline a threshold in a component. **Bump `CHARTS_VERSION` on any table change** — old records keep their frozen scores, new evaluations use the new table, no migration needed. Currently **3** (Elie's real age-banded 1RM numbers, confirmed v2.13.2).
+- **`EvalTimer.jsx` is retained but unrendered** — 1RM attempts aren't timed. **Do not delete it**; a future rep-based battery could reuse it.
+
+### Program generation
+- **Frozen at generation.** `PROGRAM_RULES_VERSION` (`programRules.js`) + `EXERCISE_BANK_VERSION` (`exerciseBank.js`) are stamped per record; later changes never rewrite stored programs. **Bump either on ANY change** to volume tiers, method catalog, fat-loss thresholds, or the bank. **`exerciseBank.js` is GENERATED** — rebuild via `scripts/build_exercise_bank.py`, never hand-edit.
+- **Blocks store `days` (+ `daysAlt` for the endurance/fat-loss block only), NOT 4 duplicated weeks** — every other method is identical week-to-week within a block, so 4 copies would be redundant weight in `data.json` for zero gain. Deliberate deviation from the spec's "weeks" framing.
+- **The Deadlift anchor counts toward Back, not its bank primary (Quads).** Spec §6 maps Deadlift to the Pull day, so `fillBucket` force-overrides the anchor's `bucket` to the day's major — without it, Back runs an exercise short every block.
+
+### Arabic / i18n
+- **Transliteration rule (Elie, standing):** when a literal Arabic translation wouldn't be understood in the gym, use the **English term written in Arabic letters** (Block → بلوك, not مرحلة). Applies to every future Arabic entry; also in the header comment of `src/exerciseNamesAr.js`.
+- Use `getStatus(status, lang, t)` for translated status labels.
+
+### Colour & badges
+Accent `#2563EB` / `#60A5FA` · danger `#EF4444` · success `#10B981` · active-session amber `#F59E0B` (`card-now`). **Status badges use a CSS class, NEVER inline `style={{color, background}}`** — ``className={`badge badge-${status}`}``. **Theme-aware vars `--t1`..`--t5` and `--sep` in inline styles; never hardcode rgba.** Palette, session-type colours, filter tabs, light theme: `docs/design-system.md`.
 
 ### Sync (v2.6+)
-- Debounced 1s via `debouncedSync()` in App.jsx; localStorage saves immediately, GitHub push waits for more changes.
-- `pushRemoteData` retries up to 3 on 409 — merges instead of blind-overwriting.
-- **Errors surface to UI** via `syncStatus` (green/blue/red dot, tap red to retry). Never use `.catch(() => {})` on sync paths.
-- Per-record `_modified` timestamps; `mergeData` union-by-ID. PT's freshly-edited record always wins over a stale device's version.
+Debounced 1s; localStorage saves immediately, the GitHub push waits. `pushRemoteData` retries 3× on 409 and **merges, never blind-overwrites**. Per-record `_modified` + union-by-ID means a freshly-edited record beats a stale device's copy. **Every failure must surface via `syncStatus` — never `.catch(() => {})` on a sync path.**
 
 ### Reducer actions
-| Action | Payload | Notes |
-|--------|---------|-------|
-| `ADD_CLIENT` | `{id, name, packages: [pkg], ...}` | New clients seeded with one open package |
-| `EDIT_CLIENT` | `{id, ...fields}` | Detects current-package field changes → `package_edited` / `override_set` / `override_cleared` audit entries |
-| `EDIT_CURRENT_PACKAGE` | `{clientId, pkg}` | v2.10.4: THE owner of replace-last-package writes. Reads live client by id, stamps `_modified`, shares audit diffing with EDIT_CLIENT. Use this — never hand-roll `packages.slice(0,-1)` at call sites. |
-| `DELETE_CLIENT` | `clientId` | Also deletes their sessions, evaluations, and (v2.13) programs |
-| `ADD_SESSION` | `{id, clientId, ...}` | |
-| `ADD_SESSIONS` | `[{id, clientId, ...}, ...]` | v2.10: batch-append in ONE dispatch (each stamped `_modified`). Used by the recurring generator AND (v2.10.1) the multi-client booking path. Never renews packages. |
-| `UPDATE_SESSION` | `{id, ...fields}` | Merges fields |
-| `BATCH_COMPLETE` | `[id, id, ...]` | Marks all completed in one dispatch |
-| `DELETE_SESSION` | `sessionId` | |
-| `RENEW_PACKAGE` | `{clientId, newPackageStart, newContractSize, newPeriodUnit, newPeriodValue, newNotes, closedBy: 'manual'\|'auto', trigger}` | Atomic close-and-open of current package + audit append. Idempotent (returns state unchanged if current pkg already closed). |
-| `ADD_EVALUATION` | `full record` | Appends to `state.evaluations`, stamps `_modified` |
-| `EDIT_EVALUATION` | `{full record}` | Full-record contract — partial patches forbidden; `scores` + `classification` must be re-frozen by `computeEvalFrozen` at call site before dispatch |
-| `DELETE_EVALUATION` | `evalId` | Audit-logged (`evaluation_deleted`), confirm-guarded at UI layer |
-| `ADD_PROGRAM` | `full record` | v2.13: appends to `state.programs`, stamps `_modified`, audits `program_generated`. Built by the ONE kernel, `generateProgram()` — never construct a program record anywhere else |
-| `EDIT_PROGRAM` | `{full record}` | Full-record contract (same shape as `EDIT_EVALUATION`) — swap-exercise re-dispatches the whole record, partial patches forbidden |
-| `DELETE_PROGRAM` | `programId` | Audit-logged (`program_deleted`), confirm-guarded at UI layer |
-| `ADD_TODO` / `EDIT_TODO` / `TOGGLE_TODO` / `DELETE_TODO` | varies | |
-| `SET_TEMPLATES` | `{booking?, reminder?}` | |
-| `REPLACE_ALL` | full state | Used by cloud sync; bypasses `_lastModified` stamp |
+**Full table: `docs/architecture.md` → Reducer actions.** Read it before adding or dispatching an unfamiliar action. Non-negotiables:
+- **`EDIT_CURRENT_PACKAGE { clientId, pkg }` owns ALL replace-last-package writes** — reads the live client by id, stamps `_modified`, audits via `buildPackageAuditEntries`. Never hand-roll `packages.slice(0,-1)` at a call site.
+- **`EDIT_EVALUATION` / `EDIT_PROGRAM` are full-record** — partial patches forbidden; frozen fields must be re-computed by the kernel at the call site before dispatch.
+- **`ADD_PROGRAM` records come only from `generateProgram()`.** **`DELETE_CLIENT` cascades** to sessions, evaluations, programs. **Batch with `ADD_SESSIONS` / `BATCH_COMPLETE`** — never dispatch in a loop.
 
 ---
 
-## KNOWN ISSUES / TECH DEBT
-
-### Should fix soon
-- **P3 + P6 from the v2.10.1 review** — see `docs/reviews/2026-06-10-fable5-codebase-review.md` (P1/P2/P8 fixed in v2.10.2; P4/P5 in v2.10.3; P7 in v2.10.4). P3 folds the SessionCard refactor (Dashboard/Schedule/Clients/Sessions each render their own card; `EditableFocus` already exists in Sessions.jsx; parked brainstorm awaits Pierre's scope decision). P6 (Session #0 band-aid altitude — compute ordinal at booking time; needs a design decision first: the confirm popup must reflect override edits LIVE, so a frozen at-booking ordinal isn't a drop-in).
-
-### App name
-- "PTApp" is a working title. Need a unique name (not trademarked in fitness/trainer space) before App Store / Play Store submission.
+## KNOWN ISSUES / OBLIGATIONS
+- 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev, scoped ptapp-data Contents R/W only. Replacement UI: General → Backup → "Update sync token".
+- **Program pruning (v2.15)** — do it before `data.json` approaches the 1 MB ceiling. Deferred from v2.14.
+- **Open review findings P3 + P6** — `docs/reviews/2026-06-10-fable5-codebase-review.md` is the standing work order (P1/P2/P8 → v2.10.2, P4/P5 → v2.10.3, P7 → v2.10.4). **P3** SessionCard refactor, parked on Pierre's scope decision. **P6** ordinal at booking time, needs a freeze-vs-live design call first (the confirm popup must reflect override edits live).
+- **App name** — "PTApp" is a working title; a unique, untrademarked name is needed before store submission.
 
 ---
 
 ## REVIEW DISCIPLINE
+After **3+ feature changes** or ~2 hours of coding, pause and check: did the fix land everywhere the pattern exists? · every read AND write migrated on a storage refactor? · callbacks shadowing `t`/`d`? · inline `marginLeft`/`borderLeft` or hardcoded colours? · strings missing from `i18n.js`? · anything that deletes/overwrites/fails to migrate? · new `.catch(() => {})` or dispatches in loops?
 
-After accumulating **3+ feature changes** or **any session longer than ~2 hours of coding**, pause and run a comprehensive review before continuing. Check:
-1. **Pattern consistency** — Did a bug fix get applied everywhere the pattern exists? (UTC bug was in 8 places, fix landed in 1.)
-2. **Storage refactors** — Did EVERY read AND write of the old field name get migrated? (v2.8 `.mode/.type`, v2.9.2 inline override.)
-3. **Variable shadowing** — Any new `.map()`/`.find()` callbacks using `t`, `d`, or other commonly imported names?
-4. **Theme/RTL** — New inline `marginLeft`, `borderLeft`, hardcoded colors?
-5. **i18n** — New user-facing strings not in `i18n.js`?
-6. **Data safety** — New code that deletes, overwrites, or fails to migrate data?
-7. **Sync impact** — New `.catch(() => {})`? New dispatches in loops?
-
-After every commit:
-- **Bug fixes** → document root cause + fix pattern in `docs/traps.md`. Grep for the same pattern elsewhere.
-- **New features** → update `docs/instructions-v{X}.md`, `docs/changelog-summary.md`, `docs/changelog-technical.md`.
-- **Design decisions** → add to Coding Conventions or Key Design Decisions.
-- **Incidents/lessons** → save to memory for cross-session persistence.
+After every commit: **bug fix** → root cause + pattern into `docs/traps.md`, then grep for it elsewhere · **feature** → `docs/instructions-v{X}.md` + both changelogs · **design decision** → CONVENTIONS or `docs/architecture.md`, not just the commit message · **incident** → memory.
 
 ---
-
-## Key Design Decisions
-- Single-page app with bottom tab navigation (Home, Clients, Schedule, Sessions)
-- WhatsApp via `https://wa.me/{phone}?text={message}` — no API needed
-- Phone numbers must include country code (e.g. +961 for Lebanon)
-- Session types: Strength, Cardio, Flexibility, HIIT, Recovery, Custom
-- Session statuses: Scheduled → auto-completes → Completed (or Cancelled with count/forgive)
-- Auto-complete: lapsed sessions batch-marked completed continuously (effect re-runs on every session mutation — deliberate, it's what completes sessions across midnight in an open PWA; see W2 in the v2.10.1 review)
-- UX simplicity is the priority — the PT adopted the app because it's simple. Don't add friction.
-- Billing periods (v2.9+): live inside `client.packages[]`. Each package has `periodUnit` ('day'/'week'/'month') + `periodValue` (number). Optional `contractSize` extends the period until contract met (no month-end reset).
 
 ## How to Run (Development)
 ```bash
@@ -313,7 +134,7 @@ npm run dev
 ```
 
 ## How to Build, Verify, and Deploy
-Every code change must go through this full pipeline — **never skip steps**:
+Every code change goes through this full pipeline — **never skip steps**:
 ```bash
 # 1. Build
 npm run build
@@ -321,36 +142,45 @@ npm run build
 # 2. Verify the bundle isn't corrupted (catches blank-page bugs)
 node -e "const fs=require('fs'),h=fs.readFileSync('dist/index.html','utf8'),s=h.indexOf('<script>')+8,e=h.lastIndexOf('</script>');fs.writeFileSync('test-bundle.js',h.substring(s,e))" && node --check test-bundle.js && rm test-bundle.js
 
-# 3. Bump version in App.jsx debug panel (e.g. v2.9.1 → v2.9.2), rebuild if changed
-#    For feature releases: also bump DOCS.instructions in General.jsx to the new
-#    docs/instructions-vX.Y.md (it served v2.9 docs for two releases unnoticed)
+# 3. Bump the version in the App.jsx debug panel; rebuild if changed.
+#    Feature releases: also bump DOCS.instructions in General.jsx to the new
+#    docs/instructions-vX.Y.md (it served v2.9 docs for two releases unnoticed).
 
-# 4. Commit and push source to master
+# 4. Release hygiene gate — the five rules below. Run BEFORE committing.
+
+# 5. Commit and push source to master
 git add <files> && git commit -m "message" && git push origin master
 
-# 5. Deploy built files to gh-pages (THIS IS WHAT MAKES IT LIVE)
-cp dist/index.html /tmp/ptapp-deploy.html
-cp dist/sw.js /tmp/ptapp-deploy-sw.js
-cp dist/manifest.json /tmp/ptapp-deploy-manifest.json
+# 6. Deploy built files to gh-pages (THIS IS WHAT MAKES IT LIVE)
+cp dist/index.html /tmp/ptapp-deploy.html && cp dist/sw.js /tmp/ptapp-deploy-sw.js && cp dist/manifest.json /tmp/ptapp-deploy-manifest.json
 git checkout gh-pages
-cp /tmp/ptapp-deploy.html index.html
-cp /tmp/ptapp-deploy-sw.js sw.js
-cp /tmp/ptapp-deploy-manifest.json manifest.json
+cp /tmp/ptapp-deploy.html index.html && cp /tmp/ptapp-deploy-sw.js sw.js && cp /tmp/ptapp-deploy-manifest.json manifest.json
 git add index.html sw.js manifest.json && git commit -m "Deploy vX.Y: description" && git push origin gh-pages
 git checkout master
 
-# 6. Tell Pierre the version number so he can verify on his phone
+# 7. Tell Pierre the version number so he can verify on his phone
 ```
 
 **Critical notes:**
-- Pushing to `master` alone does NOT deploy. The live site serves from `gh-pages`.
-- **Pushing to `gh-pages` does not guarantee deployment either.** After every gh-pages push, verify the Pages run actually deployed: `gh api repos/pih-dev/PTApp/pages/builds/latest --jq .status` must reach `built` (a successful `git push` only means the commit landed). Jun 11 incident: two gh-pages pushes 5 min apart hit a GitHub artifact race ("Multiple artifacts named github-pages"), the deploy step failed, and the stale build record showed `building` for 24h with no run in flight. Fix: `gh api -X POST repos/pih-dev/PTApp/pages/builds` to request a fresh build, then re-verify (and diff live HTML against `dist/index.html` for certainty). Avoid rapid back-to-back gh-pages pushes.
-- For schema changes, run a live-data byte-diff gate before deploying. Current gate: `scripts/sanity/sanity-live-v6-diff.mjs` (v5→v6). **`sanity-live-v5-diff.mjs` (v4→v5) and `sanity-live-migration.mjs` (v2→v3-era, asserts `_dataVersion === 3`) are both historical/STALE** — do not use either as the gate; keep them for archaeology only.
-- Sanity scripts (in `scripts/sanity/`): `sanity-reducer.mjs`, `sanity-counting.mjs`, `sanity-slidingwindow.mjs`, `sanity-migration.mjs`, `sanity-live-migration.mjs` (stale), `sanity-evaluations.mjs`, `sanity-live-v5-diff.mjs` (stale), `sanity-1rm.mjs`, `sanity-programs.mjs`, `sanity-live-v6-diff.mjs`.
+- Pushing to `master` alone does NOT deploy — the live site serves from `gh-pages`. **And pushing to `gh-pages` does not guarantee deployment either:** verify `gh api repos/pih-dev/PTApp/pages/builds/latest --jq .status` reaches `built`. (Jun 11: two pushes 5 min apart hit a GitHub artifact race, the deploy step failed, and the stale record showed `building` for 24h. Fix: `gh api -X POST repos/pih-dev/PTApp/pages/builds`, then re-verify. Avoid rapid back-to-back gh-pages pushes.)
+- **Schema changes need a live-data byte-diff gate before deploying.** Current gate: `sanity-live-v6-diff.mjs` (v5→v6). **`sanity-live-v5-diff.mjs` and `sanity-live-migration.mjs` are HISTORICAL — never use either as the gate.**
+- Sanity scripts in `scripts/sanity/` (all prefixed `sanity-`): `reducer`, `counting`, `slidingwindow`, `migration`, `arms-migration`, `historical-ordinals`, `merge-migration`, `recurring`, `evaluations`, `1rm`, `programs`, `suggest-time`, `exercise-names-ar`, `live-v6-diff`.
 
-## Sibling Projects
-PTApp is the most mature web app in Pierre's project ecosystem. Its UI/UX patterns serve as reference for other projects:
-- **Alerts** (`C:/projects/Alerts`) — Safety alert dashboard. References PTApp's design system but uses zone-colored design language for urgency.
-- **HomeLab** (`C:/projects/HomeLab`) — Infrastructure/HA project. Independent.
-- **Career** (`C:/projects/Career`) — Resume and job search. Independent.
-- **CCHealth** (`C:/projects/CCHealth`) — Meta/advisory project that monitors all projects.
+### 🔒 Release hygiene — the five rules (added 2026-08-03)
+CLAUDE.md was slimmed 41 KB → 19.5 KB at v2.9.2, then drifted back to 41 KB in five months: every release appended a full section and nothing ever collapsed one. **Do not skip these "just this once" — that is exactly how it regrew.**
+
+```bash
+wc -c CLAUDE.md                              # RULE 1: must be < 20000 before committing
+git log --all --oneline | grep -i "Deploy v" # RULE 3: each must resolve to a changelog line AND an instructions file
+ls docs/instructions-v*.md
+```
+
+**1. Under 20 KB** (≈5,000 session-start tokens). Over budget ⇒ collapse the oldest version section before you commit. ⚠️ CLAUDE.md is only half the load — `memory/MEMORY.md` loads every session too; keep it under ~12 KB and report both numbers to Pierre when either moves.
+
+**2. Only ONE full version section — `## Current Version`.** The outgoing one collapses to a `## Version History` line **in the same commit** that promotes the new one, and Version History itself is capped at the last 8 entries — the 9th drops off to `docs/changelog-summary.md`. Nine full sections had accumulated by 2026-08-03.
+
+**3. No version ships without a changelog line AND an instructions file.** Naming: a `.0` release is `instructions-vX.Y.md`, patch releases `instructions-vX.Y.Z.md` (`v2.10.0.md` is a legacy exception). v2.9.1, v2.10.3, v2.10.4, v2.11.1, v2.12.1, v2.13.1, v2.13.2 and v2.14.3 each broke this differently before 2026-08-03.
+
+**4. A durable rule NEVER lives only in a version/changelog entry.** "X is THE single kernel", "never do Y at call sites", a platform trap → into `TRAPS` / `docs/traps.md` / CODING CONVENTIONS **when written**. Version sections record *what shipped*; rule sections record *what is true*. The PS 5.1 trap lived in one changelog entry — a routine slim would have deleted it.
+
+**5. Completed instructions get rewritten as settled fact.** When a "placeholder / awaiting / until X confirms / TBD / parked" item resolves, rewrite it in place. A future session cannot tell a live instruction from a finished one and will act on it — the `CHARTS_VERSION` bump survived three releases as a pending instruction after it was already done.

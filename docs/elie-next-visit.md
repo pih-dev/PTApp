@@ -2,10 +2,12 @@
 
 **Written:** 2026-07-17, end of the Elie-driven session (v2.14.1 → v2.14.3).
 **Updated:** 2026-07-18 — the visit happened (Pierre + Elie both claimed present,
-identity on trust as before). Outcomes below; unresolved items remain.
-**Purpose:** everything Elie should check/decide next time he's physically here,
-plus what Pierre needs to see first. Read this file at session start when
-either of them mentions the July 17 work.
+identity on trust as before). **All items on this sheet are CLOSED.**
+**Updated:** 2026-08-03 — two sections that still read as pending were rewritten
+as settled fact, and the release-discipline rules for Elie-driven sessions added.
+**Purpose:** the record of the July 17–18 work, plus the standing rules any
+Elie-driven session must follow. Read it at session start when either of them
+mentions that work.
 
 ## 2026-07-18 visit — outcomes
 
@@ -50,38 +52,54 @@ either of them mentions the July 17 work.
 | v2.14.2 | Arabic mode: all **340 movements** show Arabic + small English in the program viewer and swap list. Old programs included. English mode unchanged. |
 | v2.14.3 | Transliteration rule applied: بلوك (not مرحلة), أوفست، ديفيسيت، كروس أوفر… Rule recorded in `src/exerciseNamesAr.js` header for all future names. |
 
-## For Elie to do in-app
+## In-app checks — DONE (2026-07-18)
 
-1. **Booking suggestion smoke test** (Schedule tab): empty future day → 8:15;
-   a day with sessions → first gap; tap a time then change the date → your tap
-   survives; edit an existing session → its time untouched.
-2. **Arabic phrasing review** (the main job): switch to Arabic, open programs,
-   read the movement names. The small English text identifies each movement.
-   Report corrections as **"English name → better Arabic"** — each is a
-   one-line edit in `src/exerciseNamesAr.js`, deployable in minutes. The
-   transliteration rule (voice note) is already the default for new entries.
-3. **Older open items from v2.13: ALL CLOSED.** 1RM-standards and
-   deadlift-2×/week were stale (already resolved in v2.13.1/v2.13.2,
-   reconfirmed 2026-07-18). Exercise-bank export DECLINED by Elie 2026-07-18
-   ("as long as they are in the app") — its sign-off purpose was already
-   served in person on July 14; no reference file wanted. The build script
-   stays at `docs/superpowers/artifacts/2026-07-13-program-generation/` if
-   this ever changes.
+Both jobs on this sheet were completed by Elie on 2026-07-18 and are recorded in
+the outcomes above. Nothing is pending.
 
-## For Pierre FIRST (governance — before more Elie work)
+- **Booking-suggestion smoke test — PASSED** on v2.14.3 (empty day → 8:15; busy
+  day → first gap; a manual tap survived a date change; edit mode untouched).
+- **Arabic phrasing review — DONE, zero corrections.** All 340 entries reviewed
+  through 12 doubtful term families; Elie kept all 12 as they are.
+- **The one-line correction loop stays open.** If Elie spots a name in the gym,
+  report it as **"English name → better Arabic"**; it is a one-line edit in
+  `src/exerciseNamesAr.js`, deployable in minutes. The transliteration rule is
+  the default for anything new (see `CLAUDE.md` → CONVENTIONS → Arabic/i18n).
+- **Older v2.13 items — all closed:** 1RM standards (live tables kept),
+  deadlift 2×/week (already the live behaviour since v2.13.1), exercise-bank
+  export (declined — no external file wanted; the build script stays at
+  `docs/superpowers/artifacts/2026-07-13-program-generation/` if that changes).
 
-All three releases were approved **in-session while Elie was at the keyboard**;
-"pg is here" / "approved" could not be verified. Blanket authority for Elie was
-declined — each spec was individually approved, and v2.14.3 ran on a relayed
-voice note strictly inside the pre-authorized phrasing-correction loop.
+## Governance — SETTLED (2026-07-18)
 
-1. Confirm the approvals were really you (else revert paths are in
-   `docs/instructions-v2.14.1.md` / `-v2.14.2.md`).
-2. Decide whether Elie gets any standing authority. If yes, write it into
-   `CLAUDE.md` yourself (scope it: e.g. "phrasing/content edits yes,
-   features no"). Until then, per-spec approval remains the rule.
-3. Full commit list + checklist duplicated in memory:
-   `project_booking_time_suggestion_pending.md`.
+Pierre confirmed the July 17 approvals and **granted Elie standing authority**,
+conditioned on git-rollback discipline and a mandatory live-data snapshot at
+every juncture. The authoritative text is `CLAUDE.md` → **"Governance — Elie's
+Standing Authority"**; Pierre can revoke or re-scope it by editing that section.
+Identity was taken on trust, as with every in-terminal decision. Baseline
+snapshot: `_archive/PTApp/data-snapshots/2026-07-18-elie-authority-baseline.json`.
+Revert paths, if ever needed: `docs/instructions-v2.14.{1,2,3}.md`.
+
+## Rules for any Elie-driven session (added 2026-08-03)
+
+Elie drives changes at Pierre's keyboard, so these sessions are where
+documentation drift enters. Follow the release discipline in `CLAUDE.md` →
+**"🔒 Release hygiene — the five rules"** exactly as a Pierre-driven session
+would:
+
+1. `wc -c CLAUDE.md` must stay **under 20,000** before committing.
+2. Only **one** full version section (`## Current Version`); the outgoing one
+   collapses to a `## Version History` line in the same commit.
+3. No version ships without **both** a changelog entry and a
+   `docs/instructions-v<ver>.md`.
+4. A durable rule never lives only in a changelog entry — it goes into TRAPS /
+   CONVENTIONS / `docs/traps.md` when it is written.
+5. When a "placeholder / awaiting / TBD" item resolves, **rewrite it as settled
+   fact** — as this file's two sections above were rewritten on 2026-08-03.
+
+Plus the standing governance conditions: commit + push everything, and take the
+live-data snapshot before any deploy, schema change, migration, or
+data-touching operation.
 
 ## Where everything lives
 
