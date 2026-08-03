@@ -10,13 +10,14 @@ investigate, do not ask follow-up questions beyond the single one in §0.
 ## 0. Status — read this out
 
 - App is at **v2.14.3**, deployed, working. **No code is broken. Nothing here is urgent.**
-- There is a **3-part tidy-up work order queued** (§1): CLAUDE.md is 41 KB and slow to load,
+- There is a **4-part tidy-up work order queued** (§1): CLAUDE.md is 41 KB and slow to load,
   two shipped versions are missing from the changelog, and one instruction in it is stale.
+  **Part D stops it happening again** — that's the part that matters most.
 - **Uncommitted:** `tmp/` is untracked. Nothing else.
 - Everything below was verified 2026-08-03 — evidence is in §2, so don't re-derive it.
 
-**Ask him:** *"Work order has 3 parts — slim CLAUDE.md, fix the changelog gaps, or run the health
-check? Or all three in order?"* Then stop.
+**Ask him:** *"Work order has 4 parts — changelog backfill, CLAUDE.md slim, health check, and the
+discipline rules that stop the regrowth. All four in order?"* Then stop.
 
 ---
 
@@ -129,6 +130,71 @@ This is a drift sweep, not a rewrite.
 
 **Acceptance:** a short written report — what's stale, what's drifted, what's actually broken (if
 anything). Detail in a file, summary to Pierre in ≤5 lines.
+
+---
+
+### Part D — The discipline that stops it regrowing (DO NOT SKIP)
+
+Parts A–C are a one-time cleanup. **Without this part it all comes back.** It already did once:
+the file was slimmed to 19.5 KB at v2.9.2, then every release appended a full section and nothing
+ever collapsed them, so it drifted back to 41 KB over about five months. Nobody did anything wrong —
+there was simply no rule saying where a changelog entry stops living in CLAUDE.md.
+
+Add the following to `CLAUDE.md`, inside **`## How to Build, Verify, and Deploy`** so it sits in the
+release checklist a session actually follows — not in a section that only gets read on purpose.
+
+**1. Size budget — CLAUDE.md stays under 20 KB.**
+
+Pierre's number, and it's a sound one: ~20 KB ≈ 5,000 tokens of session-start context. It was never
+an enforced rule before, only where the last slim happened to land. Make it a real gate:
+
+```bash
+# Run at release time, before committing:
+wc -c CLAUDE.md          # must be < 20000
+```
+
+Over budget ⇒ collapse the oldest full version section into `## Older Versions` before committing.
+Do not "just this once" past it — that is precisely how 19.5 KB became 41 KB.
+
+> ⚠️ **CLAUDE.md is only half the load.** `memory/MEMORY.md` is another 15 KB and loads on every
+> session too, so PTApp currently costs ~14,200 tokens before Pierre types anything. Keep MEMORY.md
+> under ~12 KB by the same logic. Report both numbers to Pierre when either moves.
+
+**2. Only ONE full version section may exist — `## Current Version`.**
+
+On every release: the outgoing Current Version collapses to a one-liner in `## Older Versions` in
+the *same commit* that promotes the new one. Never leave two full sections standing. Nine had
+accumulated by 2026-08-03.
+
+**3. No version ships without both a changelog line and an instructions file.**
+
+Every shipped version needs a one-liner in `## Older Versions` **and** a
+`docs/instructions-v<ver>.md`. v2.13.1, v2.13.2, v2.11.1, v2.10.3 and v2.10.4 each broke this rule
+in a different way. Add to the release checklist:
+
+```bash
+git log --oneline | grep -i "Deploy v" | head -20   # every one must resolve to both
+ls docs/instructions-v*.md
+```
+
+**4. A durable rule NEVER lives only in a changelog entry.**
+
+If a change establishes something permanent — "X is THE single kernel", "never do Y at call sites",
+a platform trap — it goes into `TRAPS` / `docs/traps.md` / `CODING CONVENTIONS` / the reducer table
+**at the time it is written**, not into the version section. The version section records *what
+shipped*; the rule sections record *what is true*. The PS5.1 `Get-Content` trap is what happens when
+this is skipped: it lived in a changelog entry alone and a routine slim would have deleted it.
+
+**5. Completed instructions get rewritten as settled fact.**
+
+When a "placeholder / awaiting / until X confirms / TBD" item is resolved, rewrite it in place as
+what is now true. Do not leave pending language behind — a future session cannot tell a live
+instruction from a finished one, and will act on it. The `CHARTS_VERSION` bump in Part C is exactly
+this failure, and it survived three releases.
+
+**Acceptance:** the five rules above are in CLAUDE.md's build/deploy section; `wc -c CLAUDE.md`
+is under 20000; and a note goes in `docs/elie-next-visit.md` so Elie-driven sessions follow the same
+discipline — he drives changes at Pierre's keyboard and his sessions are where the drift enters.
 
 ---
 
