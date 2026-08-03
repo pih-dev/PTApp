@@ -189,6 +189,28 @@ client names and phone numbers to a public GitHub repo.
 
 ---
 
+## Judgment calls made during execution — flagged, not hidden
+
+Two places where the work order said one thing and the result is slightly different. Both were
+deliberate; Pierre can reverse either.
+
+1. **`## Current Version: v2.14.3` was trimmed, not kept verbatim.** Part B said keep it "in full".
+   It was 2,554 B, and most of that was implementation prose already duplicated word-for-word in
+   `docs/instructions-v2.14.{1,2,3}.md`. Keeping it whole made the **<20,000 B gate in Part D
+   unreachable** — and Part D's gate is the binding constraint, since it's the rule that stops the
+   regrowth. **Every rule in it survived** (`suggestBookingTime` owns the booking rule, no
+   duration-fit check, Dashboard has no quick-book form, `EXERCISE_NAMES_AR` keyed by frozen English
+   names, swap keys stay English, day headers stay English, the full provenance note). What went is
+   restated prose. `## Governance` was kept in full, untouched.
+2. **`## Version History` is capped at 6 entries, which the work order didn't ask for.** An
+   uncapped list is just the old problem at a smaller scale — it grows by one line every release,
+   forever. Capping it makes the section bounded by construction, and everything older is one grep
+   away in `docs/changelog-summary.md`. Two facts from dropped entries that were still load-bearing
+   (the v2.10.1 shared utils, and the `snapshot-pre-v2.9.5` rollback tag) were kept in the tail line
+   rather than lost. The cap is written into Part D rule 2.
+
+---
+
 ## Context budget after this work order
 
 | | Before | After | Budget |
