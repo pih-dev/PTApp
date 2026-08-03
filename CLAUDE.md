@@ -1,5 +1,11 @@
 # PTApp — Personal Trainer Client Management App
 
+> 🚨 **RESUMING? READ `HANDOFF.md` FIRST — AND ONLY THAT.**
+> Reply with its §0 in ≤5 lines, ask the one question it names, then stop. Do not read this file
+> end-to-end, do not explore, do not start work unprompted. **A 3-part tidy-up work order is
+> queued there** (changelog backfill → CLAUDE.md slim → health check) with the findings already
+> verified, so nothing needs re-deriving.
+
 ## Session Startup
 - Always push to master AND deploy to gh-pages after every commit (see deploy section)
 - Auto-push to GitHub after every commit — do not ask, just push
