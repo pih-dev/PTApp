@@ -14,25 +14,54 @@ A mobile-first web app for a personal trainer to manage his gym clients. The PT 
 - **Developer:** Pierre (pierreishere@gmail.com / GitHub pih-dev).
 - **End user:** Elie, the PT — holds standing authority to drive changes (see Governance).
 
-**Reference lives in `docs/`, read on demand:** `architecture.md` (features · stack · file tree · design decisions · roadmap · reducer table · sibling projects) · `traps.md` · `design-system.md` · `app-health.md` · `changelog-{summary,technical}.md` · `instructions-v*.md` · `elie-next-visit.md` · `reviews/` · `superpowers/{specs,plans}/`.
+## Topic Router
+PTApp's depth lives in `docs/`. **A `UserPromptSubmit` hook injects the matching file into the turn**
+on these keywords — don't open them yourself, and never answer from recollection when one arrives.
+
+| Keywords | Read (relative to `C:/projects/PTApp/`) |
+|---|---|
+| architecture, file tree, project structure, tech stack, reducer, dispatch, roadmap | `docs/architecture.md` |
+| trap, traps, gotcha, why did this break, edge case | `docs/traps.md` — 40 KB, injection truncates at 8 KB; the TRAPS index below stays the complete list |
+| colour, color, palette, theme, dark mode, light theme, typography, look and feel | `docs/design-system.md` |
+| data size, ceiling, pruning, overhead, performance budget, how big | `docs/app-health.md` |
+| sync, syncing, offline, service worker, localStorage, stale device | `docs/sync-and-offline-review.md`, `docs/superpowers/specs/2026-04-13-sync-fix-design.md`, `docs/instructions-v2.6.md` |
+| Elie, the PT, next visit, standing authority, governance, snapshot | `docs/elie-next-visit.md` |
+| health check, sanity suite, live diff, spent gate, MEMORY.md size | `docs/health-check-2026-08-03.md` |
+| deploy, gh-pages, pages build, release hygiene, review discipline | `docs/release-hygiene.md` — full 7-step pipeline, the Jun 11 Pages race, why the gates are spent |
+| review findings, P3, P6, SessionCard, refactor backlog | `docs/reviews/2026-06-10-fable5-codebase-review.md`, `docs/superpowers/specs/2026-04-21-session-card-refactor-brainstorm.md` |
+| app name, store, publish, capacitor, native app, stage 2 | `docs/2026-07-14-app-name-research.md`, `docs/stage2-publishing-guide.md` |
+| changelog, what changed in, release notes | `docs/changelog-summary.md` — every version in plain English, newest first |
+| program, exercise bank, volume, weak point, generation rules | `docs/superpowers/specs/2026-07-13-program-generation-design.md`, `docs/instructions-v2.13.md` |
+| 1RM, one rep max, norms, standards, evaluate, evaluation | `docs/superpowers/specs/2026-07-06-1rm-battery-replaces-mass-design.md`, `docs/instructions-v2.12.md` |
+| arabic, translation, i18n, RTL, transliteration | `docs/superpowers/specs/2026-07-17-exercise-names-arabic-design.md`, `docs/instructions-v2.14.2.md` |
+| split, training days, mass battery, eval timer, measurement console, observe and grade, booking time, free slot, recurring, repeat sessions, override, session count, backfill, contract, package, renewal, billing period, renew, upcoming, home screen, roll off, whatsapp, confirm link, calendar link, multi-client, group booking, visual polish, light redesign, focus tags, tag split, error boundary, white screen, ordinal, counting kernel, fork hygiene, screenshot, which doc, where is it documented | `docs/README.md` — the index of every doc, spec and per-release write-up. **It names the file; you still open it.** |
+
+The long tail routes through `docs/README.md` rather than 20 more rows, because a row costs bytes in
+*every* session while the index costs them only on a match. Unrouted on purpose:
+`docs/superpowers/plans/*` (14 build logs, 10–90 KB — they truncate at the 8 KB budget and their
+first 8 KB is scaffold; the **spec** is the design record) and `docs/changelog-technical.md` (163 KB).
+
+**Adding a row?** Keywords must match how Pierre *speaks*, not how the doc is titled; keys of ≤4
+characters need a word boundary, so `trap` does not match `traps` — list both. The rule a session can
+act on alone stays inline here; only the evidence and the procedure route.
 
 ## Current Version: v2.14.3
-Three same-day point releases (2026-07-17), all driven by **Elie in-session** (Pierre absent). UI-only; `DATA_VERSION` stays 6, `EXERCISE_BANK_VERSION` untouched. Detail: `docs/instructions-v2.14.{1,2,3}.md` + specs/plans in `docs/superpowers/`.
-- **v2.14.1 — booking time suggestion.** `suggestBookingTime(sessions, clients, date)` in `utils.js` OWNS the rule: first free 15-min slot walking forward from 08:15 over the duration-aware `getOccupiedSlots` map; **no duration-fit check** for the new session (Elie's explicit choice). `Schedule.jsx` re-suggests on date change, gated by an ephemeral `timeTouched` flag — a manual tap always wins, edit mode never re-suggests. **Dashboard has NO quick-book form** (edit-only modal; its `time:'09:00'` default is dead code).
-- **v2.14.2 — Arabic exercise names.** `src/exerciseNamesAr.js` — handwritten, NOT generated, NOT in `i18n.js`; all 340 bank movements keyed by the exact English `name` frozen in program records, so old programs show Arabic automatically. `ProgramViewer.jsx`'s `exLabel()` renders Arabic + small ltr-isolated English; **swap keys and `doSwap` stay on English names** (the storage key). Day headers stay English (Elie, reconfirmed).
+Three same-day point releases (2026-07-17), all driven by **Elie in-session** (Pierre absent). UI-only; `DATA_VERSION` stays 6, `EXERCISE_BANK_VERSION` untouched. Detail routes on `booking time` / `arabic`, or read `docs/instructions-v2.14.{1,2,3}.md`.
+- **v2.14.1 — booking time suggestion.** `suggestBookingTime(sessions, clients, date)` in `utils.js` OWNS the rule (first free 15-min slot from 08:15; **no duration-fit check** — Elie's explicit choice). `Schedule.jsx` re-suggests on date change behind an ephemeral `timeTouched` flag: a manual tap always wins, edit mode never re-suggests. **Dashboard has NO quick-book form** — its `time:'09:00'` default is dead code.
+- **v2.14.2 — Arabic exercise names.** `src/exerciseNamesAr.js` — handwritten, NOT generated, NOT in `i18n.js`; all 340 bank movements keyed by the exact English `name` frozen in program records, so old programs show Arabic automatically. **Swap keys and `doSwap` stay on English names** (the storage key); day headers stay English (Elie, reconfirmed).
 - **v2.14.3 — transliteration rule.** Elie's standing rule for all future Arabic — see CONVENTIONS → Arabic/i18n.
-- **PROVENANCE:** requested by Elie at Pierre's keyboard; per-spec approvals accepted on trust. **2026-07-18: Pierre confirmed those approvals and granted Elie standing authority** (below). Revert paths: `docs/instructions-v2.14.{1,2}.md`, `docs/elie-next-visit.md`.
+- **PROVENANCE:** requested by Elie at Pierre's keyboard, per-spec approvals accepted on trust; **Pierre confirmed them and granted standing authority 2026-07-18** (below). Revert paths: `docs/instructions-v2.14.{1,2}.md`, `docs/elie-next-visit.md`.
 
 ## Governance — Elie's Standing Authority (granted 2026-07-18)
-Pierre granted Elie standing authority to drive app changes in-session, on these conditions (Pierre's words: *"since we're using github we can roll back, make sure data backups are done at every juncture"*):
-- **Everything goes through git** — commit + push every change so anything Elie drives can be rolled back. No un-committed experimentation on live-facing branches.
-- **Live-data snapshot at every juncture (MANDATORY):** before any deploy, schema change, migration, or data-touching operation in an Elie-driven session, save the current `data.json` from makdissi-dev/ptapp-data to `_archive/PTApp/data-snapshots/YYYY-MM-DD-<desc>.json` and verify the byte count against the API's reported size. Baseline: `2026-07-18-elie-authority-baseline.json`.
-- **Provenance discipline continues:** specs, commits and changelogs record who asked for what, so Pierre can audit post-hoc. The grant itself was accepted on trust (identity is unverifiable in-terminal); Pierre can revoke or re-scope it any time by editing this section.
+Elie may drive app changes in-session, on Pierre's conditions (*"since we're using github we can roll back, make sure data backups are done at every juncture"*). Full context routes on `Elie` / `standing authority`.
+- **Everything goes through git** — commit + push every change, so anything Elie drives can be rolled back. No un-committed experimentation on live-facing branches.
+- **Live-data snapshot at every juncture (MANDATORY):** before any deploy, schema change, migration or data-touching operation, save `data.json` from makdissi-dev/ptapp-data to `_archive/PTApp/data-snapshots/YYYY-MM-DD-<desc>.json` and verify its byte count against the API's reported size. Baseline: `2026-07-18-elie-authority-baseline.json`.
+- **Provenance discipline continues** — specs, commits and changelogs record who asked for what, so Pierre can audit post-hoc. The grant was accepted on trust (identity is unverifiable in-terminal); Pierre can revoke or re-scope it by editing this section.
 
 ---
 
 ## Version History
-**Last 6 releases only** — one short line each; older entries drop off to `docs/changelog-summary.md`. Full detail always lives in `docs/instructions-v*.md` + `docs/changelog-{summary,technical}.md`. Rules still in force do NOT live here — they live in TRAPS / CODING CONVENTIONS.
+**Last 6 releases, one line each**; the 7th drops off to `docs/changelog-summary.md`. Detail lives in `docs/instructions-v*.md`. Rules still in force do NOT live here — they live in TRAPS / CODING CONVENTIONS.
 
 - **v2.14.0** (07-14) — Multi-day split program generation, 3–6 days; `PROGRAM_RULES_VERSION` 2→3. → `v2.14.md`
 - **v2.13.1–.3** (07-14) — Elie domain-review fix run: Deadlift pull-anchor-only, English day headers in AR, age-banded 1RM standards (`CHARTS_VERSION` 2→3), trainer level override. → `v2.13.md`
@@ -40,7 +69,7 @@ Pierre granted Elie standing authority to drive app changes in-session, on these
 - **v2.12.1** (07-07) — Token-expiry surfacing + `TokenUpdateModal.jsx`; replacement never touches local data. → `v2.12.1.md`
 - **v2.12.0** (07-06) — 1RM battery replaces the mass battery; additive `branch:'1rm'`, DATA_VERSION stays 5; mass records view-only. → `v2.12.md`
 - **v2.11.1** (06-13) — Eval measurement console/timer (ephemeral); Evaluate moved to the top of the client card. → `v2.11.1.md`
-- **v2.11.0 and earlier** — `docs/changelog-summary.md` (every version, plain English) + `docs/instructions-v*.md`. Two older facts still load-bearing: **the v2.10.1 shared utils** (`applyOverride`, `formatOverrideDraft`, `getFocusTags`, `getSessionType`, `openWhatsApp`, `friendly`, `makeTemplateSender`) — always use them, never re-inline what they own; and the v3→v4 tag-split rollback tag `snapshot-pre-v2.9.5`.
+- **v2.11.0 and earlier** — routed `changelog-summary.md`. Rollback tag for the v3→v4 tag split: `snapshot-pre-v2.9.5`.
 
 ---
 
@@ -79,19 +108,20 @@ One function owns the computation, and **both the live preview and the save path
 
 | Kernel | Owns | In |
 |---|---|---|
-| `compute1RMFrozen(gender, age, raw)` | 1RM ratio lookup + classification (`computeEvalFrozen` is its mass-battery predecessor — historical re-freezing only) | `normCharts.js` |
+| `compute1RMFrozen(gender, age, raw)` | 1RM ratio lookup + classification (`computeEvalFrozen` = mass-battery predecessor, historical re-freezing only) | `normCharts.js` |
 | `generateProgram(...)` | ALL volume math, weak-point ranking, exercise fill | `programKernel.js` |
 | `suggestBookingTime(sessions, clients, date)` | The next-free-slot booking rule | `utils.js` |
-| `getRenewalDueMap(clients, sessions)` | Renewal-due for all three tabs (the rule stays in `isRenewalDue`) | `utils.js` |
+| `getRenewalDueMap(clients, sessions)` | Renewal-due for all three tabs (rule stays in `isRenewalDue`) | `utils.js` |
 | `getClientCountedSessions(sessions, clientId)` | Per-client counted-session index (WeakMap-cached) | `utils.js` |
 | `buildSession(clientId, date, time)` | The only constructor for a new session from the booking form | `Schedule.jsx` |
 
-- **`normCharts.js` owns ALL chart data + scoring.** Never inline a threshold in a component. **Bump `CHARTS_VERSION` on any table change** — old records keep their frozen scores, new evaluations use the new table, no migration needed. Currently **3** (Elie's real age-banded 1RM numbers, confirmed v2.13.2).
+Also single-source, from v2.10.1 — **never re-inline what they own:** `applyOverride`, `formatOverrideDraft`, `getFocusTags`, `getSessionType`, `openWhatsApp`, `friendly`, `makeTemplateSender`.
+- **`normCharts.js` owns ALL chart data + scoring.** Never inline a threshold in a component. **Bump `CHARTS_VERSION` on any table change** — old records keep their frozen scores, new evaluations use the new table, no migration needed. Currently **3** (Elie's age-banded 1RM numbers, v2.13.2).
 - **`EvalTimer.jsx` is retained but unrendered** — 1RM attempts aren't timed. **Do not delete it**; a future rep-based battery could reuse it.
 
 ### Program generation
 - **Frozen at generation.** `PROGRAM_RULES_VERSION` (`programRules.js`) + `EXERCISE_BANK_VERSION` (`exerciseBank.js`) are stamped per record; later changes never rewrite stored programs. **Bump either on ANY change** to volume tiers, method catalog, fat-loss thresholds, or the bank. **`exerciseBank.js` is GENERATED** — rebuild via `scripts/build_exercise_bank.py`, never hand-edit.
-- **Blocks store `days` (+ `daysAlt` for the endurance/fat-loss block only), NOT 4 duplicated weeks** — every other method is identical week-to-week within a block, so 4 copies would be redundant weight in `data.json` for zero gain. Deliberate deviation from the spec's "weeks" framing.
+- **Blocks store `days` (+ `daysAlt` for the endurance/fat-loss block only), NOT 4 duplicated weeks** — every other method is identical week-to-week within a block, so 4 copies would be dead weight in `data.json`. Deliberate deviation from the spec's "weeks" framing.
 - **The Deadlift anchor counts toward Back, not its bank primary (Quads).** Spec §6 maps Deadlift to the Pull day, so `fillBucket` force-overrides the anchor's `bucket` to the day's major — without it, Back runs an exercise short every block.
 
 ### Arabic / i18n
@@ -99,7 +129,7 @@ One function owns the computation, and **both the live preview and the save path
 - Use `getStatus(status, lang, t)` for translated status labels.
 
 ### Colour & badges
-Accent `#2563EB` / `#60A5FA` · danger `#EF4444` · success `#10B981` · active-session amber `#F59E0B` (`card-now`). **Status badges use a CSS class, NEVER inline `style={{color, background}}`** — ``className={`badge badge-${status}`}``. **Theme-aware vars `--t1`..`--t5` and `--sep` in inline styles; never hardcode rgba.** Palette, session-type colours, filter tabs, light theme: `docs/design-system.md`.
+Accent `#2563EB` / `#60A5FA` · danger `#EF4444` · success `#10B981` · active-session amber `#F59E0B` (`card-now`). **Status badges use a CSS class, NEVER inline `style={{color, background}}`** — ``className={`badge badge-${status}`}``. **Theme-aware vars `--t1`..`--t5` and `--sep` in inline styles; never hardcode rgba.**
 
 ### Sync (v2.6+)
 Debounced 1s; localStorage saves immediately, the GitHub push waits. `pushRemoteData` retries 3× on 409 and **merges, never blind-overwrites**. Per-record `_modified` + union-by-ID means a freshly-edited record beats a stale device's copy. **Every failure must surface via `syncStatus` — never `.catch(() => {})` on a sync path.**
@@ -121,7 +151,7 @@ Debounced 1s; localStorage saves immediately, the GitHub push waits. `pushRemote
 ---
 
 ## REVIEW DISCIPLINE
-After **3+ feature changes** or ~2 hours of coding, pause and check: did the fix land everywhere the pattern exists? · every read AND write migrated on a storage refactor? · callbacks shadowing `t`/`d`? · inline `marginLeft`/`borderLeft` or hardcoded colours? · strings missing from `i18n.js`? · anything that deletes/overwrites/fails to migrate? · new `.catch(() => {})` or dispatches in loops?
+After **3+ feature changes** or ~2 hours of coding, pause and check: did the fix land everywhere the pattern exists? · every read AND write migrated on a storage refactor? · callbacks shadowing `t`/`d`? · inline `marginLeft`/`borderLeft` or hardcoded colours? · strings missing from `i18n.js`? · anything that deletes/overwrites/fails to migrate? · new `.catch(() => {})` or dispatches in loops? (The incident behind each check: `docs/release-hygiene.md` §3.)
 
 After every commit: **bug fix** → root cause + pattern into `docs/traps.md`, then grep for it elsewhere · **feature** → `docs/instructions-v{X}.md` + both changelogs · **design decision** → CONVENTIONS or `docs/architecture.md`, not just the commit message · **incident** → memory.
 
@@ -139,8 +169,8 @@ Every code change goes through this full pipeline — **never skip steps**:
 # 1. Build
 npm run build
 
-# 2. Verify the bundle isn't corrupted (catches blank-page bugs)
-node -e "const fs=require('fs'),h=fs.readFileSync('dist/index.html','utf8'),s=h.indexOf('<script>')+8,e=h.lastIndexOf('</script>');fs.writeFileSync('test-bundle.js',h.substring(s,e))" && node --check test-bundle.js && rm test-bundle.js
+# 2. Verify the bundle parses — catches the blank-page corruption bug
+node scripts/verify-bundle.mjs
 
 # 3. Bump the version in the App.jsx debug panel; rebuild if changed.
 #    Feature releases: also bump DOCS.instructions in General.jsx to the new
@@ -161,26 +191,23 @@ git checkout master
 # 7. Tell Pierre the version number so he can verify on his phone
 ```
 
-**Critical notes:**
-- Pushing to `master` alone does NOT deploy — the live site serves from `gh-pages`. **And pushing to `gh-pages` does not guarantee deployment either:** verify `gh api repos/pih-dev/PTApp/pages/builds/latest --jq .status` reaches `built`. (Jun 11: two pushes 5 min apart hit a GitHub artifact race, the deploy step failed, and the stale record showed `building` for 24h. Fix: `gh api -X POST repos/pih-dev/PTApp/pages/builds`, then re-verify. Avoid rapid back-to-back gh-pages pushes.)
-- **Schema changes need a live-data byte-diff gate — and all three existing ones are SPENT** (`live-v6-diff`, `live-v5-diff`, `live-migration`). Each asserts the snapshot is still at the pre-release version, and the archive has moved past it, so each now prints "DO NOT DEPLOY" by design, not because anything is wrong. **A v6→v7 change needs a NEW `sanity-live-v7-diff.mjs`, copied from the v6 one.** (It reads the newest file in `_archive/PTApp/data-snapshots/` — so a gate expires the moment a newer snapshot is archived.)
-- Run the whole sanity suite before every deploy: `for f in scripts/sanity/*.mjs; do node "$f"; done`. 13 of the 16 pass on demand; the 3 live-diff gates are the spent ones above.
+**Critical notes** (the incidents behind these: `docs/release-hygiene.md`):
+- Pushing to `master` does NOT deploy, and pushing to `gh-pages` does not guarantee it either — **verify `gh api repos/pih-dev/PTApp/pages/builds/latest --jq .status` reaches `built`.** Stuck on `building`? `gh api -X POST repos/pih-dev/PTApp/pages/builds`, then re-verify. Never push `gh-pages` twice in quick succession.
+- **A schema change needs a live-data byte-diff gate, and all three existing ones are SPENT by design** (`live-v6-diff`, `live-v5-diff`, `live-migration` — each asserts a snapshot the archive has moved past, so each prints "DO NOT DEPLOY"). **A v6→v7 change needs a NEW `sanity-live-v7-diff.mjs`, copied from the v6 one.**
+- Run the whole suite before every deploy: `for f in scripts/sanity/*.mjs; do node "$f"; done` — 13 of 16 pass, the 3 above are the spent gates.
 
 ### 🔒 Release hygiene — the five rules (added 2026-08-03)
-CLAUDE.md was slimmed 41 KB → 19.5 KB at v2.9.2, then drifted back to 41 KB in five months: every release appended a full section and nothing ever collapsed one. **Do not skip these "just this once" — that is exactly how it regrew.**
+CLAUDE.md was slimmed to 19.5 KB at v2.9.2 and drifted back to 42 KB in five months, because every release appended a section and none ever collapsed one. **Do not skip these "just this once" — that is exactly how it regrew.** Why each exists: `docs/release-hygiene.md` §1.
 
 ```bash
-wc -c CLAUDE.md                              # RULE 1: must be < 20000 before committing
-git log --all --oneline | grep -i "Deploy v" # RULE 3: each must resolve to a changelog line AND an instructions file
+wc -c CLAUDE.md                              # RULE 1: must be < 22000 before committing
+git log --all --oneline | grep -i "Deploy v" # RULE 3: each resolves to a changelog line AND an instructions file
 ls docs/instructions-v*.md
 ```
 
-**1. Under 20 KB** (≈5,000 session-start tokens). Over budget ⇒ collapse the oldest version section before you commit. ⚠️ CLAUDE.md is only half the load — `memory/MEMORY.md` loads every session too; keep it under ~12 KB and report both numbers to Pierre when either moves.
-
-**2. Only ONE full version section — `## Current Version`.** The outgoing one collapses to a `## Version History` line **in the same commit** that promotes the new one, and Version History itself is capped at the last 8 entries — the 9th drops off to `docs/changelog-summary.md`. Nine full sections had accumulated by 2026-08-03.
-
-**3. No version ships without a changelog line AND an instructions file.** Naming: a `.0` release is `instructions-vX.Y.md`, patch releases `instructions-vX.Y.Z.md` (`v2.10.0.md` is a legacy exception). v2.9.1, v2.10.3, v2.10.4, v2.11.1, v2.12.1, v2.13.1, v2.13.2 and v2.14.3 each broke this differently before 2026-08-03.
-
-**4. A durable rule NEVER lives only in a version/changelog entry.** "X is THE single kernel", "never do Y at call sites", a platform trap → into `TRAPS` / `docs/traps.md` / CODING CONVENTIONS **when written**. Version sections record *what shipped*; rule sections record *what is true*. The PS 5.1 trap lived in one changelog entry — a routine slim would have deleted it.
-
-**5. Completed instructions get rewritten as settled fact.** When a "placeholder / awaiting / until X confirms / TBD / parked" item resolves, rewrite it in place. A future session cannot tell a live instruction from a finished one and will act on it — the `CHARTS_VERSION` bump survived three releases as a pending instruction after it was already done.
+1. **Under 22 KB** (raised from 20 KB on 2026-08-05 to fund the ~3.4 KB Topic Router, which buys keyword reach into all 83 docs). Over budget ⇒ collapse the oldest version section before committing. ⚠️ `memory/MEMORY.md` loads every session too — keep it under ~12 KB and report **both** numbers when either moves.
+2. **Only ONE full version section — `## Current Version`.** The outgoing one collapses to a `## Version History` line **in the same commit** that promotes the new one; History is capped at 8, the 9th drops to `docs/changelog-summary.md`.
+3. **No version ships without a changelog line AND an instructions file.** `.0` → `instructions-vX.Y.md`, patch → `instructions-vX.Y.Z.md` (`v2.10.0.md` is a legacy exception).
+4. **A durable rule NEVER lives only in a version/changelog entry** — a kernel claim, a "never do Y at call sites", a platform trap goes into `TRAPS` / `docs/traps.md` / CONVENTIONS **when written**. Version sections record what shipped; rule sections record what is true.
+5. **Completed instructions get rewritten as settled fact.** A resolved "placeholder / awaiting / TBD / parked" item is rewritten in place — a future session cannot tell a live instruction from a finished one, and will act on it.
+6. **New docs get a router row or a `docs/README.md` line** in the same commit. An unreachable doc is a doc that does not exist.
