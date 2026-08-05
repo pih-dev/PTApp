@@ -144,8 +144,8 @@ Debounced 1s; localStorage saves immediately, the GitHub push waits. `pushRemote
 
 ## KNOWN ISSUES / OBLIGATIONS
 - 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev, scoped ptapp-data Contents R/W only. Replacement UI: General → Backup → "Update sync token".
-- **Program pruning (v2.15)** — do it before `data.json` approaches the 1 MB ceiling. Deferred from v2.14.
-- **Open review findings P3 + P6** — `docs/reviews/2026-06-10-fable5-codebase-review.md` is the standing work order (P1/P2/P8 → v2.10.2, P4/P5 → v2.10.3, P7 → v2.10.4). **P3** SessionCard refactor, parked on Pierre's scope decision. **P6** ordinal at booking time, needs a freeze-vs-live design call first (the confirm popup must reflect override edits live).
+- **Program pruning (v2.15)** — before `data.json` nears the 1 MB ceiling (151,686 B = 14.5% on 2026-08-03, but the growth rate jumped 6.6× once programs shipped). 🔴 **Pierre's standing rule (2026-07-13): download `data.json` to `_archive/PTApp/data-snapshots/YYYY-MM-DD-pre-prune-data.json` BEFORE any pruning run** — cloud deletes are irreversible, the local archive is the only recovery copy.
+- **Open review findings P3 + P6** — `docs/reviews/2026-06-10-fable5-codebase-review.md` is the standing work order. **P3** SessionCard refactor, parked on Pierre's scope call. **P6** ordinal at booking time, needs a freeze-vs-live design call first (the confirm popup must reflect override edits live).
 - **App name** — "PTApp" is a working title; a unique, untrademarked name is needed before store submission.
 
 ---
