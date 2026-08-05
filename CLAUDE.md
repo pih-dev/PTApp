@@ -144,7 +144,7 @@ Debounced 1s; localStorage saves immediately, the GitHub push waits. `pushRemote
 ## KNOWN ISSUES / OBLIGATIONS
 - 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev, scoped ptapp-data Contents R/W only. Replacement UI: General → Backup → "Update sync token".
 - **Program pruning (v2.15)** — before `data.json` nears the 1 MB ceiling (151,686 B = 14.5% on 2026-08-03, but the growth rate jumped 6.6× once programs shipped). 🔴 **Pierre's standing rule (2026-07-13): download `data.json` to `_archive/PTApp/data-snapshots/YYYY-MM-DD-pre-prune-data.json` BEFORE any pruning run** — cloud deletes are irreversible, the local archive is the only recovery copy.
-- **Open review findings P3 + P6** — `docs/reviews/2026-06-10-fable5-codebase-review.md` is the standing work order. **P3** SessionCard refactor, parked on Pierre's scope call. **P6** ordinal at booking time, needs a freeze-vs-live design call first (the confirm popup must reflect override edits live).
+- **Open review findings P3 + P6** — `docs/reviews/2026-06-10-fable5-codebase-review.md` is the standing work order. Both were decision-blocked; **Pierre decided both on 2026-08-05 and neither is built yet.** **P3** SessionCard refactor = **scope B**: Dashboard-expanded + Schedule only, compact and `Sessions.jsx` as follow-ups; deletes the `focus: []` bug at `Schedule.jsx:201` in the same cut. **P6** ordinal = **live, never stored**: every read goes through `getClientCountedSessions`, the confirm popup receives the computed value as a prop — a stored ordinal goes stale on cancel/delete/override.
 - **App name** — "PTApp" is a working title; a unique, untrademarked name is needed before store submission.
 
 ---

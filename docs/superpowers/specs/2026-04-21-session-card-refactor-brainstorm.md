@@ -48,6 +48,15 @@ Compact cards (Dashboard only, `251–279`) are a stripped variant — client na
 ### Modal ownership
 Each parent owns its own modals (action sheet, booking form, edit form). `SessionCard` must stay a pure leaf — all actions surface up as callbacks. No modals inside it.
 
+> ## ✅ DECIDED 2026-08-05 — Pierre picked **scope B**
+> **Dashboard-expanded + Schedule only.** Dashboard-compact and `Sessions.jsx` are follow-ups, taken
+> once the real API shape is known rather than designed for upfront. Lands the `focus: []` deletion
+> at `Schedule.jsx:201` as part of the same cut (see Resolved divergences below).
+>
+> The brainstorm resumes at **step 3, question 1: API shape** — discriminator union prop
+> (`variant="dashboard-expanded"`) vs. fine-grained feature flags vs. render-prop composition for the
+> action row. Everything below this box is the pre-decision exploration, kept for its reasoning.
+
 ## The open decision: scope of the first cut
 
 Sessions.jsx is the outlier (no WA, conditional notes editing, uses `EditableFocus` wrapper). Including it forces a much wider prop surface.
