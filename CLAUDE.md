@@ -5,9 +5,8 @@
 > end-to-end, do not explore, do not start work unprompted.
 
 ## Session Startup
-- Always push to master AND deploy to gh-pages after every commit (see the deploy section)
-- Auto-push to GitHub after every commit — do not ask, just push
-(Remote control, commit discipline, memory, and session management are in the global ~/.claude/CLAUDE.md)
+- **After every commit: push to master AND deploy to gh-pages** (deploy section below). Do not ask.
+(Remote control, commit discipline, memory and session management: global `~/.claude/CLAUDE.md`)
 
 ## What This Project Is
 A mobile-first web app for a personal trainer to manage his gym clients. The PT uses it on his iPhone; Pierre develops and tests on Android.
