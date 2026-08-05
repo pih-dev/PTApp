@@ -60,7 +60,7 @@ Elie may drive app changes in-session, on Pierre's conditions (*"since we're usi
 ---
 
 ## Version History
-**Last 6 releases, one line each**; the 7th drops off to `docs/changelog-summary.md`. Detail lives in `docs/instructions-v*.md`. Rules still in force do NOT live here — they live in TRAPS / CODING CONVENTIONS.
+**Last 6 releases, one line each**; the 7th drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules still in force live in TRAPS / CONVENTIONS, never here.
 
 - **v2.14.0** (07-14) — Multi-day split program generation, 3–6 days; `PROGRAM_RULES_VERSION` 2→3. → `v2.14.md`
 - **v2.13.1–.3** (07-14) — Elie domain-review fix run: Deadlift pull-anchor-only, English day headers in AR, age-banded 1RM standards (`CHARTS_VERSION` 2→3), trainer level override. → `v2.13.md`
@@ -143,9 +143,9 @@ Debounced 1s; localStorage saves immediately, the GitHub push waits. `pushRemote
 
 ## KNOWN ISSUES / OBLIGATIONS
 - 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev, scoped ptapp-data Contents R/W only. Replacement UI: General → Backup → "Update sync token".
-- **Program pruning (v2.15)** — before `data.json` nears the 1 MB ceiling (151,686 B = 14.5% on 2026-08-03, but the growth rate jumped 6.6× once programs shipped). 🔴 **Pierre's standing rule (2026-07-13): download `data.json` to `_archive/PTApp/data-snapshots/YYYY-MM-DD-pre-prune-data.json` BEFORE any pruning run** — cloud deletes are irreversible, the local archive is the only recovery copy.
-- **Open review findings P3 + P6** — `docs/reviews/2026-06-10-fable5-codebase-review.md` is the standing work order. Both were decision-blocked; **Pierre decided both on 2026-08-05 and neither is built yet.** **P3** SessionCard refactor = **scope B**: Dashboard-expanded + Schedule only, compact and `Sessions.jsx` as follow-ups; deletes the `focus: []` bug at `Schedule.jsx:201` in the same cut. **P6** ordinal = **live, never stored**: every read goes through `getClientCountedSessions`, the confirm popup receives the computed value as a prop — a stored ordinal goes stale on cancel/delete/override.
-- **App name** — "PTApp" is a working title; a unique, untrademarked name is needed before store submission.
+- **Program pruning (v2.15)** — before `data.json` nears the 1 MB ceiling (14.5% on 2026-08-03, but the growth rate jumped 6.6× once programs shipped). 🔴 **Pierre's standing rule (2026-07-13): archive `data.json` to `_archive/PTApp/data-snapshots/YYYY-MM-DD-pre-prune-data.json` BEFORE any pruning run** — cloud deletes are irreversible.
+- **Review findings P3 + P6 — DECIDED 2026-08-05, NOT BUILT.** Work order: `docs/reviews/2026-06-10-fable5-codebase-review.md`. **P3** SessionCard = **scope B** (Dashboard-expanded + Schedule only; compact and `Sessions.jsx` follow later); also deletes the `focus: []` bug at `Schedule.jsx:201`. **P6** ordinal is **live, never stored** — all reads via `getClientCountedSessions`, confirm popup takes it as a prop; a stored ordinal goes stale on cancel/delete/override.
+- **App name** — "PTApp" is a working title; store submission needs a unique, untrademarked one.
 
 ---
 
@@ -156,13 +156,9 @@ After every commit: **bug fix** → root cause + pattern into `docs/traps.md`, t
 
 ---
 
-## How to Run (Development)
-```bash
-npm install
-npm run dev
-```
-
 ## How to Build, Verify, and Deploy
+Dev: `npm install && npm run dev`.
+
 Every code change goes through this full pipeline — **never skip steps**:
 ```bash
 # 1. Build
