@@ -1,0 +1,15 @@
+# Context budget for this project, in bytes. Read by CCHealth's /sweep and /wrap.
+#
+# The workspace default is CLAUDE.md=20000 MEMORY.md=12000; a project only needs
+# this file if it wants a different ceiling. Keep it in sync with the prose rule
+# it mirrors — here, "Release hygiene gate" rule 1 in CLAUDE.md.
+#
+# It lives OUTSIDE CLAUDE.md on purpose: the first version was an HTML comment
+# inside the file, and its own 178 bytes pushed PTApp back over the very gate it
+# was declaring. A budget declaration must not consume the budget.
+#
+# 22 KB rather than 20: ~3.4 KB of that file is a Topic Router that buys keyword
+# reach into all 83 docs. Raised 2026-08-05, adopted by CCHealth the same day.
+
+CLAUDE.md=22000
+MEMORY.md=12000
