@@ -42,8 +42,8 @@ The long tail routes through `docs/README.md` rather than 20 more rows, because 
 the **spec** is the design record) and `docs/changelog-technical.md` (163 KB).
 
 **Adding a row?** Keywords must match how Pierre *speaks*, not how the doc is titled; keys of ≤4
-characters need a word boundary, so `trap` does not match `traps` — list both. The rule a session can
-act on alone stays inline here; only the evidence and the procedure route.
+characters need a word boundary, so `trap` misses `traps` — list both. The rule a session can act on
+alone stays inline; only the evidence routes.
 
 ## Current Version: v2.14.3
 Three same-day point releases (2026-07-17), all driven by **Elie in-session** (Pierre absent). UI-only; `DATA_VERSION` stays 6, `EXERCISE_BANK_VERSION` untouched. Detail routes on `booking time` / `arabic`, or read `docs/instructions-v2.14.{1,2,3}.md`.
