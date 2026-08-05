@@ -18,9 +18,18 @@ investigate, do not ask follow-up questions beyond the single one in §0.
   and the next schema change needs a fresh `sanity-live-v7-diff.mjs` (all three existing live-diff
   gates are spent).
 - Full report: `docs/health-check-2026-08-03.md`. Nothing needs re-deriving.
+- 🆕 **Queued by CCHealth (2026-08-05): PTApp has no Topic Router table, and 81 docs no keyword can
+  reach — the largest unrouted pile in the workspace.** A `UserPromptSubmit` hook already injects
+  routed files into the turn in every project, so this is **content only, no code**: add a markdown
+  table to `CLAUDE.md` (keywords | backticked paths | covers), relative paths from `C:/projects/PTApp/`.
+  **Layer split:** CCHealth owns the hook, the map and the global config; **PTApp owns its own rows** —
+  which is why this is queued here and not done from there. Worked example with the traps
+  (keywords must match how Pierre *speaks*, not doc titles): `C:/projects/CCHealth/CLAUDE.md`
+  and `C:/projects/CCHealth/docs/sessions/2026-08-05-router-depth.md` §7. Verify with
+  `SELFTEST_CWD=C:/projects/PTApp py C:/projects/CCHealth/scripts/router_inject.py --selftest "<phrase>"`.
 
-**Ask him:** *"Work order's done. Next: slim MEMORY.md to budget, or leave it and pick up P3/P6?"*
-Then stop.
+**Ask him:** *"Work order's done. Next: the router table for the 81 unreachable docs, slim MEMORY.md
+to budget, or pick up P3/P6?"* Then stop.
 
 ---
 
