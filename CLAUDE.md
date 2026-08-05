@@ -21,7 +21,7 @@ on these keywords — don't open them yourself, and never answer from recollecti
 | Keywords | Read (relative to `C:/projects/PTApp/`) |
 |---|---|
 | architecture, file tree, project structure, tech stack, reducer, dispatch, roadmap | `docs/architecture.md` |
-| trap, traps, gotcha, why did this break, edge case | `docs/traps.md` — 40 KB, injection truncates at 8 KB; the TRAPS index below stays the complete list |
+| trap, traps, gotcha, why did this break, edge case | `docs/traps.md` — truncates at 8 KB; the TRAPS index below is the complete list |
 | colour, color, palette, theme, dark mode, light theme, typography, look and feel | `docs/design-system.md` |
 | data size, ceiling, pruning, overhead, performance budget, how big | `docs/app-health.md` |
 | sync, syncing, offline, service worker, localStorage, stale device | `docs/sync-and-offline-review.md`, `docs/superpowers/specs/2026-04-13-sync-fix-design.md`, `docs/instructions-v2.6.md` |
@@ -38,8 +38,8 @@ on these keywords — don't open them yourself, and never answer from recollecti
 
 The long tail routes through `docs/README.md` rather than 20 more rows, because a row costs bytes in
 *every* session while the index costs them only on a match. Unrouted on purpose:
-`docs/superpowers/plans/*` (14 build logs, 10–90 KB — they truncate at the 8 KB budget and their
-first 8 KB is scaffold; the **spec** is the design record) and `docs/changelog-technical.md` (163 KB).
+`docs/superpowers/plans/*` (build logs, 10–90 KB — they truncate and their first 8 KB is scaffold;
+the **spec** is the design record) and `docs/changelog-technical.md` (163 KB).
 
 **Adding a row?** Keywords must match how Pierre *speaks*, not how the doc is titled; keys of ≤4
 characters need a word boundary, so `trap` does not match `traps` — list both. The rule a session can
