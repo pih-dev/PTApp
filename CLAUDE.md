@@ -27,7 +27,7 @@ on these keywords — don't open them yourself, and never answer from recollecti
 | sync, syncing, offline, service worker, localStorage, stale device | `docs/sync-and-offline-review.md`, `docs/superpowers/specs/2026-04-13-sync-fix-design.md`, `docs/instructions-v2.6.md` |
 | Elie, the PT, next visit, standing authority, governance, snapshot | `docs/elie-next-visit.md` |
 | health check, sanity suite, live diff, spent gate, MEMORY.md size | `docs/health-check-2026-08-03.md` |
-| deploy, gh-pages, pages build, release hygiene, review discipline | `docs/release-hygiene.md` — full 7-step pipeline, the Jun 11 Pages race, why the gates are spent |
+| deploy, gh-pages, pages build, release hygiene, review discipline | `docs/release-hygiene.md` — the 7-step pipeline, the Jun 11 Pages race, the spent gates |
 | review findings, P3, P6, SessionCard, refactor backlog | `docs/reviews/2026-06-10-fable5-codebase-review.md`, `docs/superpowers/specs/2026-04-21-session-card-refactor-brainstorm.md` |
 | app name, store, publish, capacitor, native app, stage 2 | `docs/2026-07-14-app-name-research.md`, `docs/stage2-publishing-guide.md` |
 | changelog, what changed in, release notes | `docs/changelog-summary.md` — every version in plain English, newest first |
