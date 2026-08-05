@@ -11,10 +11,12 @@ investigate, do not ask follow-up questions beyond the single one in §0.
 - App is at **v2.14.3**, deployed, working. **Nothing is broken. Nothing is urgent.**
 - **Topic Router shipped** — PTApp's 81 unreachable docs are now keyword-addressable. 15 rows,
   22 targets, 0 broken; routine prompts (`continue`, `git status`, `commit and push`) stay silent.
-- **Budgets:** `CLAUDE.md` **21,980 B**, `memory/MEMORY.md` **9,675 B** (was 15,307).
-  ⚠️ Rule 1's gate was raised **20 KB → 22 KB** to fund the router — a judgment call, revert is a
-  one-line edit. Reasoning: `docs/release-hygiene.md` §1. **The global `/wrap` skill still checks
-  against 20 KB and will flag PTApp as over budget until Pierre confirms the raise.**
+- **Budgets:** `CLAUDE.md` **21,980 B**, `memory/MEMORY.md` under 12 KB. The **22 KB** gate is
+  declared in `.context-budget` and adopted by CCHealth's `/sweep` and `/wrap` — settled, not a
+  pending question. Reasoning: `docs/release-hygiene.md` §1.
+- **Marketing deck delivered** (2026-08-05, Elie's ask) — EN + AR PPTX for his clients, in
+  `_archive/PTApp/marketing-deck/`, never committed here. The reusable half is a puppeteer
+  screenshot harness that drives the real app: `docs/marketing-deck.md`.
 - **P3 and P6 are decided but NOT built** — that is the next coding session. P3 = scope B
   (Dashboard-expanded + Schedule). P6 = ordinal stays live via `getClientCountedSessions`, never
   stored. Details in `CLAUDE.md` → KNOWN ISSUES.
@@ -74,6 +76,18 @@ hygiene Rule 4 in miniature: a rule stored only in a release record dies with th
 Both had been blocked on Pierre for months — on decisions, not on work. Both were put to him with
 the trade-offs and both are now settled (see §0 and `CLAUDE.md` → KNOWN ISSUES). **Neither is
 implemented.**
+
+### Client-marketing deck (Elie's ask, same day)
+
+Elie asked for a PowerPoint to sell PTApp to his gym clients — scheduling, finance, language,
+exercise bank, evaluation, programs. The screenshots he said he had sent were **not on this PC**
+(the only app shots on disk were April v2.4/v2.5, an obsolete UI with none of those features), so
+they were captured fresh from v2.14.3 by driving the real app in headless Chrome against an
+anonymised copy of live data. No real client appears in the deck.
+
+14 slides × 2 languages, speaker notes throughout, all regenerable from one `build.js`. Output and
+harness: `_archive/PTApp/marketing-deck/` (**public repo — never commit that folder**). Full write-up
+including the invalid-token safety rule and the pptxgenjs/Arabic gotchas: `docs/marketing-deck.md`.
 
 ## 2. Open items, in the order they'd matter
 

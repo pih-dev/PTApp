@@ -28,6 +28,7 @@ session-start weight to list as router rows.
 | `screenshots/CATALOG.md` | Dated visual history, v1.x → v2.9, with the device each shot came from |
 | `2026-07-14-app-name-research.md` | Store-name screening. "PTApp" is weak, "PTAssist" is dead; candidates ranked |
 | `stage2-publishing-guide.md` | Capacitor build, App Store / Play Store requirements, whether a company is needed, liability |
+| `marketing-deck.md` | Elie's client-facing PPTX (EN + AR, lives in `_archive`, never committed here) and the **puppeteer screenshot harness** that regenerates it — incl. the invalid-token rule that stops a capture run pushing to live data |
 
 ---
 
