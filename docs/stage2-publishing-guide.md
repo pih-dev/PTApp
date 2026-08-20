@@ -76,7 +76,7 @@ uncommented before the key was created. PTApp is a **public** repo; never undo t
 - **When to incorporate**: if the app earns meaningful revenue or you want professional branding.
 
 ## Prerequisites Before Publishing
-- [x] Final app name — **SpotSet**, decided 2026-08-20 (docs/2026-08-20-app-name-brainstorm.md). Buy spotset.com
+- [x] Final app name — **SpotSet**, decided 2026-08-20 (docs/2026-08-20-app-name-brainstorm.md). Buy **spotset.app** (spotset.com is TAKEN since 2009 — RDAP-confirmed 2026-08-20)
 - [ ] App icon and branding assets
 - [ ] Privacy policy (required by both stores)
 - [x] Capacitor setup and Android build -- DONE 2026-08-20 (see "Android build" above); iOS still blocked on a Mac
