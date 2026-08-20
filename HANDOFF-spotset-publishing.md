@@ -1,6 +1,6 @@
 # SpotSet — Store Publishing HANDOFF
 
-**Last updated:** 2026-08-20 ~14:30, Beirut — the submission session (Android side complete).
+**Last updated:** 2026-08-21 ~02:00, Beirut — the Apple enrolment session (order placed).
 **To resume:** Pierre types `spotset`, `publish`, `illume` or `continue`. **Read §0 back to him
 and stop.** Do not investigate, do not draft, do not ask follow-up questions beyond the one §0 names.
 
@@ -11,8 +11,10 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 `C:/projects/_archive/PTApp/claude-incidents/`:**
 - `2026-08-20-play-developer-account-FULL-SESSION.txt` — the account-creation session,
   581 messages, 464 KB.
-- `2026-08-20-spotset-play-console-listing-FULL-SESSION.txt` — this session (verification cleared
-  to store listing complete), 1,036 messages, 350 KB.
+- `2026-08-20-spotset-play-console-listing-FULL-SESSION.txt` — verification cleared to store
+  listing complete, 1,036 messages, 350 KB.
+- `2026-08-21-apple-developer-enrollment-FULL-SESSION.txt` — this session (Apple Developer Program
+  enrolment, order placed), 456 messages, 178 KB.
 
 > Subject-scoped. The general PTApp handoff (`HANDOFF.md`, app features, P3/P6) is a *different*
 > thread — do not merge them.
@@ -21,6 +23,16 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 
 ## 0. Status — read this out
 
+- 🍎 **APPLE: THE $99 ORDER IS PLACED.** Apple Developer Program, **Individual**, enrolment ID
+  **696HYTRB7F**, Mastercard ···6915, ordered **2026-08-21 ~01:55 Beirut**. Apple says up to
+  **2 business days** to process, then an activation email to pierreishere@gmail.com. **Next
+  action is Apple's.** Check the inbox before assuming it is still pending.
+- **When it activates, the order is:** App Store Connect app record for SpotSet
+  (`com.spotset.app`, name must be unique App-Store-wide) → App Store Connect **API key** →
+  Codemagic pipeline → TestFlight. Detail in §8.
+- 🔴 **There is still no Mac and none is needed** — the decided build path is **Codemagic**
+  (hosted macOS, free 500 min/mo, signs via the API key, `npx cap add ios` runs as a CI step
+  because it cannot run on Windows). **Ionic Appflow is being wound down — never start there.**
 - 🟢 **THE ANDROID SIDE IS DONE AND SUBMITTED.** SpotSet **v2.15.1 / versionCode 3** plus 13 other
   changes went to Google on **2026-08-20 ~14:10** and sit in **"Changes in review"**. Nothing is
   left for Pierre to do on the submission itself. Reviews are "typically within 7 days".
@@ -389,3 +401,69 @@ copies also in `D:\PG\docs\`). Never committed — `_archive` is outside every r
 
 ID verification runs on Google's side and takes days. The 14-day closed-test clock still has not
 started — it starts when the AAB is on a closed track **and** 12 testers have opted in.
+
+---
+
+## 8. Apple — the enrolment, as done (2026-08-21)
+
+**Everything below was done in Chrome, driven from the session, with Pierre at the keyboard for the
+password, the 2FA and every card field. No Apple hardware was involved at any point.**
+
+### The account
+- **Apple Account:** pierreishere@gmail.com (alt on the account: pierreghorra@icloud.com),
+  2FA on, legal name already correct as *Pierre Ghorra* — Apple refuses aliases at enrolment.
+- **Entity type: Individual / Sole Proprietor.** Organization was rejected up front: it needs a
+  D-U-N-S number, a work-domain email and a live public website, which is weeks of lead time and
+  the domain is deliberately deferred. **Seller name on the App Store will therefore be
+  "Pierre Ghorra", not Illume** — this differs from the Play account, on purpose.
+- **Enrolment ID `696HYTRB7F`**, US$99 / 1 year, charged in USD to Mastercard ···6915.
+
+### 🔴 The Apple Account region had to be changed first — UAE → Lebanon
+The enrolment form's **Region field is read-only**; it mirrors the Apple Account and nothing on the
+developer site can override it. It read **United Arab Emirates**. Changed at
+`account.apple.com → Personal Information → Country/region`.
+
+- Apple warned only about purchases (no subscriptions or balance to clear), then forced
+  **Apple Media Services T&Cs**, then demanded a payment method for the new region.
+- 🔴 **The card would not save against the Lebanon region.** Entered correctly three times
+  (verified against the physical card); Apple **silently wiped the Card Number field** on each
+  submit and printed only "Please enter your payment card number" — no BIN/region error.
+  Most likely the UAE-issued Mastercard being refused for a Lebanon account.
+- ✅ **`Payment Type = None` is offered and is enough.** The region change completed with None.
+  The $99 purchase then went through fine on its **own** checkout, with the same card. So:
+  *a card that Apple's account page refuses can still pay at the developer checkout.*
+- **Switching Payment Type clears the whole billing-address block** — refill it every time.
+
+### Address and format traps (both of these blocked a submit)
+- 🔴 **Lebanese postcodes are 8 digits** (Apple's own example: `2038 3054`). `2705` alone is
+  rejected. Used **`27050000`** — Dekweneh's area code plus four zeros, because the building
+  number is unknown. **Typed without the space**: the field's maxlength eats the 9th character and
+  silently stores `2705 000`.
+- 🔴 **The purchase form's billing block must match the enrolment record exactly** (Apple's own FAQ:
+  a mismatch delays enrolment and can trigger a government-ID request). Two fixes made before
+  submitting: Address Line 1 `City Rama Street` → **`City Rama`**, and phone
+  `+9613193619` → **`9613193619`** (digits only; these older Apple forms reject the `+`).
+- **Filed address:** City Rama, Dekweneh, 27050000, Lebanon region, Lebanon. Phone `961` `3193619`.
+
+### The web path exists — the "you need an iPhone" claim is half-true
+`developer.apple.com/enroll` pushes the **Apple Developer app** (iPhone/iPad/Mac) hard, but the
+page carries a **"Continue enrollment on the web ›"** link underneath, and that path completes
+fully on Windows. Two Apple support pages contradict each other on this; the link is the truth.
+
+### The Mac-less build path, decided (verified 2026-08-21, not yet built)
+| Option | Verdict |
+|---|---|
+| **Codemagic** | ✅ **Chosen.** Hosted macOS M2/M4, free **500 min/mo**, then ~$0.095/min. Builds Capacitor iOS, generates certs + provisioning profiles from an **App Store Connect API key** in its web UI, publishes to TestFlight. No Mac step anywhere. |
+| GitHub Actions macOS | Possible (PTApp repo is public ⇒ free minutes) but you hand-roll fastlane signing and upload. Private-repo macOS minutes bill at a 10× multiplier. |
+| Ionic Appflow | ❌ **Closed to new customers, sunset 2027-12-31.** Do not start here. |
+| Rented Mac (AWS EC2 mac / MacStadium) | ❌ Overkill — AWS is ~$792/mo with a 24-hour minimum tenancy. |
+
+🔴 **`npx cap add ios` cannot run on Windows** — the `ios/` folder must be generated as a CI step on
+the hosted Mac, not committed from here. Certs/profiles otherwise need no Mac: OpenSSL CSR on
+Windows + the developer portal, or (preferred) the API key.
+
+### What is NOT done on the Apple side
+- No App Store Connect app record, no bundle ID registered, no API key, no Codemagic account,
+  no `ios/` platform in the repo, no screenshots or App Store listing copy, no privacy answers.
+- **The `DEMO` review credential applies to Apple too** — App Review is a hard auth gate exactly
+  like Google's, and the same "Sign-in required / credential `DEMO`" answer is the one to file.
