@@ -42,23 +42,66 @@ Meaning flowed *to* the name after adoption, never before it.
 it", "CapCut it". A name becomes a verb when it is short, ends in a soft consonant or vowel, and
 is not already a common English word competing for the slot.
 
-## What this app actually is
+## What this app actually is — Pierre's definition, 2026-08-20
 
-Not a workout app. Not a program builder for consumers. It is **the trainer's book**: who his
-clients are, when the sessions are, how many are left in the package, when it renews, what the
-last evaluation said. Elie opens it between sets, on a phone, in a gym, in two languages.
+🔴 **This supersedes the "trainer's register" framing above and everything in round 1.** The
+product is not a personal-trainer admin tool. It is a **three-role platform for propagating a
+methodology**:
 
-That points away from `Fit*` entirely. The honest metaphor is a **register / ledger / roster**.
+| Role | What their account does |
+|---|---|
+| **Owner** (Elie) | Manages coaches and clients. Issues instructions down to coaches. |
+| **Coach** | Receives Elie's instructions; runs their own workflow; manages their own clients. |
+| **Client** | Confirms sessions the coach assigns, books from open calendar slots, views their own program, history and progress. |
+
+**The value is the evaluation → program pipeline, and its authority.** A client is evaluated
+(currently the 1RM battery), scored against **established academic norms and published standards**,
+and a program is generated from that score plus the domain expertise of sports specialists. The
+selling point is not convenience — it is that the output is **defensible**.
+
+That authority is personal: **Elie is not a personal trainer.** He is a sports specialist with a
+PhD who teaches at a university. (This independently corroborates the LinkedIn snippet flagged as
+unverified on 2026-08-19 — Lebanese University, Dept. of Physical Education and Sport, confirmed
+as an author affiliation on the 2022 *Human Movement* handgrip paper.) He trains coaches, and
+wants those coaches running **his** flow rather than improvising.
+
+**Future direction:** the generation and analysis engine is deliberately standalone for now, but is
+expected to call an AI API for program formulation and data analysis once that is affordable.
+
+### Is there anything like it?
+
+Searched 2026-08-20. The pieces exist separately; the combination does not surface:
+- **[Lenus](https://www.trainerize.com/blog/online-education-platforms/)** — closest on structure:
+  a coaching platform with an accredited **Academy** for coach education (EREPS/EuropeActive/NASM),
+  built explicitly for the quality gap when a methodology scales past one person.
+- **[CoachRx](https://www.coachrx.app/)** — closest on the pipeline: assessment → insight →
+  personalised prescription that evolves.
+- **[Spurfit](https://www.spur.fit/)** — AI program generation and staff management.
+
+None found combining a **norm-referenced academic evaluation engine**, an **owner→coach→client
+credential hierarchy**, and **Arabic-first delivery**. Treat that as "not found in a single search
+pass", not as proof of novelty.
+
+### What this does to the naming brief
+
+The register/ledger metaphor is now too small — it names the admin layer, which is the *least*
+valuable part. The name should carry **standard, measure, norm, calibration** — the thing that
+makes the program defensible — and must work for three different audiences, including clients who
+never see the coaching side.
 
 ## Candidates — NONE screened, all need the round-1 verification steps
 
-### A. Arabic-rooted, meaningful to Elie and his clients, invisible to the crowded English space
+### A. Arabic-rooted — names the *standard*, which is the actual product
+
+Re-ranked 2026-08-20 against the three-role definition above.
 
 | Name | Root | Why |
 |---|---|---|
-| **Daftar** | دفتر — notebook, register, ledger | Exactly what the app is. Real word across Arabic, Turkish, Urdu, Persian, Malay — so it reads as a brand in English and as *meaning* in Beirut. Two syllables, verbable ("daftar it"). Strongest of the set. |
-| **Sijil** | سجل — register, to record | Even closer to the function; "sajjil" is literally "record it", already an imperative verb in Arabic. Slightly harder for an English speaker to spell from hearing. |
-| **Kadr** | كادر — cadre, roster, staff | Short, hard consonants, modern-sounding. Weakest tie to the actual function. |
+| **Miyar** / **Meyar** | معيار — **standard, norm, criterion** | Names the exact thing the app sells: the norm a client is measured against. Two syllables, clean in Latin script, meaningful to every Arabic-speaking coach and client, invisible in the English `Fit*` space. **Recommended #1.** |
+| **Qyas** | قياس — **measurement, to measure** | Names the evaluation itself. "Qyas" is verbable in both languages, and the y-spelling of the more common transliteration *Qiyas* dodges collisions. Sharp and short. **#2.** |
+| **Kadr** | كادر — cadre, staff, roster | Was the weakest candidate under the register framing; is now much stronger, because the app's distinguishing structure IS a cadre of coaches under one owner. Names the hierarchy rather than the science. |
+| **Daftar** | دفتر — notebook, register | Still good, but now names the admin layer — the least valuable part of the product. Demoted from #1. |
+| **Sijil** | سجل — register, "sajjil" = record it | Same demotion, same reason. |
 
 ### B. Short, invented, verb-shaped, no fitness cliché
 
@@ -78,9 +121,26 @@ in the identical category, which is exactly the confusable-name case Apple rejec
 
 ## Recommendation
 
-**Daftar** is the one worth verifying first. It is the only candidate that is simultaneously
-short, verbable, meaningful to the actual user in his actual language, and completely outside the
-`Fit/Train/Coach` namespace where every previous attempt died.
+**Miyar** (معيار — the standard), with **Qyas** (قياس — the measurement) as the alternate.
+
+The reasoning follows from the product definition, not from taste: the app's defensibility comes
+from norm-referenced scoring against academic standards, so the name should say *standard*, not
+*fitness* and not *diary*. Both work unchanged for all three roles — a client hears "the standard
+I'm measured against", a coach hears "the standard I deliver", Elie hears "the standard I set".
+Both are outside the dead `Fit/Train/Coach` namespace, both are two syllables, and both are native
+to the language half the users speak.
+
+⚠️ **Neither is screened.** Latin-script spelling must be fixed before screening (Miyar/Meyar/Me3yar;
+Qyas/Qiyas) because the store and trademark searches are spelling-specific.
+
+### Scope warning, recorded while it is cheap
+
+The three-role platform described above is **not** what is built. Today's app is single-user with
+one shared data blob synced from one private GitHub repo. Owner/coach/client accounts mean real
+authentication, per-role authorisation, and server-side data separation — that is a different
+backend, not a feature. **Nothing about the name decision requires building it**, and the Play
+closed test can run on today's single-user app under the placeholder name. Keep the two decisions
+apart.
 
 ## Before ANY name is committed — unchanged from round 1
 
