@@ -142,6 +142,37 @@ backend, not a feature. **Nothing about the name decision requires building it**
 closed test can run on today's single-user app under the placeholder name. Keep the two decisions
 apart.
 
+## SCREENING RESULTS — run 2026-08-20
+
+Method: Apple via the **iTunes Search API** (`entity=software`, exact and prefix title matches) —
+authoritative. Google Play via HTML search scrape **plus** cross-checking web search — the scrape
+alone produced only one hit across eight names, which is implausible, so **treat "clear on Play" as
+low-confidence**; Play HTML is JS-rendered and the scrape yields false negatives. Domains via RDAP
+(`.com`) and NS lookups (`.app/.io/.fit`) — NS present proves registration, NS absent only suggests
+availability.
+
+| Name | Apple App Store | Google Play | Domains | Verdict |
+|---|---|---|---|---|
+| **Metron** | ❌ **Metron Fitness** — exact category | not found (low conf.) | .com/.app/.io/.fit all taken | **DEAD** — a fitness app already owns it |
+| **Calibra** | ⚠️ Calibra Pro Tools, Calibra Color Camera, Calibra Pneus | ❌ **Calibra – Science Weight Track** (`com.calibra.app`), plus **Caliber Strength Training** | all taken | **DEAD** — a fitness/weight app on Play, and Caliber is a major fitness brand |
+| **Norma** | ⚠️ NORMA connect, Norma Focus, Norma Colombia | not found (low conf.) | all taken | Weak — crowded, and reads as a personal name |
+| **Cadre** | ❌ two apps titled exactly **Cadre** | not found (low conf.) | all taken | **DEAD** on Apple's uniqueness rule |
+| **Praxis** | ❌ **Praxis**, **Praxis Sports**, Praxis Core Exam Prep | not found (low conf.) | .io possibly free | **DEAD** — exact match + the US Praxis certification exams |
+| **Rubric** | ❌ **Rubric**, Rubric Scorer | ❌ **Rubric** | all taken | **DEAD** |
+| **Miyar** | ⚠️ Miyar Capital, معيار المالية — **finance, not our category** | not found (low conf.) | .com/.app/.io taken; .fit possibly free | **BEST SURVIVOR** |
+| **Qyas** | ✅ no matches at all | ⚠️ `com.alho00ot.qyas` (قياس القدرات), QAYA, Qiyas ERP | .com/.app taken; .io/.fit possibly free | ⚠️ see the institutional problem below |
+
+### 🔴 The Qyas problem — found during screening, not obvious beforehand
+
+**Qiyas (قياس) is the Saudi National Center for Assessment**, the state body that runs the
+country's aptitude and achievement testing. Naming an **assessment product** for Arabic speakers
+"Qyas" borrows a national testing authority's name in that authority's own domain. The store
+screen is clean; the institutional collision is not. This is exactly the class of risk a
+store-search-only screen misses, and it is why round 1's doc insisted screening ≠ guarantee.
+
+**Miyar** does not have this problem — معيار is an ordinary word for *standard*, not an
+institution.
+
 ## Before ANY name is committed — unchanged from round 1
 
 1. Store screening on both stores (this doc has NOT done it for section A or B).
