@@ -238,6 +238,44 @@ confusion entirely. **PTSpot is the recommendation** — it preserves Elie's int
 ⚠️ Domain "free" here is NS-absence, which suggests but does not prove availability; confirm at a
 registrar. Play results remain low-confidence for the reason stated above.
 
+## Should the name carry "PT" at all? (2026-08-20)
+
+**Recommendation: no.** Four reasons, in order of weight:
+
+1. 🔴 **Elie is not a personal trainer.** He is a PhD sports specialist who teaches at a university
+   and trains coaches. "PT" labels the product as precisely the category he is *above*. The product's
+   whole claim is that its programs are academically defensible — "PT" says "trainer's helper".
+2. **"PT" reads as physical therapy** to a large share of English speakers — `PTassistance`, one of
+   the collisions found in round 1, is a physiotherapy app. The prefix is ambiguous in the exact
+   market where the store search happens.
+3. **It is a category label, not a brand, and it cannot become a verb.** "PTSpot" is spelled out in
+   the head — *pee-tee-spot*, three syllables — so it never becomes "spot me on it". Every name that
+   won its category (per the top-20 list above) is pronounceable as a word.
+4. **It caps the product.** The roadmap has client accounts and a coach hierarchy. A client
+   downloading "PT-something" is being handed her trainer's admin tool, not her own app.
+
+The case *for* PT is real but smaller: instant category recognition in store search, and it is the
+shape Elie already likes. **It is his product to name** — this is a recommendation, not a veto.
+
+### Spot-family names WITHOUT the prefix — screened 2026-08-20
+
+The bare word is gone: **Spotter** (incl. *Spotter: Find Your Swolemate*), **Spotr: Strength
+Training**, **Spottr Fitness**, **Spotta**, **Spotly**, **Spott**, **Onspot**, **Spotmark**,
+**Spotix**, **Spotus**, **Spotia**, **Spoteo**, **Spotivo**, **SpotRep**, **Spotwork** — all taken,
+several by fitness apps. That is why the PT prefix rescued the idea in round 3.
+
+**Clear on Apple:** `Spotset`, `Setspot`, `Spotiq`, `Spotgrade`, `Spotbase`, `Spotan`, `Spotara`,
+`Spotiva`, `Spotera`.
+
+| Name | Why | Domains |
+|---|---|---|
+| 🔴 **Spotset** | **The best no-PT option.** Both halves are gym-native: *spot* = assist and hold the standard, *set* = the unit of training the app actually schedules and prescribes. One word, two syllables, pronounceable, no category label, works for a client as easily as for a coach. | **.com / .app / .io all appear free** |
+| **Spotgrade** | Names the assist *and* the scoring explicitly. Blunter, less brandable. | .com taken; .app/.io free |
+| **Spotiq** | Short, modern. "IQ" is a tired suffix and implies AI that does not exist yet. | .com/.app/.io all taken |
+
+**Spotset over PTSpot** on every axis except Elie's familiarity — and it is the only candidate in
+this entire document with all three major domains apparently free.
+
 ## Before ANY name is committed — unchanged from round 1
 
 1. Store screening on both stores (this doc has NOT done it for section A or B).
