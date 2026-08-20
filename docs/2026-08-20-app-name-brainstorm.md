@@ -1,4 +1,24 @@
-# App Name Brainstorm — round 2
+# App Name Brainstorm — rounds 2–4
+
+> ## ✅ DECIDED 2026-08-20: the app is **SpotSet**
+>
+> Chosen by Pierre after four screening rounds. *Spot* = the assist and the standard (a spotter
+> supports the lift and holds the form); *set* = the unit this app schedules, prescribes and counts.
+> Clear on the App Store and Play, and **`spotset.com`, `.app`, `.io` and `.fit` all appeared
+> unregistered** — the only candidate in this document with the .com free, which is what settled it
+> against the otherwise-equal `SetSpot` (`setspot.com` is taken).
+>
+> **The permanent package ID stays `com.pih.ptapp`** — it can never change after the first Play
+> upload, and it does not need to match the display name. Only `app_name` /
+> `title_activity_main` / `capacitor.config.json` carry "SpotSet".
+>
+> 🔴 **Register `spotset.com` before publicising the name.** The availability check here was
+> NS-absence, which suggests but does not prove the domain is free.
+>
+> Rejected at the final step: **PTAssyst** (Elie's pick — one letter from the live "PT Assist" in
+> the identical category, exactly what Apple rejects), **PTSpot** (the PT prefix mislabels a
+> platform run by a PhD sports specialist), **SetSpot** (.com taken, and it parses as a *venue*).
+
 
 **Date:** 2026-08-20 · **Asked by:** Pierre · **Status:** candidates proposed, NONE screened yet.
 Supersedes nothing — `docs/2026-07-14-app-name-research.md` still holds the round-1 screening
