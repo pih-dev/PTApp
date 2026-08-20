@@ -204,6 +204,40 @@ PTAssyst now, and if Apple later refuses the name, only the display name changes
 **Next check when the Apple account exists:** attempt the App Store Connect name reservation early
 — it is the authoritative test, and a reserved name is held.
 
+## Round 3 — keep Elie's shape, drop the collision (2026-08-20)
+
+Elie's actual preference is **"PT Assist"**; the y-spelling was a workaround because the name was
+taken, not a thing he wanted. So the brief is: keep `PT + word`, keep the *meaning* of assist, and
+lose the one-letter-from-a-live-competitor problem — while carrying the standards/authority half
+this session established.
+
+### The key screening finding
+
+Screened 16 `PT*` names on the iTunes Search API, 2026-08-20: **PTSpot, PTAide, PTAnchor, PTSecond,
+PTCorner, PTNorm, PTGrade, PTIndex, PTMark, PTScale, PTMetric, PTProof, PTBase, PTGauge, PTTier,
+PTMerit — all sixteen CLEAR.** The `PT*` namespace is not actually crowded on Apple; what is
+crowded is the *word* space (`Assist`, `Mate`, `Desk`, `Coach*`). **PTAssyst's risk was never
+uniqueness — it is confusability with the live "PT Assist" specifically.** Change the second word
+and that risk disappears completely, while Elie keeps the name shape he wanted.
+
+Screened and rejected in the same pass (all have fitness apps sitting on them):
+**Spottr** (Spottr Fitness, Spottr: Workout Form Coach), **Belay** (Belay: Strength Tracker),
+**Spotta**, **Spotly**, **Cornerman**, **Aegis**, **Assistly**, **Adjutant** — all taken.
+
+### Recommended
+
+| Name | Why it fits both halves | Domains |
+|---|---|---|
+| **PTSpot** | 🔴 **The best match to what Elie actually likes.** A *spotter* is literally the person who assists a lift, watches the form and enforces the standard — it is "assist" in gym language, and the app's own evaluation battery (bench/squat/deadlift 1RM) is exactly where spotting happens. It scales up the hierarchy too: coaches spot clients, Elie spots coaches. "Spot me" is already a verb in every gym on earth. | .com taken; **.app/.io look free** |
+| **PTGauge** | The standards half — to gauge is to measure *and* to assess. Names the norm-referenced engine rather than the help. | **.com/.app/.io all look free** |
+| **PTMerit** | Evaluation plus worth; slightly formal. | **.com/.app/.io all look free** |
+
+Both PTSpot and PTGauge are clear on Apple, show nothing on Play, and avoid the PT Assist
+confusion entirely. **PTSpot is the recommendation** — it preserves Elie's intent most faithfully.
+
+⚠️ Domain "free" here is NS-absence, which suggests but does not prove availability; confirm at a
+registrar. Play results remain low-confidence for the reason stated above.
+
 ## Before ANY name is committed — unchanged from round 1
 
 1. Store screening on both stores (this doc has NOT done it for section A or B).
