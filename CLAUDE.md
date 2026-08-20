@@ -62,12 +62,10 @@ Elie may drive app changes in-session, on Pierre's conditions (*"since we're usi
 
 - **v2.15.0** (08-20) — renamed to SpotSet in the UI; real launcher icons (adaptive foreground must stay in the 66% safe zone). → `v2.15.0.md`
 - **v2.14.1–.3** (07-17) — Elie-driven UI run: booking-time suggestion (`suggestBookingTime` owns the rule), Arabic exercise names (`exerciseNamesAr.js`, swap keys stay English), transliteration rule. → `v2.14.{1,2,3}.md`
-- **v2.14.0** (07-14) — Multi-day split program generation, 3–6 days; `PROGRAM_RULES_VERSION` 2→3. → `v2.14.md`
-- **v2.13.1–.3** (07-14) — Elie domain-review fix run: Deadlift pull-anchor-only, English day headers in AR, age-banded 1RM standards (`CHARTS_VERSION` 2→3), trainer level override. → `v2.13.md`
-- **v2.13.0** (07-13) — Program generation from a 1RM evaluation (PT feature #3). Schema v5→v6, additive `programs[]`. → `v2.13.md`
-- **v2.12.1** (07-07) — Token-expiry surfacing + `TokenUpdateModal.jsx`; replacement never touches local data. → `v2.12.1.md`
-- **v2.12.0** (07-06) — 1RM battery replaces the mass battery; additive `branch:'1rm'`, DATA_VERSION stays 5; mass records view-only. → `v2.12.md`
-- **v2.11.1 and earlier** — routed `changelog-summary.md`. Rollback tag for the v3→v4 tag split: `snapshot-pre-v2.9.5`.
+- **v2.14.0** (07-14) — Multi-day split programs, 3–6 days; `PROGRAM_RULES_VERSION` 2→3. → `v2.14.md`
+- **v2.13.0–.3** (07-13/14) — Program generation from a 1RM evaluation (PT feature #3; schema v5→v6, additive `programs[]`), then Elie's domain-review fixes: age-banded 1RM standards (`CHARTS_VERSION` 2→3), trainer level override. → `v2.13.md`
+- **v2.12.0–.1** (07-06/07) — 1RM battery replaces the mass battery (additive `branch:'1rm'`, DATA_VERSION stays 5, mass records view-only); token-expiry surfacing + `TokenUpdateModal.jsx`. → `v2.12.md`, `v2.12.1.md`
+- **v2.11.1 and earlier** — routed `changelog-summary.md`. v3→v4 tag-split rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
 
@@ -95,7 +93,7 @@ Full write-ups in **`docs/traps.md`** — read the relevant one before touching 
 
 **Correctness across screens** — a pre-action badge and a post-action badge in one flow must use the same helper (the "(0) → #1" confusion) · synthetic fixtures model what you designed, live data holds what shipped: diff counting/date-resolution/migration changes against the archived snapshot first, and re-read the OLD code exactly when writing a migration.
 
-**Tooling** — `fixForFileProtocol` must use *function* replacement (a string breaks React's minified `$&`) · **PS 5.1 `Get-Content`/`Set-Content` mangles UTF-8** (ANSI default corrupts em-dashes, emoji and all Arabic) — use the **Edit tool**, never round-trip source through a PowerShell pipeline.
+**Tooling** — 🔴 the Android build needs **JDK 21** (`JAVA_HOME='/c/Program Files/Microsoft/jdk-21.0.12.8-hotspot'`); PATH java here is Temurin 8, and **`gradlew` exits 0 on a FAILED build**, leaving the previous AAB in `outputs/` — a stale bundle then uploads and Play rejects it as "version code already used". Verify the versionName INSIDE the .aab, never the exit code · `fixForFileProtocol` must use *function* replacement (a string breaks React's minified `$&`) · **PS 5.1 `Get-Content`/`Set-Content` mangles UTF-8** (ANSI default corrupts em-dashes, emoji and all Arabic) — use the **Edit tool**, never round-trip source through a PowerShell pipeline.
 
 ---
 
@@ -144,7 +142,7 @@ Debounced 1s; localStorage saves immediately, the GitHub push waits. `pushRemote
 - 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev, scoped ptapp-data Contents R/W only. Replacement UI: General → Backup → "Update sync token".
 - **Program pruning (v2.15)** — before `data.json` nears the 1 MB ceiling (14.5% on 2026-08-03, but the growth rate jumped 6.6× once programs shipped). 🔴 **Pierre's standing rule (2026-07-13): archive `data.json` to `_archive/PTApp/data-snapshots/YYYY-MM-DD-pre-prune-data.json` BEFORE any pruning run** — cloud deletes are irreversible.
 - **Review findings P3 + P6 — DECIDED 2026-08-05, NOT BUILT.** Work order: `docs/reviews/2026-06-10-fable5-codebase-review.md`. **P3** SessionCard = **scope B** (Dashboard-expanded + Schedule only; compact and `Sessions.jsx` follow later); also deletes the `focus: []` bug at `Schedule.jsx:201`. **P6** ordinal is **live, never stored** — all reads via `getClientCountedSessions`, confirm popup takes it as a prop; a stored ordinal goes stale on cancel/delete/override.
-- **App name = SpotSet** (2026-08-20). Package ID `com.spotset.app` is PERMANENT and stays. Buy the .com.
+- **App name = SpotSet** (2026-08-20). `com.spotset.app` is PERMANENT. Buy `spotset.app`.
 
 ---
 
