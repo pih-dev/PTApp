@@ -40,6 +40,32 @@ Source, fetched 2026-08-19:
 - Start the closed test **early** — it can run while the app name, icon and privacy policy are
   still being finalised.
 
+## Android build — DONE 2026-08-20, reproducible
+
+The native Android shell exists and produces a signed AAB. What was installed and where:
+
+| Thing | Value |
+|---|---|
+| Package ID (**permanent**) | `com.pih.ptapp` — deliberately neutral; the Play *display name* is editable later, the ID never is |
+| Capacitor | 8.5.0 (`@capacitor/core`, `/cli`, `/android`), `webDir: dist` |
+| JDK | Microsoft OpenJDK 21.0.12 at `C:\Program Files\Microsoft\jdk-21.0.12.8-hotspot` (system Java is 8 — too old for Gradle 8.14, so JAVA_HOME must be set per build) |
+| Android SDK | `C:\Android\Sdk` — platform 36, build-tools 36.0.0, platform-tools; licences accepted |
+| Upload keystore | `C:\projects\_archive\PTApp\keystore\ptapp-upload.jks` + credentials `.txt` beside it |
+
+Build the release bundle:
+
+```bash
+npm run build && npx cap sync android
+cd android && JAVA_HOME="/c/Program Files/Microsoft/jdk-21.0.12.8-hotspot" \
+  ANDROID_HOME="C:/Android/Sdk" ./gradlew bundleRelease
+# → android/app/build/outputs/bundle/release/app-release.aab
+```
+
+🔴 **The upload key is unrecoverable.** Google identifies the app by it; lose it and `com.pih.ptapp`
+can never be updated again. It lives in `_archive` and must be backed up off this laptop.
+Capacitor ships `android/.gitignore` with `*.jks` / `*.keystore` **commented out** — they were
+uncommented before the key was created. PTApp is a **public** repo; never undo that.
+
 ## Do You Need a Company?
 - **No** — both stores allow individual developers to publish and sell apps.
 - A Lebanese company (or LLC) only matters for:
@@ -53,7 +79,7 @@ Source, fetched 2026-08-19:
 - [ ] Final app name (not "PTApp") — must be unique and not trademarked in fitness/trainer space
 - [ ] App icon and branding assets
 - [ ] Privacy policy (required by both stores)
-- [ ] Capacitor setup and tested builds on both platforms
+- [x] Capacitor setup and Android build -- DONE 2026-08-20 (see "Android build" above); iOS still blocked on a Mac
 - [ ] Apple Developer account ($99/yr)
 - [ ] Google Play Developer account ($25 one-time)
 - [ ] **12 closed testers recruited and opted in for 14 continuous days** (Play only — start this
