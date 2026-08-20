@@ -29,6 +29,8 @@ Do not investigate, do not draft, do not ask follow-up questions beyond the one 
 - 🔴 **Two things are Pierre's to do and block everything else:** register **`spotset.app`**, and
   complete the **Google Play signup** ($25 + ID/address verification, which takes days on
   Google's side).
+- **Pierre now has a Cloudflare account** (signed in 2026-08-20 with his primary Gmail). He
+  declined connecting any AI agent to it — that decision stands, see §4.
 - 🔴 **The upload keystore is unrecoverable.** `C:\projects\_archive\PTApp\keystore\` — must be
   backed up off this laptop. Losing it means never updating the app again.
 - **The 14-day closed-test clock has NOT started.** It starts only when the AAB is released to a
@@ -136,6 +138,25 @@ Verified 2026-08-20 from Cloudflare's own docs
 - ⚠️ **Avoid the low first-year/high-renewal pattern** generally, and never let a registrar hold
   the domain hostage with an expensive transfer-out fee.
 
+### Which TLD, and what it costs
+
+⚠️ **Cloudflare does not publish a price list** — `cloudflare.com/tld-policies` lists supported TLDs
+and registry operators only, no prices (checked 2026-08-20). **The number shown in Cloudflare's own
+search box is the at-cost price** — Pierre saw `spotset.uk` at **$5.30** that way. Read the figure
+there; do not trust a price quoted from memory, including mine.
+
+Guidance on the choice, independent of the exact figures:
+
+| TLD | Take on it |
+|---|---|
+| **`.app`** | 🔴 **Recommended.** Google-run, HTTPS enforced by the registry (HSTS preload), and it says "this is an app" without saying "fitness". Mid-priced. |
+| `.dev` | Same registry family and HTTPS rules, but reads as developer-facing, not product-facing. |
+| `.uk` | Cheapest of the set, but it geo-signals Britain for a Lebanese product with global ambitions. Fine as a cheap defensive registration, wrong as the primary. |
+| `.co` | Credible generic alternative, usually pricier than `.app`. |
+| `.io` | ⚠️ Avoid for a long-term brand. Expensive, and the `.io` ccTLD's future has been under political question — **not re-verified today**, so treat as a flag to check rather than a fact. |
+| `.fit` | Cheap and on-theme, but niche TLDs read as second-choice. |
+| `getspotset.com` / `spotsetapp.com` | The way to hold a `.com` at normal price when the bare one is gone. Worth one of them if a `.com` matters to him. |
+
 **What to buy:** `spotset.app`. The bare `.com` is unavailable (held since 2009, parked, transfer
 locked); chasing it means approaching a domain investor, which is a separate and probably expensive
 negotiation — not a blocker for launching. RDAP-confirmed AVAILABLE 2026-08-20 and worth considering
@@ -150,6 +171,25 @@ available, 200 means registered.
 
 ---
 
+## 4b. Storing secrets on the Cloudflare account — Pierre's question, 2026-08-20
+
+**Yes, it can work, with one hard rule and one caveat.**
+
+- **Cloudflare R2** is the right product — object storage, **10 GB/month free**, **no egress
+  charges at all** (verified 2026-08-20, <https://developers.cloudflare.com/r2/pricing/>). The
+  upload keystore is ~4 KB, so this is free forever in practice.
+- It is **not** a consumer sync folder. It is S3-style object storage: upload via the dashboard for
+  one-off files, or `rclone` for anything routine.
+- 🔴 **Encrypt client-side, before upload. Cloudflare must never hold the plaintext.** A 7-Zip
+  archive with AES-256 and a strong passphrase is enough; `age` is the cleaner tool if he wants one.
+- ⚠️ **Caveat that matters for THIS file specifically:** the keystore is unrecoverable, and a
+  Cloudflare account whose password reset lands in the same Gmail is not an independent second
+  copy — one compromised or lost mailbox takes both. **Keep an offline copy on a USB stick as
+  well.** Cloud + offline, not cloud alone.
+
+Not decided yet: whether he actually wants to run backups through Cloudflare or keep using
+`_archive` plus a USB. Ask before building anything.
+
 ## 5. Where everything is
 
 - Name reasoning, all screening results: `docs/2026-08-20-app-name-brainstorm.md`
@@ -162,6 +202,22 @@ available, 200 means registered.
   (414 entries — the raw record this handoff was written from, so it can be checked against)
 
 ---
+
+## 5b. Method rules earned this session — do not repeat these
+
+1. **Domain availability = RDAP, never NS.**
+   `curl -o /dev/null -w "%{http_code}" https://rdap.org/domain/<name>` → **404 available,
+   200 registered**. An `nslookup -type=NS` reported `spotset.com` free; it has been registered
+   since 2009 and merely parked. Parked domains routinely have no resolving nameservers.
+2. **App-store availability = the iTunes Search API**
+   (`itunes.apple.com/search?term=X&entity=software`), which is authoritative for Apple. The Google
+   Play HTML scrape used this session produced one hit across eight names and is a
+   **false-negative generator** — cross-check Play with a web search before calling a name clear.
+3. **A clean store search is not clearance.** `Qyas` screened perfectly and was still wrong (Qiyas
+   = the Saudi national assessment authority). Trademark and institutional collisions live outside
+   the stores.
+4. **`npx cap add android` destroys hand edits** — the signing block in `app/build.gradle` and the
+   uncommented `*.jks` lines in `android/.gitignore`. Re-apply both before building.
 
 ## 6. Open, not blocking
 
