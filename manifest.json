@@ -1,6 +1,6 @@
 {
-  "name": "PTApp — Personal Trainer",
-  "short_name": "PTApp",
+  "name": "SpotSet — Personal Trainer",
+  "short_name": "SpotSet",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0F0F0F",
