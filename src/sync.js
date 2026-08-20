@@ -7,6 +7,13 @@ const TOKEN_KEY = 'ptapp-sync-token';
 
 let currentSha = null;
 
+// v2.15.1 — Google Play review credential. The token screen is a hard gate, and the
+// only real token is a PAT with write access to the PT's live client data. DEMO is
+// accepted in its place: it unlocks the UI on a seeded local dataset and every sync
+// path below is skipped, so a reviewer can never read or write the real repo.
+export const DEMO_TOKEN = 'DEMO';
+export const isDemo = () => localStorage.getItem(TOKEN_KEY) === DEMO_TOKEN;
+
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const saveToken = (token) => localStorage.setItem(TOKEN_KEY, token);
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY);

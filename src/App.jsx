@@ -7,7 +7,7 @@ import TokenSetup from './components/TokenSetup';
 import TokenUpdateModal from './components/TokenUpdateModal';
 import General from './components/General';
 import { reducer, loadData, saveData, today, timeToMinutes, haptic, initElasticScroll, mergeData, dataEquals } from './utils';
-import { getToken, fetchRemoteData, pushRemoteData } from './sync';
+import { getToken, fetchRemoteData, pushRemoteData, isDemo } from './sync';
 import { t } from './i18n';
 
 // Debounce timer for GitHub sync — prevents burst of API calls when multiple
@@ -35,7 +35,9 @@ export default function App() {
   const [tab, setTab] = useState('home');
   const [showGeneral, setShowGeneral] = useState(false);
   const [connected, setConnected] = useState(!!getToken());
-  const [initialLoad, setInitialLoad] = useState(!!getToken());
+  // Demo sessions never fetch, so there is no startup fetch to wait on — starting
+  // this true would park the reviewer on the spinner forever.
+  const [initialLoad, setInitialLoad] = useState(!!getToken() && !isDemo());
   const [lang, setLang] = useState(() => localStorage.getItem('ptapp-lang') || 'en');
   const [theme, setTheme] = useState(() => localStorage.getItem('ptapp-theme') || 'dark');
   const [syncStatus, setSyncStatus] = useState('idle');
@@ -67,7 +69,10 @@ export default function App() {
   // Mouzanar data loss (stale device overwrote remote, newer session vanished).
   const reconcile = async () => {
     const token = getToken();
-    if (!token) return;
+    // isDemo() before the token check is the single choke point for the review
+    // credential: no fetch, no push, syncReady stays false, so the save effect
+    // below can never reach GitHub either.
+    if (!token || isDemo()) return;
     try {
       const remote = await fetchRemoteData(token);
       syncReady.current = true;
@@ -102,7 +107,9 @@ export default function App() {
   // localStorage from being pushed to GitHub if the fetch fails (Apr 13 incident).
   useEffect(() => {
     const token = getToken();
-    if (!token) { setInitialLoad(false); return; }
+    // Demo takes the same exit as "no token" — the app runs purely on localStorage,
+    // and the sync dot stays idle instead of hanging on 'syncing' forever.
+    if (!token || isDemo()) { setInitialLoad(false); return; }
     setSyncStatus('syncing');
     reconcile().finally(() => {
       setInitialLoad(false);
@@ -145,7 +152,9 @@ export default function App() {
       return;
     }
     const token = getToken();
-    if (token) {
+    // Belt to syncReady's braces: demo data must never leave the device even if a
+    // future change lets syncReady flip true on a path that skipped reconcile().
+    if (token && !isDemo()) {
       debouncedSync(token, state, setSyncStatus, () => setTokenExpired(true));
     }
   }, [state, initialLoad]);
@@ -156,7 +165,9 @@ export default function App() {
   // Retry sync — called when user taps the failed indicator.
   // Uses the same reconcile() path as initial load — merge not overwrite.
   const handleRetrySync = () => {
-    if (!getToken()) return;
+    // isDemo() too: 'DEMO' is a truthy token, so without this the dot latches on
+    // 'syncing' forever the moment a reviewer taps it.
+    if (!getToken() || isDemo()) return;
     setSyncStatus('syncing');
     reconcile();
   };
@@ -260,7 +271,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.15.0</div>
+          <div><strong>Version:</strong> v2.15.1</div>
           <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>

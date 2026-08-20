@@ -797,13 +797,23 @@ button:active { transform: scale(0.97); }
 .mt-16 { margin-top: 16px; }
 
 /* ─── Setup / Token Screen ─── */
+/* v2.15.1: this screen could not scroll. html/body/#root are overflow:hidden and
+   100dvh does not shrink for the iOS keyboard, so focusing the token input pushed
+   the Connect button under the keyboard with no way to reach it — you had to dismiss
+   the keyboard to find the button. Latent since the screen was written; it only
+   became urgent when a Play reviewer had to complete this exact form.
+   `margin: auto` on the card keeps it optically centred when there IS room, while
+   overflow-y lets it scroll when there isn't. */
 .setup-container {
   height: 100vh; height: 100dvh;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; justify-content: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 24px;
 }
 .setup-card {
   width: 100%; max-width: 360px;
+  margin: auto;
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 20px;

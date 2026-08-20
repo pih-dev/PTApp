@@ -647,7 +647,7 @@ export const ageAtDate = (birthdate, onDate) => {
 // ─── Data versioning & migration ───
 // Increment DATA_VERSION when the schema changes. Add a migration function
 // for each version bump. Existing data is NEVER discarded — only migrated forward.
-const DATA_VERSION = 6;
+export const DATA_VERSION = 6;
 
 // Capitalize each word: "pierre ghorra" → "Pierre Ghorra"
 export const capitalizeName = (name) =>

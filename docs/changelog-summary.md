@@ -4,6 +4,28 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.15.1 — a way in for the store reviewers (August 20, 2026)
+
+Google would not accept the app for testing. Its automated check opened SpotSet,
+found a screen asking for a sync token, and refused to go further: reviewers have
+to be able to see every screen, and they had no way past the first one.
+
+The obvious answer — give them a token — was not acceptable. The only token that
+works is the one with full write access to Elie's real client records, and the app
+is wired to that one repository, so any working token is a key to the live data.
+
+So the app now accepts the word **DEMO** in place of a token. Typing it opens the
+full app on four invented clients and a fortnight of made-up sessions, entirely on
+the phone, with the cloud switched off. Nothing typed in demo mode ever leaves the
+device, and typing DEMO on a phone that already holds real clients leaves those
+clients untouched.
+
+The same check also caught the last screen still calling itself "PTApp" — the token
+screen. It was the one screen the rename missed, for the simple reason that nobody
+with the app already set up ever sees it again.
+
+---
+
 ## v2.15.0 — the app is now called SpotSet (August 20, 2026)
 
 The app has a name for the store: **SpotSet**. Until this release every screen

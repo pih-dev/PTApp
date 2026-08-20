@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
 import NormChartsView from './NormChartsView';
-import { exportBackup, mergeBackup, genId, DEFAULT_TEMPLATES, haptic } from '../utils';
-import { getToken, saveSnapshot, listSnapshots, fetchSnapshot } from '../sync';
+import { exportBackup, mergeBackup, genId, DEFAULT_TEMPLATES, haptic, saveData } from '../utils';
+import { getToken, saveSnapshot, listSnapshots, fetchSnapshot, isDemo, clearToken } from '../sync';
 import { t } from '../i18n';
 
 // Raw GitHub URLs for docs — fetched at runtime, not bundled.
@@ -10,7 +10,7 @@ import { t } from '../i18n';
 // the in-app "App Instructions" button silently served stale docs. Bumping this
 // is now an explicit step in the CLAUDE.md deploy checklist.
 const DOCS = {
-  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.14.md',
+  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.15.1.md',
   changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
 };
 
@@ -215,7 +215,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, theme
             onClick={() => exportBackup(state)}>
             {t(lang, 'backup')}
           </button>
-          {getToken() && (
+          {getToken() && !isDemo() && (
             <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
               disabled={snapshotLoading}
               onClick={async () => {
@@ -232,11 +232,33 @@ export default function General({ state, dispatch, onClose, lang, setLang, theme
             </button>
           )}
           {/* v2.12.1 (Jun-30 incident): tokens expire; there must always be a way to
-              enter a new one without wiping local data. Opens App's TokenUpdateModal. */}
-          <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
-            onClick={onUpdateToken}>
-            {t(lang, 'updateToken')}
-          </button>
+              enter a new one without wiping local data. Opens App's TokenUpdateModal.
+              🔴 v2.15.1 — HIDDEN IN DEMO MODE. This was the one un-gated sync entry
+              point, and it was a live-data corruption path: pasting a real PAT here
+              from a demo session overwrites 'DEMO' in place, so isDemo() goes false
+              while the reducer still holds the seeded records. The retry that follows
+              merges them into Elie's real data.json by union-on-id — the demo IDs
+              match nothing remote, so all 18 fabricated records get pushed and then
+              replicate to the PT's iPhone. Demo mode exits by being discarded, never
+              by being upgraded. */}
+          {isDemo() ? (
+            <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
+              onClick={() => {
+                // Safe to wipe unconditionally: demo mode is only ever entered on a
+                // device with no records (TokenSetup refuses otherwise), so everything
+                // in the store here is seeded fiction.
+                clearToken();
+                saveData({ clients: [], sessions: [] });
+                window.location.reload();
+              }}>
+              Exit demo
+            </button>
+          ) : (
+            <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
+              onClick={onUpdateToken}>
+              {t(lang, 'updateToken')}
+            </button>
+          )}
         </div>
 
         <div className="flex-row" style={{ gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
@@ -266,7 +288,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, theme
             }}>
             {t(lang, 'restoreBtn')}
           </button>
-          {getToken() && (
+          {getToken() && !isDemo() && (
             <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
               disabled={snapshotLoading}
               onClick={async () => {
