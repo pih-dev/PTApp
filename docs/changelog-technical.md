@@ -4,6 +4,39 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.15.0 — rename the UI to SpotSet, real launcher icon (2026-08-20)
+
+**Trigger:** the Play Console store listing was filled in as **SpotSet** while
+`App.jsx` still rendered `PTApp` in the header. Caught while reviewing the
+store screenshots as images, not by any test — a listing whose screenshots
+show a different product name is both confusing to testers and a branding
+mismatch Google can flag.
+
+- **`src/App.jsx`**: `logo-text` `PTApp` → `SpotSet`; debug-panel version
+  → v2.15.0. The `logo-sub` subtitle stays `t(lang,'personalTrainer')`, so it
+  is still translated.
+- **`index.html`**: `<title>` and `apple-mobile-web-app-title` → SpotSet.
+- **`public/manifest.json`**: `name`/`short_name` → SpotSet. This is the PWA
+  home-screen name; both the meta tag and the manifest matter (existing trap).
+- **Launcher icons**: all `mipmap-*` densities regenerated from the SpotSet
+  mark. `ic_launcher_background` `#FFFFFF` → `#2563EB`.
+  🔴 **The adaptive foreground is padded to the 66% safe zone** — Android crops
+  25% per edge, and the full-bleed first attempt clipped the outer plates.
+  Generator archived at `_archive/PTApp/branding/make_icon.py`.
+- **`android/app/build.gradle`**: `versionCode 1 → 2`, `versionName 2.15.0`,
+  for the closed-testing upload.
+- **No schema change.** `DATA_VERSION` stays 6, no migration, no kernel or
+  reducer touched.
+
+**Also this day, outside the app bundle:** `privacy.html` and
+`delete-data.html` published on `gh-pages` (both stores require them), and
+`make-demo-data.js` in the marketing harness had its hardcoded
+`SHIFT_DAYS = 25` replaced by a shift computed from the anchor date — the
+fixed value was tuned for the 2026-08-05 capture and by 08-20 produced an empty
+dashboard in the store screenshots. Same hardcoded-date-stamp trap as ever.
+
+---
+
 ## v2.14.3 — Arabic phrasing pass: transliteration rule (2026-07-17)
 
 **Trigger:** Elie's standing rule, relayed via WhatsApp voice note (he was not

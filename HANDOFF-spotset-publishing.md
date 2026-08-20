@@ -1,15 +1,18 @@
 # SpotSet — Store Publishing HANDOFF
 
-**Last updated:** 2026-08-20, Beirut — after the verification-cleared session (app record created).
+**Last updated:** 2026-08-20 ~12:35, Beirut — end of the store-listing session.
 **To resume:** Pierre types `spotset`, `publish`, `illume` or `continue`. **Read §0 back to him
 and stop.** Do not investigate, do not draft, do not ask follow-up questions beyond the one §0 names.
 
 🔴 **He will type `/clear` and then `continue` with NOTHING in between.** Do not assume any step
 below advanced in the gap — nothing did. The state in §0 is the state you will find.
 
-**Raw session dump (uncontaminated, written before this handoff):**
-`C:\projects\_archive\PTApp\claude-incidents6-08-20-play-developer-account-FULL-SESSION.txt`
-— 581 messages, 464 KB.
+**Raw session dumps (uncontaminated, each written before its handoff), in
+`C:/projects/_archive/PTApp/claude-incidents/`:**
+- `2026-08-20-play-developer-account-FULL-SESSION.txt` — the account-creation session,
+  581 messages, 464 KB.
+- `2026-08-20-spotset-play-console-listing-FULL-SESSION.txt` — this session (verification cleared
+  to store listing complete), 1,036 messages, 350 KB.
 
 > Subject-scoped. The general PTApp handoff (`HANDOFF.md`, app features, P3/P6) is a *different*
 > thread — do not merge them.
@@ -18,56 +21,33 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 
 ## 0. Status — read this out
 
-- **The app is named SpotSet.** Decided 2026-08-20 after four screening rounds. "PTApp" is now
-  only the repo/project name. Reasoning + every rejected candidate:
-  `docs/2026-08-20-app-name-brainstorm.md`.
-- **Application ID is `com.spotset.app`** — Pierre's choice, replacing the auto-generated
-  `com.pih.ptapp` (which embedded an old GitHub handle and the old app name). ✅ **It is now
-  PERMANENT** — locked in at app-record creation, 2026-08-20.
-- **A signed Android AAB exists and builds reproducibly.** Capacitor 8.5.0, JDK 21, Android SDK
-  at `C:\Android\Sdk`. Build command and all paths: `docs/stage2-publishing-guide.md`.
-- 🔴 **`spotset.com` IS TAKEN** — corrected 2026-08-20 by Verisign RDAP (authoritative). Registered
-  since **2009**, renewed Apr 2026, parked on DNSLNK nameservers, `clientTransferProhibited`. An
-  investor holds it. **The earlier "free" reading came from an NS-absence check and was wrong.**
-  `setspot.com` is taken too, so this does not reopen the name choice.
-- **The name still stands. Buy `spotset.app` instead** — confirmed AVAILABLE by RDAP, along with
-  `.io`, `.co`, `.fit`, and `getspotset.com` / `spotsetapp.com` / `usespotset.com`. `.app` is
-  Google-run, forces HTTPS, and matches the product.
-- ✅ **The Google Play developer account EXISTS** — created 2026-08-20, $25 paid, receipt to
-  pierreghorra@gmail.com. Developer name **Illume**, account ID **5311121347785758505**. Details in §5.
-- ✅ **BLOCK CLEARED, same day.** Identity verification came back **within minutes** of submitting
-  the ID photos — console notification *"Your identity has been verified successfully"*, 2026-08-20.
-  Contact phone **+9613193619 verified** by SMS in the same session. The account setup banner is
-  gone; **Create app** is live. (The "may take a few days" wording is worst-case, not typical.)
-- ✅ **The SpotSet app record EXISTS in Play Console** — created 2026-08-20.
-  **App ID `4972021344864095549`**, package **`com.spotset.app`** (now PERMANENT — accepted at
-  creation), display name **SpotSet**, type **App**, price **Free** (free→paid is impossible after
-  publish), default language en-US. All three declarations accepted with Pierre's explicit `go`:
-  Developer Program Policies, **Play App Signing ToS**, US export laws.
-  Dashboard: `https://play.google.com/console/u/1/developers/5311121347785758505/app/4972021344864095549/app-dashboard`
-  🔴 **Console is on `/u/1/` — `pierreghorra@gmail.com`. `/u/0/` is `pierreishere@` and offers to
-  create a SECOND developer account. Always use the `/u/1/` URL.**
-- **Next in the console:** upload the signed AAB to a **closed testing** track — that is what starts
-  the 14-day clock, and it needs the 12 testers opted in.
-- 🔴 **Still Pierre's to do:** register **`spotset.app`** (Cloudflare quotes **$14.20/yr**, at cost,
-  renews the same — confirmed in the dash 2026-08-20). Not a blocker for Play, but the name is
-  unprotected until bought.
-- **Pierre now has a Cloudflare account** (signed in 2026-08-20 with his primary Gmail). He
-  declined connecting any AI agent to it — that decision stands, see §4.
-- 🔴 **The upload keystore is unrecoverable** — `C:\projects\_archive\PTApp\keystore\`.
-  ✅ **Backed up 2026-08-20** to a USB (Ventoy) as `E:\SpotSet-keystore.7z` — 7z/AES-256, encrypted
-  filenames, 5,039 B; Pierre ran 7-Zip *Test archive* and it reported 2 files, no errors, and the
-  plaintext copies were deleted from the stick. **One copy is not a backup — a second, off-site
-  copy is still owed.**
-- **The 14-day closed-test clock has NOT started.** It starts only when the AAB is released to a
-  closed track *and* 12 testers have opted in — not at signup, not at upload.
-- **Apple is untouched, and is now explicitly on the to-do list** (Pierre, 2026-08-20 — he expects
-  it to be harder than Google). No account; 🔴 **needs a Mac** to build and sign. No 14-day gate,
-  so it is not on the critical path. §3 item 8.
-- **Everything else that can move without Google:** buy `spotset.app`, recruit the 12 testers,
-  app icon, privacy-policy URL, Apple. Listed in order in §3.
-- **The question to ask him:** *"Google is fully unblocked and the app record exists. Upload the AAB
-  to closed testing now, or do the domain / testers / icon / privacy policy first?"*
+- **Everything in the Play Console is done except the tester list.** The app record exists, the
+  build is uploaded, all nine policy declarations are answered and the store listing is filled in.
+  🔴 **The one thing blocking rollout is 12 tester email addresses, which only Pierre can supply.**
+- 🔴 **Nothing is published and nothing is downloadable.** The closed-testing release is a saved
+  **draft** — it was deliberately never sent for review. Even after rollout it is invitation-only:
+  testers opt in with a link, and the app never appears in public Play search.
+- 🔴 **Testers must be on Android with a Google account.** iPhone owners cannot take part at all —
+  that needs Apple/TestFlight, a separate track that still needs a Mac (§3 item 8).
+- **The 14-day clock has NOT started.** It starts when the release is rolled out *and* 12 testers
+  are opted in — not at upload, not at signup. Opting out resets it, so brief them.
+- ✅ **Account fully verified 2026-08-20** — identity approved **within minutes** of the ID upload
+  (the console's "may take a few days" is worst case), then phone **+9613193619** verified by SMS.
+- ✅ **App record:** **SpotSet**, package **`com.spotset.app`** (now PERMANENT), type App, price
+  **Free** (free→paid is impossible after publish), en-US, app ID **`4972021344864095549`**.
+- ✅ **Build uploaded:** `versionCode 2` / `versionName 2.15.0`, 2.92 MB download, minSdk API 24,
+  target SDK 36, signed by Play App Signing.
+- ✅ **The app now calls itself SpotSet.** Every screen said "PTApp" until this session — header
+  wordmark, PWA manifest, page title and iOS web-app title all renamed, v2.15.0 built, committed
+  and deployed to gh-pages. "PTApp" is now only the repo/project name.
+- ✅ **Icon and store graphics exist** — a white barbell on the app's accent gradient, generated by
+  `scripts/make_icon.py`-style Pillow code (source in §6). Launcher icons replaced too.
+- ✅ **Two public pages published on gh-pages:** the privacy policy and a data-deletion page, both
+  required by Google (and later Apple).
+- 🔴 **Still Pierre's to do:** register **`spotset.app`** (Cloudflare, ~$14.20/yr) and make a
+  **second, off-site copy of the upload keystore** — one USB copy is not a backup.
+- **The question to ask him:** *"Do you have the 12 tester Gmail addresses yet? Send whatever you
+  have and I'll create the list and roll the release out."*
 
 ---
 
@@ -134,30 +114,41 @@ release builds fine and only fails at Play upload.
 
 ## 3. What is left, in order
 
-**Done 2026-08-20 (nothing in the console is blocked any more):**
+**Done 2026-08-20 — the whole console is green except the tester list:**
 
-1. ✅ **Contact phone number verified** — +9613193619, SMS code.
-2. ✅ **App record created** — SpotSet / `com.spotset.app` / App / Free, app ID `4972021344864095549`.
-3. ▶️ **Upload the AAB to a closed testing track** — THE NEXT CONSOLE STEP, and the one that starts
-   the 14-day clock. Needs the 12 testers (item 5) to opt in for the clock to run.
+1. ✅ Contact phone verified (+9613193619, SMS).
+2. ✅ App record created — SpotSet / `com.spotset.app` / App / Free / en-US.
+3. ✅ Closed-testing track **Alpha** exists, targeting **177 countries** (all of them).
+4. ✅ AAB uploaded to the track and **saved as a draft release** — versionCode 2, versionName
+   2.15.0. **Deliberately NOT sent for review**: a release cannot be rolled out to nobody, and the
+   tester list is the missing piece.
+5. ✅ All nine App-content declarations answered (§6 lists every answer, so an audit does not need
+   the console).
+6. ✅ Store listing complete — name, short and full description, icon, feature graphic, four phone
+   screenshots, category **Health & Fitness**, contact email `getillume@gmail.com`.
+7. ✅ Privacy policy and data-deletion pages published on gh-pages.
 
-**Can be done NOW, in parallel, none of them gated on Google:**
+**🔴 THE ONE BLOCKER — Pierre only:**
 
-4. **Register `spotset.app`** — Pierre, ~$14.20/yr at Cloudflare (§4). The name is unprotected
-   until then.
-5. **Recruit 12 testers** (Elie's clients cover it) and brief them: *opting out resets the 14-day
-   counter*. The clock has not started and does not start at signup or upload.
-6. **App icon + branding assets** — none exist yet.
-7. **Privacy policy** — required by both stores. A GitHub Pages page under the PTApp repo is
-   sufficient and costs nothing.
-8. **Apple — Pierre asked for this on the to-do list, 2026-08-20, expecting it to be worse than
-   Google.** $99/yr, and 🔴 **it needs a Mac** for building and signing — Pierre develops on
-   Windows, so that is a real gap, not a formality. The App Store Connect name reservation is the
-   authoritative test of whether "SpotSet" is accepted there, and `docs/2026-07-14-app-name-research.md`
-   already flags a confusable-name risk against the live "PT Assist". **Not started, nothing owed
-   this week** — Apple has no 14-day gate, so it does not sit on the critical path.
+8. **Twelve tester email addresses.** They must be **Google accounts on Android**; iPhone owners
+   cannot test on Play at all. Once the list exists: create the email list on the Alpha track,
+   attach it, roll out the draft release, and Google reviews the build (hours to a couple of days
+   for a closed track). Then send testers the opt-in link. **The 14-day clock starts only when
+   12 are opted in, and opting out resets it.**
 
-**Then:** wait 14 continuous days on the closed track, and apply for production access.
+**Not gated on Google, still open:**
+
+9. **Register `spotset.app`** — Cloudflare, ~$14.20/yr at cost (§4). The name is unprotected.
+10. **Second, off-site copy of the upload keystore.** One USB copy is not a backup, and the key is
+    unrecoverable.
+11. **Apple / TestFlight** — needed for any iPhone tester and for the App Store at all. $99/yr and
+    🔴 **requires a Mac** to build and sign; Pierre is on Windows, so that is a real gap. No 14-day
+    gate, so it is off the critical path, but every iPhone-owning tester waits on it.
+12. **Tablet screenshots** — the console marks 7-inch and 10-inch as required but let the listing
+    save without them. Expect Google to ask before production; the screenshot harness can shoot a
+    tablet viewport when it matters.
+
+**Then:** 14 continuous days on the closed track → apply for production access.
 
 ---
 
@@ -230,6 +221,68 @@ available, 200 means registered.
 
 Not decided yet: whether he actually wants to run backups through Cloudflare or keep using
 `_archive` plus a USB. Ask before building anything.
+
+## 6. Every answer given to Google, and why — audit this without opening the console
+
+Recorded because a wrong declaration is a policy strike, and because **most of these must be
+revisited the moment SpotSet gains trainer or client sign-in.** Pierre asked exactly that on
+2026-08-20: *"later on we are gonna need this, right?"* — yes, and none of it is one-way.
+
+| Declaration | Answer given | Revisit when |
+|---|---|---|
+| Ads | No ads | if advertising is ever added |
+| Sign in details (was "App access") | **Not restricted** — no login exists; sync needs a token the user pastes, which is not an account | 🔴 **the day a trainer or client login ships** — reviewers must be given test credentials or the build is rejected |
+| Government apps | No | never |
+| Financial features | None | if billing/payments move in-app |
+| Health apps | **Activity and fitness** | if body-measurement or medical claims are added |
+| Advertising ID | Not used | if an analytics or ads SDK is added |
+| Content rating (IARC) | All Other App Types; no ratings-relevant content, no user-to-user sharing, no dynamic content, no age-restricted goods, no location sharing, no digital purchases, not a browser, not news/education → rated **Everyone / 3+** | any of those answers changing |
+| Target audience | **18 and over** only | if the audience widens to minors, which triggers Families policy |
+| Data safety | Collects **Name**, **Phone number**, **Fitness info**; all three **optional** (user chooses, because sync is opt-in), **not** shared with third parties, **encrypted in transit**, **deletion offered** via the published page; no account creation; no login with outside accounts | 🔴 **email addresses, and anything a login stores, must be added here** |
+
+**The reasoning behind the two non-obvious ones:**
+- **Data safety says "collected" even though we run no server.** Google defines collection as
+  *transmitted off the device* — the opt-in GitHub sync does exactly that, even though the
+  destination is the user's own private repository and we never receive a copy. Declaring "no
+  collection" would have been the convenient answer and the wrong one.
+- **Health apps says "Activity and fitness".** The app records training sessions and 1RM
+  evaluations. Claiming no health features for a gym app invites a mismatch finding.
+
+### Store listing content, as filed
+- **Short description (77/80):** "Clients, sessions and training programs for personal trainers.
+  Works offline."
+- **Full description:** ~1,900 characters — what it does (clients, schedule, session counting,
+  packages/renewals, evaluations, program generation, WhatsApp reminders, EN/AR) then how it works
+  (offline-first, data stays yours, one-handed, no ads/subscriptions). Full text is in the console
+  and in the session dump.
+- **Graphics:** 512×512 icon and 1024×500 feature graphic, generated with Pillow — white barbell
+  glyph on the app's `#2563EB → #60A5FA` gradient. Script kept at
+  `_archive/PTApp/branding/make_icon.py`.
+- **Screenshots:** four, from the puppeteer harness (`docs/marketing-deck.md`), padded to exactly
+  **2:1** (1230×2460) because Play rejects anything past 2:1 and the raw 1200×2460 shots are 2.05:1.
+
+---
+
+## 7. Traps hit this session — do not rediscover these
+
+1. 🔴 **The console lives at `/u/1/`.** `/u/0/` is `pierreishere@` and cheerfully offers to
+   create a **second** developer account. Always open
+   `https://play.google.com/console/u/1/developers/5311121347785758505/...`.
+2. 🔴 **The app called itself "PTApp" on every screen** while the store said SpotSet. Caught only
+   because the store screenshots were reviewed as images. Fixed in v2.15.0.
+3. **The demo data's date shift had rotted.** `make-demo-data.js` hardcoded `SHIFT_DAYS = 25`,
+   tuned for the 2026-08-05 capture; by 08-20 the dashboard shot showed "0 Today" and an empty
+   week. Now computed from the anchor date at runtime — the hardcoded-date-stamp trap, again.
+4. **The adaptive launcher icon needs a padded foreground.** Android crops 25% off each edge; a
+   full-bleed foreground clipped the outer plates. Foreground now sits inside the 66% safe zone and
+   the background colour moved from white to `#2563EB`.
+5. **Play's asset picker needs a tall window.** Its "Add" button sits in a bottom action bar that
+   the page footer covers at 958×854; resizing the browser to 1400×1000 revealed it. Uploading a
+   file and closing the panel does **not** attach the asset — you must select it and press **Add**.
+6. **A screenshot in the marketing harness is safe to publish** — the demo blob is anonymised and
+   the sync token is deliberately invalid, so no live client data can appear and no push can fire.
+
+---
 
 ## 5. Where everything is
 

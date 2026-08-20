@@ -74,6 +74,7 @@ listed here. `.0` releases are `instructions-vX.Y.md`, patches `instructions-vX.
 
 | Release | Subject |
 |---|---|
+| `v2.15.0` | The app is renamed SpotSet in the UI; launcher icon; versionCode 2 for the Play upload |
 | `v2.14.3` / `v2.14.2` / `v2.14.1` | Transliteration rule · Arabic exercise names · booking-time suggestion |
 | `v2.14` | Multi-day split generation, 3–6 days |
 | `v2.13` | Program generation (covers v2.13.0 through v2.13.3, incl. the Elie domain-review fixes) |

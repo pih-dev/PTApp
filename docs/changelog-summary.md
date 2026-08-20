@@ -4,6 +4,20 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.15.0 — the app is now called SpotSet (August 20, 2026)
+
+The app has a name for the store: **SpotSet**. Until this release every screen
+still said "PTApp", while the Google Play listing being prepared said SpotSet —
+so a tester would have installed one name and opened another. The header, the
+home-screen name, the browser title and the app icon all say SpotSet now.
+"PTApp" survives only as the name of the code repository.
+
+The new icon is a white barbell on the app's own blue gradient.
+
+**Nothing about your data changed.** No new fields, no migration, no change to
+sessions, packages, evaluations or programs — a phone that updates sees a new
+name and icon and nothing else.
+
 ## v2.14.3 — Arabic phrasing tune-up (July 17, 2026)
 
 Elie's rule (sent by voice note): when a literal Arabic translation wouldn't
