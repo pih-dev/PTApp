@@ -1,8 +1,15 @@
 # SpotSet — Store Publishing HANDOFF
 
-**Last updated:** 2026-08-20, Beirut.
-**To resume:** Pierre types `spotset` or `publish`. **Read §0 back to him and stop.**
-Do not investigate, do not draft, do not ask follow-up questions beyond the one §0 names.
+**Last updated:** 2026-08-20 ~10:40, Beirut — end of the Play-account session.
+**To resume:** Pierre types `spotset`, `publish`, `illume` or `continue`. **Read §0 back to him
+and stop.** Do not investigate, do not draft, do not ask follow-up questions beyond the one §0 names.
+
+🔴 **He will type `/clear` and then `continue` with NOTHING in between.** Do not assume any step
+below advanced in the gap — nothing did. The state in §0 is the state you will find.
+
+**Raw session dump (uncontaminated, written before this handoff):**
+`C:\projects\_archive\PTApp\claude-incidents6-08-20-play-developer-account-FULL-SESSION.txt`
+— 581 messages, 464 KB.
 
 > Subject-scoped. The general PTApp handoff (`HANDOFF.md`, app features, P3/P6) is a *different*
 > thread — do not merge them.
@@ -45,9 +52,13 @@ Do not investigate, do not draft, do not ask follow-up questions beyond the one 
   copy is still owed.**
 - **The 14-day closed-test clock has NOT started.** It starts only when the AAB is released to a
   closed track *and* 12 testers have opted in — not at signup, not at upload.
-- **Apple is untouched.** No account, and it needs a Mac for building/signing.
-- **The question to ask him:** has the Play account cleared ID verification, and has
-  `spotset.app` been bought? Everything downstream waits on those two.
+- **Apple is untouched, and is now explicitly on the to-do list** (Pierre, 2026-08-20 — he expects
+  it to be harder than Google). No account; 🔴 **needs a Mac** to build and sign. No 14-day gate,
+  so it is not on the critical path. §3 item 8.
+- **Everything else that can move without Google:** buy `spotset.app`, recruit the 12 testers,
+  app icon, privacy-policy URL, Apple. Listed in order in §3.
+- **The question to ask him:** *"Has Google's verification email arrived? If not — domain, testers,
+  icon or privacy policy first?"*
 
 ---
 
@@ -114,19 +125,30 @@ release builds fine and only fails at Play upload.
 
 ## 3. What is left, in order
 
-1. **Register `spotset.app`** — Pierre. NOT the .com: `spotset.com` has been held since 2009 and
-   is parked (see §0). Registrar recommendation: §4.
-2. **Google Play signup** — Pierre. $25, card in his legal name (**prepaid cards are rejected** —
-   the likeliest failure point from Lebanon), government ID, address, and a device check via the
-   Play Console app on the S25 Ultra. Field-by-field sheet:
-   `_archive/PTApp/2026-08-20-play-console-signup-fields.xlsx`.
-3. **Create the app record** in Play Console under the display name SpotSet.
-4. **Upload the AAB to a closed testing track.**
-5. **Recruit 12 testers** (Elie's clients cover it) and get them opted in. Tell them explicitly not
-   to leave the test — opting out resets the 14-day counter.
-6. **Wait 14 continuous days**, then apply for production access.
-7. **Apple, separately** — $99/yr, needs a Mac, and the App Store Connect name reservation is the
-   authoritative test of whether "SpotSet" is accepted there.
+**Blocked until Google's email arrives (a few days):**
+
+1. ⛔ **Verify the contact phone number** — queued behind identity approval; the console refuses it
+   until the ID documents are approved.
+2. ⛔ **Create the app record** under the display name **SpotSet** — the button is greyed out.
+3. ⛔ **Upload the AAB to a closed testing track** — needs the app record.
+
+**Can be done NOW, in parallel, none of them gated on Google:**
+
+4. **Register `spotset.app`** — Pierre, ~$14.20/yr at Cloudflare (§4). The name is unprotected
+   until then.
+5. **Recruit 12 testers** (Elie's clients cover it) and brief them: *opting out resets the 14-day
+   counter*. The clock has not started and does not start at signup or upload.
+6. **App icon + branding assets** — none exist yet.
+7. **Privacy policy** — required by both stores. A GitHub Pages page under the PTApp repo is
+   sufficient and costs nothing.
+8. **Apple — Pierre asked for this on the to-do list, 2026-08-20, expecting it to be worse than
+   Google.** $99/yr, and 🔴 **it needs a Mac** for building and signing — Pierre develops on
+   Windows, so that is a real gap, not a formality. The App Store Connect name reservation is the
+   authoritative test of whether "SpotSet" is accepted there, and `docs/2026-07-14-app-name-research.md`
+   already flags a confusable-name risk against the live "PT Assist". **Not started, nothing owed
+   this week** — Apple has no 14-day gate, so it does not sit on the critical path.
+
+**Then:** wait 14 continuous days on the closed track, and apply for production access.
 
 ---
 
