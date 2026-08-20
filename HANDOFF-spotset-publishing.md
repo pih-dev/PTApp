@@ -19,7 +19,14 @@ Do not investigate, do not draft, do not ask follow-up questions beyond the one 
   permanent at the first Play upload and not before.**
 - **A signed Android AAB exists and builds reproducibly.** Capacitor 8.5.0, JDK 21, Android SDK
   at `C:\Android\Sdk`. Build command and all paths: `docs/stage2-publishing-guide.md`.
-- 🔴 **Two things are Pierre's to do and block everything else:** register **`spotset.com`**, and
+- 🔴 **`spotset.com` IS TAKEN** — corrected 2026-08-20 by Verisign RDAP (authoritative). Registered
+  since **2009**, renewed Apr 2026, parked on DNSLNK nameservers, `clientTransferProhibited`. An
+  investor holds it. **The earlier "free" reading came from an NS-absence check and was wrong.**
+  `setspot.com` is taken too, so this does not reopen the name choice.
+- **The name still stands. Buy `spotset.app` instead** — confirmed AVAILABLE by RDAP, along with
+  `.io`, `.co`, `.fit`, and `getspotset.com` / `spotsetapp.com` / `usespotset.com`. `.app` is
+  Google-run, forces HTTPS, and matches the product.
+- 🔴 **Two things are Pierre's to do and block everything else:** register **`spotset.app`**, and
   complete the **Google Play signup** ($25 + ID/address verification, which takes days on
   Google's side).
 - 🔴 **The upload keystore is unrecoverable.** `C:\projects\_archive\PTApp\keystore\` — must be
@@ -27,7 +34,7 @@ Do not investigate, do not draft, do not ask follow-up questions beyond the one 
 - **The 14-day closed-test clock has NOT started.** It starts only when the AAB is released to a
   closed track *and* 12 testers have opted in — not at signup, not at upload.
 - **Apple is untouched.** No account, and it needs a Mac for building/signing.
-- **The question to ask him:** has spotset.com been registered, and has the Play account cleared
+- **The question to ask him:** has `spotset.app` been registered, and has the Play account cleared
   verification? Everything downstream waits on those two.
 
 ---
@@ -95,8 +102,8 @@ release builds fine and only fails at Play upload.
 
 ## 3. What is left, in order
 
-1. **Register `spotset.com`** — Pierre. Availability was checked by NS-absence, which suggests but
-   does not prove it is free. Registrar recommendation: §4.
+1. **Register `spotset.app`** — Pierre. NOT the .com: `spotset.com` has been held since 2009 and
+   is parked (see §0). Registrar recommendation: §4.
 2. **Google Play signup** — Pierre. $25, card in his legal name (**prepaid cards are rejected** —
    the likeliest failure point from Lebanon), government ID, address, and a device check via the
    Play Console app on the S25 Ultra. Field-by-field sheet:
@@ -123,11 +130,23 @@ Verified 2026-08-20 from Cloudflare's own docs
 - The usual alternatives are **Porkbun** and **Namecheap** — both fine, both include WHOIS privacy,
   both accept international cards; they typically discount year one and charge more on renewal.
   **Not verified this session.**
+- **Do NOT connect an AI agent / API token to the Cloudflare account** to do this. Buying a domain
+  is a one-off card transaction only Pierre can complete, and a registrar/DNS token is broad
+  standing access for no benefit. Decided 2026-08-20.
 - ⚠️ **Avoid the low first-year/high-renewal pattern** generally, and never let a registrar hold
   the domain hostage with an expensive transfer-out fee.
 
-**What to buy:** `spotset.com` at minimum. `spotset.app` is worth taking too if cheap — `.app` is
-Google-run and forces HTTPS, which suits an app landing page.
+**What to buy:** `spotset.app`. The bare `.com` is unavailable (held since 2009, parked, transfer
+locked); chasing it means approaching a domain investor, which is a separate and probably expensive
+negotiation — not a blocker for launching. RDAP-confirmed AVAILABLE 2026-08-20 and worth considering
+alongside it: `spotset.io`, `spotset.co`, `spotset.fit`, `getspotset.com`, `spotsetapp.com`,
+`usespotset.com`.
+
+⚠️ **Method note, learned the hard way this session.** Domain availability was first checked by
+NS-absence (`nslookup -type=NS`), which reported `spotset.com` free. It is not — it has been
+registered since 2009. **A parked domain often has no resolving nameservers.** Use RDAP, which is
+authoritative: `curl -o /dev/null -w "%{http_code}" https://rdap.org/domain/<name>` — 404 means
+available, 200 means registered.
 
 ---
 

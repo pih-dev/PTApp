@@ -4,9 +4,21 @@
 >
 > Chosen by Pierre after four screening rounds. *Spot* = the assist and the standard (a spotter
 > supports the lift and holds the form); *set* = the unit this app schedules, prescribes and counts.
-> Clear on the App Store and Play, and **`spotset.com`, `.app`, `.io` and `.fit` all appeared
-> unregistered** — the only candidate in this document with the .com free, which is what settled it
-> against the otherwise-equal `SetSpot` (`setspot.com` is taken).
+> Clear on the App Store and Play.
+>
+> 🔴 **CORRECTION, same day:** the `.com` is NOT free. `spotset.com` has been registered since
+> **2009**, is parked on DNSLNK nameservers and is transfer-locked — confirmed by Verisign RDAP,
+> which is authoritative. The earlier "free" reading came from an NS-absence check
+> (`nslookup -type=NS`), and **a parked domain routinely has no resolving nameservers**. Since
+> `setspot.com` is also taken, the tiebreak that chose SpotSet over SetSpot was wrong on its
+> facts — but the outcome does not change, and the other reason (SetSpot parses as a *venue*)
+> still holds.
+>
+> **Available and RDAP-confirmed 2026-08-20:** `spotset.app`, `.io`, `.co`, `.fit`, `.dev`, plus
+> `getspotset.com`, `spotsetapp.com`, `usespotset.com`. **Buy `spotset.app`.**
+>
+> **Method for any future check:** `curl -o /dev/null -w "%{http_code}" https://rdap.org/domain/<d>`
+> — 404 = available, 200 = registered. Never trust an NS lookup for availability.
 >
 > **The application ID is `com.spotset.app`**, rebuilt 2026-08-20 from the auto-generated
 > `com.pih.ptapp` — which embedded Pierre's old GitHub handle and the old app name. It becomes
