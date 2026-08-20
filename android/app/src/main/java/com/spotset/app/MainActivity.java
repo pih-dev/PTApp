@@ -1,4 +1,4 @@
-package com.pih.ptapp;
+package com.spotset.app;
 
 import com.getcapacitor.BridgeActivity;
 

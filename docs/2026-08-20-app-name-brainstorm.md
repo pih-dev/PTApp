@@ -8,9 +8,15 @@
 > unregistered** — the only candidate in this document with the .com free, which is what settled it
 > against the otherwise-equal `SetSpot` (`setspot.com` is taken).
 >
-> **The permanent package ID stays `com.pih.ptapp`** — it can never change after the first Play
-> upload, and it does not need to match the display name. Only `app_name` /
-> `title_activity_main` / `capacitor.config.json` carry "SpotSet".
+> **The application ID is `com.spotset.app`**, rebuilt 2026-08-20 from the auto-generated
+> `com.pih.ptapp` — which embedded Pierre's old GitHub handle and the old app name. It becomes
+> permanent at the **first Play upload**, and nothing has been uploaded yet.
+>
+> Chosen over `com.pg.spotset` (his initials) because `pg.com` is Procter & Gamble's — legal on
+> Play, poor reverse-DNS practice. Tying the ID to the product domain also survives incorporation
+> or a business rename, and **apps can be transferred to a business account later without the
+> package name changing** (<https://support.google.com/googleplay/android-developer/answer/6230247>).
+> Each future app needs its OWN id — only a prefix is ever shared.
 >
 > 🔴 **Register `spotset.com` before publicising the name.** The availability check here was
 > NS-absence, which suggests but does not prove the domain is free.
@@ -20,7 +26,7 @@
 > platform run by a PhD sports specialist), **SetSpot** (.com taken, and it parses as a *venue*).
 
 
-**Date:** 2026-08-20 · **Asked by:** Pierre · **Status:** candidates proposed, NONE screened yet.
+**Date:** 2026-08-20 · **Asked by:** Pierre · **Status:** CLOSED — screened, decided (see the box above).
 Supersedes nothing — `docs/2026-07-14-app-name-research.md` still holds the round-1 screening
 (PTAssist dead, PTDesk/PTRoster/Sessionly clear). This round drops the "must start with PT"
 constraint at Pierre's instruction.
@@ -217,7 +223,7 @@ Relayed by Pierre. This is the name Elie had in mind all along; the inference ea
 - **Discoverability.** PTAssyst re-enters the `PT*` namespace this document argued is unfindable.
   That is a marketing cost, not a blocker, and it is Elie's product to name.
 
-**Practical consequence — nothing is blocked.** The package ID `com.pih.ptapp` is neutral and
+**Practical consequence — nothing is blocked.** The package ID `com.spotset.app` is neutral and
 permanent; the Play display name is editable at any time. So the closed test can start under
 PTAssyst now, and if Apple later refuses the name, only the display name changes.
 
@@ -303,6 +309,6 @@ this entire document with all three major domains apparently free.
 3. Domain + social handles, same day.
 4. App Store Connect reservation is the authoritative uniqueness test, and needs the $99 account.
 
-**None of this blocks Play.** The package ID `com.pih.ptapp` is already permanent and neutral, and
+**None of this blocks Play.** The package ID `com.spotset.app` is already permanent and neutral, and
 the Play display name is editable at any time — so the closed test can start under "PTApp" while
 this decision takes as long as it needs.

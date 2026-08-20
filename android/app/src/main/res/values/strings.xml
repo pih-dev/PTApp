@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">SpotSet</string>
     <string name="title_activity_main">SpotSet</string>
-    <string name="package_name">com.pih.ptapp</string>
-    <string name="custom_url_scheme">com.pih.ptapp</string>
+    <string name="package_name">com.spotset.app</string>
+    <string name="custom_url_scheme">com.spotset.app</string>
 </resources>

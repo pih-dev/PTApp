@@ -46,7 +46,7 @@ The native Android shell exists and produces a signed AAB. What was installed an
 
 | Thing | Value |
 |---|---|
-| Package ID (**permanent**) | `com.pih.ptapp` — deliberately neutral; the Play *display name* is editable later, the ID never is |
+| Package ID (**permanent**) | `com.spotset.app` — deliberately neutral; the Play *display name* is editable later, the ID never is |
 | Capacitor | 8.5.0 (`@capacitor/core`, `/cli`, `/android`), `webDir: dist` |
 | JDK | Microsoft OpenJDK 21.0.12 at `C:\Program Files\Microsoft\jdk-21.0.12.8-hotspot` (system Java is 8 — too old for Gradle 8.14, so JAVA_HOME must be set per build) |
 | Android SDK | `C:\Android\Sdk` — platform 36, build-tools 36.0.0, platform-tools; licences accepted |
@@ -61,7 +61,7 @@ cd android && JAVA_HOME="/c/Program Files/Microsoft/jdk-21.0.12.8-hotspot" \
 # → android/app/build/outputs/bundle/release/app-release.aab
 ```
 
-🔴 **The upload key is unrecoverable.** Google identifies the app by it; lose it and `com.pih.ptapp`
+🔴 **The upload key is unrecoverable.** Google identifies the app by it; lose it and `com.spotset.app`
 can never be updated again. It lives in `_archive` and must be backed up off this laptop.
 Capacitor ships `android/.gitignore` with `*.jks` / `*.keystore` **commented out** — they were
 uncommented before the key was created. PTApp is a **public** repo; never undo that.

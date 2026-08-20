@@ -1,9 +1,11 @@
 apply plugin: 'com.android.application'
 
-// Play upload-key signing. The keystore itself lives in _archive (NOT in this repo — pih-dev/PTApp
-// is public), and keystore.properties holds its password and is gitignored. Both are absent on a
+// Play upload-key signing. The keystore itself lives in _archive (NOT in this repo — the repo is
+// public), and keystore.properties holds its password and is gitignored. Both are absent on a
 // fresh clone, so guard on existence: a clone without the key can still build debug, it just
-// cannot produce a signed release. Losing this key means never updating com.pih.ptapp again.
+// cannot produce a signed release. Losing this key means never updating com.spotset.app again.
+// NOTE: this block is re-applied by hand after any `npx cap add android` — regenerating the
+// platform wipes it, and an unsigned release only fails at Play upload, not at build time.
 def keystorePropsFile = rootProject.file("keystore.properties")
 def keystoreProps = new Properties()
 if (keystorePropsFile.exists()) {
@@ -11,10 +13,10 @@ if (keystorePropsFile.exists()) {
 }
 
 android {
-    namespace = "com.pih.ptapp"
+    namespace = "com.spotset.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.pih.ptapp"
+        applicationId "com.spotset.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

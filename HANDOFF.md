@@ -6,6 +6,10 @@ investigate, do not ask follow-up questions beyond the single one in §0.
 
 ---
 
+> 📌 **Store publishing is a SEPARATE, NEWER thread** — `HANDOFF-spotset-publishing.md`
+> (2026-08-20). If he says `spotset` or `publish`, read that one instead. The app is now named
+> **SpotSet**; "PTApp" is only the repo/project name.
+
 ## 0. Status — read this out
 
 - App is at **v2.14.3**, deployed, working. **Nothing is broken. Nothing is urgent.**
