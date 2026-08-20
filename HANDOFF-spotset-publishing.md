@@ -26,18 +26,24 @@ Do not investigate, do not draft, do not ask follow-up questions beyond the one 
 - **The name still stands. Buy `spotset.app` instead** — confirmed AVAILABLE by RDAP, along with
   `.io`, `.co`, `.fit`, and `getspotset.com` / `spotsetapp.com` / `usespotset.com`. `.app` is
   Google-run, forces HTTPS, and matches the product.
-- 🔴 **Two things are Pierre's to do and block everything else:** register **`spotset.app`**, and
-  complete the **Google Play signup** ($25 + ID/address verification, which takes days on
-  Google's side).
+- ✅ **The Google Play developer account EXISTS** — created 2026-08-20, $25 paid, receipt to
+  pierreghorra@gmail.com. Details in §5. **ID verification still runs on Google's side (days);
+  publishing is gated on it.**
+- 🔴 **Still Pierre's to do:** register **`spotset.app`** (Cloudflare quotes **$14.20/yr**, at cost,
+  renews the same — confirmed in the dash 2026-08-20). Not a blocker for Play, but the name is
+  unprotected until bought.
 - **Pierre now has a Cloudflare account** (signed in 2026-08-20 with his primary Gmail). He
   declined connecting any AI agent to it — that decision stands, see §4.
-- 🔴 **The upload keystore is unrecoverable.** `C:\projects\_archive\PTApp\keystore\` — must be
-  backed up off this laptop. Losing it means never updating the app again.
+- 🔴 **The upload keystore is unrecoverable** — `C:\projects\_archive\PTApp\keystore\`.
+  ✅ **Backed up 2026-08-20** to a USB (Ventoy) as `E:\SpotSet-keystore.7z` — 7z/AES-256, encrypted
+  filenames, 5,039 B; Pierre ran 7-Zip *Test archive* and it reported 2 files, no errors, and the
+  plaintext copies were deleted from the stick. **One copy is not a backup — a second, off-site
+  copy is still owed.**
 - **The 14-day closed-test clock has NOT started.** It starts only when the AAB is released to a
   closed track *and* 12 testers have opted in — not at signup, not at upload.
 - **Apple is untouched.** No account, and it needs a Mac for building/signing.
-- **The question to ask him:** has `spotset.app` been registered, and has the Play account cleared
-  verification? Everything downstream waits on those two.
+- **The question to ask him:** has the Play account cleared ID verification, and has
+  `spotset.app` been bought? Everything downstream waits on those two.
 
 ---
 
@@ -228,3 +234,42 @@ Not decided yet: whether he actually wants to run backups through Cloudflare or 
   app is single-user with one shared data blob. Do not let that scope entangle the store work.
 - **Repo is still named PTApp.** Renaming it on GitHub is safe (redirects) but touches every
   documented URL — a deliberate task, not a side effect.
+
+
+---
+
+## 5. The Play developer account, as created (2026-08-20)
+
+Filled in-session over Chrome; every value below was read off the live form, not planned.
+
+| Field | Value | Why |
+|---|---|---|
+| Owner Google account | **pierreghorra@gmail.com** | 🔴 The first signup was begun on `pierreishere@` and **abandoned before Terms** precisely because the owner account is not a settings field — moving it later is a formal Google transfer. Nothing was charged on that attempt. |
+| Account type | Yourself (individual) | `docs/stage2-publishing-guide.md` already ruled no company is needed. |
+| Developer name (public) | **Illume** | Latin *illuminare*, "to light up". See below. |
+| Developer email (public) | **getillume@gmail.com** | Purpose-made, verified by code. Kept off his primary because this address is published on every listing forever; an alias would not have helped — Gmail's `+tag` and dot forms still display the base address. |
+| Legal name / country | Pierre Ghorra / Lebanon (LB) | From the payments profile. |
+| Address | **Beirut (the card's billing address)** | Deliberate. The profile is verified against ID + card, so a Zahlé address he could not source exactly would risk the verification. Google's rule: personal accounts publish name/country/email, **but "if you decide to monetize… Google will display your full address"** — and monetization *is* ticked, so an invented street would eventually be published as real. Change it when the company is registered. |
+| Website | `https://pih-dev.github.io/PTApp/` | Not shown publicly; it aids identity verification. Confirmed live (`gh api … /pages` → `built`). |
+| Apps / 12 months | 2 – 5 | |
+| Earning money | Yes → **Subscriptions + Paid apps**, no Ads | Money *inside the app* only. Elie's clients paying him for training is cash outside the app and irrelevant to Google. |
+| Sensitive categories | None of the above | A trainer app is in none of them. |
+| Other Google accounts | Yes → pierreishere@gmail.com | The abandoned attempt, declared honestly. |
+| Contact (private) | Pierre Ghorra · pierreghorra@gmail.com · +961 3 193619 | |
+
+### Why "Illume", and not the company name
+
+The Play developer name is **globally unique across every developer on the store**, which turns the
+signup form into a free, instant availability oracle. Tested live: **Sila ❌ · Sila Labs ❌ ·
+Lumen ❌ · Lumen Labs ❌ · Lumos ❌ · Lumine ❌ · Numen ❌**; free: **Illume ✅ · Lumen Systems ✅ ·
+Sila Systems ✅**. Every bare Latin light-word is gone; survivors are coinages or word+descriptor.
+
+**This does not decide the company name** — the developer name is changeable later. The company
+shortlist and Pierre's brief for another round (shorter, Latin/Harry-Potter, light, letters
+l m e n p, *luminescent* in the pool, **Labs** preferred over Systems) live in
+`C:/projects/General/awareness-program/internal/company-registration-and-name.md` §2.
+
+### What is now blocked on Google, not on us
+
+ID verification runs on Google's side and takes days. The 14-day closed-test clock still has not
+started — it starts when the AAB is on a closed track **and** 12 testers have opted in.
