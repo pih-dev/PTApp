@@ -173,6 +173,37 @@ store-search-only screen misses, and it is why round 1's doc insisted screening 
 **Miyar** does not have this problem — معيار is an ordinary word for *standard*, not an
 institution.
 
+## DECISION — Elie chose **PTAssyst** (2026-08-20)
+
+Relayed by Pierre. This is the name Elie had in mind all along; the inference earlier in this doc
+(that a "PT + i→y" name would be a respelling of the collided PTAssist) was correct.
+
+**What is verified:**
+- **No app named "PTAssyst" or "PT Assyst" exists on either store** — searched 2026-08-20; results
+  were only the known `PT Assist`, `PTassistance`, and unrelated enterprise "Assyst" products.
+- **Google Play has no name-uniqueness rule.** PTAssyst is usable there immediately.
+
+**What is NOT verified, and is the real risk:**
+- **Apple.** "PT Assist" is live in the identical category (personal-trainer business management,
+  `id6502348152`). Apple enforces store-wide uniqueness at app-record creation and rejects
+  confusably-similar names; one letter apart in the same category is squarely that case. This
+  cannot be settled by searching — only by attempting the reservation in App Store Connect, which
+  needs the $99 account.
+- **Trademark.** `assyst` is IFS's ITSM product (originally Axios Systems, acquired by IFS in 2021),
+  almost certainly registered in classes 9 and 42. **I could not retrieve the actual registration
+  records** — the USPTO search API returned 404 and web search surfaced no filing numbers. So the
+  risk is *unquantified*, not cleared. Different field (ITSM vs fitness) usually helps, but the
+  classes overlap.
+- **Discoverability.** PTAssyst re-enters the `PT*` namespace this document argued is unfindable.
+  That is a marketing cost, not a blocker, and it is Elie's product to name.
+
+**Practical consequence — nothing is blocked.** The package ID `com.pih.ptapp` is neutral and
+permanent; the Play display name is editable at any time. So the closed test can start under
+PTAssyst now, and if Apple later refuses the name, only the display name changes.
+
+**Next check when the Apple account exists:** attempt the App Store Connect name reservation early
+— it is the authoritative test, and a reserved name is held.
+
 ## Before ANY name is committed — unchanged from round 1
 
 1. Store screening on both stores (this doc has NOT done it for section A or B).
