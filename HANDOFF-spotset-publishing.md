@@ -22,8 +22,8 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   only the repo/project name. Reasoning + every rejected candidate:
   `docs/2026-08-20-app-name-brainstorm.md`.
 - **Application ID is `com.spotset.app`** — Pierre's choice, replacing the auto-generated
-  `com.pih.ptapp` (which embedded an old GitHub handle and the old app name). **It becomes
-  permanent at the first Play upload and not before.**
+  `com.pih.ptapp` (which embedded an old GitHub handle and the old app name). ✅ **It is now
+  PERMANENT** — locked in at app-record creation, 2026-08-20.
 - **A signed Android AAB exists and builds reproducibly.** Capacitor 8.5.0, JDK 21, Android SDK
   at `C:\Android\Sdk`. Build command and all paths: `docs/stage2-publishing-guide.md`.
 - 🔴 **`spotset.com` IS TAKEN** — corrected 2026-08-20 by Verisign RDAP (authoritative). Registered
