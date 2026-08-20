@@ -1,6 +1,6 @@
 # SpotSet — Store Publishing HANDOFF
 
-**Last updated:** 2026-08-20 ~10:40, Beirut — end of the Play-account session.
+**Last updated:** 2026-08-20, Beirut — after the verification-cleared session (app record created).
 **To resume:** Pierre types `spotset`, `publish`, `illume` or `continue`. **Read §0 back to him
 and stop.** Do not investigate, do not draft, do not ask follow-up questions beyond the one §0 names.
 
@@ -35,11 +35,20 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   Google-run, forces HTTPS, and matches the product.
 - ✅ **The Google Play developer account EXISTS** — created 2026-08-20, $25 paid, receipt to
   pierreghorra@gmail.com. Developer name **Illume**, account ID **5311121347785758505**. Details in §5.
-- 🔴 **HARD BLOCK: identity verification is pending with Google.** ID front+back submitted
-  2026-08-20; console says *"Google is verifying your identity… may take a few days"*. The
-  **Create app** button is greyed out — *"Complete account verifications to create new apps"* —
-  so **nothing further can be done in the console at all**, not even the app record. Contact-phone
-  verification is queued behind it. The account owner gets an email when it clears.
+- ✅ **BLOCK CLEARED, same day.** Identity verification came back **within minutes** of submitting
+  the ID photos — console notification *"Your identity has been verified successfully"*, 2026-08-20.
+  Contact phone **+9613193619 verified** by SMS in the same session. The account setup banner is
+  gone; **Create app** is live. (The "may take a few days" wording is worst-case, not typical.)
+- ✅ **The SpotSet app record EXISTS in Play Console** — created 2026-08-20.
+  **App ID `4972021344864095549`**, package **`com.spotset.app`** (now PERMANENT — accepted at
+  creation), display name **SpotSet**, type **App**, price **Free** (free→paid is impossible after
+  publish), default language en-US. All three declarations accepted with Pierre's explicit `go`:
+  Developer Program Policies, **Play App Signing ToS**, US export laws.
+  Dashboard: `https://play.google.com/console/u/1/developers/5311121347785758505/app/4972021344864095549/app-dashboard`
+  🔴 **Console is on `/u/1/` — `pierreghorra@gmail.com`. `/u/0/` is `pierreishere@` and offers to
+  create a SECOND developer account. Always use the `/u/1/` URL.**
+- **Next in the console:** upload the signed AAB to a **closed testing** track — that is what starts
+  the 14-day clock, and it needs the 12 testers opted in.
 - 🔴 **Still Pierre's to do:** register **`spotset.app`** (Cloudflare quotes **$14.20/yr**, at cost,
   renews the same — confirmed in the dash 2026-08-20). Not a blocker for Play, but the name is
   unprotected until bought.
@@ -57,8 +66,8 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   so it is not on the critical path. §3 item 8.
 - **Everything else that can move without Google:** buy `spotset.app`, recruit the 12 testers,
   app icon, privacy-policy URL, Apple. Listed in order in §3.
-- **The question to ask him:** *"Has Google's verification email arrived? If not — domain, testers,
-  icon or privacy policy first?"*
+- **The question to ask him:** *"Google is fully unblocked and the app record exists. Upload the AAB
+  to closed testing now, or do the domain / testers / icon / privacy policy first?"*
 
 ---
 
@@ -125,12 +134,12 @@ release builds fine and only fails at Play upload.
 
 ## 3. What is left, in order
 
-**Blocked until Google's email arrives (a few days):**
+**Done 2026-08-20 (nothing in the console is blocked any more):**
 
-1. ⛔ **Verify the contact phone number** — queued behind identity approval; the console refuses it
-   until the ID documents are approved.
-2. ⛔ **Create the app record** under the display name **SpotSet** — the button is greyed out.
-3. ⛔ **Upload the AAB to a closed testing track** — needs the app record.
+1. ✅ **Contact phone number verified** — +9613193619, SMS code.
+2. ✅ **App record created** — SpotSet / `com.spotset.app` / App / Free, app ID `4972021344864095549`.
+3. ▶️ **Upload the AAB to a closed testing track** — THE NEXT CONSOLE STEP, and the one that starts
+   the 14-day clock. Needs the 12 testers (item 5) to opt in for the clock to run.
 
 **Can be done NOW, in parallel, none of them gated on Google:**
 
