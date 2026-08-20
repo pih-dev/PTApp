@@ -27,8 +27,12 @@ Do not investigate, do not draft, do not ask follow-up questions beyond the one 
   `.io`, `.co`, `.fit`, and `getspotset.com` / `spotsetapp.com` / `usespotset.com`. `.app` is
   Google-run, forces HTTPS, and matches the product.
 - ✅ **The Google Play developer account EXISTS** — created 2026-08-20, $25 paid, receipt to
-  pierreghorra@gmail.com. Details in §5. **ID verification still runs on Google's side (days);
-  publishing is gated on it.**
+  pierreghorra@gmail.com. Developer name **Illume**, account ID **5311121347785758505**. Details in §5.
+- 🔴 **HARD BLOCK: identity verification is pending with Google.** ID front+back submitted
+  2026-08-20; console says *"Google is verifying your identity… may take a few days"*. The
+  **Create app** button is greyed out — *"Complete account verifications to create new apps"* —
+  so **nothing further can be done in the console at all**, not even the app record. Contact-phone
+  verification is queued behind it. The account owner gets an email when it clears.
 - 🔴 **Still Pierre's to do:** register **`spotset.app`** (Cloudflare quotes **$14.20/yr**, at cost,
   renews the same — confirmed in the dash 2026-08-20). Not a blocker for Play, but the name is
   unprotected until bought.
@@ -268,6 +272,26 @@ Sila Systems ✅**. Every bare Latin light-word is gone; survivors are coinages 
 shortlist and Pierre's brief for another round (shorter, Latin/Harry-Potter, light, letters
 l m e n p, *luminescent* in the pool, **Labs** preferred over Systems) live in
 `C:/projects/General/awareness-program/internal/company-registration-and-name.md` §2.
+
+### The address, and the document that had to match it
+
+The verification wanted a document carrying **both the name and the address on file**. What was
+available and why each failed: **CIM Banque** (Geneva) statements do carry the current address —
+*Samir Youssef bldg, 3rd floor, City Rama, Metn, 1201 Dekwaneh* — but the three on the phone are
+dated 03.12.2024, 19.03.2025 and 30.01.2026, all outside Google's **60-day** window, and the CIM
+login was failing. An **IBKR Activity Statement** generated fresh on 2026-08-19 carries name and
+account number but **no address at all** — IBKR statements do not print one.
+
+So the address was moved to match the document he *did* hold. **The payments profile now reads
+Maalaka · Zahle · 1801 · Lebanon** — the locality on his Lebanese national ID
+(المحلة أو القرية: المعلقة – زحلة, register 48, Beqaa). 🔴 **A Lebanese ID carries no street
+address**, so locality is the most a match can be made on; postal code 1801 is Zahlé's
+(LibanPost 4-digit). This also quietly settles the earlier Beirut-vs-Zahlé question in Zahlé's
+favour, which is where the future company would sit anyway.
+
+**The ID images are preserved** at `C:\projects\_archive\PTApp\play-identity\` as
+`2026-08-20-play-id-{front,back}.jpg` (rotated 180° and cropped from the phone originals; working
+copies also in `D:\PG\docs\`). Never committed — `_archive` is outside every repo.
 
 ### What is now blocked on Google, not on us
 
