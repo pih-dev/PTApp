@@ -205,7 +205,7 @@ export default function App() {
             </svg>
           </div>
           <div>
-            <div className="logo-text">PTApp</div>
+            <div className="logo-text">SpotSet</div>
             <div className="logo-sub">{t(lang, 'personalTrainer')}</div>
           </div>
           {/* Right side: sync dot + menu button. Version removed from header (lives in debug panel + General). */}
@@ -260,7 +260,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.14.3</div>
+          <div><strong>Version:</strong> v2.15.0</div>
           <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>
