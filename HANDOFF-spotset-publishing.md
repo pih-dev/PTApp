@@ -1,6 +1,6 @@
 # SpotSet — Store Publishing HANDOFF
 
-**Last updated:** 2026-08-20 ~14:15, Beirut — the submission session.
+**Last updated:** 2026-08-20 ~14:30, Beirut — the submission session (Android side complete).
 **To resume:** Pierre types `spotset`, `publish`, `illume` or `continue`. **Read §0 back to him
 and stop.** Do not investigate, do not draft, do not ask follow-up questions beyond the one §0 names.
 
@@ -21,43 +21,38 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 
 ## 0. Status — read this out
 
-- 🟢 **SUBMITTED TO GOOGLE, 2026-08-20 ~14:10.** SpotSet **v2.15.1 / versionCode 3** and 13 other
-  changes are in **"Changes in review"** on the Publishing overview. Google's quick checks were
-  still finishing at submit time; the console sends the batch on automatically once they pass.
-  Reviews are "typically within 7 days".
-- **14 testers are on the list** (`SpotSet Alpha Testers`) — over the 12 minimum, so no more are
-  needed. 🔴 **The 14-day clock has still NOT started.** It starts when the release is actually
-  rolled out AND 12 testers have **opted in**, and opting out resets it — brief them.
-- 🔴 **Google sends testers NOTHING.** The console states the opt-in link "will be shown here when
-  you publish your app" — Pierre copies it and sends it himself (WhatsApp/email). There is no
-  invitation email to preview, so the tester instructions are entirely his to write. That was the
-  question he asked this session; this is the answer.
-- **Testers must be on Android.** iPhone owners cannot take part — that needs Apple/TestFlight and
-  still needs a Mac.
-- ✅ **What got fixed to make submission possible.** The first attempt was BLOCKED by Google's
-  check: *"Missing sign in details"*, with a screenshot showing the token screen — which also still
-  said **"PTApp"**. Both were real defects, and both are fixed in v2.15.1:
-  - the rename missed `TokenSetup.jsx` (the one screen an existing device never renders again);
-  - the app is a hard auth gate, so reviewers could not get in. **The literal `DEMO` is now
-    accepted in place of a token** and opens the app on seeded local data with all sync off.
-    Full design + the two live-data leaks the review pass caught: `docs/instructions-v2.15.1.md`.
-- ✅ **Sign in details declaration** filed as *restricted = Yes*, credential `DEMO`, with reviewer
-  instructions. It was previously (and falsely) declared "No".
-- 🔴 **Build trap that cost an hour — read before ever building again.** `gradlew` needs **JDK 21**
-  but PATH java here is **Temurin 8**, and **the wrapper exits 0 on a FAILED build**, leaving the
-  previous AAB in `outputs/`. A stale 2.15.0 bundle was uploaded and rejected as "version code 2
+- 🟢 **THE ANDROID SIDE IS DONE AND SUBMITTED.** SpotSet **v2.15.1 / versionCode 3** plus 13 other
+  changes went to Google on **2026-08-20 ~14:10** and sit in **"Changes in review"**. Nothing is
+  left for Pierre to do on the submission itself. Reviews are "typically within 7 days".
+- **Next action is Google's, not ours.** When it clears, the console shows the opt-in link on the
+  closed-testing Testers tab. Only then does anything else happen.
+- **14 testers on the list** (`SpotSet Alpha Testers`) — above the 12 minimum, list closed.
+- 🔴 **The 14-day clock has NOT started.** It starts when the release is rolled out AND 12 testers
+  have **opted in**; opting out resets it.
+- 🔴 **Google emails testers nothing.** The opt-in link appears in the console after publishing and
+  Pierre sends it himself. There is no invitation email. (Answers the question he asked this session.)
+- **Android only.** iPhone owners cannot take part — that needs Apple/TestFlight and a Mac.
+- ✅ **Why v2.15.1 exists.** The first submit was blocked by Google's check — *"Missing sign in
+  details"* — with a screenshot showing the token screen still saying **"PTApp"**. Two real defects,
+  both fixed: the rename had missed `TokenSetup.jsx` (the one screen a set-up device never shows
+  again), and the app is a hard auth gate no reviewer could pass. **The literal `DEMO` is now
+  accepted in place of a token**, opening the app on seeded local data with all sync off. Design and
+  the two live-data leaks the review pass caught: `docs/instructions-v2.15.1.md`.
+- ✅ **Sign in details** declared *restricted = Yes*, credential `DEMO`, with reviewer instructions.
+  It had previously been declared "No", which is what tripped the check.
+- 🔴 **BUILD TRAP — read before ever building the AAB again.** `gradlew` needs **JDK 21**; PATH java
+  on this machine is Temurin 8, and **the wrapper exits 0 on a FAILED build**, leaving the previous
+  AAB in `outputs/`. That is how a stale 2.15.0 bundle got uploaded and rejected as "version code 2
   has already been used". Always:
   `JAVA_HOME='/c/Program Files/Microsoft/jdk-21.0.12.8-hotspot' ./gradlew bundleRelease`
-  and verify the versionName **inside** the .aab, never the exit code.
-- ✅ **Keystore now has its second copy** — `SpotSet-keystore.7z` (5,039 bytes) on the 64 GB SD card
-  (drive G:), SHA-256 verified identical to the USB copy. 🔴 Keep them in different places.
-- 🔴 **Still Pierre's to do:** register **`spotset.app`** (Cloudflare, ~$14.20/yr), and take the SD
-  card off-site.
-- **Offered and not yet done:** the Google Play Developer API (service account) would let uploads,
-  tracks, testers and rollouts run headlessly instead of through Chrome. Policy declarations would
-  still need the console.
-- **The question to ask him:** *"Google has it. Want me to draft the tester instructions — the
-  message you'll send with the opt-in link — while we wait?"*
+  then verify the versionName **inside** the .aab. Never trust the exit code.
+- **Not done, deliberately deferred by Pierre (2026-08-20): the website/domain.** Do not raise it.
+- **Offered, not built:** Google Play Developer API (service account) for headless uploads, tracks,
+  testers and rollouts. Policy declarations would still need the console.
+
+**Raw dump of the submission session (uncontaminated, written before this handoff):**
+`C:/projects/_archive/PTApp/claude-incidents/2026-08-20-spotset-v2151-demo-credential-submission-FULL-SESSION.txt`
+— 1,664 messages, 1.5 MB.
 
 ---
 
