@@ -360,7 +360,10 @@ Sila Systems ✅**. Every bare Latin light-word is gone; survivors are coinages 
 **This does not decide the company name** — the developer name is changeable later. The company
 shortlist and Pierre's brief for another round (shorter, Latin/Harry-Potter, light, letters
 l m e n p, *luminescent* in the pool, **Labs** preferred over Systems) live in
-`C:/projects/General/awareness-program/internal/company-registration-and-name.md` §2.
+`C:/projects/Career/Business_Registration_and_Naming.md` §2.
+🔴 **Career owns the company naming and the domains** (moved there 2026-08-20). Play developer
+name questions are still decided here — it is changeable and does not pre-commit the company —
+but anything about the business name, the .com or the registration goes to Career.
 
 ### The address, and the document that had to match it
 
