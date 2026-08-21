@@ -43,6 +43,31 @@ it is the Tailwind-default aesthetic that every LLM converges on. That convergen
 translucent card on a dark panel + hairline border + soft ambient shadow + system/Google sans*.
 Any design pass that keeps all six changes nothing.
 
+### 2b. Third data point — a stranger's transactional email (2026-08-21)
+
+Pierre cancelled an order at **ayoubcomputers.com** (a Lebanese retailer, nothing to do with this
+project or with him) and the cancellation email arrived looking like both files above. Observed from
+his screenshot:
+
+- Tinted status banner (rose wash) with a circular icon and a **pill status badge** — the same
+  `badge badge-<status>` idiom SpotSet uses.
+- A **left-accent bar** on the section header ("Order Summary"), and again on each fulfilment card —
+  the same 3–4px coloured `border-inline-start` device, one hue per category.
+- A **dark panel block** holding light-on-dark cards, inside an otherwise light document.
+- A **feature/trust strip** of small emoji + two-line labels across the top.
+- Label/value rows with the value right-aligned, hairline separators, 8–12px radii throughout.
+
+**Why this matters more than §2:** the Agribond page came out of the same tooling as SpotSet, so
+shared DNA was arguable. This email did not. A third party, a different country's vendor, a
+different medium — and the same visual grammar. It confirms the house style is an **industry-wide
+LLM default**, not a quirk of one workspace. Escaping it is therefore a differentiation problem, not
+a cleanup problem, and copying "what good apps do" will land right back in it.
+
+**Added to the traits list in §2:** pill status badges · coloured left-accent bars · emoji feature
+strips · dark-panel-inside-light-document. Any of these surviving the design pass is a warning sign.
+
+---
+
 ---
 
 ## 3. What must NOT be broken
