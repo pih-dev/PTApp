@@ -1,0 +1,96 @@
+# SpotSet — iOS build pipeline (Codemagic, hosted macOS)
+#
+# Why this file exists: there is no Mac. `npx cap add ios` cannot run on Windows, so the
+# ios/ folder is NOT committed — it is generated fresh on the hosted Mac at 00:20 below.
+# Everything before that (npm ci, vite build) is platform-independent.
+#
+# Before the first run, set these in the Codemagic UI (never in this file — the repo is PUBLIC):
+#   - An App Store Connect API key integration named `SpotSet ASC` (Team > Integrations).
+#     It supplies signing certs + provisioning profiles and the TestFlight upload token.
+#   - A group `spotset` holding APP_STORE_APPLE_ID (the numeric App ID from App Store Connect).
+# The bundle id com.spotset.app must be registered in the developer portal first, and an app
+# record created in App Store Connect — both need the enrolment to be approved.
+
+workflows:
+  ios-testflight:
+    name: SpotSet iOS — TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    environment:
+      groups:
+        - spotset            # APP_STORE_APPLE_ID
+      vars:
+        BUNDLE_ID: "com.spotset.app"
+        XCODE_SCHEME: "App"
+      node: 20
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.spotset.app
+    integrations:
+      app_store_connect: SpotSet ASC
+    triggering:
+      events:
+        - tag                # tag a release `ios-vX.Y.Z` to ship; nothing builds on a plain push
+      tag_patterns:
+        - pattern: 'ios-v*'
+          include: true
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+
+      - name: Build the web bundle
+        script: npm run build
+
+      - name: Verify the bundle parses
+        # Same gate as the web deploy — a corrupted single-file bundle is a blank page,
+        # and inside a signed .ipa that costs a whole review cycle to discover.
+        script: node scripts/verify-bundle.mjs
+
+      - name: Generate the iOS platform
+        # Not committed: `cap add ios` needs macOS. It is regenerated every build, so
+        # capacitor.config.json is the single source of truth for appId/appName.
+        script: |
+          npx cap add ios
+          npx cap sync ios
+
+      - name: Set the version from the git tag
+        # CM_TAG is `ios-v2.16.0`; strip the prefix so the tag is the single source of the
+        # marketing version — no second place to forget to bump (the Android trap).
+        # The build number comes from App Store Connect, not a local counter, because
+        # TestFlight rejects a build number it has already seen. On the very first build
+        # there is nothing to query and the command fails, so fall back to 0.
+        script: |
+          set -e
+          VERSION="${CM_TAG#ios-v}"
+          LATEST=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          cd "$CM_BUILD_DIR/ios/App"
+          agvtool new-marketing-version "$VERSION"
+          agvtool new-version -all $(($LATEST + 1))
+          agvtool what-marketing-version   # printed in the log: verify the .ipa, never the exit code
+
+      - name: Build the signed .ipa
+        script: |
+          xcode-project use-profiles
+          xcode-project build-ipa \
+            --workspace "$CM_BUILD_DIR/ios/App/App.xcworkspace" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # No automatic App Store submission: review answers (the DEMO credential, privacy)
+        # are filed by hand the first time. Flip this on only after the first approval.
+        submit_to_app_store: false
+      email:
+        recipients:
+          - pierreishere@gmail.com
+        notify:
+          success: true
+          failure: true

@@ -28,3 +28,4 @@ tmp/
 scripts/sanity/live-snapshot-*.json
 scripts/sanity/*-snapshot.json
 scripts/sanity/*-data.json
+ios/
