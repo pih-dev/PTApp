@@ -217,3 +217,27 @@ Effort is **calendar at ~8–10 h/week**, with the 2.5–3× correction every ju
 ---
 
 **Nothing here is committed. Redirect anything in §8 and the rest re-plans around it.**
+---
+
+## 10. New requirement — role hierarchy (Pierre, 2026-08-21 ~10:40)
+
+Stated verbatim in effect: *"the app allows two kinds of users, either PTs or clients. And the PTs
+might have PTs under them or clients. Elie is the prime PT because there's no PT above him… the user
+can control it, it's not set up [hardcoded]."*
+
+**What this changes versus Design A (one blob per coach):**
+
+- **Two roles only** — `pt` and `client`. No third "admin" role: *prime* is not a role, it is simply
+  a PT whose `parent_pt_id IS NULL`. That keeps the enum at two and makes the hierarchy data, not
+  configuration.
+- **A PT's subordinates can be PTs or clients** — i.e. `parent_pt_id` lives on both, so the tree is
+  arbitrary-depth. Elie's position is emergent, not stamped.
+- **Consequence for the blob model:** one blob per coach still holds, but a parent PT must be able to
+  read (and possibly write) descendants' tenants. That is a recursive RLS predicate
+  (`WITH RECURSIVE` ancestry check), which Design A deliberately avoided. **This is the one place
+  where the new requirement adds real cost** — price it before committing.
+- **Deferred, not decided:** whether a parent PT can *edit* a descendant's clients or only view them,
+  and whether a client can be shared between two PTs. Both are Phase-2 questions.
+
+**Not affected:** `DATA_VERSION` stays 6, the merge kernel is untouched, and the Google closed test
+keeps running — the tester clock counts testers, not builds.
