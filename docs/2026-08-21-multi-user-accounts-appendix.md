@@ -2,6 +2,15 @@
 
 Three competing designs and three adversarial judge verdicts behind docs/2026-08-21-multi-user-accounts-decision.md.
 
+> 🔴 **THESE ARE CANDIDATE DESIGNS, NOT THE BUILT SCHEMA. DO NOT IMPLEMENT FROM THIS FILE.**
+> Every `orgs` / `memberships` / `my_tenant_role` / three-value-role snippet below was **superseded
+> on 2026-08-21** by §10–§12 of the decision doc, which is what was actually applied to the live
+> database (migrations `0001`/`0002`): roles are **`pt` | `client`** only, containment is a single
+> **`ltree`** ancestry predicate, there is **no admin role**, and a parent PT **does** read down the
+> tree — the opposite of the "no owner→coach cross-tenant read" note in Design A §4.
+> The *reasoning* here is still worth reading; the SQL is a record of what was considered.
+> What shipped, and why: decision doc §10–§14, `supabase/migrations/`, `scripts/sanity/sanity-rls-matrix.mjs`.
+
 ---
 
 ## Design A — minimal

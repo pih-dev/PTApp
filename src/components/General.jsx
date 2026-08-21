@@ -276,7 +276,10 @@ export default function General({ state, dispatch, onClose, lang, setLang, theme
 
         {isSignedIn() && (
           <p style={{ fontSize: 12, color: 'var(--t4)', marginBottom: 12 }}>
-            {t(lang, 'signedInAs')} {getUserEmail()}
+            {/* <bdi> isolates the Latin email between two Arabic runs — without
+                it the neutral space and em-dash resolve RTL and the dash renders
+                on the wrong side of the address. */}
+            {t(lang, 'signedInAs')} <bdi>{getUserEmail()}</bdi>
             {isSessionExpired() ? ` — ${t(lang, 'sessionExpired')}` : ''}
           </p>
         )}

@@ -207,7 +207,10 @@ export default function App() {
 
   if (initialLoad) {
     return (
-      <div className="setup-container">
+      // 🔴 `dir` lives on `.app-container`, which these pre-login screens never
+      //    render inside — so every Arabic string before login was laid out LTR.
+      //    Invisible while this screen held one word; not once it holds a form.
+      <div className="setup-container" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
         <div className="setup-card" style={{ textAlign: 'center' }}>
           <div className="setup-spinner" />
           <p style={{ marginTop: 16, color: 'var(--t4)' }}>{t(lang, 'syncing')}</p>

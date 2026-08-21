@@ -105,7 +105,12 @@ export default function TokenSetup({ onConnected, lang }) {
   const showSignIn = isAuthConfigured();
 
   return (
-    <div className="setup-container">
+    // 🔴 `dir` lives on `.app-container` in App.jsx, and this screen renders
+    //    OUTSIDE it — so every Arabic string here was laid out in an LTR base
+    //    paragraph: trailing periods and em-dashes on the wrong end, and
+    //    `[dir="rtl"] .input` never applying. Invisible while this screen held
+    //    one subtitle; not now that it holds a form.
+    <div className="setup-container" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="setup-card">
         <div className="logo-icon setup-logo">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -131,6 +136,11 @@ export default function TokenSetup({ onConnected, lang }) {
               autoCapitalize="none"
               spellCheck="false"
               inputMode="email"
+              // 🔴 LTR even on an RTL page: an email is Latin text, and typing it
+              //    into a right-aligned field puts the caret and the @/dot ordering
+              //    in the wrong place. `start` keeps the placeholder reading naturally.
+              dir="ltr"
+              style={{ textAlign: 'start' }}
             />
             <input
               type="password"
@@ -138,8 +148,9 @@ export default function TokenSetup({ onConnected, lang }) {
               onChange={e => setPassword(e.target.value)}
               placeholder={t(lang, 'signInPassword')}
               className="input"
-              style={{ marginTop: 10 }}
+              style={{ marginTop: 10, textAlign: 'start' }}
               autoComplete="current-password"
+              dir="ltr"
               // Enter submits — the keyboard's own button is the nearest tap
               // target when it is covering the bottom half of the screen.
               onKeyDown={e => { if (e.key === 'Enter') handleSignIn(); }}
@@ -175,6 +186,9 @@ export default function TokenSetup({ onConnected, lang }) {
           autoCorrect="off"
           autoCapitalize="none"
           spellCheck="false"
+          // A PAT and the literal word DEMO are both Latin — same rule as above.
+          dir="ltr"
+          style={{ textAlign: 'start' }}
         />
         {error && <p className="setup-error">{error}</p>}
         <button
