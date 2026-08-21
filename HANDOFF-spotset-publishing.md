@@ -91,6 +91,14 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   requirements were **not** verified — the lawyer is the authority.
 
 
+- 🔴 **THE PLAY BUILD IS STILL v2.15.1 AND CARRIES THE LEAKY DEMO NUMBERS.** A tester tapped
+  WhatsApp on the DEMO sample clients and reached **real strangers** — the invented numbers used
+  live Lebanese mobile prefixes. Fixed in **v2.16.1**, which is **live on the PWA**
+  (`pih-dev.github.io/PTApp/`, Pages build verified `built`, `v2.16.1` served) but **NOT on Play**:
+  the closed testers are on `versionCode 3` / `2.15.1`. **Shipping a new AAB (versionCode 4) is the
+  only way the fix reaches them** — Pierre's call, not done. Detail: `docs/instructions-v2.16.1.md`.
+- **Interim mitigation, free:** the PWA link already carries the fix, and it is the same link Syria
+  testers were given.
 - 🍎 **APPLE: THE $99 ORDER IS PLACED.** Apple Developer Program, **Individual**, enrolment ID
   **696HYTRB7F**, Mastercard ···6915, ordered **2026-08-21 ~01:55 Beirut**. Apple says up to
   **2 business days** to process, then an activation email to pierreishere@gmail.com. **Next
