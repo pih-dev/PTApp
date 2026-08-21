@@ -116,16 +116,50 @@ export async function pushRemoteData(_token, data, _retries = 0) {
   if (!uid) throw new Error('TOKEN_EXPIRED');
 
   if (currentTenantId === null || currentVersion === null) {
-    // No cached token means we have not read this session. Read first: pushing
-    // without a version to compare against is the blind overwrite itself.
-    await fetchRemoteData();
+    // 🔴 A COLD CACHE IS THE DANGEROUS STATE, NOT THE SAFE ONE — AND THE FIX IS
+    //    TO MERGE WHAT WE JUST READ, NOT MERELY TO READ IT.
+    //    The first version of this fetched only to harvest `currentVersion` and
+    //    then PATCHed local `data` straight over the row. That PATCH *succeeds*
+    //    — the version matches, we had just read it — so everything the remote
+    //    held and local lacked was destroyed with no conflict, no merge and no
+    //    error. That is the Apr-13 stale-device loss exactly.
+    //
+    //    The GitHub driver cannot make this mistake: with no cached `sha` it
+    //    omits it, GitHub answers 409, and the retry path refetches and merges.
+    //    Safety there is structural. Here, "I have no concurrency token" would
+    //    otherwise turn from *rejected* into *authorised* — which is precisely
+    //    backwards. Reachable in practice: `activeDriver()` resolves at call
+    //    time, so signing in mid-session under `supabase-primary` routes the
+    //    next debounced push to a driver whose cache is empty while `syncReady`
+    //    is already true from the GitHub fetch. App.jsx's reload narrows that
+    //    window; it does not close it, and a timing mitigation is not an
+    //    invariant.
+    const remote = await fetchRemoteData();
+    if (remote) data = mergeData(data, remote);
   }
 
   if (currentTenantId === null) {
-    const created = await rest('/rest/v1/tenants', {
-      method: 'POST', prefer: 'return=representation',
-      body: { coach_id: uid, data, data_version: data._dataVersion },
-    });
+    let created;
+    try {
+      created = await rest('/rest/v1/tenants', {
+        method: 'POST', prefer: 'return=representation',
+        body: { coach_id: uid, data, data_version: data._dataVersion },
+      });
+    } catch (e) {
+      // `tenants.coach_id` is UNIQUE (0002), so losing a race with the laptop
+      // mirror raises a unique violation. That is a concurrency miss like any
+      // other and belongs in the same refetch-and-merge loop — stopping the
+      // retry contract at the create boundary would surface as a bare
+      // "Sync failed (409)" and leave the first write unmerged.
+      if (/\(409\)/.test(e.message) && _retries < 3) {
+        const remote = await fetchRemoteData();
+        return pushRemoteData(_token, remote ? mergeData(data, remote) : data, _retries + 1);
+      }
+      throw e;
+    }
+    // No representation body would leave currentVersion null AFTER the row was
+    // written, feeding the cold-cache path above on the very next push.
+    if (!created?.length) throw new Error('Sync failed (insert returned no row)');
     currentTenantId = created[0].id;
     currentVersion = created[0].version;
     return;

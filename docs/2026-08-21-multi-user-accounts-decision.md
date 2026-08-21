@@ -815,3 +815,49 @@ asserts that call still exists.
 **Rollback is one constant.** Flip `BACKEND_MODE`, rebuild, redeploy gh-pages: under 15 minutes, no
 data reconstruction — but only while *both* legs keep running, which is what the hourly mirror and
 the soak gate are for.
+
+
+---
+
+## 20. The blind overwrite the split nearly shipped (2026-08-21)
+
+The Supabase driver's **cold-cache** path fetched the remote row only to harvest `currentVersion`,
+**discarded the `data` it had just read**, and PATCHed local straight over it. That PATCH *succeeds* —
+the version matches, we read it a millisecond ago — so everything the remote held and local lacked
+was destroyed with no conflict, no merge, no error. **That is the Apr-13 stale-device loss with a new
+cause**, in the file written specifically to avoid repeating it.
+
+The GitHub driver cannot make this mistake, and the asymmetry is the lesson: with no cached `sha` it
+**omits** it, GitHub answers 409, and the retry path refetches and merges. Safety there is
+*structural* — "I have no concurrency token" is a **rejected** state. The Supabase driver had turned
+the same state into an **authorised** one, which is exactly backwards.
+
+Reachable, not theoretical: `activeDriver()` resolves at call time, so signing in mid-session under
+`supabase-primary` routes the next debounced push to a driver whose cache is empty while `syncReady`
+is already true from the GitHub fetch. App.jsx's reload narrows that window; **a timing mitigation is
+not an invariant.**
+
+Fixed by merging what was just read. Three smaller things went with it:
+
+- **The create branch had no conflict handling.** `tenants.coach_id` is unique, so losing a race with
+  the laptop mirror raised a bare `Sync failed (409)` — the retry contract stopping at the create
+  boundary. It now re-enters the same refetch-and-merge loop.
+- **An empty insert representation** would have left `currentVersion` null *after* the row was
+  written, feeding the cold-cache path on the very next push. It throws instead.
+- **A driver flip reset nothing.** `resetConcurrencyTokens()` claimed "any driver or identity
+  change", but only the identity half had a caller — `activeDriver()` changing its answer fired
+  nothing. The reset now happens inside `activeDriver()` on the flip itself.
+
+### 🔴 The gate asserted the wrong invariant, and that is the durable lesson
+
+`sanity-backend-split.mjs` asserted *"merges on a concurrency miss"* — true, and useless. **The miss
+path was always the safe one.** The dangerous path is the one that never misses. When you write a
+test for a merge, test the branch where **nothing forces you to merge**; the branch where the store
+pushes back was never going to be where the data goes.
+
+### Left for Phase 3, deliberately
+
+`App.jsx` still gates every sync path on `getToken()` — the GitHub PAT. Under `supabase-primary` a
+signed-in coach with no PAT would take the early `return` and never sync at all. `BACKEND_MODE` is
+therefore the switch for **rollback** (supabase→github), not yet for **cutover**. Phase 3 must widen
+that gate to identity-or-token, and it is the first thing to do in that phase.

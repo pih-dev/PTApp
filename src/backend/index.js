@@ -36,8 +36,21 @@ export const BACKEND_MODE = viteEnv.VITE_BACKEND_MODE || nodeEnv.VITE_BACKEND_MO
 //    'supabase-primary' whose user is signed out must fall back to GitHub
 //    rather than throw — that is the Airplane-Mode / expired-session property
 //    again: an identity problem degrades sync, it never bricks the app.
-export const activeDriver = () =>
-  (BACKEND_MODE === 'supabase-primary' && supabase.isAvailable()) ? supabase : github;
+// 🔴 THE FLIP ITSELF RESETS THE CACHES, and it has to happen HERE rather than
+//    at a call site. The comment on resetConcurrencyTokens() promised "any
+//    driver or identity change", but only the identity half had a caller —
+//    `activeDriver()` silently changing its return value fired nothing. That is
+//    the exact moment a cached token is stale: the outgoing driver's `sha` or
+//    `version` describes a revision the incoming store has never heard of, and
+//    carrying it across is a write claiming to replace something that does not
+//    exist. Cheap, and the failure it prevents is silent.
+let lastDriver = null;
+export const activeDriver = () => {
+  const d = (BACKEND_MODE === 'supabase-primary' && supabase.isAvailable()) ? supabase : github;
+  if (lastDriver !== null && d !== lastDriver) resetConcurrencyTokens();
+  lastDriver = d;
+  return d;
+};
 
 export const isSupabasePrimary = () => activeDriver() === supabase;
 

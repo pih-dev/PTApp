@@ -119,11 +119,28 @@ assert(/_retries >= 3/.test(sb) && /mergeData\(data, remote\)/.test(sb),
 assert(/version=eq\.\$\{currentVersion\}/.test(sb),
   'writes are conditional on the version read (optimistic concurrency, the sha analogue)');
 
+// 🔴 THE INVARIANT THE FIRST VERSION OF THIS GATE GOT WRONG.
+//    Asserting "merges on a concurrency miss" is true and insufficient: the
+//    miss path was always safe. The dangerous path is the one that never
+//    misses — a COLD cache fetching only to harvest the version, then writing
+//    local straight over the row it just read. That PATCH succeeds, and
+//    everything remote held and local lacked is gone. Apr-13, by a new route.
+const coldCache = sb.slice(sb.indexOf('currentTenantId === null || currentVersion === null'),
+                           sb.indexOf('if (currentTenantId === null) {'));
+assert(/mergeData\(data, remote\)/.test(coldCache),
+  '🔴 a COLD cache merges what it read — it never writes local over an unread row');
+assert(/\(409\)/.test(sb),
+  'the create branch routes a unique-violation race back into refetch-and-merge');
+assert(/insert returned no row/.test(sb),
+  'an empty insert representation throws rather than leaving the cache cold after a write');
+
 console.log('\n[concurrency tokens] cleared on a driver or identity change');
 
 assert(/export const resetConcurrencyToken/.test(gh) && /export const resetConcurrencyToken/.test(sb),
   'both drivers expose a reset');
 assert(/resetConcurrencyTokens/.test(idx), 'the facade exposes a combined reset');
+assert(/d !== lastDriver\) resetConcurrencyTokens\(\)/.test(idx),
+  '🔴 a DRIVER flip resets them too — activeDriver() changing its answer silently fired nothing before');
 assert(/resetConcurrencyTokens\(\)/.test(stripComments(read('App.jsx'))),
   '🔴 App clears them on identity change — a stale sha/version across a flip is a blind overwrite');
 

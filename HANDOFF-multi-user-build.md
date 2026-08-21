@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~21:10, Beirut.
+**Last updated:** 2026-08-21 ~21:35, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -173,6 +173,18 @@ moment it became true, and the working tree was clean and pushed at every point.
 - 🔴 **Both drivers cache a concurrency token and both now reset** — GitHub a `sha`, Supabase a
   `version`. A stale one across a driver flip or an identity change is a **blind overwrite**;
   `App.jsx` clears both before reloading, and the gate asserts that call still exists.
+- 🔴 **THE SPLIT NEARLY SHIPPED A BLIND OVERWRITE — FOUND BY REVIEW, FIXED, GATED.** The Supabase
+  driver's **cold-cache** path fetched the remote row only to harvest `currentVersion`, threw away
+  the `data` it had just read, and PATCHed local over it. That PATCH *succeeds*, so everything remote
+  held and local lacked was gone — Apr-13, new cause. The GitHub driver can't do this: with no
+  cached `sha` it omits it and GitHub answers 409. **"No concurrency token" must be a REJECTED
+  state, never an authorised one.** Also fixed: the create branch had no 409 handling, an empty
+  insert body left the cache cold after a write, and a driver flip reset nothing. Detail: §20.
+- 🔴 **The gate had asserted the WRONG invariant** — *"merges on a concurrency miss"*. The miss path
+  was always safe. **Test the branch where nothing forces you to merge.**
+- 🔴 **`BACKEND_MODE` is the ROLLBACK switch, not yet the CUTOVER switch.** `App.jsx` still gates
+  every sync path on `getToken()`, so under `supabase-primary` a signed-in coach with no PAT would
+  never sync. **Widening that gate to identity-or-token is the first job of Phase 3.**
 - **Next action: nothing to build — WAIT OUT THE SOAK.** `node scripts/soak-status.mjs` for the
   count; the hourly task keeps it running. Phase 3 needs 7 consecutive clean days AND a byte-verified
   `_archive` snapshot AND a `tenant_snapshots` row with `reason='pre-migration'` AND both phones
