@@ -162,9 +162,33 @@ console.log('[static] ok');
 // each real signed-in user can and cannot read.
 // =====================================================================
 
-const URL_ = process.env.SUPABASE_URL;
-const ANON = process.env.SUPABASE_ANON_KEY;
-const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Credentials come from the environment, or from a key file OUTSIDE the repo.
+//
+// 🔴 The file lives in _archive, never in the working tree. pih-dev/PTApp is
+//    public, and a service_role key committed there is a total compromise of
+//    Elie's records — it bypasses RLS entirely by design. _archive is never
+//    committed to anything, which is why it is the right home for this.
+//    The env vars still win if set, so CI can inject them instead.
+const KEYFILE = 'C:/projects/_archive/PTApp/supabase-spotset.env';
+
+function loadKeyFile() {
+  try {
+    const txt = readFileSync(KEYFILE, 'utf8');
+    const out = {};
+    for (const line of txt.split(/\r?\n/)) {
+      const m = line.match(/^\s*(?:export\s+)?([A-Z_]+)\s*=\s*(.*?)\s*$/);
+      if (m && !line.trim().startsWith('#')) out[m[1]] = m[2].replace(/^["']|["']$/g, '');
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+const file = loadKeyFile();
+
+const URL_ = process.env.SUPABASE_URL || file.SUPABASE_URL;
+const ANON = process.env.SUPABASE_ANON_KEY || file.SUPABASE_ANON_KEY;
+const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY || file.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!URL_ || !ANON || !SERVICE) {
   // The message deliberately carries the same "DO NOT DEPLOY" string the three
@@ -174,7 +198,14 @@ if (!URL_ || !ANON || !SERVICE) {
   console.error(`
 [live] SKIPPED — no instance configured. DO NOT DEPLOY AUTH.
 
-  Set SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY to run it.
+  Create ${KEYFILE} containing three lines, then re-run this script:
+
+    SUPABASE_URL=https://<project-ref>.supabase.co
+    SUPABASE_ANON_KEY=<the publishable / anon key>
+    SUPABASE_SERVICE_ROLE_KEY=<the secret / service_role key>
+
+  All three are on: Supabase dashboard -> your project -> Project Settings ->
+  API Keys. That path is outside the repo on purpose; never put these in git.
 
 🔴 This is NOT a pass. The static pass only reads the migration text; it cannot
    tell you whether Postgres actually refuses a cross-tree read — nor even
