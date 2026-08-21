@@ -13,7 +13,7 @@ import { SKINS } from '../skins';
 // the in-app "App Instructions" button silently served stale docs. Bumping this
 // is now an explicit step in the CLAUDE.md deploy checklist.
 const DOCS = {
-  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.21.md',
+  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.21.1.md',
   changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
 };
 
@@ -220,6 +220,34 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
           {notification.text}
         </div>
       )}
+
+      {/* Reference — what the PT actually opens: the movement library first, then
+          the charts and the docs. 🔴 Order is Pierre's (2026-08-22): frequently
+          used ABOVE housekeeping. */}
+      <div>
+        <div className="section-title" style={{ marginTop: 20 }}>{t(lang, 'referenceTitle')}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* The library is first because it is the one opened during a session. */}
+          <button className="btn-secondary" style={{ fontSize: 13, padding: '12px 14px' }}
+            onClick={() => { haptic(); setShowLibrary(true); }}>
+            {t(lang, 'movementLibrary')}
+          </button>
+          <button className="btn-secondary" style={{ fontSize: 13, padding: '12px 14px' }}
+            onClick={() => { haptic(); setShowCharts(true); }}>
+            {t(lang, 'normCharts')}
+          </button>
+          <button className="btn-secondary" style={{ fontSize: 13, padding: '12px 14px' }}
+            disabled={docLoading}
+            onClick={() => openDoc(DOCS.instructions, t(lang, 'appInstructions'))}>
+            {t(lang, 'appInstructions')}
+          </button>
+          <button className="btn-secondary" style={{ fontSize: 13, padding: '12px 14px' }}
+            disabled={docLoading}
+            onClick={() => openDoc(DOCS.changelog, t(lang, 'whatChanged'))}>
+            {t(lang, 'whatChanged')}
+          </button>
+        </div>
+      </div>
 
       {/* Backup section */}
       <div style={{ marginBottom: 20 }}>
@@ -496,31 +524,6 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
           }}>
           {t(lang, 'resetDefaults')}
         </button>
-      </div>
-
-      {/* Documentation — opens in-app */}
-      <div>
-        <div className="section-title" style={{ marginTop: 20 }}>{t(lang, 'docsTitle')}</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <button className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px' }}
-            disabled={docLoading}
-            onClick={() => openDoc(DOCS.instructions, t(lang, 'appInstructions'))}>
-            {t(lang, 'appInstructions')}
-          </button>
-          <button className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px' }}
-            disabled={docLoading}
-            onClick={() => openDoc(DOCS.changelog, t(lang, 'whatChanged'))}>
-            {t(lang, 'whatChanged')}
-          </button>
-          <button className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px' }}
-            onClick={() => setShowCharts(true)}>
-            {t(lang, 'normCharts')}
-          </button>
-          <button className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px' }}
-            onClick={() => { haptic(); setShowLibrary(true); }}>
-            {t(lang, 'movementLibrary')}
-          </button>
-        </div>
       </div>
 
       {/* In-app document viewer — renders markdown natively */}

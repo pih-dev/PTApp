@@ -4,6 +4,29 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.21.1 — the purple line, and General reordered (2026-08-22)
+
+Pierre, with a screenshot of the Schedule tab. `Schedule.jsx` still painted
+`borderInlineStart: 3px solid <session-type colour>` on every row — the last
+survivor of the six-hue decoration removed from the Dashboard in v2.18 and
+Sessions in v2.19. Strength is `#6366F1`, so it read as a purple rule down the
+whole screen. 🔴 The inline-start bar means "happening now" and nothing else.
+The row now uses the same idiom as the other two screens; the type emoji went
+with it, and `getSessionType`/`ClockIcon` became unused imports.
+
+`.srow .inline-type-select` was re-scoped to `.srow-meta` as well, so the type
+mark is styled by the META ROW rather than by which screen it is on — one rule,
+three screens.
+
+**General reordered to Pierre's spec:** toggles → REFERENCE (movement library
+first, then norm charts, instructions, changelog) → backup → to-do → WhatsApp
+templates. Reference was dead last under everything he touches rarely, above
+nothing, while holding the one thing he now opens mid-session. Heading is
+"Reference", not "Documentation" — it is no longer only docs. New `referenceTitle`
+string, EN + AR.
+
+---
+
 ## v2.21.0 — the movement library, feature B1 (2026-08-22)
 
 The first new capability since v2.14; everything between was the design pass.

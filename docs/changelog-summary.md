@@ -4,6 +4,18 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.21.1 — the purple line, and General reordered (August 22, 2026)
+
+The line you saw down the left of the schedule was the session-type colour still
+painted on the edge of each row — the last place that hadn't been cleaned up.
+Gone; those rows now look like the ones on the home screen.
+
+And General is in the order you asked for: the language and theme switches,
+then **Reference** (movement library first, then the charts and the docs), then
+backup, then the to-do list and the message templates.
+
+---
+
 ## v2.21.0 — the movement library (August 22, 2026)
 
 **The first genuinely new feature in a while** — everything since July was the

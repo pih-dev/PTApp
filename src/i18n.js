@@ -319,6 +319,7 @@ const T = {
     objStrength: 'Strength',
     objFatLoss: 'Fat loss',
     // Movement library (v2.21, B1)
+    referenceTitle: 'Reference',
     movementLibrary: 'Movement library',
     searchMovements: 'Search movements…',
     movementsCount: 'movements',
@@ -667,6 +668,7 @@ const T = {
     objStrength: 'قوة',
     objFatLoss: 'حرق دهون',
     // Movement library (v2.21, B1)
+    referenceTitle: 'المراجع',
     movementLibrary: 'مكتبة التمارين',
     searchMovements: 'ابحث عن تمرين…',
     movementsCount: 'تمرين',

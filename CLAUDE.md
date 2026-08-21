@@ -43,8 +43,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.21.0
-**The movement library (B1) — the first new capability since v2.14 (08-22).** A movement name is no longer a dead end: tappable in the program viewer, plus a searchable library in General. `DATA_VERSION` stays 6 (reads the frozen bank, writes nothing). Detail: `docs/instructions-v2.21.md`. Palette/type rules: CONVENTIONS → *Colour, type & badges*.
+## Current Version: v2.21.1
+**The movement library (B1) — the first new capability since v2.14 (08-22).** A movement name is no longer a dead end: tappable in the program viewer, plus a searchable library in General. `DATA_VERSION` stays 6 (reads the frozen bank, writes nothing). Detail: `docs/instructions-v2.21.md`, `-v2.21.1.md`. General's order is **toggles → reference → housekeeping** (Pierre, 08-22). Palette/type rules: CONVENTIONS → *Colour, type & badges*.
 - 🔴 **THE MOVEMENT SHEET SHOWS ONLY WHAT THE BANK KNOWS** — name/muscles/type/slot/advanced. **No cues, no rep advice, no tips**: coaching content needs an owner and a review process, and that is Elie, not a component. The figure lands here later.
 - **Bilingual search folds through `normaliseSearch` (`utils.js`) on BOTH sides** — typed Arabic differs from written Arabic (harakat, tatweel, alef/ya/ta-marbuta) invisibly, and `includes()` fails on it. `muscleLabel`/`MUSCLE_AR` in `i18n.js` own muscle names; `t()` returns the KEY on a miss, so never use it for data labels.
 - **Sub-section scale: `.subbar` (the bar inside a card/modal) · `.lrow` (the row it divides) · `.num` (mono digits inside a sentence).** A bold body heading is not a bar; a 1px `--sep` hairline is the retired trait.
@@ -67,7 +67,6 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules in force live in TRAPS / CONVENTIONS, never here.
 
 - **v2.17–v2.20.1** (08-21/22) — THE DESIGN PASS, five stages: skins, the Dashboard, the shell and shared primitives, the deep screens, press affordance. Rules in force live in CONVENTIONS/TRAPS. → `v2.17`…`v2.20.1`
-- **v2.16.0–.1** (08-21) — honest session numbers; multi-user groundwork DARK; the driver split. → `v2.16*`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---

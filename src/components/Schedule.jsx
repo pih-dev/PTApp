@@ -1,8 +1,8 @@
 import React, { useState, useRef, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
-import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon, BarMark } from './Icons';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, localDateStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, getRenewalDueMap, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict, suggestBookingTime } from '../utils';
+import { WhatsAppIcon, EditIcon, TrashIcon, BarMark } from './Icons';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, getFocusTags, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, localDateStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, getRenewalDueMap, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict, suggestBookingTime } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import { t, dateLocale } from '../i18n';
@@ -305,22 +305,23 @@ export default function Schedule({ state, dispatch, lang }) {
         </div>
       ) : (
         daySessions.map(session => {
-          const st = getSessionType(session.type);
           const status = getStatus(session.status, lang, t);
           const client = state.clients.find(c => c.id === session.clientId);
           // v2.8: effective count honours the PT's manual override for this period
           const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
           return (
-            <div key={session.id} className="card" style={{ borderInlineStart: `3px solid ${st.color}` }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+            <div key={session.id} className="card">
+              <div className="srow-head">
+                <span className="srow-name">
+                  {getClientName(session.clientId)}
+                  <SessionCountPair auto={monthAuto} effective={monthCount} override={monthOverride} />
+                </span>
+                <span className="srow-time">{session.time}</span>
+              </div>
+              <div>
                 <div>
-                  <div className="client-name">
-                    {getClientName(session.clientId)}{' '}
-                    <SessionCountPair auto={monthAuto} effective={monthCount} override={monthOverride} />
-                  </div>
-                  <div className="meta">
-                    <ClockIcon />
-                    {session.time} · {session.duration}{t(lang, 'min')} ·{' '}
+                  <div className="srow-meta">
+                    <span className="srow-mark">{session.duration}{t(lang, 'min')}</span>
                     {/* Inline type selector — keep focus tags so switching back preserves selections.
                          Tags from other types stay hidden (not deleted) so a mixed-subcategory session
                          can accumulate work across types without losing prior selections.
@@ -328,11 +329,11 @@ export default function Schedule({ state, dispatch, lang }) {
                     <select className="inline-type-select" value={session.type} onChange={e => {
                       dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value } });
                     }}>
-                      {SESSION_TYPES.map(stype => <option key={stype.label} value={stype.label}>{stype.emoji} {stype.label}</option>)}
+                      {SESSION_TYPES.map(stype => <option key={stype.label} value={stype.label}>{stype.label}</option>)}
                     </select>
+                    <span className={`badge badge-${session.status}`}>{status.label}</span>
                   </div>
                 </div>
-                <span className={`badge badge-${session.status}`}>{status.label}</span>
               </div>
               <div className="flex-row">
                 {(session.status === 'scheduled' || session.status === 'confirmed') && (

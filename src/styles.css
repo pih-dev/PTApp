@@ -1254,7 +1254,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
    scoped overrides that used to live here are gone rather than duplicated. */
 
 /* The inline type selector loses its box on the Dashboard and reads as a mark. */
-.srow .inline-type-select {
+.srow .inline-type-select, .srow-meta .inline-type-select {
   border: none; background: var(--raised); border-radius: 4px;
   /* 🔴 A borderless control still needs a finger-sized target — but once it has
      a FILL, the negative margin that used to buy that target paints over its
@@ -1264,7 +1264,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   font-family: var(--font-mono); font-size: 11px; font-weight: 500;
   letter-spacing: 0.08em; text-transform: uppercase; color: var(--chalk-dim);
 }
-.srow .inline-type-select:active { color: var(--chalk); }
+.srow .inline-type-select:active, .srow-meta .inline-type-select:active { color: var(--chalk); }
 
 /* ─── A5 (v2.20): the screens under the client card ───
    Evaluations, programs, the program viewer and the norm charts were built with
@@ -1402,7 +1402,8 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 [dir="rtl"] .empty-line,
 [dir="rtl"] .srow .badge,
 [dir="rtl"] .srow-mark,
-[dir="rtl"] .srow .inline-type-select {
+[dir="rtl"] .srow .inline-type-select,
+[dir="rtl"] .srow-meta .inline-type-select {
   text-transform: none;
   letter-spacing: 0;
   font-family: var(--font-body);
