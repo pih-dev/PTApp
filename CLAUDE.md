@@ -35,8 +35,8 @@ on these keywords — don't open them yourself, and never answer from recollecti
 | arabic, translation, i18n, RTL, transliteration | `docs/superpowers/specs/2026-07-17-exercise-names-arabic-design.md`, `docs/instructions-v2.14.2.md` |
 | split, training days, mass battery, eval timer, measurement console, observe and grade, booking time, free slot, recurring, repeat sessions, override, session count, backfill, contract, package, renewal, billing period, renew, upcoming, home screen, roll off, whatsapp, confirm link, calendar link, multi-client, group booking, visual polish, light redesign, focus tags, tag split, error boundary, white screen, ordinal, counting kernel, fork hygiene, screenshot, which doc, where is it documented | `docs/README.md` — the index of every doc, spec and per-release write-up. **It names the file; you still open it.** |
 
-The long tail routes through `docs/README.md` rather than 20 more rows, because a row costs bytes in
-*every* session while the index costs them only on a match. Unrouted on purpose:
+The long tail routes through `docs/README.md`: a row costs bytes in *every* session, the index only
+on a match. Unrouted on purpose:
 `docs/superpowers/plans/*` (build logs, 10–90 KB — they truncate and their first 8 KB is scaffold;
 the **spec** is the design record) and `docs/changelog-technical.md` (163 KB).
 
@@ -58,13 +58,11 @@ Elie may drive app changes in-session, on Pierre's conditions (*"since we're usi
 ---
 
 ## Version History
-**Last 6 releases, one line each**; the 7th drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules still in force live in TRAPS / CONVENTIONS, never here.
+**One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules still in force live in TRAPS / CONVENTIONS, never here.
 
 - **v2.15.0** (08-20) — renamed to SpotSet in the UI; real launcher icons (adaptive foreground must stay in the 66% safe zone). → `v2.15.0.md`
-- **v2.14.1–.3** (07-17) — Elie-driven UI run: booking-time suggestion (`suggestBookingTime` owns the rule), Arabic exercise names (`exerciseNamesAr.js`, swap keys stay English), transliteration rule. → `v2.14.{1,2,3}.md`
-- **v2.14.0** (07-14) — Multi-day split programs, 3–6 days; `PROGRAM_RULES_VERSION` 2→3. → `v2.14.md`
-- **v2.13.0–.3** (07-13/14) — Program generation from a 1RM evaluation (PT feature #3; schema v5→v6, additive `programs[]`), then Elie's domain-review fixes: age-banded 1RM standards (`CHARTS_VERSION` 2→3), trainer level override. → `v2.13.md`
-- **v2.12.1 and earlier** — routed `changelog-summary.md`. v3→v4 tag-split rollback tag: `snapshot-pre-v2.9.5`.
+- **v2.14.0–.3** (07-14/17) — Multi-day splits 3–6 days (`PROGRAM_RULES_VERSION` 3); Elie's UI run: booking-time suggestion (`suggestBookingTime` owns it), Arabic exercise names (`exerciseNamesAr.js`, swap keys stay English). → `v2.14*.md`
+- **v2.13 and earlier** — program generation from a 1RM evaluation (v5→v6, additive `programs[]`); routed `changelog-summary.md`. v3→v4 tag-split rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
 
@@ -78,7 +76,7 @@ Elie may drive app changes in-session, on Pierre's conditions (*"since we're usi
 ---
 
 ## TRAPS
-Full write-ups in **`docs/traps.md`** — read the relevant one before touching that area. Index:
+Full write-ups in **`docs/traps.md`** — read the relevant one first. Index:
 
 **Dates & JS** — `toISOString()` is UTC: use `today`/`localDateStr`/`localMonthStr`/`currentMonth` · never shadow `t` in a `.map`/`.find` callback · `defaultValue` inputs need a `key` tied to state · `fn(...arr)` throws past ~65K elements on iOS, chunk with `.apply` · hardcoded date stamps in fixtures rot, compute them at runtime.
 
@@ -87,6 +85,8 @@ Full write-ups in **`docs/traps.md`** — read the relevant one before touching 
 **RTL / i18n** — `marginInlineStart`/`borderInlineStart`, never `marginLeft`/`borderLeft`.
 
 **Data & sync** — never hand out a credential that reaches live data; review/demo access must be fabricated data on a path that cannot reach the real store · never `.catch(() => {})` (the Hala Mouzanar data loss) · `initialLoad`+`syncReady`+`skipSync` must ALL pass before a push · never dispatch in a loop · `state.X` read right after `dispatch(ADD_X)` is stale (Session #0) · merge paths must `migrateData` the FOREIGN blob by its own `_dataVersion`, on a clone · `mergeData`'s key list drops collections a stale bundle doesn't know — after a deploy adding one, confirm BOTH phones show the new version first · a 401 must look different from a network blip and route to the replacement UI.
+
+**Identity (`src/auth.js`)** — key is `ptapp-data:<userId>` once signed in, NO fallback to the bare key (a bare write pushes one coach's dataset into another's tenant, and RLS authorises it) · gate on identity, **never** token validity — expired ⇒ banner, never a login wall · **no social login, EVER** (Google forces Sign in with Apple, 4.8) · sign-out clears the session only.
 
 **Refactoring** — a string only reachable BEFORE login is invisible to a rename sweep (the v2.15.0 token screen) — grep all of `src/`, not the screens you can open · grep EVERY read and write when moving a storage location · a renamed catalog key silently kills `|| CATALOG.oldKey` fallbacks (property refs don't match string greps) · re-read a helper's fallback contract before guarding its return; "did the world change" checks read LIVE state and compare stable IDs · `parseSessionCountOverride` returns `{ type, value }`, not `.mode` · legacy `periodLength` was the billing master switch, not `periodStart`.
 

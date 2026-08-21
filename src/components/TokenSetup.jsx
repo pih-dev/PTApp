@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { validateToken, saveToken, DEMO_TOKEN } from '../sync';
-import { loadData, saveData } from '../utils';
+import { anyLocalDataExists, saveData } from '../utils';
 import { buildDemoData } from '../demoData';
 import { t } from '../i18n';
 
@@ -22,8 +22,12 @@ export default function TokenSetup({ onConnected, lang }) {
       // the dot reads idle rather than red, and the trainer keeps booking sessions that
       // never leave the device. Refusing outright means demo is only ever reachable on
       // a device with nothing to lose.
-      const existing = loadData();
-      if ((existing.clients && existing.clients.length) || (existing.sessions && existing.sessions.length)) {
+      // 🔴 Checks EVERY store on the device, not just the current identity's.
+      //    loadData() reads only `ptapp-data:<signed-in user>`; a phone whose real
+      //    records sit under another key would sail through the gate, and
+      //    saveToken(DEMO) is global — so every sync path short-circuits for the
+      //    real identity too. Same failure this gate was written to prevent.
+      if (anyLocalDataExists()) {
         setError(t(lang, 'tokenInvalid'));
         return;
       }

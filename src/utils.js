@@ -1,3 +1,8 @@
+// auth.js imports nothing from here, so this direction cannot cycle. It is the
+// only dependency utils has, and it exists for one reason: the localStorage key
+// must be namespaced by identity (see "localStorage persistence" below).
+import { getUserId } from './auth.js';
+
 // ─── ID Generator ───
 export const genId = () => Math.random().toString(36).slice(2, 9);
 
@@ -848,16 +853,108 @@ export function migrateData(data) {
 }
 
 // ─── localStorage persistence ───
+//
+// 🔴 THE KEY IS NAMESPACED BY IDENTITY, AND THAT IS NOT OPTIONAL.
+//    (docs/2026-08-21-multi-user-accounts-decision.md §4.)
+//    The unnamespaced key is a landmine the moment a second identity exists on
+//    one device: a second coach signs in on Elie's phone → the app boots
+//    offline-first from localStorage → finds a populated store → and pushes
+//    ELIE'S ENTIRE DATASET into the coach's tenant. RLS authorises it happily,
+//    because it is correctly scoped to the wrong person. That is the Apr-13
+//    data loss again with a brand-new cause, and nothing downstream would catch
+//    it. Namespacing the key is the whole fix.
+//
+//    Signed out (today's world, and DEMO) → the legacy key, byte-for-byte as it
+//    has always been. Signed in → `ptapp-data:<userId>`.
+//
+// 🔴 THERE IS NO FALLBACK FROM THE NAMESPACED KEY TO THE LEGACY ONE.
+//    A brand-new user must open an EMPTY app, not inherit whatever the phone
+//    happened to be holding. Adopting the legacy store is a deliberate one-time
+//    act performed at cutover — see `claimLegacyStore` below.
 const STORAGE_KEY = 'ptapp-data';
 
+export const storageKey = () => {
+  const uid = getUserId();
+  return uid ? `${STORAGE_KEY}:${uid}` : STORAGE_KEY;
+};
+
+// The key the in-memory state was last loaded from. `saveData` refuses to write
+// when identity has changed underneath it — see the guard there.
+let loadedKey = null;
+
 export const loadData = () => {
+  const key = storageKey();
+  loadedKey = key;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(key);
     if (raw) return migrateData(JSON.parse(raw));
   } catch (e) {
     console.error('Failed to load data:', e);
   }
   return migrateData({ clients: [], sessions: [] });
+};
+
+// Where the pre-auth blob is parked once it has been claimed. Deliberately NOT
+// a key any code path loads from: after cutover the legacy blob is a complete
+// copy of Elie's records that would otherwise be readable with no authentication
+// at all — sign out, or merely corrupt the session object, and the app would
+// boot straight into his full client list. Rollback reads this key by hand
+// (and, in practice, doesn't need it: the old bundle re-fetches from GitHub the
+// moment the PAT is pasted back in).
+export const PREAUTH_BACKUP_KEY = 'ptapp-data-preauth-backup';
+
+// Cutover only (Phase 3, §5 step 3): hand the existing unnamespaced store to the
+// user it actually belongs to — Elie, on his own phone, with his own data.
+//
+// 🔴 THE OWNER ID IS A REQUIRED ARGUMENT, and that is the whole safety property.
+//    "Is my namespace empty?" is not the question — every first-time signer-in on
+//    that device passes it, so a second coach signing in on Elie's phone would
+//    claim Elie's clients. That is the same cross-tenant landmine namespacing
+//    exists to close, arriving through the legacy key. The caller must name the
+//    expected owner, so a claim can only ever happen deliberately and once.
+export const claimLegacyStore = (expectedUserId) => {
+  const uid = getUserId();
+  if (!expectedUserId || uid !== expectedUserId) return false; // not the cutover user (or signed out)
+  const key = storageKey();
+  if (localStorage.getItem(key)) return false;    // this identity already has data; leave it alone
+  const legacy = localStorage.getItem(STORAGE_KEY);
+  if (!legacy) return false;
+  localStorage.setItem(key, legacy);
+  // Move, don't copy: park it out of the app's reach, then remove the original.
+  // Order matters — the backup exists before the legacy key stops existing, so a
+  // crash between the two lines loses nothing.
+  localStorage.setItem(PREAUTH_BACKUP_KEY, legacy);
+  localStorage.removeItem(STORAGE_KEY);
+  return true;
+};
+
+// True if ANY store on this device holds records — namespaced, legacy or parked.
+// The DEMO gate needs this rather than loadData(): DEMO is a global switch that
+// short-circuits every sync path, so seeding it on a phone that holds real data
+// under a different key parks that phone in permanent demo mode.
+export const anyLocalDataExists = () => {
+  // 🔴 The whole loop is guarded, not just the parse. `localStorage.length`,
+  //    `.key()` and `.getItem()` all THROW SecurityError on iOS Safari with
+  //    "Block All Cookies" on, and in a WKWebView with site data blocked. This
+  //    runs inside an async click handler, where React's error boundary cannot
+  //    catch it — the throw would turn the DEMO button into a silent dead tap,
+  //    on the one credential a store reviewer has. `loadData()` swallowed this
+  //    internally, so the guard is keeping a property, not adding one:
+  //    unreadable storage means there is no local data to protect.
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith(STORAGE_KEY)) continue;
+      try {
+        const d = JSON.parse(localStorage.getItem(k));
+        if (d?.clients?.length || d?.sessions?.length) return true;
+      } catch (e) { /* unparseable blob — not evidence of records */ }
+    }
+  } catch (e) {
+    console.error('Could not enumerate local stores:', e);
+    return false;
+  }
+  return false;
 };
 
 // ─── Merge (sync conflict resolution) ───
@@ -926,8 +1023,22 @@ export function dataEquals(a, b) {
 }
 
 export const saveData = (data) => {
+  const key = storageKey();
+  // 🔴 Identity changed since this state was loaded ⇒ the blob in memory belongs
+  //    to the PREVIOUS user. Writing it under the new key is the cross-tenant
+  //    landmine described above, arriving by the back door: sign out, sign in as
+  //    someone else, make one edit, and the first user's whole dataset is written
+  //    into the second user's store and then synced to their tenant.
+  //    Refuse, loudly. The condition is self-healing: App re-runs loadData() on
+  //    every identity change (see auth.js `onAuthChange`), which restamps
+  //    loadedKey — so this only ever fires in the window where that wiring is
+  //    missing, which is exactly when we want to hear about it.
+  if (loadedKey !== null && key !== loadedKey) {
+    console.error(`Refusing to save: identity changed (${loadedKey} → ${key}) without reloading state.`);
+    return;
+  }
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(key, JSON.stringify(data));
   } catch (e) {
     console.error('Failed to save data:', e);
   }

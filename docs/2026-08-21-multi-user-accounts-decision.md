@@ -440,3 +440,94 @@ in the first draft were wrong and are corrected above: the `initPlan` reasoning 
 (§12.1), the ltree hyphen restriction was **outdated** (relaxed in PG 16), and the `search_path = ''`
 idiom **breaks `ltree` on Supabase**. A fourth was a gap rather than an error: the `client` role has
 no read path under the ancestry predicate (§12.2).
+
+---
+
+## 13. The auth module, as built (2026-08-21)
+
+`src/auth.js` exists. It is inert until `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` are supplied
+at build time (`.env.example`), so this commit changes nothing Elie can observe. No login screen yet
+— that is the next piece, and it sits **beside** `DEMO`, never replacing it.
+
+### What it is
+
+~250 lines of `fetch` over four GoTrue endpoints. **Not `@supabase/supabase-js`**, for three
+reasons that are all specific to this app:
+
+- The bundle is inlined into ONE `index.html` by `vite-plugin-singlefile`; every dependency byte
+  lands in the file Elie downloads over Beirut internet.
+- supabase-js runs its own refresh timer and its own session writer. Both misbehave in exactly the
+  situation that matters here — offline — and a background refresh that fails on a dead network must
+  never be able to clear the session.
+- We already speak this protocol: `scripts/sanity/sanity-rls-matrix.mjs` drives the same endpoints
+  with the same shapes.
+
+Exports: `signIn`, `signOut`, `refreshSession`, `getAccessToken`, `changePassword`, `fetchProfile`,
+`getSession` / `getUserId` / `getUserEmail`, `isSignedIn` / `isSessionExpired`, `onAuthChange`,
+`isAuthConfigured`, and the `AUTH_*` error codes. **There is no `signUp`, and there must never be
+one** (§11.1: accounts are provisioned in the console).
+
+### The four properties it is built to hold
+
+1. **The gate is identity, never token validity.** `isSignedIn()` is true for an expired session.
+   Expired ⇒ a banner, never a login wall — the gym-basement case and Apple 4.2.
+2. **A 401 does not look like a network blip.** Typed errors: `AUTH_OFFLINE` keeps the session and
+   retries later, `AUTH_EXPIRED` keeps the session and routes to re-entry. Never collapsed into one
+   "sync failed" (the Jun-30 incident).
+3. **Signing out clears the session and nothing else.** The blob stays at its namespaced key.
+4. **No OAuth, no magic links, no OTP** — a static assertion in `sanity-auth.mjs` enforces it, so
+   Guideline 4.8 stays dormant in two years' time as well as today.
+
+### Storage, in `utils.js`
+
+`storageKey()` → `ptapp-data:<userId>` when signed in, the bare `ptapp-data` when not.
+**There is no fallback from the namespaced key to the bare one** — a new identity opens an empty
+app rather than inheriting whatever the phone was holding.
+
+- `saveData` **refuses to write when identity changed since `loadData` ran**. That window is the
+  cross-tenant landmine arriving by the back door: sign out, sign in as someone else, make one edit,
+  and the first user's dataset lands in the second user's store and then their tenant. Self-healing
+  — `loadData()` restamps the key, and App must call it on every identity change (`onAuthChange`).
+- `claimLegacyStore(expectedUserId)` is the one-time cutover (§5 step 3). **The owner id is a
+  required argument**: "is my namespace empty" would let *any* first-time signer-in on that device
+  claim Elie's clients. It **moves** rather than copies — the blob is parked at
+  `ptapp-data-preauth-backup`, a key nothing loads from, because a live unauthenticated copy of
+  Elie's records is otherwise one sign-out away from being on screen.
+- `anyLocalDataExists()` backs the `DEMO` gate. `loadData()` sees one namespace; `DEMO` is a global
+  switch, so a phone holding real records under *any* key must refuse it.
+
+### What review caught, and it is worth remembering
+
+Three of these were real defects in the first draft, none had a symptom, and all three were found by
+reading rather than by running:
+
+- `ErrorBoundary.jsx` still held two hardcoded `'ptapp-data'` references. The crash screen would have
+  handed the user someone else's blob and "reset" a store nobody was using. It cannot import
+  `utils.js` by design, so the resolution is inlined there — and `sanity-auth.mjs` now sweeps **all
+  of `src/`** with a two-file allowlist, which is what would have caught it.
+- `refreshSession` captured the session *before* its `await` and wrote it back *after*. Sign out
+  mid-flight and the rejection **resurrected** the signed-out session, storage key and all; two
+  concurrent refreshes against GoTrue's **rotating** refresh tokens and the loser's 400 overwrote
+  the good session with a stale one marked expired — a healthy network, and the user stranded on the
+  expired banner. Fixed with a single-flight promise plus re-reading the session inside the catch and
+  only acting if the rejected refresh token is still the stored one.
+- `claimLegacyStore` originally took no argument. See above.
+
+And two from the mobile pass, both on the crash screen and the review credential:
+
+- `anyLocalDataExists()` enumerated localStorage with only the `JSON.parse` guarded. `.length`,
+  `.key()` and `.getItem()` all **throw `SecurityError`** on iOS Safari with "Block All Cookies", and
+  it runs inside an async click handler where React's error boundary cannot catch it — the `DEMO`
+  button would have been a silent dead tap for a store reviewer. The whole loop is guarded now.
+- `ErrorBoundary` resolved one key. A corrupt `spotset-auth` is a plausible *cause* of the crash it
+  is rendering, so it would have fallen back to a key that no longer exists post-cutover: "Download
+  backup" hands over a 2-byte `{}` that looks like a success, and "Reset" removes nothing and reloads
+  into the same crash. It now backs up the largest `ptapp-data*` blob and resets **all** of them —
+  which is what its own confirm text always promised.
+
+### Gate
+
+`node scripts/sanity/sanity-auth.mjs` — static + behavioural, no network, no credentials, always
+runs. 46 assertions across: the source-level bans, the namespaced key, two identities on one device,
+the cutover claim and its refusals, the identity-not-validity gate, offline-vs-rejected, sign-out
+preserving data, and the two refresh races. Exit 0 or do not deploy.

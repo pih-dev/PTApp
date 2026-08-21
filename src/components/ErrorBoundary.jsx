@@ -18,9 +18,47 @@ class ErrorBoundary extends React.Component {
     this.setState({ info });
   }
 
+  // 🔴 The storage key is namespaced by identity (`ptapp-data:<userId>`), and this
+  //    file cannot import utils.js `storageKey()` — by design, since anything it
+  //    imports could be the thing that crashed. So the resolution is inlined, and
+  //    it MUST stay in step with utils.js: sanity-auth.mjs greps all of src/ for a
+  //    bare 'ptapp-data' write to make sure this copy is not forgotten again.
+  //    Getting it wrong here is silent and severe — the crash screen would hand
+  //    the user someone else's blob, and "Reset data" would wipe a store the
+  //    signed-in user isn't even using while leaving their real one untouched.
+  storageKey = () => {
+    try {
+      const uid = JSON.parse(localStorage.getItem('spotset-auth') || 'null')?.user?.id;
+      if (uid) return `ptapp-data:${uid}`;
+    } catch (e) { /* corrupt session ⇒ signed out ⇒ the legacy key, same as auth.js */ }
+    return 'ptapp-data';
+  };
+
+  // Every `ptapp-data*` key on this device, largest blob first. The crash screen
+  // cannot assume the session is readable — a corrupt `spotset-auth` is a
+  // plausible CAUSE of the crash being rendered — so it must never hand the user
+  // an empty `{}` file that looks like a successful backup while their real blob
+  // sits under a key it failed to resolve.
+  allStoreKeys = () => {
+    try {
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.indexOf('ptapp-data') === 0) keys.push(k);
+      }
+      return keys.sort((a, b) =>
+        (localStorage.getItem(b) || '').length - (localStorage.getItem(a) || '').length);
+    } catch (e) {
+      return [];
+    }
+  };
+
   downloadBackup = () => {
     try {
-      const raw = localStorage.getItem('ptapp-data') || '{}';
+      // The signed-in user's own store if it has content; otherwise the biggest
+      // blob on the device, which is the one worth rescuing.
+      const own = localStorage.getItem(this.storageKey());
+      const raw = (own && own.length > 2) ? own : (localStorage.getItem(this.allStoreKeys()[0]) || '{}');
       const blob = new Blob([raw], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -54,7 +92,11 @@ class ErrorBoundary extends React.Component {
     );
     if (!ok) return;
     try {
-      localStorage.removeItem('ptapp-data');
+      // Every store, not just the resolved one — the confirm above promises
+      // "ALL local data", and removing one key while the crash-causing blob sits
+      // under another means Reset reloads straight back into the same crash with
+      // no way out. This is the escape hatch of last resort; it must actually work.
+      this.allStoreKeys().forEach(k => localStorage.removeItem(k));
       window.location.reload();
     } catch (e) {
       alert('Reset failed: ' + e.message);

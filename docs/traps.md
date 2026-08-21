@@ -319,3 +319,66 @@ changes the source must update the denormalized copy **in the same transaction**
 a precondition, quoted without its precondition, produces code that looks careful and performs like
 code that wasn't. The tell is that the "fix" was applied without checking whether the condition it
 requires — here, row-independence — actually held.
+
+---
+
+## Identity and the namespaced storage key (2026-08-21, `src/auth.js`)
+
+**The trap:** `localStorage['ptapp-data']` was a single global store, which is correct for exactly
+one identity and catastrophic for two. A second coach signs in on Elie's phone → the app boots
+offline-first from localStorage → finds a populated store → and pushes **Elie's entire dataset into
+the coach's tenant**. RLS authorises it happily: the data is correctly scoped to the wrong person.
+Nothing crashes, nothing logs, and the first person to notice is Elie. That is the Apr-13 data loss
+again with a brand-new cause.
+
+**The rule:** signed in ⇒ the key is `ptapp-data:<userId>`, and **there is no fallback to the bare
+key**. A new identity opens an empty app rather than inheriting whatever the phone was holding.
+`saveData` refuses to write when identity changed since `loadData` ran (sign out → sign in as someone
+else → one edit is the whole bug). Adopting the legacy store is `claimLegacyStore(expectedUserId)` —
+the owner id is a **required argument**, because "is my namespace empty" is passed by every
+first-time signer-in on the device. It *moves* the blob to `ptapp-data-preauth-backup`, which nothing
+loads from: a live unauthenticated copy of Elie's records is otherwise one sign-out away from being
+on screen.
+
+**What it costs to get half-right:** `ErrorBoundary.jsx` kept two hardcoded `'ptapp-data'` strings
+through the first draft — it cannot import `utils.js` by design, so a rename sweep of the storage
+layer simply misses it. The crash screen would have handed the user someone else's blob and "reset" a
+store nobody was using. This is the standing *grep EVERY read and write when moving a storage
+location* rule, and `scripts/sanity/sanity-auth.mjs` now sweeps all of `src/` with a two-file
+allowlist so the next person cannot repeat it.
+
+## The auth gate is identity, never token validity
+
+An expired session is **still signed in** — it shows a banner, never a login wall. A lapsed token
+black-holing Elie's schedule in a gym with no signal ends multi-user, and it is also exactly what
+Apple tests in Airplane Mode (4.2). `isSignedIn()` is deliberately true for `expired: true` sessions.
+
+Two consequences that are easy to break:
+
+- **`AUTH_OFFLINE` and `AUTH_EXPIRED` are different outcomes.** Unreachable server ⇒ keep the session
+  untouched and retry later. Server *rejects* the refresh token ⇒ keep the session, mark it expired,
+  route to password re-entry. Collapsing them is the Jun-30 stranded-token incident.
+- **Sign-out clears the session and nothing else.** The blob stays at its namespaced key.
+
+## GoTrue rotates refresh tokens — refresh must be single-flight
+
+`refreshSession` originally captured the session before its `await` and wrote it back after. Two real
+failures, both silent:
+
+- **Sign out mid-flight** and the rejection **resurrects** the signed-out session — identity returns,
+  and with it the storage key, so the next save lands in the previous user's store.
+- **Two concurrent `getAccessToken()` calls**: refresh tokens rotate, so the loser presents a spent
+  token, gets a 400, and overwrites the freshly valid session with a stale one marked expired. A
+  perfectly healthy network, and the user is stuck re-entering a password.
+
+Fix, and the pattern for anything else that writes shared state across an `await`: one module-level
+in-flight promise, and **re-read the state inside the catch** — only act if what is stored is still
+what you acted on.
+
+## No social login, EVER (Guideline 4.8)
+
+Own email/password is not a "third-party login service", so Sign in with Apple is never required.
+The day anyone adds "Sign in with Google", SIWA becomes **mandatory** — and with OAuth come deep
+links and the PKCE-verifier-lost-across-the-deep-link trap. There is no `signUp` export either;
+accounts are provisioned in the Supabase console. `sanity-auth.mjs` asserts all of this statically,
+because a grep is what will still be enforcing it in two years.

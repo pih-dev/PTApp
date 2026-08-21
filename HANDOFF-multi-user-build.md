@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~17:00, Beirut.
+**Last updated:** 2026-08-21 ~18:30, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -83,8 +83,29 @@ moment it became true, and the working tree was clean and pushed at every point.
   **It is:** without it a tester facing a login form has no way to know `DEMO` exists, and you are
   relying on them remembering a WhatsApp message. It is one i18n string, and it is deleted in the
   **same commit** that removes `DEMO` at Phase 4 — so it cannot rot into a stale instruction.
-- **Next action: the thin auth module in `src/`** — and 🔴 `STORAGE_KEY` → `ptapp-data:<userId>` is not optional (§4). ~~Superseded: `0002`, the tenant tables~~ (`tenants`, `tenant_snapshots`), with `owner_path`
-  denormalized from `app_users` and restamped in the SAME function (§12.3).
+- ✅ **THE AUTH MODULE IS BUILT AND GREEN — `src/auth.js`, plus the namespaced storage key.**
+  `node scripts/sanity/sanity-auth.mjs` exits 0: 49 assertions, static + behavioural, no network and
+  no credentials, so it always runs. Full record: `docs/2026-08-21-multi-user-accounts-decision.md` §13.
+- **It is INERT.** Without `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` at build time
+  (`.env.example`) `isAuthConfigured()` is false and every identity path stays dark — the app behaves
+  exactly as it does today. **Nothing was deployed to gh-pages**: shipping this without the login
+  screen buys nothing and puts an untested identity path on Elie's live phone. Master only.
+- **~250 lines of `fetch` over four GoTrue endpoints — deliberately NOT `@supabase/supabase-js`**
+  (single-file bundle; and supabase-js's own refresh timer + session writer misbehave offline, which
+  is the one case that matters). No `signUp`, no OAuth, no magic links — asserted statically, so
+  Guideline 4.8 stays dormant.
+- 🔴 **`STORAGE_KEY` is now `ptapp-data:<userId>` when signed in, with NO fallback to the bare key.**
+  `saveData` refuses to write when identity changed since `loadData` ran. `claimLegacyStore` takes a
+  **required owner id** and MOVES the blob to `ptapp-data-preauth-backup`.
+- **Two reviewers found five real defects in the first draft, all of them silent, none found by
+  running the code** — the refresh-token races (sign-out mid-flight resurrecting a session; rotation
+  losers overwriting a good session with an expired one), `ErrorBoundary` still holding two hardcoded
+  `'ptapp-data'` strings, `claimLegacyStore` claimable by any first-time signer-in, and
+  `anyLocalDataExists` throwing `SecurityError` on iOS with cookies blocked (a dead `DEMO` button for
+  a store reviewer). **All five fixed, each with an assertion.** Detail: §13 and `docs/traps.md`.
+- **Next action: the login screen, beside `DEMO`** — email + password, the one-line hint string, and
+  App wiring `onAuthChange` → `loadData()` so state reloads on every identity change (the `saveData`
+  refusal exists precisely to catch that wiring being missing).
 - **The design is settled and should not be re-opened:** two roles (`pt`/`client`), prime = a `pt`
   with no parent, one `ltree` containment predicate covering own-data + downline + peer isolation,
   no admin role (service_role from the SQL console instead), and *"mine"* as the default scope on
