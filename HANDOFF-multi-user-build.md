@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~19:50, Beirut.
+**Last updated:** 2026-08-21 ~20:20, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -132,14 +132,14 @@ moment it became true, and the working tree was clean and pushed at every point.
   fail before being trusted**: one session dropped from the Postgres copy, gate red, named
   `sessions: only in GitHub → nq70to9`, exit 1; restored, green again. `tenant_snapshots` filed 2
   rows, not 5 — the trigger only copies when `data` actually changed.
-- 🔴 **ONE THING NEEDS PIERRE'S HANDS: apply `supabase/migrations/0003_snapshots_outlive_tenants.sql`
-  in the Supabase SQL editor.** `0002` gave `tenant_snapshots` **`on delete cascade`**, so a single
-  `delete from tenants` in the console — the normal admin route, since §11.1 gives no in-app admin —
-  would destroy the entire undo history in the same statement, silently. `0003` switches the FK to
-  `on delete set null` and files a final snapshot on the way out. It cannot be applied from the
-  terminal (no psql, no Supabase CLI, no DB password or management token here), same as 0001/0002.
-  **`sanity-rls-matrix.mjs` FAILS until it is applied** — by design, and it asserts the live
-  database, not the file, because `create table if not exists` skips silently.
+- ✅ **`0003` IS APPLIED AND VERIFIED LIVE** (Pierre, in the SQL editor, 2026-08-21).
+  `tenant_snapshots` was `on delete cascade` — one `delete from tenants` in the console, the normal
+  admin route since §11.1 gives no in-app admin, would have destroyed the entire undo history in the
+  same statement, silently. Now `on delete set null`, plus a final `reason='delete'` snapshot on the
+  way out. **The RLS matrix asserts the live database, not the file**: it failed at `0/1 kept`
+  before and passes at `1/1 kept` after, which is the only reason the pass means anything.
+  🔴 **`sanity-rls-matrix.mjs` now exits 0 — 16 of 19 sanity scripts pass, and the only 3 failures
+  are the spent live-diff gates that fail by design.**
 - **A data-integrity review found six more silent defects in the Phase-1 scripts, all fixed** — four
   of them the same shape, *a check that could not fail*: `assertRealSize` ignored its own argument
   (a fixed 100 KB floor passes a normaliser that drops every nested `packages[]`); length was

@@ -682,7 +682,7 @@ blobs — the `mergeData` key-list trap in CLAUDE.md wearing a different hat. A 
 v2.16 would otherwise have been invisible to the count check and the per-record diagnostic on the
 day it shipped.
 
-### 🔴 `0003` — snapshots must outlive the tenant they document (WRITTEN, NOT YET APPLIED)
+### ✅ `0003` — snapshots outlive the tenant they document (APPLIED AND VERIFIED LIVE, 2026-08-21)
 
 `0002` gave `tenant_snapshots` **`on delete cascade`**. That table exists for exactly one reason,
 written in its own header: after Apr 13 and Apr 19, *"by the time anyone noticed, the old bytes were
@@ -697,11 +697,15 @@ stays, orphaned but intact and still RLS-readable through its own denormalized `
 also files a final `reason='delete'` snapshot on the way out, and records
 `tenant_version` / `tenant_data_version` so a restore knows which generation it is putting back.
 
-**It cannot be applied from here** — no `psql`, no Supabase CLI, no database password and no
-management token on this machine; `0001` and `0002` were applied by hand in the SQL editor and so
-must this be. **`sanity-rls-matrix.mjs` now asserts the behaviour against the live database**, not
-against the file: it writes a tenant, confirms a snapshot exists, deletes the tenant, and requires
-the snapshot to survive with `tenant_id` null. It **fails today** — `snapshots SURVIVE their
-tenant's deletion (0/1 kept — 0 means 0003 is not applied)` — and turns green the moment the
-migration runs. `create table if not exists` skips silently, so an unapplied migration in the repo
-looks exactly like one that ran; asserting the database is the only way to tell.
+**Applied by Pierre in the SQL editor on 2026-08-21** — it could not be applied from the terminal
+(no `psql`, no Supabase CLI, no database password or management token on that machine), same as
+`0001` and `0002`.
+
+**`sanity-rls-matrix.mjs` asserts the behaviour against the LIVE DATABASE**, not against the file:
+it writes a tenant, confirms a snapshot exists, deletes the tenant, and requires the snapshot to
+survive with `tenant_id` null. It failed before the migration (`0/1 kept`) and passes after
+(`1/1 kept`) — which is the only reason the pass means anything. `create table if not exists` skips
+silently, so a migration sitting unapplied in the repo looks exactly like one that ran; asserting
+the database is the only way to tell the difference.
+
+Full matrix, live, after: **all assertions passed, exit 0.**
