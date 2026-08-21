@@ -314,3 +314,62 @@ Straight segments have no arch to lose. So:
   artifact now shows the same row twice: *neutral, arch held* and *rounded — this is the injury*.
   That pairing IS the feature; a single "correct" figure teaches half as much.
 - **Full renders stay on the table for later.** Line-drawn is what ships now, not the ceiling.
+
+### 7.10 🔴 §7.7 REVERSED THE SAME EVENING — themes stay user-facing
+
+**Both states, recorded, so nobody re-inverts this** (the mid-conversation-revision rule).
+
+| | Written §7.7, ~22:50 | Chosen §7.10, ~23:10 |
+|---|---|---|
+| Themes | ONE theme, no user choice | **2–4 named themes, the USER picks** |
+| Reasoning | effort spent on two goes into making one excellent | *"if we're not gonna do it now, when it becomes public?"* |
+
+**What did NOT change:** the dark/light *pair* is still dead. This is not a mode inherited from the
+OS — it is a short curated list where every entry was designed on purpose and any of them is a good
+answer. **What changed** is that the list is shipped to users rather than picked internally.
+
+**Pierre's reasoning, which is the durable part:** the closed test is *"a limited number of close,
+long-term clients"* — precisely the audience whose preference is worth learning, and the only time
+it can be learned cheaply. Deferring theme choice to public launch means guessing now and finding
+out expensively later.
+
+- **Ship the variants to the closed testers and collect which they use.**
+- Every theme carries the same layout, geometry and type. **Only hue changes** — that is the test
+  that keeps it a language rather than four moods.
+- **`--t1..--t5` / `--sep` become the shared opacity ladder** across all themes; "never hardcode
+  rgba" is unchanged and now matters more.
+
+### 7.11 🔴 THE OFFLINE JUSTIFICATION WAS WRONG — corrected by Pierre
+
+§7.5 argued line-drawn figures on the grounds that *"the app ships as ONE index.html, offline-first,
+on Beirut internet"*. **Pierre corrected it: we are building the native app now.** It downloads
+once, assets ship inside the binary, and **Lebanese 4G is good** — the bandwidth argument does not
+apply, and stating it as the reason was reasoning from a stale constraint. The rule this belongs to
+is *probe before you assert*: the delivery model changed at Capacitor and the brief had not caught up.
+
+**The real reasons line-drawn is right FOR NOW** (both survive the correction):
+1. **Download size** — a vector figure is a few KB against a photo's hundreds. It is what lets us
+   cover the **whole exercise bank** instead of a beautiful dozen.
+2. **Production cost** — we can draw ~100 movements in this style; we cannot shoot or render 100.
+
+🔴 **Line-drawn is the FOUNDATION, not the ceiling.** Richer graphics — renders, real photography,
+drag-to-rotate — can replace any individual figure later without touching the system around it, and
+that is the point of settling the language first.
+
+### 7.12 Figures, generalised — it was never about backs
+
+Pierre: *"it's not the back exclusively — any movement. The curves could be deployed for any
+movement… if I'm doing shoulder — I injured my shoulder and it took me six months to get lightly
+back on track — you would mark on the wrong one where it would cause an injury."*
+
+**The rules, generalised:**
+- **Curves apply to every movement.** A curve is what makes any joint's position readable; the back
+  was only the first example.
+- 🔴 **The wrong figure MARKS THE INJURY SITE, on the joint that takes it.** A ringed shoulder for a
+  flared press, a marked lumbar for a rounded row. **Not a red outline around the whole body** — the
+  point is *where*, and a whole-body warning says nothing a person can act on.
+- **Counts are per movement, not a global constant.** One figure where one suffices. **Two whenever
+  there is a way to get it wrong** — that pair carries the value. More angles only when a view
+  genuinely hides something.
+- The artifact now shows two movements for exactly this reason: a **row** (the spine is what you
+  lose) and an **overhead press** (the shoulder is). Same system, different joint.
