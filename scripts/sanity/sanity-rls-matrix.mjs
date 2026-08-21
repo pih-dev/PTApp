@@ -38,9 +38,14 @@
 //    assertion is made with a normal user's token through the anon endpoint,
 //    which is the only path the app itself will ever use.
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
-const MIGRATION = new URL('../../supabase/migrations/0001_app_users.sql', import.meta.url);
+// 🔴 Every migration, discovered — never a hardcoded filename. 0001 already
+//    promises 0002 (tenants, tenant_snapshots, client_views). A matrix pinned
+//    to 0001 would print all-green while the tables that actually hold Elie's
+//    data had no RLS at all. The gate must widen by itself as the schema grows.
+const MIGRATIONS_DIR = fileURLToPath(new URL('../../supabase/migrations/', import.meta.url));
 
 let failures = 0;
 function assert(cond, msg) {
@@ -56,16 +61,27 @@ function assert(cond, msg) {
 // created without RLS, a grant to anon, the search_path='' trap.
 // =====================================================================
 
-console.log('\n[static] supabase/migrations/0001_app_users.sql');
+// 🔴 The static pass reads the migration FILES, not the database. It cannot
+//    tell you what was actually applied — `create table if not exists` means an
+//    edited migration re-applied against an existing table silently skips every
+//    column and constraint change, so the file can promise something the
+//    instance does not have. Treat it as a lint that catches whole classes of
+//    hole cheaply and offline; the live pass below is the actual proof.
+const files = readdirSync(MIGRATIONS_DIR)
+  .filter(f => f.endsWith('.sql') && !f.endsWith('_down.sql'))
+  .sort();
 
-const sql = readFileSync(MIGRATION, 'utf8');
+console.log(`\n[static] ${files.length} migration(s): ${files.join(', ')}`);
+assert(files.length > 0, 'migrations directory is not empty');
+
+const sql = files.map(f => readFileSync(MIGRATIONS_DIR + f, 'utf8')).join('\n');
 // Strip line comments so prose about a rule cannot satisfy a check for it.
 const code = sql.replace(/--.*$/gm, '');
 
 const createdTables = [...code.matchAll(/create table (?:if not exists )?public\.(\w+)/gi)]
   .map(m => m[1]);
 
-assert(createdTables.length > 0, `migration creates tables (${createdTables.join(', ') || 'none'})`);
+assert(createdTables.length > 0, `migrations create tables (${createdTables.join(', ') || 'none'})`);
 
 for (const t of createdTables) {
   // Both are needed. ENABLE alone leaves the table owner exempt, so a policy
@@ -106,10 +122,34 @@ assert(rowDependentCalls.length === 0,
 // Any write policy on app_users would also permit editing `role` and
 // `parent_pt_id`, because RLS cannot restrict columns — i.e. self-promotion
 // to prime. Writes belong to service_role only (§11.1).
-const writePolicies = policyBodies.filter(p =>
-  /on public\.app_users/i.test(p) && /for\s+(insert|update|delete|all)\b/i.test(p));
+//
+// 🔴 A policy with NO `for` clause defaults to FOR ALL — it is a write policy.
+//    Matching only on an explicit for-insert/update/delete/all would classify
+//    `create policy p on public.app_users to authenticated using (true);`
+//    as harmless, which is precisely backwards: that policy permits editing
+//    `role` and `parent_pt_id`, i.e. self-promotion to prime. Absence of the
+//    clause is the dangerous case, so absence must be treated as ALL.
+const writePolicies = policyBodies.filter(p => {
+  if (!/on public\.app_users/i.test(p)) return false;
+  const forClause = p.match(/\bfor\s+(all|select|insert|update|delete)\b/i);
+  return !forClause || forClause[1].toLowerCase() !== 'select';
+});
 assert(writePolicies.length === 0,
-  `app_users has no write policy for authenticated (found ${writePolicies.length})`);
+  `app_users has no write policy for authenticated — a policy with no FOR clause counts as one (found ${writePolicies.length})`);
+
+// Postgres grants EXECUTE on new functions to PUBLIC by default, and `public`
+// is the schema PostgREST exposes. A `security definer` function there is an
+// anon-callable RPC that runs as its owner. Today's two are trigger functions,
+// which cannot be called over RPC — so this is inert, and that is exactly the
+// problem: nothing establishes the habit, and the first non-trigger SECDEF
+// function added to `public` inherits the hole silently.
+const publicSecdef = [...code.matchAll(
+  /create (?:or replace )?function public\.(\w+)[\s\S]*?\$fn\$[\s\S]*?\$fn\$/gi)]
+  .filter(m => /security definer/i.test(m[0]))
+  .map(m => m[1]);
+const revokedOrDefaultRevoked = /alter default privileges in schema public[\s\S]*?revoke execute on functions from[^;]*public/i.test(code);
+assert(revokedOrDefaultRevoked || publicSecdef.length === 0,
+  `EXECUTE on public functions is revoked from PUBLIC by default privileges (public security definer fns: ${publicSecdef.join(', ') || 'none'})`);
 
 if (failures > 0) {
   console.error(`\n✗ STATIC PASS FAILED (${failures}) — DO NOT DEPLOY\n`);
@@ -127,14 +167,19 @@ const ANON = process.env.SUPABASE_ANON_KEY;
 const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!URL_ || !ANON || !SERVICE) {
+  // The message deliberately carries the same "DO NOT DEPLOY" string the three
+  // spent live-diff gates print, because that is the string a human scanning
+  // the suite output is looking for. A skip that reads like a pass is the whole
+  // failure mode this file exists to avoid.
   console.error(`
-[live] SKIPPED — no instance configured.
+[live] SKIPPED — no instance configured. DO NOT DEPLOY AUTH.
 
   Set SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY to run it.
 
 🔴 This is NOT a pass. The static pass only reads the migration text; it cannot
-   tell you whether Postgres actually refuses a cross-tree read. Auth must not
-   ship until this exits 0.
+   tell you whether Postgres actually refuses a cross-tree read — nor even
+   whether the migration on file is the one that was applied ('create table if
+   not exists' skips changes silently). Auth must not ship until this exits 0.
 `);
   process.exit(2);
 }
@@ -268,16 +313,35 @@ try {
 
   // A write path would let a pt edit `role`/`parent_pt_id` — self-promotion to
   // prime. There must be no write policy at all for `authenticated` (§11.1).
+  //
+  // 🔴 `Prefer: return=representation` is not cosmetic here. Without it a
+  //    successful PATCH returns 204 with an EMPTY BODY: `wrote.ok` is true and
+  //    `wrote.json()` then THROWS on the empty body. That throw would be caught
+  //    by the outer handler as a "harness error" and abort the rest of this
+  //    block — so the anon assertion below would never run, and the run would
+  //    still be counted as one failure rather than as isolation unproven.
+  //    A test that cannot tell "refused" from "succeeded" is worse than none.
   const wrote = await api(`/rest/v1/app_users?id=eq.${ids.B}`, {
-    token: tokenB, method: 'PATCH', body: { role: 'pt', parent_pt_id: null },
+    token: tokenB, method: 'PATCH',
+    prefer: 'return=representation',
+    body: { role: 'pt', parent_pt_id: null },
   });
-  assert(!wrote.ok || (await wrote.json()).length === 0,
-    '🔴 B cannot promote themselves to prime (no write policy for authenticated)');
+  const wroteRows = wrote.ok ? await wrote.json().catch(() => null) : [];
+  assert(!wrote.ok || (Array.isArray(wroteRows) && wroteRows.length === 0),
+    `🔴 B cannot promote themselves to prime — no write policy for authenticated (status ${wrote.status}, rows ${Array.isArray(wroteRows) ? wroteRows.length : 'UNKNOWN'})`);
+
+  // Belt and braces: read B back with service_role and confirm nothing moved.
+  // The assertion above trusts PostgREST's response; this one trusts the table.
+  const afterRes = await api(`/rest/v1/app_users?select=role,parent_pt_id&id=eq.${ids.B}`, { key: SERVICE });
+  const after = (await afterRes.json())[0];
+  assert(after && after.role === 'pt' && after.parent_pt_id === ids.A,
+    "🔴 B's row is unchanged in the table after the attempted self-promotion");
 
   // anon is the key that ships in the bundle of a public repo.
   const anonRead = await api('/rest/v1/app_users?select=id');
-  assert(!anonRead.ok || (await anonRead.json()).length === 0,
-    '🔴 the anon key reads NOTHING from app_users');
+  const anonRows = anonRead.ok ? await anonRead.json().catch(() => null) : [];
+  assert(!anonRead.ok || (Array.isArray(anonRows) && anonRows.length === 0),
+    `🔴 the anon key reads NOTHING from app_users (status ${anonRead.status})`);
 
 } catch (e) {
   console.error('  ✗ harness error:', e.message);

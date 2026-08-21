@@ -64,8 +64,7 @@ Elie may drive app changes in-session, on Pierre's conditions (*"since we're usi
 - **v2.14.1–.3** (07-17) — Elie-driven UI run: booking-time suggestion (`suggestBookingTime` owns the rule), Arabic exercise names (`exerciseNamesAr.js`, swap keys stay English), transliteration rule. → `v2.14.{1,2,3}.md`
 - **v2.14.0** (07-14) — Multi-day split programs, 3–6 days; `PROGRAM_RULES_VERSION` 2→3. → `v2.14.md`
 - **v2.13.0–.3** (07-13/14) — Program generation from a 1RM evaluation (PT feature #3; schema v5→v6, additive `programs[]`), then Elie's domain-review fixes: age-banded 1RM standards (`CHARTS_VERSION` 2→3), trainer level override. → `v2.13.md`
-- **v2.12.0–.1** (07-06/07) — 1RM battery replaces the mass battery (additive `branch:'1rm'`, DATA_VERSION stays 5, mass records view-only); token-expiry surfacing + `TokenUpdateModal.jsx`. → `v2.12.md`, `v2.12.1.md`
-- **v2.11.1 and earlier** — routed `changelog-summary.md`. v3→v4 tag-split rollback tag: `snapshot-pre-v2.9.5`.
+- **v2.12.1 and earlier** — routed `changelog-summary.md`. v3→v4 tag-split rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
 
@@ -186,7 +185,7 @@ git checkout master
 **Critical notes** (the incidents behind these: `docs/release-hygiene.md`):
 - Pushing to `master` does NOT deploy, and pushing to `gh-pages` does not guarantee it either — **verify `gh api repos/pih-dev/PTApp/pages/builds/latest --jq .status` reaches `built`.** Stuck on `building`? `gh api -X POST repos/pih-dev/PTApp/pages/builds`, then re-verify. Never push `gh-pages` twice in quick succession.
 - **A schema change needs a live-data byte-diff gate, and all three existing ones are SPENT by design** (`live-v6-diff`, `live-v5-diff`, `live-migration` — each asserts a snapshot the archive has moved past, so each prints "DO NOT DEPLOY"). **A v6→v7 change needs a NEW `sanity-live-v7-diff.mjs`, copied from the v6 one.**
-- Run the whole suite before every deploy: `for f in scripts/sanity/*.mjs; do node "$f"; done` — 13 of 16 pass, the 3 above are the spent gates.
+- Run the whole suite before every deploy — **check exit codes, don't eyeball output**: `for f in scripts/sanity/*.mjs; do node "$f" || echo "FAIL $f"; done`. 13 of 17 pass; the 3 above are the spent gates, and `sanity-rls-matrix` exits **2** = live RLS pass skipped (no Supabase instance). **Exit 2 is not a pass.**
 
 ### 🔒 Release hygiene — the five rules (added 2026-08-03)
 CLAUDE.md was slimmed to 19.5 KB at v2.9.2 and drifted back to 42 KB in five months, because every release appended a section and none ever collapsed one. **Do not skip these "just this once" — that is exactly how it regrew.** Why each exists: `docs/release-hygiene.md` §1.

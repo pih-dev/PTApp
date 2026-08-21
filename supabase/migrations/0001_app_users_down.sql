@@ -19,6 +19,7 @@
 -- =====================================================================
 
 drop trigger if exists app_users_stamp_path_ins        on public.app_users;
+drop trigger if exists app_users_guard_path_write_upd  on public.app_users;
 drop trigger if exists app_users_stamp_path_upd        on public.app_users;
 drop trigger if exists app_users_guard_role_change_upd on public.app_users;
 
@@ -28,6 +29,7 @@ drop table if exists public.app_users;
 
 drop function if exists public.app_users_stamp_path();
 drop function if exists public.app_users_guard_role_change();
+drop function if exists public.app_users_guard_path_write();
 drop function if exists private.my_path();
 drop function if exists private.my_role();
 drop function if exists private.uuid_label(uuid);

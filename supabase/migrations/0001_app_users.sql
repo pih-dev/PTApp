@@ -48,6 +48,21 @@ revoke all on schema private from anon, authenticated;
 --    `anon` still gets nothing — it is the key that ships in a PUBLIC repo.
 grant usage on schema private to authenticated;
 
+-- 🔴 Postgres grants EXECUTE on every new function to PUBLIC by default, and
+--    `public` is the schema PostgREST exposes. That means any function created
+--    in `public` is, by default, callable over HTTP — and a SECURITY DEFINER
+--    one runs as its owner. The two SECDEF functions this file puts in `public`
+--    are trigger functions, which cannot be invoked as RPC, so today this is
+--    inert. It is set here precisely BECAUSE it is inert today: the first
+--    ordinary SECDEF helper someone adds to `public` would otherwise inherit an
+--    anon-callable hole with nothing to warn them.
+--    Scoped to functions created from here on, deliberately: a blanket
+--    `revoke execute on all functions in schema public` would also strip
+--    Supabase's own helpers and break the project in ways unrelated to this
+--    change. Future RPCs get an explicit grant, which is the point — the grant
+--    becomes a decision instead of a default.
+alter default privileges in schema public revoke execute on functions from public, anon;
+
 
 -- ---------------------------------------------------------------------
 -- 1. The table
@@ -263,6 +278,44 @@ create trigger app_users_guard_role_change_upd
   for each row
   when (new.role is distinct from old.role)
   execute function public.app_users_guard_role_change();
+
+-- 🔴 `path` must only ever be written by the stamp function.
+--    The stamp trigger fires on a change of `parent_pt_id`, so a direct
+--    `UPDATE app_users SET path = …` fires nothing at all. The tail CHECK
+--    catches the worst case — a forged prefix can never make you an *ancestor*
+--    of a foreign row, because containment requires prefix-hood and that row's
+--    path still ends in its own id — but it does NOT stop the opposite move:
+--    injecting yourself DOWNWARD into a stranger's tree, which would hand that
+--    stranger's prime a client they never had. Only service_role can reach
+--    this today (there is no write policy), so this is defence in depth against
+--    a future write path, not a live hole.
+create or replace function public.app_users_guard_path_write()
+returns trigger
+language plpgsql
+set search_path = 'extensions', 'public'
+as $fn$
+begin
+  -- Depth is checked in the BODY, not the WHEN clause. Inside a top-level
+  -- trigger pg_trigger_depth() is already 1, so a WHEN clause testing for 0
+  -- would never be true and this guard would silently never fire — the exact
+  -- shape of bug it exists to prevent. The one legitimate writer of `path` is
+  -- the subtree restamp inside app_users_stamp_path(), which reaches here at
+  -- depth 2.
+  if pg_trigger_depth() <= 1 then
+    raise exception
+      'app_users: path is maintained by trigger and must never be written directly (row %). Change parent_pt_id instead.',
+      new.id;
+  end if;
+  return new;
+end;
+$fn$;
+
+drop trigger if exists app_users_guard_path_write_upd on public.app_users;
+create trigger app_users_guard_path_write_upd
+  before update of path on public.app_users
+  for each row
+  when (new.path is distinct from old.path)
+  execute function public.app_users_guard_path_write();
 
 -- 🔴 The subtree restamp lives INSIDE app_users_stamp_path above, not in a
 --    separate trigger. When the tenant tables arrive and denormalize
