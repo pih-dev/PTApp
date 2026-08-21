@@ -16,7 +16,12 @@ the safety net, never the trigger.
 
 ## 0. Status — read this out
 
-- ✅ **v2.20.0 IS LIVE** (Pages `built`, `v2.20.0` served). **A5 done — no screen is still in the old idiom.** The program viewer was rebuilt (it is read while coaching): name on its own line, prescription in mono under it, one-word swap. New primitives `.subbar`/`.lrow`/`.num`/`.exrow*`. Detail: `docs/instructions-v2.20.md`.
+- ✅ **v2.21.0 IS LIVE — B1, THE MOVEMENT LIBRARY.** A movement name is no longer a dead end:
+  tappable in the program viewer (the hot path), plus a searchable EN/AR library in General (the
+  cold path). New gate `sanity-movement-library.mjs`, made to fail before being trusted.
+  🔴 **A fifth nav tab was REJECTED** — A6 revisits what the four tabs ARE first.
+  Detail: `docs/instructions-v2.21.md`.
+- **Previously v2.20.0** (Pages `built`, `v2.20.0` served). **A5 done — no screen is still in the old idiom.** The program viewer was rebuilt (it is read while coaching): name on its own line, prescription in mono under it, one-word swap. New primitives `.subbar`/`.lrow`/`.num`/`.exrow*`. Detail: `docs/instructions-v2.20.md`.
 - **Previously** (`v2.19.0/.1`): **Stage 3: the shell and the shared
   primitives joined the language** — Pierre's read on v2.18 was *"the landing page is very designed,
   but the rest are still the same."* `.card` is a row everywhere, the chrome is on tokens, the
@@ -35,10 +40,10 @@ the safety net, never the trigger.
   VERIFICATION (the mobile-ux reviewer found the steel contrast collapse) and for mechanical sweeps,
   never for taste. Fable is worth spawning for divergent visual *options* to judge, never for
   integration.
-- **NEXT ACTION: B1 — the movement library** (`docs/design/2026-08-22-what-is-left.md`). Every
-  exercise name tappable + a searchable EN/AR screen. 340 movements already in `exerciseBank.js`
-  with Arabic for all of them; the gap is that a name is a dead end. **It is also where the
-  figures will live, so it comes before them.**
+- **NEXT ACTION — pick one, nothing is blocked:** (a) **B2 the figures** (Pierre has ideas and said
+  we'd figure it out together — do NOT start drawing before that conversation); (b) **A6** the
+  header/tab question, now that every screen is finished; (c) **C4** review finding P3 with the
+  Schedule layout pass. The full list stays in `docs/design/2026-08-22-what-is-left.md`.
 - 🔴 **FIGURES: Pierre chose GENERATE, with the caveat *"we don't want stiffness"* (2026-08-22).**
   That caveat is the whole spec: the brief's *curves not hinges* rule exists precisely because a
   generated figure defaults to straight bones and hinge joints. A generated route must be built
