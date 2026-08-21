@@ -16,11 +16,24 @@ the safety net, never the trigger.
 
 ## 0. Status — read this out
 
-- ✅ **v2.19.0 IS LIVE** (Pages `built`, `v2.19.0` served). **Stage 3: the shell and the shared
+- ✅ **v2.19.1 IS LIVE** (Pages `built`, `v2.19.1` served). **Stage 3: the shell and the shared
   primitives joined the language** — Pierre's read on v2.18 was *"the landing page is very designed,
   but the rest are still the same."* `.card` is a row everywhere, the chrome is on tokens, the
   active tab is chalk, emoji left the interface, and **70 steel per-element overrides retired**.
   Detail: `docs/instructions-v2.19.md`.
+- 🔴 **OUTLINE MEANS "OFF", FILL MEANS "PRESS ME"** (v2.19.1). Stage 3 made everything a hollow
+  2px box and Pierre called it: *"more inviting to press the buttons."* Controls have surfaces
+  again. Two states of one control differ by **fill and text colour**, never border width.
+- 📄 **THE LIST HE ASKED FOR: `docs/design/2026-08-22-what-is-left.md`** — all three tracks, in
+  order, with the recommendation (A5 then B1) and the honest answer on the bottom tab bar.
+- 📄 **The figure references are READ: `docs/design/2026-08-22-figure-references.md`** — what each of
+  Pierre's six sheets contributes, the figure-vs-mark split, and the three questions the figures
+  spec must settle. Production route constrains style, so it is settled FIRST.
+- **On subagents (his question, 2026-08-22):** the design driver stays the main session — one head
+  keeps the overview, which is his own earlier rule and it held here. Subagents are used for
+  VERIFICATION (the mobile-ux reviewer found the steel contrast collapse) and for mechanical sweeps,
+  never for taste. Fable is worth spawning for divergent visual *options* to judge, never for
+  integration.
 - **NEXT ACTION: the screens that were never opened in this pass** — the program viewer/setup and
   the evaluation screens. They inherit the primitives but their own layouts have not been judged.
   After that, the three specs still queued: **the movement library, the exercise figures, the logo**.
