@@ -120,3 +120,89 @@ To be verified against current plugin docs in the design session — listed as c
   visual work waits for Capacitor.* That wait is now over.
 - `src/styles.css` — 6 tokens, ~24 gradients, 7 backdrop-filters. The measured surface area.
 - The comparison file: `C:/projects/General/awareness-program/grouping/PG-Agribond-Session-Grouping-Rev15-20-08-26.html`
+
+---
+
+## 7. Session 1 decisions (2026-08-21) and what it opened
+
+**Decided in the design session:**
+- **Anchor: the plate and the bar.** Plates = the package (filled used / hollow left / all-red spent),
+  the bar = every divider. Structure comes from load, so **the card is gone** — no outline, no
+  hairline, no ambient shadow. Mockup: the `Plate & Bar` artifact.
+- **Vertical slice: the Dashboard**, fully, before any other screen.
+- **Material: steel & chalk** — graphite ground, warm chalk text, condensed caps for names, mono
+  tabular digits. 🔴 **Accent hue is NOT settled — see §7.1.**
+- **Motion: everywhere, but cheap.** Pierre chose breadth over a single signature. Hard constraint
+  written into the design: transform/opacity only, ≤200ms, no layout thrash, and **anything that
+  cannot hold 60fps on Elie's iPhone is cut, not tuned.** "Very snappy" outranks any transition.
+- **Elie: not involved until it ships.** His standing authority is unchanged; this is a
+  developer-side quality pass and he receives it as a release.
+
+### 7.1 OPEN — the palette is not the mockup's
+
+🔴 **The mockup's plate red (`#D6382B`) is a placeholder, not a decision.** Pierre is supplying
+**two palette references** and leans **blue rather than the orange/red family** — explicitly
+*"instead of the orange, which screams Claude"*. That instinct is right and it is the same finding
+as §2: warm-accent-on-near-black is itself part of the generated house style.
+
+**What must survive whichever blue is chosen** (these are the reasons the accent worked at all, and
+they are hue-independent):
+- **The accent is used for load and urgency ONLY, never for chrome.** The moment it decorates a
+  button or a header it stops meaning anything.
+- **Semantic ok/warn stay separate from the accent.** Three hues doing three jobs.
+- 🔴 **Not `#2563EB`.** Returning to Tailwind blue-600 lands straight back in §2's evidence table.
+  A blue direction has to be a *specific* blue with a reason — not the framework default.
+
+**Task:** ingest the two references, extract 4–6 named values each, and test both against the
+Dashboard mockup before choosing. Reference images land in `_archive/PTApp/design-references/`.
+
+### 7.2 OPEN — 🔴 THE LOGO IS NOT DECIDED, AND THE CURRENT ONE IS A PLACEHOLDER
+
+Pierre's correction, and it matters: **the icon the plate-and-bar anchor was read off is a TEMP
+logo.** It was made for the Play listing under time pressure (v2.15.0, white barbell glyph on the
+blue gradient, `_archive/PTApp/branding/make_icon.py`), and **no logo has ever been designed.**
+
+- **The anchor survives the correction.** Plate-and-bar is gym geometry — load on a bar is what the
+  app is *about*. It does not depend on the temp icon having been good. But the reasoning must be
+  restated that way in the spec, because "derived from the logo" is now false.
+- **The logo is its own piece of work, and it inherits the design language rather than seeding it.**
+  Order: language first (this pass), logo second, so the mark is drawn in a system that exists.
+- **New input the earlier icon never had: the name is settled — SpotSet.** A *spot* is the act of
+  standing over someone's lift so they do not get hurt; a *set* is the unit of work. The mark should
+  carry that, not just be a dumbbell. This connects directly to §7.3 — spotting is the product's
+  actual value proposition, in Pierre's own words.
+- **Deliverables when it runs:** the mark itself, the Play adaptive icon (foreground inside the 66%
+  safe zone — the v2.15.1 trap), the iOS icon set, the in-app wordmark, and the favicon.
+
+### 7.3 OPEN — exercise form visuals, and why they are a FEATURE, not decoration
+
+Pierre asked for images of the movements, and gave the reason in the first person:
+
+> *"Why would I pay for a PT? Because I don't want to get injured… even the most common moves, if I
+> do them on my own and I'm doing something wrong, I would get injured — if my elbow is in the wrong
+> position. I need somebody to look at me. Even the professionals need a spot."*
+
+**That is the product thesis, and it is the app's name.** Form visuals are not illustration; they
+are the app doing the spotting when the coach is not in the room.
+
+**Requirement, as stated:**
+- Silhouettes of each movement, in the app's own visual language — *"tasteful… sophisticated,
+  premium."* Not stock clip-art, not a photo library.
+- **One default view per exercise, chosen as the most demonstrative.**
+- **More angles on demand.** Preference order he gave: drag-to-rotate 360° with a finger if it is
+  affordable; otherwise **a fixed set of view angles per exercise — some need one, some two, some
+  six or seven.** The count is per-movement, not a global constant.
+
+**Constraints this immediately collides with, to be answered in its own design session:**
+- 🔴 **`data.json` is at ~14.5% of a 1 MB ceiling and the app ships as ONE `index.html`.** Binary
+  assets for ~100+ exercises cannot live in the bundle or in the data blob. This needs its own
+  delivery decision (bundled sprite vs on-demand fetch vs generated geometry) and it is the single
+  biggest open question in the whole feature.
+- **Offline-first is not negotiable** — Beirut internet, and the gym has poor signal. A form visual
+  that needs a network round-trip is useless at the moment it is wanted.
+- **`exerciseBank.js` is GENERATED** (`scripts/build_exercise_bank.py`) and already carries the
+  exercise identity every asset must key to. Arabic names exist (`exerciseNamesAr.js`).
+- **RTL and both themes** apply to the visuals exactly as to everything else.
+
+**Sequencing:** this is a separate spec after the Dashboard slice — it is a feature with a storage
+and delivery problem, not a styling task, and folding it into the visual pass would sink both.
