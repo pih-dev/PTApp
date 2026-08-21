@@ -206,3 +206,64 @@ are the app doing the spotting when the coach is not in the room.
 
 **Sequencing:** this is a separate spec after the Dashboard slice — it is a feature with a storage
 and delivery problem, not a styling task, and folding it into the visual pass would sink both.
+
+### 7.4 The palette references, read (2026-08-21) — and the accent, decided
+
+Pierre supplied three references: the **iFIT app icon**, the **iFIT logo**, and a **three-phone
+screenshot of iFIT's exercise detail screen**. Read as follows, in the artifact
+`Plate & Bar` (two palettes shown on one grammar).
+
+**Taken:**
+- 🔴 **A navy ground with light IN it.** The iFIT icon works because a gradient does the lifting —
+  depth comes from the surface, not from stacked panels. That is precisely what makes deleting the
+  card viable: a flat ground needs a card to create hierarchy, a lit one does not.
+- **The discipline of one cold accent** against a lot of neutral.
+- **From the exercise screens: the target muscle burning hot against a neutral body.** The clearest
+  idea in the set — colour that means *"this is what you are working"*, not colour that decorates.
+
+**Deliberately NOT taken:**
+- **Their chrome.** The exercise screens are a white card stack with a generic blue on tabs, links,
+  chart lines and pills — accent-as-decoration, which is §2's house style at a different hex. Their
+  blue is approximately the value we are running from.
+
+**Decided — palette B, "midnight & arc":**
+| Token | Value | Job |
+|---|---|---|
+| midnight | `#0A1524` (ground, lit corner `#123262`) | the ground, navy, never flat black |
+| raised | `#111F33` | the rare raised surface |
+| chalk / chalk-dim | `#E9EEF3` / `#8D9BAC` | text, faintly blue-warm, never `#FFF` |
+| **arc** | **`#35B7E8`** | **THE accent — load, urgency, the live session** |
+| bar | `#26374E` | structure |
+| anatomy | `#F2622C` | 🔴 **inside exercise figures ONLY** |
+| ok / warn | `#4FC08D` / `#E0A32B` | semantics, separate from the accent |
+
+- 🔴 **THE ACCENT NEVER TOUCHES CHROME.** Not tab bars, not buttons, not links. When it appears it
+  means something. This rule is hue-independent and survives any later palette change.
+- **The warm hue survives, in one place only.** Pierre rejected an orange/red accent as reading
+  generated — correctly. `#F2622C` therefore lives *inside the figure*, marking anatomy, and nowhere
+  else in the app. It is anatomy, not identity.
+
+### 7.5 Form visuals — the delivery answer, sketched
+
+Shown in the artifact as a working panel, not described: neutral figure, target muscle in the hot
+hue, per-exercise angle chips, default view chosen per movement.
+
+🔴 **Line-drawn vector, not photography and not a 3D render.** This answers §7.3's biggest open
+question: the app ships as ONE `index.html`, offline-first, on Beirut internet. A hundred exercises
+of photography cannot live in that bundle, and a visual needing a network round-trip is useless in
+the moment it is wanted. Vector weighs almost nothing, scales, mirrors for RTL, and recolours with
+the theme instead of fighting it. **Drag-to-rotate remains on the table but is a delivery question,
+and it gets its own spec.**
+
+### 7.6 Real gym photography — accepted, with one rule
+
+Pierre raised shooting Elie's actual gym (or generating) for backgrounds.
+
+🔴 **A photograph is a GROUND, never a surface.** Shot in Elie's gym, pushed dark and desaturated
+toward midnight, it belongs in places with no data to read: an empty state, the session-complete
+moment, the login screen. **It never sits behind a list** — text over a photograph is the fastest
+way to lose the legibility this whole direction is built on.
+
+**Why it is worth the trip:** it is a differentiator no generator can produce — nobody else has
+Elie's gym at 7am. Budget it as a shoot, not an asset download. Practical: shoot dark, shoot wide,
+leave room at the edges to crop for both phone aspect ratios.
