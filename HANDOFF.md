@@ -1,6 +1,6 @@
 # PTApp / SpotSet — HANDOFF
 
-**Last updated:** 2026-08-21 ~11:40, Beirut.
+**Last updated:** 2026-08-21 ~12:10, Beirut.
 **To resume:** Pierre types `continue`. **Read §0 back to him and stop.** Do not investigate, do not
 draft, do not ask follow-up questions — he said explicitly: *"I will clear, and immediately after
 clear I will continue. I will not do anything between."* The state below is the state you will find.
@@ -24,7 +24,15 @@ Do not open Task B unless he says so.
 - **Task A, the shape he specified (2026-08-21):** exactly **two roles**, `pt` and `client`. A PT may
   have PTs *or* clients under them — so `parent_pt_id` lives on both. **"Prime" is not a role**; it
   is simply a PT with no parent, which is why Elie's position is data and never hardcoded. The one
-  real new cost is recursive RLS (a parent PT reading down the tree) — price it before committing.
+  real new cost was recursive RLS (a parent PT reading down the tree); **it is now priced and
+  cleared — §12.** Don't recurse at query time: a materialized `ltree` path on `app_users` makes
+  ancestry a GiST containment match, and one predicate covers own-data, downline and peer isolation.
+- **Task A, §11 — three questions closed (2026-08-21 ~12:00).** **No admin role**: re-parenting,
+  recovery and tree-deletion run from the Supabase SQL console with `service_role`, never from a
+  login on a phone. **Peer PTs are fully isolated** both ways (two primes = disjoint trees).
+  🔴 **"Mine" is the default scope on every screen** — a parent PT's Dashboard/Schedule/Clients never
+  merge a descendant's data; the downline is a deliberate drill-in. That is a *product* rule: RLS
+  permits the subtree, the query still filters `owner_id = auth.uid()`.
 - **Backend is decided:** Supabase Postgres (free tier now, VPS later), auth behind ONE thin module.
   See `docs/2026-08-21-backend-platform-decision.md`. `DATA_VERSION` stays 6; the merge kernel is
   untouched in Phase 1.
