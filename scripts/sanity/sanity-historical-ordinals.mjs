@@ -247,9 +247,53 @@ const brute = (sessions, clientId, start, end) => sessions
 const bruteList = brute(mixed, 'c9', '2026-05-01', null);
 assert(getPeriodSessionCount(mixed, 'c9', '2026-05-01', null) === bruteList.length,
   'getPeriodSessionCount matches brute force');
-assert(getSessionOrdinal(mixed, 'x3', 'c9', '2026-05-01', null) === bruteList.findIndex(s => s.id === 'x3') + 1,
+assert(getSessionOrdinal(mixed, mixed.find(s => s.id === 'x3'), '2026-05-01', null) === bruteList.findIndex(s => s.id === 'x3') + 1,
   'getSessionOrdinal matches brute force');
-assert(getSessionOrdinal(mixed, 'missing', 'c9', '2026-05-01', null) === bruteList.length + 1,
-  'missing session keeps length+1 fallback (Session #0 guard)');
+
+// 13. P6 — the kernel PROJECTS a session that is not in the array yet.
+//
+// 🔴 This replaces the old `length + 1` fallback, which was not just a guard but
+//    a WRONG ANSWER. React batching means the just-dispatched session is often
+//    absent (the 2026-04-19 "Session #0" WhatsApp message), and every call site
+//    had grown its own workaround. `length + 1` assumes the missing session
+//    sorts LAST — true for a booking made today, false for one booked into a
+//    past date inside the current period, where it overstated the number AND
+//    left every later session showing a number it now shares.
+const bruteAt = (sess) => brute([...mixed, sess], 'c9', '2026-05-01', null)
+  .findIndex(s => s.id === sess.id) + 1;
+
+const futureBooking = S('new-late', 'c9', '2026-05-20', { time: '10:00' });
+assert(getSessionOrdinal(mixed, futureBooking, '2026-05-01', null) === bruteAt(futureBooking),
+  `a not-yet-dispatched LATER session is projected to its true position (${bruteAt(futureBooking)})`);
+
+// The case the old fallback got wrong. x2/x0/x3 are 2026-05-01, 05-03 08:00, 05-03 09:00,
+// so a booking on 05-02 must be #2, not #4.
+const pastBooking = S('new-early', 'c9', '2026-05-02', { time: '11:00' });
+assert(getSessionOrdinal(mixed, pastBooking, '2026-05-01', null) === 2,
+  `🔴 a session booked into a PAST date slots in by date, not at the end (got ${getSessionOrdinal(mixed, pastBooking, '2026-05-01', null)}, old code said ${bruteList.length + 1})`);
+assert(getSessionOrdinal(mixed, pastBooking, '2026-05-01', null) === bruteAt(pastBooking),
+  'and it agrees with brute force');
+
+// The guard the fallback was there for still holds: never 0, ever.
+assert(getSessionOrdinal([], S('solo', 'c9', '2026-05-05'), '2026-05-01', null) === 1,
+  'the first session of an empty period is #1, never #0');
+
+// 14. A FORGIVEN CANCEL HAS NO ORDINAL.
+//
+// 🔴 getClientCountedSessions deliberately excludes a cancelled session the PT
+//    forgave — it consumes none of the client's paid sessions. The old code
+//    still printed a number for it: findIndex missed and `length + 1` produced
+//    whatever the NEXT session's number would be. The archived live snapshot had
+//    44 of these, e.g. "#11" on a session that counts for zero. Projecting it
+//    positionally would be a different wrong answer; null is the right one, and
+//    SessionCountPair renders nothing for it.
+const forgiven = S('cx', 'c9', '2026-05-02', { status: 'cancelled' });
+assert(getSessionOrdinal([...mixed, forgiven], forgiven, '2026-05-01', null) === null,
+  'a forgiven cancel has NO ordinal (null, not a number)');
+
+// A cancel the PT decided still counts is an ordinary counted session.
+const chargedCancel = S('cy', 'c9', '2026-05-02', { status: 'cancelled', cancelCounted: true });
+assert(getSessionOrdinal([...mixed, chargedCancel], chargedCancel, '2026-05-01', null) === 2,
+  'a cancel marked cancelCounted DOES get its ordinal (it consumed a session)');
 
 console.log('\nHistorical-ordinals sanity: PASS');

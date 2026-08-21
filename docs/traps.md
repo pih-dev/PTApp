@@ -382,3 +382,38 @@ The day anyone adds "Sign in with Google", SIWA becomes **mandatory** — and wi
 links and the PKCE-verifier-lost-across-the-deep-link trap. There is no `signUp` export either;
 accounts are provisioned in the Supabase console. `sanity-auth.mjs` asserts all of this statically,
 because a grep is what will still be enforcing it in two years.
+
+
+---
+
+## The ordinal is live, and a forgiven cancel has none (P6, 2026-08-21)
+
+**The band-aids.** React batches, so `state.X` read straight after `dispatch(ADD_X)` is stale — the
+2026-04-19 bug that sent a client a WhatsApp message saying *"Session #0"*. The fix landed at four
+call sites instead of one: a synthetic `__preview__` session id, hand-merged `[...state.sessions,
+session]` arrays in two places, a threaded `sessions` parameter, and a `length + 1` guess inside
+`getSessionOrdinal` for when `findIndex` returned −1. Four dressings on one wound, and every new
+post-dispatch surface had to remember to apply its own.
+
+**The guess was a wrong answer, not just inelegant.** `length + 1` assumes the missing session sorts
+LAST. A session booked into a **past date inside the current period** does not — it belongs where
+(date, time) puts it. The old code called it #4 where it was #2, and left every later session
+showing a number it now shared.
+
+**The rule:** `getSessionOrdinal(sessions, session, periodStart, periodEnd)` takes the **session
+object**, not an id, and **projects** — it positions a session that is not in the array yet using the
+same comparator `getClientCountedSessions` sorts by. Call sites pass `state.sessions` plainly. No
+synthetic ids, no hand-merged arrays (which also missed the WeakMap cache and rebuilt the whole
+per-client index for one number).
+
+🔴 **And a forgiven cancel has NO ordinal — it returns `null`, and `SessionCountPair` renders
+nothing.** `getClientCountedSessions` excludes a cancelled session the PT forgave, because it
+consumes none of the client's paid sessions; the old fallback still printed a number for it,
+whatever the next session's would be. **The archived live snapshot had 44 such badges** — e.g. "#11"
+on a session that counts for zero. Projecting it positionally would have been a different wrong
+answer. A cancel marked `cancelCounted` is an ordinary counted session and keeps its number.
+
+**The live-diff is why this is known.** Synthetic fixtures model what you designed; live data holds
+what shipped. The diff against `2026-08-21-pre-supabase-mirror.json` showed 44 changed ordinals and
+**zero on a counted session** — that second number is the one that made the change safe to ship.
+Script kept at `_archive/PTApp/migrations/2026-08-21-p6-ordinal-livediff.mjs`.

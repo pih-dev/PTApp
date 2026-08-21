@@ -290,15 +290,55 @@ export const getPeriodSessionCount = (sessions, clientId, periodStart, periodEnd
 };
 
 // Sequential position of a session within its client's billing period (1st, 2nd, 3rd...).
-// periodEnd can be null for open-ended contract packages. Defensive fallback: if the session
-// isn't found in the filtered list (stale array during ADD_SESSION), return length + 1 to
-// prevent "Session #0" from leaking into WhatsApp messages.
-export const getSessionOrdinal = (sessions, sessionId, clientId, periodStart, periodEnd) => {
-  const periodSessions = getClientCountedSessions(sessions, clientId).filter(s =>
-    s.date >= periodStart &&
-    (periodEnd == null || s.date <= periodEnd));
-  const idx = periodSessions.findIndex(s => s.id === sessionId);
-  return idx === -1 ? periodSessions.length + 1 : idx + 1;
+// periodEnd can be null for open-ended contract packages.
+//
+// 🔴 THIS PROJECTS. It answers "what number is this session" whether or not the
+//    session is in `sessions` yet, and that is the entire point (review finding
+//    P6, decided 2026-08-05: the ordinal is LIVE, never stored — a stored one
+//    goes stale the moment a session is cancelled, deleted or overridden).
+//
+//    Why it has to project: React batches, so `state.X` read immediately after
+//    `dispatch(ADD_X)` is stale — the Session #0 bug of 2026-04-19, where a
+//    WhatsApp message went out saying "Session #0". Every call site had grown
+//    its own workaround for that: a synthetic `__preview__` session, hand-merged
+//    `[...state.sessions, session]` arrays, a threaded `sessions` parameter, and
+//    in here a `length + 1` guess when findIndex returned −1. Four band-aids on
+//    one wound, and each one is a place the next post-dispatch surface has to
+//    remember to bleed.
+//
+// 🔴 AND THE GUESS WAS WRONG, not merely inelegant. `length + 1` assumes the
+//    missing session sorts LAST. A session booked into a past date inside the
+//    current period does not: it belongs wherever (date, time) puts it, and the
+//    guess overstated its number — and every session after it kept the number
+//    it already had, so two sessions could show the same one. Positional
+//    insertion using the same comparator `getClientCountedSessions` sorts by is
+//    both correct and shorter.
+const beforeInOrder = (a, b) =>
+  (a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || '')) < 0;
+
+export const getSessionOrdinal = (sessions, session, periodStart, periodEnd) => {
+  const inPeriod = (s) => s.date >= periodStart && (periodEnd == null || s.date <= periodEnd);
+  const periodSessions = getClientCountedSessions(sessions, session.clientId).filter(inPeriod);
+  const idx = periodSessions.findIndex(s => s.id === session.id);
+  if (idx !== -1) return idx + 1;
+
+  // 🔴 A FORGIVEN CANCEL HAS NO ORDINAL, AND SAYING SO IS THE HONEST ANSWER.
+  //    `getClientCountedSessions` deliberately excludes a cancelled session the
+  //    PT forgave — it does not consume one of the client's paid sessions. The
+  //    old code still printed a number for it: findIndex missed, and the
+  //    `length + 1` fallback produced whatever the NEXT session's number would
+  //    be. The live snapshot has 37 of these, showing things like "#11" on a
+  //    session that counts for nothing. Projecting it positionally instead
+  //    ("#3") is a different wrong answer, not a right one.
+  //    Null, and the badge renders nothing. Verified against the archived live
+  //    data: these 37 are the ONLY ordinals that change, and not one of them
+  //    belongs to a session that counts.
+  if (session.status === 'cancelled' && !session.cancelCounted) return null;
+
+  // Not in the array — not dispatched yet (React batching, the 2026-04-19
+  // Session #0 bug) or a preview of a booking that has not happened. Place it by
+  // date/time rather than at the end.
+  return periodSessions.filter(s => beforeInOrder(s, session)).length + 1;
 };
 
 // ─── Sliding window math (v2.9) ───
@@ -556,7 +596,11 @@ export const formatOverrideDraft = (pkg, period) => {
 // Returns { auto, effective, override } — preserved shape for backward compat.
 export const getEffectiveSessionCount = (client, session, sessions) => {
   const { pkg, period } = resolvePackagePeriod(client, session.date);
-  const auto = getSessionOrdinal(sessions, session.id, session.clientId, period.start, period.end);
+  const auto = getSessionOrdinal(sessions, session, period.start, period.end);
+  // A session with no ordinal has no effective count either — an override
+  // applied to `null` would resurrect a number for a session that counts for
+  // nothing. SessionCountPair renders nothing for this shape.
+  if (auto === null) return { auto: null, effective: null, override: null };
   return applyOverride(auto, pkg.sessionCountOverride, period.start);
 };
 
@@ -1417,10 +1461,12 @@ const fillTemplate = (template, client, session, sessions, lang = 'en') => {
   const st = getSessionType(session.type);
   const pkg = getCurrentPackage(client);
   const period = getEffectivePeriod(pkg, session.date);
-  const { effective } = sessions
+  const { effective: eff } = sessions
     ? getEffectiveSessionCount(client, session, sessions)
     : { effective: '' };
-  const packageProgress = (pkg.contractSize != null && sessions)
+  // null = a forgiven cancel, which has no session number. Blank, never "null".
+  const effective = eff == null ? '' : eff;
+  const packageProgress = (pkg.contractSize != null && sessions && effective !== '')
     ? `${effective}/${pkg.contractSize}`
     : '';
   // {periodEnd} for contract packages: fall back to sliding window end computed from unit/value

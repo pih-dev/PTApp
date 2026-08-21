@@ -498,9 +498,12 @@ export default function Schedule({ state, dispatch, lang }) {
                           } else if (isDue(c.id)) {
                             chipAuto = 1; chipEffective = 1; chipOverride = null;
                           } else {
-                            const previewSession = { id: '__preview__', clientId: c.id, date: form.date, time: form.time, status: 'scheduled' };
+                            // P6: no synthetic id and no hand-merged array. getSessionOrdinal
+                            // PROJECTS — it positions a session that is not in the array by
+                            // (date, time), which is exactly what a preview is. The old
+                            // `__preview__` sentinel existed only to make findIndex succeed.
                             ({ auto: chipAuto, effective: chipEffective, override: chipOverride } =
-                              getEffectiveSessionCount(c, previewSession, [...state.sessions, previewSession]));
+                              getEffectiveSessionCount(c, { clientId: c.id, date: form.date, time: form.time, status: 'scheduled' }, state.sessions));
                           }
                           return (
                             <span key={id} className="client-chip">
@@ -631,12 +634,13 @@ export default function Schedule({ state, dispatch, lang }) {
         const client = state.clients.find(c => c.id === items[index].client.id) || items[index].client;
         const total = items.length;
         const isLast = index === total - 1;
-        // v2.8: guarantee the just-booked session is visible to the count helpers. Same reason
-        // as the sendBookingWhatsApp site — React batching can leave state.sessions stale here.
-        const sessions = state.sessions.some(s => s.id === session.id)
-          ? state.sessions
-          : [...state.sessions, session];
-        const { auto: cAuto, effective: cEffective, override: cOverride } = getEffectiveSessionCount(client, session, sessions);
+        // P6: state.sessions plainly. React batching can still leave the just-booked
+        // session absent here, and that is now the kernel's problem rather than this
+        // call site's — getSessionOrdinal projects it into position either way. The
+        // hand-merged array this replaced also missed the WeakMap cache on every
+        // render, rebuilding the whole per-client index for one number.
+        const { auto: cAuto, effective: cEffective, override: cOverride } =
+          getEffectiveSessionCount(client, session, state.sessions);
         const advance = () => {
           setEditingOverride(false);
           if (isLast) {
@@ -677,7 +681,7 @@ export default function Schedule({ state, dispatch, lang }) {
           <Modal title={total > 1 ? `${t(lang, 'sessionBooked')} (${index + 1}/${total})` : t(lang, 'sessionBooked')} onClose={() => { setEditingOverride(false); setConfirmMsg(null); }}
             action={<>
               <button className="btn-whatsapp-lg mb-10" onClick={() => {
-                sendBookingWhatsApp(client, session, state.messageTemplates, lang, sessions);
+                sendBookingWhatsApp(client, session, state.messageTemplates, lang, state.sessions);
                 advance();
               }}>
                 <WhatsAppIcon size={20} />

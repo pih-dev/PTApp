@@ -140,7 +140,7 @@ Debounced 1s; localStorage saves immediately, the GitHub push waits. `pushRemote
 ## KNOWN ISSUES / OBLIGATIONS
 - 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev, scoped ptapp-data Contents R/W only. Replacement UI: General → Backup → "Update sync token".
 - **Program pruning (v2.15)** — before `data.json` nears the 1 MB ceiling (14.5% on 2026-08-03, but the growth rate jumped 6.6× once programs shipped). 🔴 **Pierre's standing rule (2026-07-13): archive `data.json` to `_archive/PTApp/data-snapshots/YYYY-MM-DD-pre-prune-data.json` BEFORE any pruning run** — cloud deletes are irreversible.
-- **Review findings P3 + P6 — DECIDED 2026-08-05, NOT BUILT.** Work order: `docs/reviews/2026-06-10-fable5-codebase-review.md`. **P3** SessionCard = **scope B** (Dashboard-expanded + Schedule only; compact and `Sessions.jsx` follow later); also deletes the `focus: []` bug at `Schedule.jsx:201`. **P6** ordinal is **live, never stored** — all reads via `getClientCountedSessions`, confirm popup takes it as a prop; a stored ordinal goes stale on cancel/delete/override.
+- **Review finding P3 — DECIDED 2026-08-05, NOT BUILT.** Work order: `docs/reviews/2026-06-10-fable5-codebase-review.md`. SessionCard = **scope B** (Dashboard-expanded + Schedule only; compact and `Sessions.jsx` follow later); also deletes the `focus: []` bug at `Schedule.jsx:201`. **P6 is DONE (2026-08-21)** — `getSessionOrdinal` takes the session object and projects; a forgiven cancel returns `null` and renders no badge.
 - **App name = SpotSet** (2026-08-20). `com.spotset.app` is PERMANENT. Buy `spotset.app`.
 
 ---
