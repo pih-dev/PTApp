@@ -197,7 +197,7 @@ Effort is **calendar at ~8–10 h/week**, with the 2.5–3× correction every ju
 3. **Do clients get write access at all?** Recommended: **confirm / decline / request only**, via an insert-only queue the coach's app applies. Never direct writes. Confirm you want even that much.
 4. **Sign in with Apple: no, permanently.** Own email/password keeps 4.8 dormant. The moment anyone adds Google sign-in, SIWA is mandatory. Confirm you accept "no social login, ever" — this goes in TRAPS.
 5. **Elie's sign-off**, under his standing-authority terms: his live records change hosts, and the account-deletion wording (§5) goes into a public privacy policy.
-6. **Buy `spotset.app` now** (~$14.20/yr). Not blocking for password login, but it *is* blocking for reviewer-account email and for Phase 5b deep links. ⚠️ Reviewer accounts on a domain nobody owns, on Supabase's rate-limited built-in SMTP, is a 2.1(a) failure with a one-line cause.
+6. ~~**Buy `spotset.app` now**~~ — **DECIDED 2026-08-21: NOT buying it.** Pierre: *"I dont care of someone bought .app, its not .com"*. The reviewer-account requirement (a domain you control) is met by **`review@calnorm.com`**, live on Zoho since this session. If deep links are ever needed, use `spotset.calnorm.com`. Original reasoning kept for the record: (~$14.20/yr). Not blocking for password login, but it *is* blocking for reviewer-account email and for Phase 5b deep links. ⚠️ Reviewer accounts on a domain nobody owns, on Supabase's rate-limited built-in SMTP, is a 2.1(a) failure with a one-line cause.
 
 ---
 
