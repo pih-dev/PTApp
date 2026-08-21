@@ -1,6 +1,6 @@
 # PTApp / SpotSet — HANDOFF
 
-**Last updated:** 2026-08-21 ~12:10, Beirut.
+**Last updated:** 2026-08-21 ~12:40, Beirut.
 **To resume:** Pierre types `continue`. **Read §0 back to him and stop.** Do not investigate, do not
 draft, do not ask follow-up questions — he said explicitly: *"I will clear, and immediately after
 clear I will continue. I will not do anything between."* The state below is the state you will find.
@@ -16,7 +16,11 @@ Do not open Task B unless he says so.
 
 ## 0. Status — read this out
 
-- **Two tasks are queued, both documented, neither started.**
+- 🔴 **Task A has STARTED — its own handoff is `HANDOFF-multi-user-build.md`. Read that one, not
+  this section, for its state.** Phase 1 schema (`supabase/migrations/0001_app_users.sql`) and the
+  RLS matrix are written, reviewed and committed; nothing is deployed and `src/` is untouched. The
+  next action is Pierre's: create the Supabase project.
+- **Task B has not started.**
   **A — accounts + database (multi-tenant).** He starts here. Decision doc:
   `docs/2026-08-21-multi-user-accounts-decision.md`; his new role-hierarchy requirement is **§10**.
   **B — design differentiation.** Its own session, later, by his instruction:
