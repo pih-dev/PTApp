@@ -151,6 +151,24 @@ const revokedOrDefaultRevoked = /alter default privileges in schema public[\s\S]
 assert(revokedOrDefaultRevoked || publicSecdef.length === 0,
   `EXECUTE on public functions is revoked from PUBLIC by default privileges (public security definer fns: ${publicSecdef.join(', ') || 'none'})`);
 
+// 🔴 Idempotency. `create policy` and `create trigger` have no IF NOT EXISTS,
+//    so on a re-apply they ABORT — and everything after them in the file never
+//    runs. That is worse than a clean failure: the migration half-applies, the
+//    editor shows one red line that is easy to scroll past, and the database
+//    is left with the old function bodies while the file on disk says
+//    otherwise. It cost a debugging round here: a fixed restamp function was
+//    "applied" three times and never actually reached the database, because an
+//    already-exists policy error aborted the script before it got there.
+const missingDrops = [];
+for (const kind of ['policy', 'trigger']) {
+  const re = new RegExp(`create ${kind} (\\w+)`, 'gi');
+  for (const m of code.matchAll(re)) {
+    if (!new RegExp(`drop ${kind} if exists ${m[1]}\\b`, 'i').test(code)) missingDrops.push(`${kind} ${m[1]}`);
+  }
+}
+assert(missingDrops.length === 0,
+  `every create policy/trigger has a matching "drop … if exists" (missing: ${missingDrops.join(', ') || 'none'})`);
+
 if (failures > 0) {
   console.error(`\n✗ STATIC PASS FAILED (${failures}) — DO NOT DEPLOY\n`);
   process.exit(1);
@@ -233,7 +251,8 @@ const RUN = `rls${Date.now().toString(36)}`;
 const email = n => `${RUN}.${n}@sanity.invalid`;
 const PASSWORD = `${RUN}-Aa1!longenough`;
 
-const made = [];   // auth user ids, for teardown
+const made = [];       // auth user ids, in creation order — teardown reverses it
+const tenantIds = [];  // tenant ids, deleted BEFORE their coaches (see teardown)
 
 async function createUser(n) {
   const r = await api('/auth/v1/admin/users', {
@@ -287,7 +306,36 @@ async function teardown() {
   //    ever flag. A test that litters is a test that will one day litter into
   //    Elie's live tree.
   let failed = 0;
-  for (const id of [...made].reverse()) {
+
+  // 🔴 Tenants FIRST. tenants.coach_id is ON DELETE RESTRICT, so a coach who
+  //    still owns a blob cannot be deleted — same trap as the parent/child one
+  //    below, one table over. Snapshots cascade from tenants, so they need no
+  //    pass of their own.
+  for (const tid of tenantIds) {
+    const r = await api(`/rest/v1/tenants?id=eq.${tid}`, { key: SERVICE, method: 'DELETE' });
+    if (!r.ok) { failed++; console.error(`  ! teardown tenant ${tid}: ${r.status} ${await r.text()}`); }
+  }
+
+  // 🔴 Deepest-first, computed from the LIVE tree — not from creation order.
+  //    Creation order reversed is leaf-first only for a tree that never moved,
+  //    and this run deliberately re-parents B under D partway through. After
+  //    that move, deleting in reverse creation order hits D while B still
+  //    hangs off it, ON DELETE RESTRICT refuses, and the strays are back.
+  //    Ask the database what the tree looks like now.
+  let order = [...made].reverse();
+  try {
+    const r = await api('/rest/v1/app_users?select=id,parent_pt_id', { key: SERVICE });
+    if (r.ok) {
+      const rows = await r.json();
+      const mine = rows.filter(x => made.includes(x.id));
+      const byId = Object.fromEntries(mine.map(x => [x.id, x]));
+      const depth = (x) => { let d = 0, c = x; while (c?.parent_pt_id && byId[c.parent_pt_id]) { d++; c = byId[c.parent_pt_id]; } return d; };
+      order = mine.sort((a, b) => depth(b) - depth(a)).map(x => x.id)
+        .concat(made.filter(id => !byId[id]));   // users with no app_users row
+    }
+  } catch { /* fall back to reverse creation order */ }
+
+  for (const id of order) {
     try {
       const r = await api(`/auth/v1/admin/users/${id}`, { key: SERVICE, method: 'DELETE' });
       if (!r.ok) { failed++; console.error(`  ! teardown ${id}: ${r.status} ${await r.text()}`); }
@@ -298,14 +346,21 @@ async function teardown() {
   }
 
   // Verify, don't assume. This is the whole lesson of the paragraph above.
-  const left = await api('/rest/v1/app_users?select=id', { key: SERVICE });
-  const rows = left.ok ? await left.json().catch(() => null) : null;
-  const n = Array.isArray(rows) ? rows.length : 'UNKNOWN';
-  if (failed || n !== 0) {
+  const count = async (table) => {
+    const r = await api(`/rest/v1/${table}?select=id`, { key: SERVICE });
+    if (!r.ok) return r.status === 404 ? 0 : 'UNKNOWN';
+    const rows = await r.json().catch(() => null);
+    return Array.isArray(rows) ? rows.length : 'UNKNOWN';
+  };
+  const nUsers = await count('app_users');
+  const nTenants = await count('tenants');
+  const nSnaps = await count('tenant_snapshots');
+
+  if (failed || nUsers !== 0 || nTenants !== 0 || nSnaps !== 0) {
     failures++;
-    console.error(`  ✗ 🔴 TEARDOWN INCOMPLETE — ${failed} delete(s) failed, ${n} row(s) left in app_users. Clean up before trusting this database.`);
+    console.error(`  ✗ 🔴 TEARDOWN INCOMPLETE — ${failed} delete(s) failed; left app_users=${nUsers}, tenants=${nTenants}, tenant_snapshots=${nSnaps}. Clean up before trusting this database.`);
   } else {
-    console.log('  ✓ teardown clean — 0 rows left in app_users');
+    console.log('  ✓ teardown clean — 0 rows in app_users, tenants, tenant_snapshots');
   }
 }
 
@@ -401,6 +456,101 @@ try {
   const anonRows = anonRead.ok ? await anonRead.json().catch(() => null) : [];
   assert(!anonRead.ok || (Array.isArray(anonRows) && anonRows.length === 0),
     `🔴 the anon key reads NOTHING from app_users (status ${anonRead.status})`);
+
+  // =================================================================
+  // tenants / tenant_snapshots (0002) — only if the migration is applied.
+  // =================================================================
+  const probe = await api('/rest/v1/tenants?select=id&limit=1', { key: SERVICE });
+  if (!probe.ok && probe.status === 404) {
+    console.log('  -- tenants: 0002 not applied to this instance, skipping --');
+  } else {
+    console.log('  -- tenants (0002) --');
+
+    const mkTenant = async (who) => {
+      const r = await api('/rest/v1/tenants', {
+        key: SERVICE, method: 'POST', prefer: 'return=representation',
+        // owner_path is omitted deliberately — the trigger stamps it. Passing
+        // one by hand is the bug the check constraint exists to catch.
+        body: { coach_id: ids[who], data: { marker: who } },
+      });
+      if (!r.ok) throw new Error(`tenant ${who}: ${r.status} ${await r.text()}`);
+      return (await r.json())[0];
+    };
+    const tA = await mkTenant('A');
+    const tB = await mkTenant('B');
+    const tD = await mkTenant('D');
+    tenantIds.push(tA.id, tB.id, tD.id);
+
+    const seesTenants = async (token) => {
+      const r = await api('/rest/v1/tenants?select=coach_id', { token });
+      if (!r.ok) throw new Error(`tenants read: ${r.status} ${await r.text()}`);
+      return new Set((await r.json()).map(x => x.coach_id));
+    };
+    const nameSet = s => [...s].map(id => Object.keys(ids).find(k => ids[k] === id)).sort().join(',') || '∅';
+
+    let seen = await seesTenants(await signIn('A'));
+    assert(same(seen, set('A', 'B')),
+      `A (prime) reads their OWN blob and their sub-pt's, and no other tree's  [got ${nameSet(seen)}]`);
+
+    seen = await seesTenants(tokenB);
+    assert(same(seen, set('B')),
+      `B (sub-pt) reads ONLY their own blob — not the parent's  [got ${nameSet(seen)}]`);
+
+    seen = await seesTenants(tokenD);
+    assert(same(seen, set('D')),
+      `🔴 PEER ISOLATION on the data itself: D reads only D's blob  [got ${nameSet(seen)}]`);
+
+    seen = await seesTenants(tokenC);
+    assert(same(seen, set()),
+      `🔴 a client reads NO coach blob at all — RLS cannot restrict columns, so any client read here would expose every other client's notes  [got ${nameSet(seen)}]`);
+
+    // Write: own only. A parent may READ a descendant's blob (the §11.3
+    // drill-in) but must not WRITE it — §12.4 starts closed.
+    const writeForeign = await api(`/rest/v1/tenants?id=eq.${tB.id}`, {
+      token: await signIn('A'), method: 'PATCH', prefer: 'return=representation',
+      body: { data: { marker: 'A-overwrote-B' } },
+    });
+    const wfRows = writeForeign.ok ? await writeForeign.json().catch(() => null) : [];
+    assert(!writeForeign.ok || (Array.isArray(wfRows) && wfRows.length === 0),
+      `🔴 A cannot WRITE their descendant B's blob, only read it (status ${writeForeign.status})`);
+
+    // Own write works, bumps version, and files a snapshot of the old bytes.
+    const ownWrite = await api(`/rest/v1/tenants?id=eq.${tB.id}`, {
+      token: tokenB, method: 'PATCH', prefer: 'return=representation',
+      body: { data: { marker: 'B', edited: true } },
+    });
+    const owRows = ownWrite.ok ? await ownWrite.json() : [];
+    assert(ownWrite.ok && owRows.length === 1 && owRows[0].version === tB.version + 1,
+      `B CAN write their own blob and version auto-increments ${tB.version} -> ${owRows[0]?.version}`);
+
+    const snaps = await api(`/rest/v1/tenant_snapshots?select=bytes&tenant_id=eq.${tB.id}`, { key: SERVICE });
+    const snapRows = await snaps.json();
+    assert(Array.isArray(snapRows) && snapRows.length === 1,
+      `🔴 the PREVIOUS bytes were filed to tenant_snapshots before being replaced (${snapRows.length} snapshot)`);
+
+    // ---- The re-parent restamp. This is the highest-value assertion here:
+    // move B from under A to under D, and B's BLOB must follow. If owner_path
+    // is not restamped in the same transaction, A keeps reading B's data and D
+    // never can — silently, with nothing logged and nothing to see. ----
+    const moved = await api(`/rest/v1/app_users?id=eq.${ids.B}`, {
+      key: SERVICE, method: 'PATCH', prefer: 'return=representation',
+      body: { parent_pt_id: ids.D },
+    });
+    assert(moved.ok, `re-parent B from A to D succeeded (status ${moved.status})`);
+
+    seen = await seesTenants(await signIn('A'));
+    assert(same(seen, set('A')),
+      `🔴 after re-parenting, A can NO LONGER read B's blob  [got ${nameSet(seen)}]`);
+
+    seen = await seesTenants(await signIn('D'));
+    assert(same(seen, set('B', 'D')),
+      `🔴 after re-parenting, D CAN now read B's blob — the tenant path followed the subtree  [got ${nameSet(seen)}]`);
+
+    // E is B's client, so it moved too — two levels down from D now.
+    const eSees = await visibleTo(await signIn('D'));
+    assert(eSees.has(ids.E),
+      "🔴 B's own client E moved with the subtree — the restamp is recursive, not one level");
+  }
 
 } catch (e) {
   console.error('  ✗ harness error:', e.message);

@@ -392,6 +392,7 @@ grant select, insert, update, delete on public.app_users to service_role;
 --   - a client sees only themselves (nothing hangs below a client)
 --   - a signed-in user with no app_users row gets NULL from my_path(),
 --     `path <@ NULL` is NULL, and NULL is not true -> zero rows. Fail closed.
+drop policy if exists app_users_read_subtree on public.app_users;
 create policy app_users_read_subtree
   on public.app_users
   for select

@@ -42,3 +42,18 @@ drop schema if exists private;
 -- 🔴 `ltree` is deliberately NOT dropped. Extensions are shared across the
 --    whole database, so dropping it here would break any other feature that
 --    later adopts it. It is harmless to leave installed.
+
+-- 0002 objects, dropped here too so a single down run leaves nothing behind.
+-- (tenant_snapshots cascades from tenants, but is named explicitly so a partial
+-- state where tenants is already gone still cleans up.)
+drop trigger if exists tenants_stamp_owner_path_ins on public.tenants;
+drop trigger if exists tenants_stamp_owner_path_upd on public.tenants;
+drop trigger if exists tenants_before_update_trg    on public.tenants;
+drop policy  if exists tenants_read_subtree           on public.tenants;
+drop policy  if exists tenants_write_own              on public.tenants;
+drop policy  if exists tenants_insert_own             on public.tenants;
+drop policy  if exists tenant_snapshots_read_subtree  on public.tenant_snapshots;
+drop table   if exists public.tenant_snapshots;
+drop table   if exists public.tenants;
+drop function if exists public.tenants_stamp_owner_path();
+drop function if exists public.tenants_before_update();
