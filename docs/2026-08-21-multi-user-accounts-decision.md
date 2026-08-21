@@ -709,3 +709,67 @@ silently, so a migration sitting unapplied in the repo looks exactly like one th
 the database is the only way to tell the difference.
 
 Full matrix, live, after: **all assertions passed, exit 0.**
+
+
+---
+
+## 17. The soak is a routine, not a habit (2026-08-21)
+
+Pierre's question, and it is the right one: *who runs the daily check?* If the answer is "whoever is
+in the terminal", the answer is nobody — he clears context several times a day, and
+**"seven consecutive clean days" is a claim about history that a transcript cannot support.**
+
+The general pattern, worth reusing for anything that has to be true over time:
+
+1. **The check writes its own evidence to a file, on every run, pass or fail.**
+   `sanity-live-supabase-diff.mjs` appends one JSON line to
+   `C:/projects/_archive/PTApp/soak-log.jsonl` — outside the repo, because `pih-dev/PTApp` is public
+   and the counts are the PT's business data. A log containing only successes cannot show a broken
+   streak, which is the one thing it exists to show.
+2. **A separate reader answers the question in one command.** `node scripts/soak-status.mjs` prints
+   the last ten days, the consecutive-clean count, and whether today is covered. A day counts as
+   clean only if **every** run that day was clean — re-running until it passes is forbidden by the
+   gate's own header — and "consecutive" means consecutive **calendar** days, because a day the
+   check did not run is not a day of exposure to real traffic.
+3. **A scheduler runs it, not a person.** Windows scheduled task **`SpotSet soak gate`**, hourly,
+   `scripts/soak-daily.cmd`. Remove with `schtasks /Delete /TN "SpotSet soak gate" /F`.
+4. **The handoff points at the reader, never at a remembered number.**
+
+### 🔴 The first version of that task was wrong, and would have gone red every morning
+
+It ran the gate **without** running the mirror. In Phase 2 the mirror runs from Pierre's laptop off
+the commit stream, so the gate is only meaningful once the mirror has caught up — gating alone goes
+red the moment Elie edits anything, which is **the PT working correctly, not a divergence.** A gate
+that red-flags normal use is a gate that gets ignored inside a week.
+
+`soak-daily.cmd` now mirrors first, then gates. `mirror-to-supabase.mjs --if-changed` makes the
+mirror a cheap no-op when the blob has not moved, which is what makes hourly affordable: without it
+every run would bump `version` (the BEFORE UPDATE trigger bumps on every update, data change or
+not) and destroy the loose "how many real writes" meaning of that column.
+
+## 18. Phase 2 is NOT app dual-write. The two documents disagree; this one wins.
+
+The appendix's Phase 2 (Design C's version) has the **app** write to Supabase after every GitHub
+push, "with an anon session belonging to a service account Pierre owns". **§4 of this document
+explicitly cut that**, in the same paragraph that cut the embedded mirror credential:
+
+> Both C's Phase-2 mirror credential and any embedded service login are cut — the mirror runs from
+> your laptop / CI. This is the standing TRAPS rule: *never hand out a credential that reaches live
+> data.*
+
+`pih-dev/PTApp` is a **public repository** and the bundle is a single `index.html`. Any credential
+that can write Elie's tenant, shipped in that file, is the `DEMO`-token problem again with a
+database behind it. RLS does not save you: a credential scoped to Elie's tenant is *correctly*
+authorised to overwrite Elie's tenant.
+
+**So Phase 2, as decided, is:**
+
+| | |
+|---|---|
+| **The mirror leg** | Runs from Pierre's laptop off the commit stream — the hourly task above. Already live. |
+| **The driver split** | `sync.js` → `githubDriver` + `supabaseDriver` behind one build flag, `BACKEND_MODE='github-primary'`. The Supabase driver is **written and DORMANT**: it has no credential to use until a real user session exists, which is Phase 3. Writing it now is what makes Phase 3 a flag flip rather than a rewrite. |
+| **The soak** | Seven consecutive clean days of the hourly gate, measured by `soak-status.mjs`, not by memory. |
+
+The appendix already carries a DO-NOT-IMPLEMENT banner for its schema; this is the second place it
+would have led a future session to build the wrong thing, and the reason that banner is worth its
+bytes.

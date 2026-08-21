@@ -18,6 +18,18 @@
 //    scripts/lib/normalize.mjs — read the comment there for the trap that
 //    function exists to prevent, which cost a false green on the first run.
 //
+// 🔴 EVERY RUN APPENDS ITS RESULT TO A LOG, AND THE LOG IS THE EVIDENCE.
+//    "Seven consecutive clean days" is a claim about history, and a terminal
+//    session is not history — Pierre clears context several times a day, and a
+//    result that lived only in a transcript is a result nobody can audit on day
+//    6. The log lives OUTSIDE the repo (pih-dev/PTApp is public, and the counts
+//    are the PT's business data) and outlives every session:
+//
+//      C:/projects/_archive/PTApp/soak-log.jsonl
+//
+//    `node scripts/soak-status.mjs` reads it back and answers the only question
+//    that matters: how many consecutive clean days, and is today covered.
+//
 // Run: node scripts/sanity/sanity-live-supabase-diff.mjs
 //
 // Exit codes — three, deliberately:
@@ -30,7 +42,7 @@
 //      load-bearing (see the read-skew note below).
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs';
 import { normalize, assertRealSize, counts, collectionsOf, gitBlobSha } from '../lib/normalize.mjs';
 
 const KEYFILE = 'C:/projects/_archive/PTApp/supabase-spotset.env';
@@ -172,6 +184,32 @@ if (ga !== pa) {
       return m && normalize(r) !== normalize(m);
     }).map(r => `${k}:${r.id}`));
   if (differing.length) console.error(`    same id, different content → ${differing.slice(0, 8).join(', ')}${differing.length > 8 ? ` (+${differing.length - 8})` : ''}`);
+}
+
+// ── Log the outcome ────────────────────────────────────────────────────────
+// Written before the exit path so a failing run is recorded too — a soak log
+// that only contains successes cannot show a broken streak, which is the one
+// thing it exists to show.
+const LOG_DIR = 'C:/projects/_archive/PTApp';
+const LOG = `${LOG_DIR}/soak-log.jsonl`;
+try {
+  if (!existsSync(LOG_DIR)) mkdirSync(LOG_DIR, { recursive: true });
+  const now = new Date();
+  const pad = (x) => String(x).padStart(2, '0');
+  appendFileSync(LOG, JSON.stringify({
+    // Local date, never toISOString(): a run at 00:30 Beirut belongs to today,
+    // and the streak is counted by local calendar day.
+    date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
+    time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+    ok: failures === 0,
+    failures,
+    ghBytes,
+    ghSha: ghSha.slice(0, 8),
+    tenantVersion: t.version,
+    counts: a,
+  }) + '\n', 'utf8');
+} catch (e) {
+  console.error(`(could not append to ${LOG}: ${e.message})`);
 }
 
 console.log('');

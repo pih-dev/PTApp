@@ -65,6 +65,12 @@ const arg = (n) => { const i = args.indexOf(n); return i === -1 ? null : args[i 
 const EMAIL = arg('--email');
 const NAME = arg('--name') || 'PT';
 const DRY = args.includes('--dry-run');
+// --if-changed: skip the write when Postgres already holds this exact blob.
+// The BEFORE UPDATE trigger bumps `version` on EVERY update, data change or
+// not, so an hourly unconditional mirror would inflate the optimistic-
+// concurrency counter for nothing and make `version` useless as a rough
+// "how many real writes" signal.
+const IF_CHANGED = args.includes('--if-changed');
 
 if (!EMAIL) {
   console.error('✗ --email <coach@example.com> is required. It names WHO the mirrored blob belongs to.');
@@ -91,6 +97,9 @@ const api = (path, { method = 'GET', body, prefer } = {}) =>
 class Stop extends Error {}
 const stop = (msg) => { console.error(`✗ ${msg}`); throw new Stop(msg); };
 process.on('uncaughtException', (e) => {
+  // '__done__' is an early, SUCCESSFUL exit (--if-changed found nothing to do),
+  // not a failure — a top-level throw is the only way out of module scope.
+  if (e instanceof Stop && e.message === '__done__') return;
   if (!(e instanceof Stop)) console.error(e);
   process.exitCode = 1;
 });
@@ -177,6 +186,17 @@ if (existing.length) {
 // ── 3. The tenant ───────────────────────────────────────────────────────────
 const tenants = await must(await api(`/rest/v1/tenants?select=id,version&coach_id=eq.${uid}`), 'read tenants');
 let tenantId;
+if (tenants.length && IF_CHANGED) {
+  const cur = await must(await api(`/rest/v1/tenants?select=data&id=eq.${tenants[0].id}`), 'read current blob');
+  if (cur.length && normalize(cur[0].data) === normalize(data)) {
+    console.log(`Tenant: already holds this exact blob (version ${tenants[0].version}) — nothing to do.`);
+    console.log('✓ Mirror up to date.');
+    process.exitCode = 0;
+    // Nothing below applies; the read-back assertions would only re-prove what
+    // the comparison above just proved.
+    throw new Stop('__done__');
+  }
+}
 if (tenants.length) {
   tenantId = tenants[0].id;
   // The BEFORE UPDATE trigger bumps `version` and files the previous bytes to

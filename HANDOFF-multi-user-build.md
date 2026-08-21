@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~20:20, Beirut.
+**Last updated:** 2026-08-21 ~20:45, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -148,7 +148,22 @@ moment it became true, and the working tree was clean and pushed at every point.
   *did not run*, so a benign mid-soak push cannot teach the operator to dismiss real ones); the
   coach lookup was page-one-only and case-sensitive; the PATCH never checked it hit a row; and
   `?? 6` invented a schema version. Detail: §16.
-- **Next action: Phase 2 — the driver split in `src/`.** `sync.js` becomes `githubDriver` +
+- OK **THE SOAK IS A ROUTINE, NOT A HABIT.** Windows scheduled task **`SpotSet soak gate`**, hourly,
+  runs `scripts/soak-daily.cmd`: mirror `--if-changed`, then gate. Every run appends a JSON line to
+  `C:/projects/_archive/PTApp/soak-log.jsonl` (outside the public repo). 🔴 **Never quote a
+  remembered number — run `node scripts/soak-status.mjs`**, which prints consecutive clean days and
+  whether today is covered. Remove the task with `schtasks /Delete /TN "SpotSet soak gate" /F`.
+  Detail: §17.
+- 🔴 **The first version of that task gated WITHOUT mirroring** and would have gone red every
+  morning — the mirror runs from the laptop, so the gate only means something once it has caught up.
+  A gate that red-flags Elie working normally is a gate that gets ignored inside a week.
+- 🔴 **PHASE 2 IS *NOT* APP DUAL-WRITE — the appendix and the decision doc disagree and §4 wins.**
+  No credential that can write Elie's tenant may ship in the bundle: `pih-dev/PTApp` is PUBLIC and
+  the app is one `index.html`. RLS does not save you — a credential scoped to Elie's tenant is
+  *correctly* authorised to overwrite it. So the mirror leg stays on the laptop (done, above), and
+  the `src/` work is a driver split whose `supabaseDriver` is **written and DORMANT** until a real
+  user session exists in Phase 3. Detail: §18.
+- **Next action: the driver split in `src/`.** `sync.js` becomes `githubDriver` +
   `supabaseDriver` behind one build flag, GitHub still authoritative, the Supabase leg best-effort
   and non-blocking (a failing mirror must never turn Elie's dot red). Then **7 consecutive clean
   days** of `sanity-live-supabase-diff.mjs`, run daily. 🔴 **Any unexplained divergence halts the
