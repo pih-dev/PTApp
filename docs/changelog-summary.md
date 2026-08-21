@@ -4,6 +4,20 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.19.1 — the buttons look pressable again (August 22, 2026)
+
+Pierre's read on the last release: the outlines everywhere made it harder, not
+easier, and nothing looked like a button. He was right. Anything you can tap now
+has a filled surface again — Complete, the focus tags, the time slots, the day
+chips — while the flat, un-gradiented look stays. A selected tag now flips to a
+bright fill with dark text instead of just changing its border, which you can
+actually see in a row of nine of them.
+
+Also fixed: on the home screen the session-type control was overlapping the date
+next to it.
+
+---
+
 ## v2.19.0 — the rest of the app catches up (August 22, 2026)
 
 **What you see:** every screen now looks like the home screen did after the last

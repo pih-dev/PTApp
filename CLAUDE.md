@@ -43,16 +43,15 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.19.0
-**The whole app in the plate and the bar — stage 3 (08-22).** The shared primitives moved onto the tokens, so every screen inherits the language. Presentation only; `DATA_VERSION` stays 6. Detail: `docs/instructions-v2.19.md`. Palette/type rules: CONVENTIONS → *Colour, type & badges*.
-- 🔴 **`.card` IS A ROW, NOT A CARD** — transparent, no border, no shadow, a 2px `--bar` shaft underneath. Ten components render it. **A real container is `.panel`.** `.srow`/`.bar`/`.plates` remain the Dashboard's richer idiom.
+## Current Version: v2.19.1
+**The whole app in the plate and the bar — stage 3, plus the press-affordance fix (08-22).** The shared primitives moved onto the tokens, so every screen inherits the language. Presentation only; `DATA_VERSION` stays 6. Detail: `docs/instructions-v2.19.md`, `-v2.19.1.md`. Palette/type rules: CONVENTIONS → *Colour, type & badges*.
+- 🔴 **`.card` IS A ROW** — transparent, no border/shadow, a 2px `--bar` shaft under it; ten components render it. **A real container is `.panel`**; `.srow`/`.bar`/`.plates` are the Dashboard's richer idiom.
 - 🔴 **SELECTION IS CHALK · LOAD IS THE ACCENT · RED IS DESTRUCTIVE ONLY.** Chips, slots, filters and the active tab fill with `--bar` and brighten; the accent marks load, urgency and the live session; `#EF4444` is cancel/delete and nothing else.
-- 🔴 **NO EMOJI IN THE INTERFACE** — headings, buttons, empty states (`BarMark`), `<option>` labels. **WhatsApp message templates keep theirs**: that is text the client receives.
-- **`[data-skin="steel"]` is now the token block ONLY** — 70 per-element overrides retired. **Never add another**; if a skin needs a rule it is a second design.
-- 🔴 **A SKIN IS CUSTOM-PROPERTY VALUES AND NOTHING ELSE.** List/default/migration live ONLY in `src/skins.js`; `sanity-skins.mjs` asserts every skin defines all 18 tokens.
+- 🔴 **NO EMOJI IN THE INTERFACE** — headings, buttons, empty states (`BarMark`), `<option>` labels. **WhatsApp templates keep theirs** (the client reads those).
+- **`[data-skin="steel"]` is the token block ONLY** — 70 overrides retired; **never add another**.
+- 🔴 **A SKIN IS VALUES, NOTHING ELSE** — list/default/migration ONLY in `src/skins.js`; `sanity-skins.mjs` asserts all 18 tokens per skin.
 - 🔴 **A restyle is presentation only** — if a kernel call or reducer action has to change, the slice has grown out of scope and **stops**.
-- **`TOKEN_KEY`/`DEMO_TOKEN`/`isDemo` live in `utils.js`** (import cycle), re-exported by `githubDriver`. Demo-data contact rule: see TRAPS.
-- 🔴 **`DEMO` is a review credential, not a feature** — seeded local data (`src/demoData.js`), sync off, **seeds ONLY onto an empty store** (the gate checks EVERY `ptapp-data*` key).
+- **`TOKEN_KEY`/`DEMO_TOKEN`/`isDemo` live in `utils.js`** (import cycle), re-exported by `githubDriver`. 🔴 **`DEMO` is a review credential, not a feature** — seeded local data (`src/demoData.js`), sync off, **seeds ONLY onto an empty store** (the gate checks EVERY `ptapp-data*` key).
 - **Sign-in is DARK** (needs `VITE_SUPABASE_*`) and **`sync.js` is now `src/backend/`** — `githubDriver` + a dormant `supabaseDriver` behind `BACKEND_MODE`. State: `HANDOFF-multi-user-build.md`, `HANDOFF-spotset-publishing.md`.
 
 ## Governance — Elie's Standing Authority (granted 2026-07-18)
@@ -68,9 +67,8 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 
 - **v2.18.0** (08-21) — the Dashboard rebuilt in the plate and the bar; bundled type; measured contrast ramps. → `v2.18.md`
 - **v2.17.0** (08-21) — skins replace the dark/light pair; `.theme-light` → `[data-skin="steel"]`, values untouched. → `v2.17.md`
-- **v2.16.0–.1** (08-21) — honest session numbers (a forgiven cancel has no ordinal); multi-user groundwork DARK; the driver split; demo mode addresses nobody. → `v2.16*`
-- **v2.14.0–.3** (07-14/17) — multi-day splits 3–6 days (`PROGRAM_RULES_VERSION` 3); booking-time suggestion; Arabic names. → `v2.14*`
-- **v2.13 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
+- **v2.16.0–.1** (08-21) — honest session numbers; multi-user groundwork DARK; the driver split. → `v2.16*`
+- **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
 
@@ -135,6 +133,7 @@ Also single-source, from v2.10.1 — **never re-inline what they own:** `applyOv
 🔴 **NEVER hardcode a colour: a literal belongs to ONE skin** (`sanity-skins.mjs` enforces it). 18 tokens, all defined by every skin: `--t1`..`--t5`/`--sep`/`--card-bg` (inline styles) and, from v2.18, `--ground/-lit`, `--raised`, `--chalk/-dim/-faint`, `--accent`, `--bar`, `--ok`, `--warn`, `--anatomy` (figures only, never UI).
 - 🔴 **THE ACCENT (arc `#35B7E8`) NEVER TOUCHES CHROME** — no tab, button, link or focus ring. Load, urgency, the live session; the inline-start bar means *happening now*. **Never `#2563EB`** in new work; legacy chrome keeps it until the app-shell pass. Danger `#EF4444` · success `#10B981` stand.
 - **Type: `--font-display` (Saira Condensed, uppercase) · `--font-body` · `--font-mono` (every digit).** 🔴 Bundled, never fetched — `src/fonts.css` is GENERATED by `scripts/build_fonts.mjs`. 🔴 **Under `[dir="rtl"]` uppercase AND letter-spacing are OFF** — Arabic has no case and spacing breaks its joins; hierarchy is weight.
+- 🔴 **OUTLINE MEANS "OFF", FILL MEANS "PRESS ME"** (v2.19.1, Pierre: *"more inviting to press the buttons"*). A tappable control gets a surface (`--raised`, or `--bar` for the primary action in a row); two states of one control differ by **fill and text colour**, never by border width. An all-outline screen is coherent and inert.
 - **Status badges use a CSS class, NEVER inline `style={{color,background}}`** — restyle the class, scoped, so other screens keep theirs.
 
 ### Sync (v2.6+)

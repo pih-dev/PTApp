@@ -4,6 +4,32 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.19.1 — fill means press (2026-08-22)
+
+Pierre on v2.19: *"the contours of the boxes... more inviting to press the
+buttons."* Stage 3 swapped every FILL for a 2px OUTLINE, which made the app
+coherent and inert — button, chip, slot and input all became the same hollow
+rectangle. The gradient was the part of the old look that had to go; the fill
+was doing real work.
+
+🔴 **New standing rule, now in CLAUDE.md CONVENTIONS: OUTLINE MEANS "OFF", FILL
+MEANS "PRESS ME".** Two states of one control differ by fill and text colour,
+never by border width — a border delta is invisible in a row of nine tags.
+
+- `.btn-secondary` fills with `--bar`; ghost/danger/filter/focus-tag/time-slot/
+  week-day/weekday-chip/notes/type-select fill with `--raised`, borders to 1px
+  or none. `.focus-tag.active` inverts instead of changing its border.
+- `.input`/`.select` 2px → 1px: a 2px cage on every field was most of the
+  "boxes" feeling in a form.
+- **Bug the fill exposed:** the Dashboard type selector bought its 40px target
+  with `margin: -12px -8px`. Invisible while transparent; with a fill it painted
+  over the date and status beside it. Real padding now, meta row grows instead.
+  Generalises: a negative-margin hit area is only safe on a transparent control.
+
+Full write-up: `docs/instructions-v2.19.1.md`. No behaviour change; DATA_VERSION 6.
+
+---
+
 ## v2.19.0 — the shell and the shared primitives (2026-08-22)
 
 **Stage 3 of the design pass**, triggered by Pierre on seeing v2.18: *"the
