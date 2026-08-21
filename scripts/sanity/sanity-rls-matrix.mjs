@@ -274,10 +274,38 @@ async function visibleTo(token) {
 }
 
 async function teardown() {
-  for (const id of made) {
-    // ON DELETE CASCADE from auth.users removes the app_users row with it.
-    await api(`/auth/v1/admin/users/${id}`, { key: SERVICE, method: 'DELETE' })
-      .catch(e => console.error('  ! teardown', id, e.message));
+  // 🔴 LEAF-FIRST, and the order is load-bearing. Deleting an auth.users row
+  //    cascades to its app_users row — but app_users.parent_pt_id is ON DELETE
+  //    RESTRICT, so deleting a parent whose children still exist FAILS. In
+  //    creation order the very first delete (prime A) is refused and every
+  //    later one leaves its parent behind. `made` is in creation order, so
+  //    reversing it puts children before parents for any tree built top-down.
+  //
+  //    The first version of this swallowed the error and reported success.
+  //    Three synthetic users survived a "passing" run — a fake prime with a
+  //    real subtree sitting in the database, which nothing in the app would
+  //    ever flag. A test that litters is a test that will one day litter into
+  //    Elie's live tree.
+  let failed = 0;
+  for (const id of [...made].reverse()) {
+    try {
+      const r = await api(`/auth/v1/admin/users/${id}`, { key: SERVICE, method: 'DELETE' });
+      if (!r.ok) { failed++; console.error(`  ! teardown ${id}: ${r.status} ${await r.text()}`); }
+    } catch (e) {
+      failed++;
+      console.error('  ! teardown', id, e.message);
+    }
+  }
+
+  // Verify, don't assume. This is the whole lesson of the paragraph above.
+  const left = await api('/rest/v1/app_users?select=id', { key: SERVICE });
+  const rows = left.ok ? await left.json().catch(() => null) : null;
+  const n = Array.isArray(rows) ? rows.length : 'UNKNOWN';
+  if (failed || n !== 0) {
+    failures++;
+    console.error(`  ✗ 🔴 TEARDOWN INCOMPLETE — ${failed} delete(s) failed, ${n} row(s) left in app_users. Clean up before trusting this database.`);
+  } else {
+    console.log('  ✓ teardown clean — 0 rows left in app_users');
   }
 }
 

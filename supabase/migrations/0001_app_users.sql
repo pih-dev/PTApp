@@ -374,6 +374,17 @@ alter table public.app_users force row level security;
 revoke all on public.app_users from anon, authenticated;
 grant select on public.app_users to authenticated;
 
+-- 🔴 service_role needs explicit table GRANTs too, and this is easy to miss.
+--    BYPASSRLS is not a grant: it exempts the role from POLICIES, but Postgres
+--    still checks ordinary table privileges first, so without this every
+--    provisioning call fails with a bare 42501 "permission denied for table".
+--    Normally Supabase's "expose new tables automatically" would have granted
+--    it — we turned that OFF at project creation (deliberately, §11), so every
+--    grant is now ours to write. Whatever 0002 creates needs the same two
+--    lines, or its policies will be perfectly correct and every request will
+--    still 403. This is the exact failure the matrix caught on first run.
+grant select, insert, update, delete on public.app_users to service_role;
+
 -- 🔴 THE predicate. Read your subtree, including yourself.
 --   - a prime pt sees their whole tree
 --   - a sub-pt sees their own subtree and NOT their parent's other branches
