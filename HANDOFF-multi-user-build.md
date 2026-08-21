@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~15:20, Beirut.
+**Last updated:** 2026-08-21 ~16:10, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -30,6 +30,15 @@ Do not investigate, do not re-derive, do not ask follow-up questions.
 - **Nothing in `src/` touches any of this.** The app is exactly as it was; this is additive.
 - **Two files are the work so far:** `supabase/migrations/0001_app_users.sql` (+ its `_down`) and
   `scripts/sanity/sanity-rls-matrix.mjs`.
+- ✅ **`0002` (tenants + tenant_snapshots) IS APPLIED AND GREEN TOO.** One blob per coach in
+  `tenants.data`, `DATA_VERSION` still 6, no `migrateData` anywhere. Writes are own-tenant-only; a
+  parent PT can read a descendant's blob but not write it (§12.4 starts closed). Every write files
+  the previous bytes to `tenant_snapshots` first. 🔴 Snapshot **retention is not built** — needed
+  before this carries months of traffic.
+- **The assertion that matters most passes:** re-parent a sub-PT and their **blob follows in the
+  same transaction** — the old parent loses read access, the new one gains it, and the sub-PT's own
+  client moves too. Had `owner_path` not been restamped, the old parent would have kept reading the
+  data silently.
 - ✅ **THE RLS MATRIX IS GREEN — `node scripts/sanity/sanity-rls-matrix.mjs` exits 0.** Static +
   live, against the real project over real HTTP: 6 visibility cases and 8 refusals, including peer
   isolation, a failed self-promotion (403, row confirmed unchanged in the table afterwards) and the
@@ -46,7 +55,7 @@ Do not investigate, do not re-derive, do not ask follow-up questions.
   be written into this repo, which is public. 🔴 **Exit 2 is not a pass.** The SQL test proves the
   *policy*; only the .mjs one proves the *API surface* (a wrongly exposed table, a grant to `anon`,
   a refused PATCH) — `set role authenticated` bypasses PostgREST entirely.
-- **Next action: `0002`, the tenant tables** (`tenants`, `tenant_snapshots`), with `owner_path`
+- **Next action: the thin auth module in `src/`** — and 🔴 `STORAGE_KEY` → `ptapp-data:<userId>` is not optional (§4). ~~Superseded: `0002`, the tenant tables~~ (`tenants`, `tenant_snapshots`), with `owner_path`
   denormalized from `app_users` and restamped in the SAME function (§12.3).
 - **The design is settled and should not be re-opened:** two roles (`pt`/`client`), prime = a `pt`
   with no parent, one `ltree` containment predicate covering own-data + downline + peer isolation,
