@@ -531,3 +531,56 @@ And two from the mobile pass, both on the crash screen and the review credential
 runs. 46 assertions across: the source-level bans, the namespaced key, two identities on one device,
 the cutover claim and its refusals, the identity-not-validity gate, offline-vs-rejected, sign-out
 preserving data, and the two refresh races. Exit 0 or do not deploy.
+
+
+---
+
+## 14. The entry screen, as built (2026-08-21)
+
+`TokenSetup.jsx` now offers **two ways in, side by side** — sign-in does not replace `DEMO`.
+
+Top to bottom: email, password, **Sign in** · an `or` divider · the existing token/`DEMO` field and
+**Connect** · the hint line *"Type DEMO to try the app, or sign in with your email and password."*
+
+- **The sign-in half renders only when `isAuthConfigured()`** — i.e. when the build carries
+  `VITE_SUPABASE_*`. An unconfigured build is byte-identical to v2.15.1, which is why this can sit on
+  master without shipping anything.
+- **Offline and wrong-password read differently on the screen**, not just in the module. Telling a
+  coach in a basement that their password is wrong is how you get a password reset nobody needed.
+- **Signing in reloads** rather than calling `onConnected()`. The store is read once at mount and
+  signing in changes *which* store is truth, so a fresh boot is the only thing that cannot leave the
+  previous identity's state in the reducer. Same reasoning as the `DEMO` seed.
+- **The hint dies with `DEMO`**, in the same commit, at Phase 4.
+
+### The gate
+
+`App.jsx`: `useState(!!getToken() || isSignedIn())`. **Identity or local data — never token
+validity.** `isSignedIn()` is deliberately true for an expired session, so an expired user gets in
+and sees `.auth-banner` (amber, under the header, full-width, 44px, tapping opens General). Nothing
+is broken and no data is at risk when it shows; only syncing is paused.
+
+`onAuthChange` reloads the app whenever the user id changes — which is the wiring `saveData`'s
+cross-identity refusal exists to catch. General gains **Sign out** (confirm text says the data stays
+on the device, because "sign out" reads as "erase" to someone whose business is in the app) and a
+*Signed in as …* line.
+
+### Verified live, in a browser, against the real project
+
+Not inferred from the code — driven in Chrome at 430px against `trflnwrusbbbihelovkh`:
+
+1. The screen renders with both halves and the hint.
+2. A wrong password returns a real 400 from GoTrue and shows **"Wrong email or password"**.
+3. A real provisioned account signs in, the session persists, and the app **boots past the gate**
+   into an empty Dashboard.
+4. The storage key is `ptapp-data:<userId>` — read back from the live `localStorage`.
+5. Backdating `expires_at` leaves the user **signed in with the amber banner showing**, app fully
+   usable. That is the Airplane-Mode / gym-basement property, observed rather than asserted.
+6. General shows *Signed in as …* and the **Sign out** button.
+
+The throwaway account was deleted afterwards; `auth.users` is back to **0 rows**.
+
+### Still not wired
+
+**Nothing reads or writes `tenants` yet.** A signed-in user gets an empty local app with no sync —
+that is Phase 2 (dual-write) and Phase 3 (cutover), deliberately not built here. Elie's path today is
+unchanged: paste the PAT, sync to GitHub.

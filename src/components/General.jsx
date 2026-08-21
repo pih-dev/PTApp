@@ -3,6 +3,7 @@ import Modal from './Modal';
 import NormChartsView from './NormChartsView';
 import { exportBackup, mergeBackup, genId, DEFAULT_TEMPLATES, haptic, saveData } from '../utils';
 import { getToken, saveSnapshot, listSnapshots, fetchSnapshot, isDemo, clearToken } from '../sync';
+import { isSignedIn, isSessionExpired, getUserEmail, signOut } from '../auth';
 import { t } from '../i18n';
 
 // Raw GitHub URLs for docs — fetched at runtime, not bundled.
@@ -259,7 +260,26 @@ export default function General({ state, dispatch, onClose, lang, setLang, theme
               {t(lang, 'updateToken')}
             </button>
           )}
+
+          {/* 🔴 Signing out clears the SESSION and nothing else — the user's
+              records stay at `ptapp-data:<userId>` and are waiting when they
+              sign back in. The confirm text says so, because "sign out" reads
+              like "erase" to someone whose whole business is in the app.
+              auth.js fires onAuthChange, and App reloads on identity change. */}
+          {isSignedIn() && (
+            <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
+              onClick={() => { if (window.confirm(t(lang, 'signOutConfirm'))) signOut(); }}>
+              {t(lang, 'signOut')}
+            </button>
+          )}
         </div>
+
+        {isSignedIn() && (
+          <p style={{ fontSize: 12, color: 'var(--t4)', marginBottom: 12 }}>
+            {t(lang, 'signedInAs')} {getUserEmail()}
+            {isSessionExpired() ? ` — ${t(lang, 'sessionExpired')}` : ''}
+          </p>
+        )}
 
         <div className="flex-row" style={{ gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
           <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}

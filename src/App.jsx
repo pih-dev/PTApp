@@ -8,6 +8,7 @@ import TokenUpdateModal from './components/TokenUpdateModal';
 import General from './components/General';
 import { reducer, loadData, saveData, today, timeToMinutes, haptic, initElasticScroll, mergeData, dataEquals } from './utils';
 import { getToken, fetchRemoteData, pushRemoteData, isDemo } from './sync';
+import { isSignedIn, isSessionExpired, getUserId, onAuthChange } from './auth';
 import { t } from './i18n';
 
 // Debounce timer for GitHub sync — prevents burst of API calls when multiple
@@ -34,7 +35,12 @@ export default function App() {
   const [state, dispatch] = useReducer(reducer, null, loadData);
   const [tab, setTab] = useState('home');
   const [showGeneral, setShowGeneral] = useState(false);
-  const [connected, setConnected] = useState(!!getToken());
+  // 🔴 THE GATE IS IDENTITY OR LOCAL DATA — NEVER TOKEN VALIDITY (§4).
+  //    An expired session still gets in and sees a banner; it must never be a
+  //    login wall. A lapsed token black-holing the PT's schedule in a gym with
+  //    no signal ends multi-user, and it is also exactly what Apple tests in
+  //    Airplane Mode (4.2). `isSignedIn()` is deliberately true when expired.
+  const [connected, setConnected] = useState(!!getToken() || isSignedIn());
   // Demo sessions never fetch, so there is no startup fetch to wait on — starting
   // this true would park the reviewer on the spinner forever.
   const [initialLoad, setInitialLoad] = useState(!!getToken() && !isDemo());
@@ -162,6 +168,21 @@ export default function App() {
   // Rubber-band overscroll on the main content area
   useEffect(() => initElasticScroll(contentRef.current), []);
 
+  // 🔴 Identity changes swap WHICH localStorage blob is truth
+  //    (`ptapp-data:<userId>`), so the state held in this reducer belongs to the
+  //    previous user the instant it changes. Reload rather than patching state
+  //    in place: the store is read once at mount, and a fresh boot is the only
+  //    thing that cannot leave one user's records in another user's session.
+  //    `saveData` refuses to write across an identity change precisely to catch
+  //    this wiring going missing — if that console error ever appears, this
+  //    effect is what stopped working.
+  useEffect(() => {
+    const bootId = getUserId();
+    return onAuthChange((session) => {
+      if ((session?.user?.id || null) !== bootId) window.location.reload();
+    });
+  }, []);
+
   // Retry sync — called when user taps the failed indicator.
   // Uses the same reconcile() path as initial load — merge not overwrite.
   const handleRetrySync = () => {
@@ -242,6 +263,15 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* 🔴 A banner, NOT a wall. The user keeps full offline use of their own
+          records; only syncing needs a live session. Tapping opens General,
+          where Sign out → sign back in is the fix. */}
+      {isSessionExpired() && (
+        <button className="auth-banner" onClick={() => setShowGeneral(true)}>
+          {t(lang, 'sessionExpired')}
+        </button>
+      )}
 
       <div className="content" ref={contentRef}>
         {tab === 'home' && <Dashboard state={state} dispatch={dispatch} setTab={setTab} lang={lang} />}

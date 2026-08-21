@@ -104,7 +104,10 @@ console.log('\n[static] source-level guarantees');
 const SRC = fileURLToPath(new URL('../../src/', import.meta.url));
 const authSrc = readFileSync(SRC + 'auth.js', 'utf8');
 const utilsSrc = readFileSync(SRC + 'utils.js', 'utf8');
-const stripComments = (src) => src.split('\n').filter(l => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
+// Good enough for this purpose: block comments (including JSX `{/* … */}`, whose
+// continuation lines start with ordinary prose) and line comments. Several files
+// legitimately NAME the storage key while explaining the rule; only code counts.
+const stripComments = (src) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 const code = stripComments(authSrc);
 
 // 🔴 Guideline 4.8: the day anyone adds Google sign-in, Sign in with Apple
@@ -168,6 +171,34 @@ assert(offenders.length === 0,
 const ebSrc = readFileSync(SRC + 'components/ErrorBoundary.jsx', 'utf8');
 assert(/spotset-auth/.test(ebSrc) && /ptapp-data:\$\{uid\}/.test(ebSrc),
   'ErrorBoundary resolves the namespaced key from the same session key auth.js writes');
+
+// ── The entry screen and the gate ───────────────────────────────────────────
+const setupSrc = readFileSync(SRC + 'components/TokenSetup.jsx', 'utf8');
+const appSrc = readFileSync(SRC + 'App.jsx', 'utf8');
+const i18nSrc = readFileSync(SRC + 'i18n.js', 'utf8');
+
+// 🔴 The login screen sits BESIDE DEMO, it never replaces it (Pierre,
+//    2026-08-21). DEMO survives through Phase 4: it is the store reviewer's
+//    credential and the only path that works in Airplane Mode.
+assert(/DEMO_TOKEN/.test(setupSrc), 'the entry screen still accepts DEMO');
+assert(/signIn\s*\(/.test(stripComments(setupSrc)), 'the entry screen offers email/password sign-in');
+assert(/isAuthConfigured\(\)/.test(stripComments(setupSrc)),
+  'sign-in only renders when the build is configured (an unconfigured build is unchanged)');
+// Offline and "wrong password" must read differently on the screen too, not just
+// in the module — the whole point of the typed errors.
+assert(/AUTH_OFFLINE/.test(setupSrc) && /AUTH_BAD_CREDENTIALS/.test(setupSrc),
+  'the screen distinguishes offline from wrong-password');
+
+// The hint is what tells a tester DEMO exists at all. It and DEMO die together.
+for (const lang of ['en', 'ar']) assert(new RegExp(`entryHint`).test(i18nSrc), `entryHint exists (${lang} checked by key parity)`);
+assert((i18nSrc.match(/entryHint:/g) || []).length === 2, 'entryHint is translated in both languages');
+
+// 🔴 The gate. `isSignedIn()` is true for an expired session by design, so this
+//    admits an expired user; gating on token validity is the banned pattern.
+assert(/useState\(!!getToken\(\)\s*\|\|\s*isSignedIn\(\)\)/.test(appSrc),
+  'the auth gate is identity-or-local-data, never token validity');
+assert(/onAuthChange\(/.test(stripComments(appSrc)),
+  'App reloads on identity change (what saveData\'s refusal exists to catch)');
 
 // =====================================================================
 // PASS 2 — the storage key follows identity.

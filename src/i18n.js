@@ -148,6 +148,24 @@ const T = {
     tokenInvalid: 'Invalid token — check and try again',
     tokenFailed: 'Connection failed — check your internet',
 
+    // Sign in (v2.16 groundwork). Email + password only — never a social login.
+    signInSubtitle: 'Sign in to your account',
+    signInEmail: 'Email address',
+    signInPassword: 'Password',
+    signIn: 'Sign in',
+    signInWorking: 'Signing in...',
+    signInBad: 'Wrong email or password',
+    signInOffline: 'No connection — check your internet and try again',
+    signInFailed: 'Sign-in failed — try again',
+    or: 'or',
+    // 🔴 Deleted in the SAME commit that removes DEMO at Phase 4. Without it a
+    //    tester facing a login form has no way to know DEMO exists.
+    entryHint: 'Type DEMO to try the app, or sign in with your email and password.',
+    sessionExpired: 'Session expired — sign in again to sync',
+    signOut: 'Sign out',
+    signOutConfirm: 'Sign out? Your data stays on this device.',
+    signedInAs: 'Signed in as',
+
     // Billing period
     periodStart: 'Period Start',
     periodLength: 'Period Length',
@@ -458,6 +476,24 @@ const T = {
     tokenConnecting: 'جارٍ الاتصال...',
     tokenInvalid: 'رمز غير صالح — تحقق وحاول مرة أخرى',
     tokenFailed: 'فشل الاتصال — تحقق من الإنترنت',
+
+    // تسجيل الدخول — بريد إلكتروني وكلمة مرور فقط، بدون تسجيل دخول عبر حسابات أخرى.
+    signInSubtitle: 'سجّل الدخول إلى حسابك',
+    signInEmail: 'البريد الإلكتروني',
+    signInPassword: 'كلمة المرور',
+    signIn: 'تسجيل الدخول',
+    signInWorking: 'جارٍ تسجيل الدخول...',
+    signInBad: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+    signInOffline: 'لا يوجد اتصال — تحقق من الإنترنت وحاول مرة أخرى',
+    signInFailed: 'فشل تسجيل الدخول — حاول مرة أخرى',
+    or: 'أو',
+    // DEMO يبقى بالحروف اللاتينية: هو ما يُكتب حرفياً في الحقل (قاعدة النقل الحرفي
+    // لا تنطبق هنا — هذه ليست كلمة تُترجم، بل قيمة تُدخل كما هي).
+    entryHint: 'اكتب DEMO لتجربة التطبيق، أو سجّل الدخول ببريدك الإلكتروني وكلمة المرور.',
+    sessionExpired: 'انتهت الجلسة — سجّل الدخول مرة أخرى للمزامنة',
+    signOut: 'تسجيل الخروج',
+    signOutConfirm: 'تسجيل الخروج؟ ستبقى بياناتك على هذا الجهاز.',
+    signedInAs: 'مسجّل الدخول باسم',
 
     // Billing period
     periodStart: 'بداية الفترة',

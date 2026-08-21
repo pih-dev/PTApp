@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~18:30, Beirut.
+**Last updated:** 2026-08-21 ~19:15, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -103,9 +103,25 @@ moment it became true, and the working tree was clean and pushed at every point.
   `'ptapp-data'` strings, `claimLegacyStore` claimable by any first-time signer-in, and
   `anyLocalDataExists` throwing `SecurityError` on iOS with cookies blocked (a dead `DEMO` button for
   a store reviewer). **All five fixed, each with an assertion.** Detail: §13 and `docs/traps.md`.
-- **Next action: the login screen, beside `DEMO`** — email + password, the one-line hint string, and
-  App wiring `onAuthChange` → `loadData()` so state reloads on every identity change (the `saveData`
-  refusal exists precisely to catch that wiring being missing).
+- ✅ **THE LOGIN SCREEN IS BUILT, AND IT WAS VERIFIED IN A BROWSER AGAINST THE REAL PROJECT** —
+  not inferred from the code. At 430px against `trflnwrusbbbihelovkh`: both halves render with the
+  hint; a wrong password returns a real 400 and reads *"Wrong email or password"*; a provisioned
+  account signs in and **boots past the gate**; the key is `ptapp-data:<userId>`, read back from the
+  live `localStorage`; backdating `expires_at` leaves the user **signed in with the amber banner**,
+  app fully usable. The throwaway account was deleted — `auth.users` is back to **0 rows**.
+  Record: §14 of the decision doc.
+- **Sign-in sits BESIDE `DEMO`, as decided** — email, password, Sign in · `or` · the token/`DEMO`
+  field · the hint line. The sign-in half renders **only when the build carries `VITE_SUPABASE_*`**,
+  so an unconfigured build is byte-identical to v2.15.1. The gate is
+  `!!getToken() || isSignedIn()` — identity or local data, never token validity — and `onAuthChange`
+  reloads on identity change. General gains Sign out + *Signed in as …*.
+- 🔴 **NOTHING READS OR WRITES `tenants` YET.** A signed-in user gets an empty local app with no
+  sync; that is Phase 2 (dual-write) and Phase 3 (cutover), deliberately not built. **Elie's path is
+  unchanged** — paste the PAT, sync to GitHub.
+- **Next action: Phase 2 — dual-write, GitHub still authoritative** (§5 step 2, §6). Every GitHub
+  push followed by a Supabase write; the mirror leg runs off the commit stream from Pierre's laptop,
+  never from the bundle. Then the 7-day soak, where **any unexplained byte divergence halts the
+  plan** rather than being worked around.
 - **The design is settled and should not be re-opened:** two roles (`pt`/`client`), prime = a `pt`
   with no parent, one `ltree` containment predicate covering own-data + downline + peer isolation,
   no admin role (service_role from the SQL console instead), and *"mine"* as the default scope on
