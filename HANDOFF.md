@@ -20,11 +20,11 @@ Do not open Task B unless he says so.
   this section, for its state.** Phase 1 schema (`supabase/migrations/0001_app_users.sql`) and the
   RLS matrix are written, reviewed and committed; nothing is deployed and `src/` is untouched. The
   next action is Pierre's: create the Supabase project.
-- **Task B has not started.**
-  **A — accounts + database (multi-tenant).** He starts here. Decision doc:
-  `docs/2026-08-21-multi-user-accounts-decision.md`; his new role-hierarchy requirement is **§10**.
-  **B — design differentiation.** Its own session, later, by his instruction:
-  `docs/design/2026-08-21-design-differentiation-brief.md`.
+- **Task B — design differentiation — has NOT started.** Its own session, later, by his
+  instruction: `docs/design/2026-08-21-design-differentiation-brief.md`.
+- **Task A's decision record** (the design, not the build state):
+  `docs/2026-08-21-multi-user-accounts-decision.md` — the role hierarchy is **§10**, the scoping and
+  no-admin decisions **§11**, the priced RLS **§12**.
 - **Task A, the shape he specified (2026-08-21):** exactly **two roles**, `pt` and `client`. A PT may
   have PTs *or* clients under them — so `parent_pt_id` lives on both. **"Prime" is not a role**; it
   is simply a PT with no parent, which is why Elie's position is data and never hardcoded. The one
@@ -52,7 +52,7 @@ Do not open Task B unless he says so.
   `pierreishere@`). Latest observation is in §0a of the publishing handoff.
 - **P3 / P6 (SessionCard refactor, live ordinal) remain decided-but-unbuilt.** They are now *behind*
   A and B. Details in `CLAUDE.md` → KNOWN ISSUES.
-- Nothing is broken and nothing is urgent. **No question to ask him — start Task A.**
+- Nothing is broken and nothing is urgent. **The next action is his: create the Supabase project** — everything else in Task A is blocked behind it (free tier is fine; Pro is only needed from Phase 3).
 
 ---
 
