@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~13:05, Beirut.
+**Last updated:** 2026-08-21 ~13:40, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -12,17 +12,32 @@ Do not investigate, do not re-derive, do not ask follow-up questions.
 
 ## 0. Status — read this out
 
-- **Phase 1 schema is written, reviewed and committed. Nothing is deployed and nothing in `src/`
-  touches it.** The app is exactly as it was; this is additive, off to one side.
+- 🔴 **THE SUPABASE PROJECT EXISTS AND `0001` IS APPLIED AND VERIFIED LIVE.**
+  Org **Calnorm** (free) → project **spotset**, ref `trflnwrusbbbihelovkh`, **eu-central-1
+  (Frankfurt)**, PostgreSQL **17.6**. Account: **pierreghorra@gmail.com** — the same Google account
+  as Play/Illume. Dashboard: `supabase.com/dashboard/project/trflnwrusbbbihelovkh`.
+- **Isolation is PROVEN on the live database, not just designed.** `supabase/tests/rls_matrix.sql`
+  built a synthetic tree, impersonated six users and rolled back: **6 of 6 PASS**, including a peer
+  prime seeing nothing of the other tree and a signed-in user with no `app_users` row seeing nothing
+  at all. Probed after: `app_users` 0 rows, `auth.users` 0 rows — the test left nothing behind.
+- **Verified live, not read off the file:** RLS enabled AND forced, exactly one policy
+  (`app_users_read_subtree`, SELECT only), 4 triggers, 7 constraints, `ltree` in the `extensions`
+  schema, `authenticated` has USAGE on `private`, `anon` has neither USAGE nor SELECT.
+- **Project settings chosen at creation:** *Automatically expose new tables* **OFF** and *Enable
+  automatic RLS* **ON**. 🔴 The first means `0002` must carry its own explicit
+  `grant select … to authenticated` for every table it creates — auto-expose will not supply it, and
+  the failure mode is a silent 403 on a correct policy.
+- **Nothing in `src/` touches any of this.** The app is exactly as it was; this is additive.
 - **Two files are the work so far:** `supabase/migrations/0001_app_users.sql` (+ its `_down`) and
   `scripts/sanity/sanity-rls-matrix.mjs`.
-- **The static half of the RLS matrix passes today** — run `node scripts/sanity/sanity-rls-matrix.mjs`.
-  It exits **2**, not 0, because no Supabase instance exists to run the live half against.
-  🔴 **Exit 2 is not a pass.** Auth must not ship until it exits 0.
-- **🔴 THE NEXT ACTION IS PIERRE'S, NOT MINE: create the Supabase project.** Everything else is
-  blocked behind it. Free tier is fine for this — §8 of the decision doc says Pro ($25/mo) is needed
-  only from Phase 3, when Elie's real data lands. Once it exists, apply `0001` and run the matrix
-  with the three env vars named at the top of the matrix file.
+- **Still outstanding: the HTTP half.** `node scripts/sanity/sanity-rls-matrix.mjs` still exits **2**
+  (static passes, live skipped) because it needs `SUPABASE_URL`, `SUPABASE_ANON_KEY` and
+  `SUPABASE_SERVICE_ROLE_KEY` in the environment, and those are Pierre's to supply — they must never
+  be written into this repo, which is public. 🔴 **Exit 2 is not a pass.** The SQL test proves the
+  *policy*; only the .mjs one proves the *API surface* (a wrongly exposed table, a grant to `anon`,
+  a refused PATCH) — `set role authenticated` bypasses PostgREST entirely.
+- **Next action: `0002`, the tenant tables** (`tenants`, `tenant_snapshots`), with `owner_path`
+  denormalized from `app_users` and restamped in the SAME function (§12.3).
 - **The design is settled and should not be re-opened:** two roles (`pt`/`client`), prime = a `pt`
   with no parent, one `ltree` containment predicate covering own-data + downline + peer isolation,
   no admin role (service_role from the SQL console instead), and *"mine"* as the default scope on
