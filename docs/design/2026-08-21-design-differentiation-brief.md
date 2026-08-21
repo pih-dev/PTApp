@@ -267,3 +267,50 @@ way to lose the legibility this whole direction is built on.
 **Why it is worth the trip:** it is a differentiator no generator can produce — nobody else has
 Elie's gym at 7am. Budget it as a shoot, not an asset download. Practical: shoot dark, shoot wide,
 leave room at the edges to crop for both phone aspect ratios.
+
+### 7.7 🔴 ONE THEME, NOT TWO (Pierre, 2026-08-21)
+
+**The dark/light pair is abandoned.** SpotSet gets **one considered theme**, aimed at the sweet spot
+for everyone who opens it, and the effort that went into keeping two in sync goes into making that
+one excellent. This supersedes the whole light-theme history in `docs/design-system.md` (v2.3–v2.4,
+six rounds of iteration) — that record stays as *why* each choice was made, not as a live contract.
+
+- **Variants are alternatives, never modes.** More than one hue treatment may be developed; **at
+  most one ships**, or two only if both turn out genuinely as good. The user is never handed a
+  toggle and asked to pick.
+- **`--t1..--t5` and `--sep` survive.** They stop being a theme-swap mechanism and become the
+  opacity ladder of the single theme. Nothing about "never hardcode rgba" changes.
+
+### 7.8 The audience widened — and the app has to INVITE
+
+Pierre named three users, and the third is new to this brief:
+
+1. **The owner** — running a business in it.
+2. **The coach** — organising days, sending invites.
+3. 🔴 **The member** — browsing their own work: upcoming sessions, effort daily, weekly, yearly,
+   ever. **A screen a member scrolls on the sofa is judged differently from one a coach taps between
+   sets**, and the member-facing views (history, streaks, a yearly view) are places to spend real
+   design rather than render a table.
+
+**The emotional requirement, in his words:** *"I hate the gym, so I chose stuff to encourage me —
+one is picking a gym close to home. A thoughtfully built app could be another reason."*
+
+🔴 **Test for every screen in this system: would someone who dislikes training open this on
+purpose?** That is a higher bar than "is it legible", and it is the reason the single theme has to
+be worth looking at rather than merely correct.
+
+### 7.9 Figures are drawn in CURVES — and that is a functional rule
+
+Pierre on the first figure: *"less of a hangman feel — probably use curves instead of intersections
+and angles."* He then named exactly why it matters: *"veering away from lines and angles opens up
+the true value — we could portray an arched back instead of a straight one."*
+
+🔴 **A hinged stick figure physically cannot show a spine holding its arch versus rounding over.**
+Straight segments have no arch to lose. So:
+
+- **Every figure is continuous curves — no visible joints, no corners.** A body, not a skeleton
+  diagram. Thigh flows through the knee; neck flows into the head.
+- **The spine is the hero line**, drawn in the accent when held and in the warn hue when lost. The
+  artifact now shows the same row twice: *neutral, arch held* and *rounded — this is the injury*.
+  That pairing IS the feature; a single "correct" figure teaches half as much.
+- **Full renders stay on the table for later.** Line-drawn is what ships now, not the ceiling.
