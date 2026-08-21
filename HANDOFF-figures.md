@@ -1,7 +1,7 @@
 # SpotSet — The Exercise Figures (B2) HANDOFF
 
 **Created:** 2026-08-22, Beirut · **Owner thread:** the figures, and only the figures.
-**To resume:** Pierre types `figures`. **Read §0 back to him and stop.** Do not start drawing.
+**To resume:** Pierre types `figures`. **Read §0 back to him and stop**, then start §9's step 1.
 
 🔴 **STANDING INSTRUCTION FOR THIS SUBJECT: keep this file current AS YOU GO.** Update §0 and commit
 at each milestone. A restart could end the session at any moment.
@@ -14,21 +14,31 @@ at each milestone. A restart could end the session at any moment.
 
 ## 0. Status — read this out
 
-- **Nothing is built yet. This is a brief, not a build.** The app is at **v2.21.1** and the movement
+- **Nothing is built yet — this is the brief; the next session builds.** The app is at **v2.21.1** and the movement
   sheet (`src/components/MovementSheet.jsx`) is the place a figure will land — deliberately not
   stubbed, so nothing looks broken while this is pending.
-- 🔴 **PIERRE HAS IDEAS AND WANTS TO TALK BEFORE ANYONE DRAWS.** His words, 2026-08-22:
-  *"Let's do the figures… I have some ideas."* **Do not open a generator, do not pick a style, do
-  not produce 340 of anything until that conversation happens.**
+- 🔴 **BUILD IT. Pierre cleared the way on 2026-08-22:** *"regarding start explicitly drawing, those
+  are… don't worry about that. We are on the same page you and I… Let's go ahead with this."*
+  **The next session starts the figures** — no further permission needed. His ideas will arrive as
+  he has them; they refine the work, they do not gate it.
 - **Route chosen: GENERATE**, with his caveat — *"we don't want stiffness."* That caveat is the
   entire technical problem (§3).
 - **Line drawings are OUT.** *"The line draw is probably out. Those silhouettes are amazing."*
   The reference read (§2) already pointed the same way: solid silhouettes hold up at small size,
   outlines do not.
-- **He supplied a prompt template** built with an expert-biomechanist framing (§4, verbatim). It is
-  good, and two parts of it need a decision before use: the injury text (§5, a real liability
-  question) and the "no colour references" instruction (§6, which our token system contradicts).
-- **The three questions that gate the spec** are in §7. Two of them are Pierre's to answer.
+- **He supplied a prompt template** (§4, verbatim) as **a suggestion, not a spec** — his framing:
+  *"that prompt is a suggestion I told you."* Use it as input alongside §1–§3.
+- 🔴 **THE INJURY TEXT IS IN — RULING 2026-08-22, and my earlier caution is SUPERSEDED.** Pierre:
+  *"I think you got freaked out by the medical term… you can check the potential clinical injury
+  documented for those specific moves. Those are known moves… so we should build this library. Of
+  course, later on I go through them."* **These are documented facts about well-known lifts, not
+  invented diagnoses.** Draw them from established knowledge, keep them plain, and Elie/Pierre
+  review the set afterwards. See §5 for the shape that keeps that review possible.
+- ✅ **He endorsed the colour call** — the asset stays skin-agnostic (§6).
+- **One open question left** (§7): all 340 get a wrong-figure pair, or only the movements where a
+  fault is common. It is the cost driver — decide it early, but it does not block starting.
+- **Model:** Opus 5 at **xhigh** for the biomechanics — which fault, which joint, which moment.
+  See §9 for what that does and does not cover, and the honest answer on external services.
 
 ---
 
@@ -114,28 +124,32 @@ because it concerns drawing anatomically correct stuff."*
 stressed joint, and it insists on uniform styling across the library — which is our single hardest
 constraint. It also produces the *text* we would otherwise have to invent per movement.
 
-## 5. 🔴 The one thing to settle before any of that text ships
+## 5. The clinical text — DECIDED 2026-08-22
 
-Part 2 of the template produces **"Potential Clinical Injury" — a medical claim**, and a
-**"Safety Coaching Cue" — coaching instruction**, for 340 movements.
+**Pierre's ruling: include it.** *"You can check the potential clinical injury documented for those
+specific moves. Those are known moves… we should build this library. Of course, later on I go
+through them."*
 
-`MovementSheet.jsx` currently carries a deliberate rule: *the sheet shows only what the bank knows;
-coaching content needs an owner, a language pair and a review process, and that owner is Elie.*
-Generated clinical text has none of those. Shipping it would mean a fitness app telling a real
-trainer's real clients which injury a movement causes — in two languages, unreviewed.
+He is right and the earlier caution was mis-aimed: the injury a rounded-back deadlift risks, or what
+a knee-valgus squat does, is **documented, long-established, uncontroversial knowledge about
+well-known lifts** — not a diagnosis this app is inventing about a person. Refusing to name it would
+have made the figures decorative.
 
-**Three defensible options, Pierre's call:**
+**What that means in practice, and these are the guardrails that keep it honest:**
 
-1. **Generate it, hold it, ship none of it** until Elie has reviewed each line. The text lives in a
-   data file with a `reviewed: false` flag and the sheet renders only reviewed entries.
-2. **Ship the coaching cue only**, drop the pathology naming. A cue is instruction; a diagnosis is a
-   claim. Elie still reviews, but the risk profile is completely different.
-3. **Use the clinical analysis as INPUT to the drawing and never display it** — it tells the artist
-   which joint to mark and which error to draw, and no medical text ever reaches a client.
-
-**Recommendation: (3) for the first release, then (2) once Elie has reviewed.** It gets the value —
-correct, specific figures — with no medical claims on screen, and it does not block on a review cycle
-that has not been scheduled.
+- **Plain, established, movement-level.** "Rounding under load stresses the lumbar discs" — the
+  known mechanism of a known error. Never a claim about a *client*, never a prescription, never a
+  treatment.
+- 🔴 **Every line is reviewable and versioned.** The text lives in a data file keyed by movement
+  (like `exerciseNamesAr.js`), with a `reviewed` flag per entry. Pierre and Elie go through them
+  afterwards — which is exactly what he said would happen — and a correction is a one-line edit.
+  That workflow already exists and works: it is how the 340 Arabic names got reviewed.
+- **Arabic from the start**, same as the names. A safety cue that exists only in English is a safety
+  cue half the audience does not get.
+- **The cue is short enough to read mid-set.** One sentence. If it needs a paragraph, the figure is
+  not doing its job.
+- **It is content, so it belongs to Elie in the end.** He is the PT; the app carries his voice. Ship
+  it, flag it, and let him correct it — do not wait for a review cycle that has not been scheduled.
 
 ## 6. Where the template conflicts with the app, and what wins
 
@@ -151,15 +165,15 @@ that has not been scheduled.
   download-size problem in a single-file bundle (the app is already 614 KB with fonts). **Vector or
   vectorised is the target**; measure before committing to raster.
 
-## 7. The questions that gate the spec
+## 7. The open question
 
-1. **Pierre's ideas** (§0) — unknown until he says them. Everything else waits.
-2. **The clinical-text decision** (§5) — his call; recommendation on record.
-3. **Do all 340 get a wrong-figure pair, or only the ~40 where a fault is common?**
-   340×2 is a different project from 340×1 + 40 pairs. This is the cost driver.
+**Do all 340 movements get a wrong-figure pair, or only the ones where a specific fault is common?**
+340×2 is a different project from 340×1 plus ~40 pairs, and it is the cost driver. Decide it early.
+**Recommendation: pair the compounds and the movements the generator actually prescribes first** —
+that is where a fault carries real injury risk — and single-figure the isolation work.
 
-Secondary, decidable by whoever builds: raster vs vector, one gender or both per movement, and
-whether the mark is generated or reduced from the figure (the reference read says **reduced**).
+Secondary, decidable by whoever builds: one gender or both per movement, and whether the mark is
+generated separately or reduced from the figure (the reference read says **reduced**).
 
 ## 8. What NOT to do
 
@@ -168,6 +182,63 @@ whether the mark is generated or reduced from the figure (the reference read say
 - ❌ Do not ship a partial library — 40 movements with figures and 300 without reads as broken, not
   as progress. Ship a complete *category* (e.g. all Legs compounds) or nothing.
 - ❌ Do not bake a palette colour into an asset.
-- ❌ Do not let generated medical text reach a screen before §5 is settled.
+- ❌ Do not write injury text about a PERSON, a prescription, or a treatment — movement-level
+  mechanism only (§5).
 - ❌ Do not start with the logo (B3) instead — it comes after the figures, so the mark is drawn into
   a system that exists.
+
+---
+
+## 9. Production — the honest answer, and the first step
+
+**Pierre asked (2026-08-22):** *"You're going to use Opus 5 extra high, correct? If you have a better
+suggestion, let me know. And if you want me to connect to a service that you think will give us the
+optimal output, I'm open to suggestions."*
+
+### What Opus 5 at xhigh is right for
+
+**The biomechanics and the blueprint** — which fault is the common one for this movement, which joint
+takes the stress, which moment in the lift to draw, which muscles to mark, what the cue says, and the
+Arabic for all of it. That is analysis and judgement, it is where errors would be invisible and
+expensive, and xhigh is the correct setting. **Confirmed: yes, Opus 5 at xhigh.**
+
+### What it is NOT
+
+🔴 **No Anthropic model draws pictures.** "Generate the figures" therefore has to mean one of three
+things, and they are not equally good:
+
+| Route | What it really gives | The catch |
+|---|---|---|
+| **A. Parametric SVG, authored in code** | One skeleton system — joints, curved spline limbs, a 7.5-head canon — and all 340 poses expressed as joint angles against it | The stiffness problem is *mine to beat*, in the curve maths. But it is beatable, and it is the only route where **consistency is guaranteed by construction** |
+| **B. An external image generator** (would need connecting) | Photoreal-adjacent silhouettes, fast per image | 680 separate generations = 680 slightly different canons, heads, weights and line weights. **Consistency is the single hardest constraint in this library** and this route fights it. Plus raster in a single-file bundle, and colour baked into the asset |
+| **C. Licensed stock, restyled** | Immediately coherent (it is what the reference sheets are) | Someone else chose the poses; no wrong-form pair; no fault markers; licensing per movement |
+
+### The recommendation
+
+**Route A, and prove it on six movements before scaling.** Reasons, in order:
+
+1. **One canon by construction.** Same skeleton for all 340 — the thing that makes a library look
+   like a library — instead of 680 attempts at the same style.
+2. **The pair comes free.** The wrong figure is the same skeleton with two joint angles changed,
+   which is *exactly* the brief's rule ("the wrong figure reuses the same bone lengths"). No other
+   route gives that for nothing.
+3. **The 16px mark comes free** — the same pose, fewer parts.
+4. **Skin-agnostic and tiny.** SVG paths inherit `currentColor`, the fault zone takes `--anatomy`,
+   and 340 poses cost kilobytes rather than megabytes in a single-file bundle already at 614 KB.
+5. **Correctable.** A wrong elbow is a number to change, not a re-generation lottery.
+
+### Where a service WOULD genuinely help — the honest version
+
+Not for drawing. For **reference**: if the curves come out stiff, the fix is checking each pose
+against real photographs of the lift, and a stock-photo or video-frame source makes that faster.
+That is a nice-to-have, not a blocker, and it costs nothing to start without it. **Don't connect
+anything yet.** If route A stalls on stiffness after the six-movement proof, that is the moment to
+revisit — and the ask would then be a *vector* asset source, not an image generator.
+
+### Step 1 for the next session
+
+**Six movements, one per bucket** (a squat, a hinge, a horizontal press, a vertical pull, a
+single-joint arm movement, a machine movement). For each: the blueprint at xhigh (fault, joint,
+moment, muscles, cue, EN+AR) and both figures rendered in the movement sheet, on both skins, at full
+size and at 16px. **Then judge.** If those six do not look like they belong to one library and to
+this app, nothing is scaled — the route changes instead.

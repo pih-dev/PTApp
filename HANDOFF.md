@@ -1,6 +1,6 @@
 # PTApp / SpotSet — HANDOFF
 
-**Last updated:** 2026-08-21 ~23:55, Beirut.
+**Last updated:** 2026-08-22 ~00:5x, Beirut.
 **To resume:** Pierre types `continue`. **Read §0 back to him and stop.** Do not investigate, do not
 draft, do not ask follow-up questions — he said explicitly: *"I will clear, and immediately after
 clear I will continue. I will not do anything between."* The state below is the state you will find.
@@ -15,16 +15,20 @@ clear I will continue. I will not do anything between."* The state below is the 
 
 ## 0. Status — read this out
 
-- 🔴 **BOTH TASKS HAVE THEIR OWN HANDOFF NOW. Read the one for the subject, not this section.**
-  - **Task A — multi-user / Supabase → `HANDOFF-multi-user-build.md`.** Phase 1 is done and the
-    mirror is running; the next action is **wait out the soak** (`node scripts/soak-status.mjs` for
-    the count — never quote a remembered number). Nothing to build there.
-  - **Task B — the design pass → `HANDOFF-design.md`.** STARTED and shipping: **v2.17.0 is live**
-    (skins replace the dark/light pair, no visual change by design). Next action is **stage 2, the
-    Dashboard rebuild** — decided, specced, unblocked.
+- 🔴 **EVERY TASK HAS ITS OWN HANDOFF. Read the one for the subject, not this section.**
+  - ➡️ **THE LIVE THREAD: the exercise figures (B2) → `HANDOFF-figures.md`** (trigger `figures`).
+    Pierre cleared it to start; §9 step 1 is six proof movements. **This is what `continue` means
+    right now.**
+  - **The design pass → `HANDOFF-design.md` — ✅ FINISHED.** Five stages, v2.17 → v2.21.1 live; no
+    screen is still in the old idiom. The movement library (B1) shipped in v2.21.
+  - **Task A — multi-user / Supabase → `HANDOFF-multi-user-build.md`.** Phase 1 done, mirror
+    running; next action is **wait out the soak** (`node scripts/soak-status.mjs` — never quote a
+    remembered number). Nothing to build there.
   - **Store publishing → `HANDOFF-spotset-publishing.md`.** The iOS pipeline is written and
     committed; the Apple enrolment is still processing. 🔴 **The Play testers are still on
-    versionCode 3 / v2.15.1** and do not have the demo-WhatsApp fix — only a new AAB reaches them.
+    versionCode 3 / v2.15.1** — they have none of the design pass or the library, and only a new
+    AAB reaches them.
+  - **What is left, across all tracks:** `docs/design/2026-08-22-what-is-left.md`.
 - **The design decision record** — anchor, palette, the reversal, the three features it spawned:
   `docs/design/2026-08-21-design-differentiation-brief.md` §7; the spec is
   `docs/superpowers/specs/2026-08-21-visual-language-dashboard-design.md`.
