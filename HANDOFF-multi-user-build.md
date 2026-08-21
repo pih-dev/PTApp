@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~16:40, Beirut.
+**Last updated:** 2026-08-21 ~17:00, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -73,6 +73,16 @@ moment it became true, and the working tree was clean and pushed at every point.
   in-app afterwards. 🔴 This is not a shortcut — adding Google sign-in *forces* Sign in with Apple
   (Guideline 4.8). Own email/password keeps 4.8 dormant permanently, which is why §4 says
   **no social login, ever.**
+- **What DEMO mode actually is, verified in the code this session (`sync.js:15`, four gates in
+  `App.jsx`, `General.jsx:218/244/291`):** it is the **real app on local seed data with every sync
+  path switched off.** So — a tester **can** add, edit and delete freely, it all persists on their
+  own phone, and **no other tester ever sees any of it.** Nothing leaves the device. They cannot see
+  each other, and they cannot reach Elie's live records. That is the whole point of the credential.
+- 🔴 **DECIDED — the login screen carries a one-line hint:** *"Type `DEMO` to try the app, or sign in
+  with your email and password."* Pierre wondered whether it is worth it for a testing-only phase.
+  **It is:** without it a tester facing a login form has no way to know `DEMO` exists, and you are
+  relying on them remembering a WhatsApp message. It is one i18n string, and it is deleted in the
+  **same commit** that removes `DEMO` at Phase 4 — so it cannot rot into a stale instruction.
 - **Next action: the thin auth module in `src/`** — and 🔴 `STORAGE_KEY` → `ptapp-data:<userId>` is not optional (§4). ~~Superseded: `0002`, the tenant tables~~ (`tenants`, `tenant_snapshots`), with `owner_path`
   denormalized from `app_users` and restamped in the SAME function (§12.3).
 - **The design is settled and should not be re-opened:** two roles (`pt`/`client`), prime = a `pt`
