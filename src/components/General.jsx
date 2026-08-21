@@ -5,13 +5,14 @@ import { exportBackup, mergeBackup, genId, DEFAULT_TEMPLATES, haptic, saveData }
 import { getToken, saveSnapshot, listSnapshots, fetchSnapshot, isDemo, clearToken } from '../sync';
 import { isSignedIn, isSessionExpired, getUserEmail, signOut } from '../auth';
 import { t } from '../i18n';
+import { SKINS } from '../skins';
 
 // Raw GitHub URLs for docs — fetched at runtime, not bundled.
 // v2.10.1: the instructions URL was still pointing at v2.9 two releases later —
 // the in-app "App Instructions" button silently served stale docs. Bumping this
 // is now an explicit step in the CLAUDE.md deploy checklist.
 const DOCS = {
-  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.16.md',
+  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.17.md',
   changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
 };
 
@@ -141,7 +142,7 @@ function renderMarkdown(text) {
   return elements;
 }
 
-export default function General({ state, dispatch, onClose, lang, setLang, theme, setTheme, onUpdateToken }) {
+export default function General({ state, dispatch, onClose, lang, setLang, skin, setSkin, onUpdateToken }) {
   const [snapshots, setSnapshots] = useState(null);
   const [snapshotLoading, setSnapshotLoading] = useState(false);
   const [snapshotMsg, setSnapshotMsg] = useState('');
@@ -185,13 +186,21 @@ export default function General({ state, dispatch, onClose, lang, setLang, theme
           <span className={lang === 'ar' ? 'lang-active' : ''}>Ar</span>
           <span className={lang === 'en' ? 'lang-active' : ''}>En</span>
         </button>
+        {/* v2.17: the Drk/Lit toggle became a skin picker. It stays a segmented
+            control rather than a dropdown so every option is one tap and the
+            current one is visible without opening anything — and it grows to
+            the 3rd and 4th skin without changing shape. */}
         <button className="lang-toggle" onClick={() => {
-          const next = theme === 'dark' ? 'light' : 'dark';
-          setTheme(next);
-          localStorage.setItem('ptapp-theme', next);
+          haptic();
+          // Cycle rather than open a menu: with 2-4 entries a cycle is faster
+          // than a sheet, and the picker lives in the same row as the language
+          // toggle, which has always worked this way.
+          const i = SKINS.findIndex(sk => sk.id === skin);
+          setSkin(SKINS[(i + 1) % SKINS.length].id);
         }}>
-          <span className={theme === 'light' ? 'lang-active' : ''}>Lit</span>
-          <span className={theme === 'dark' ? 'lang-active' : ''}>Drk</span>
+          {SKINS.map(sk => (
+            <span key={sk.id} className={skin === sk.id ? 'lang-active' : ''}>{t(lang, sk.labelKey)}</span>
+          ))}
         </button>
       </div>
 

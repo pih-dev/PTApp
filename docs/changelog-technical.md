@@ -4,6 +4,50 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.17.0 — skins replace the dark/light pair (2026-08-21)
+
+**Trigger:** the design differentiation pass. Pierre's call — the dark/light pair
+goes, and a curated set of named skins the USER picks replaces it, shipped to the
+closed testers now because fourteen close long-term clients are the cheapest
+feedback this product will ever get. Design record:
+`docs/superpowers/specs/2026-08-21-visual-language-dashboard-design.md` §3.
+
+**Stage 1 of 2, and it is deliberately invisible.** The mechanism ships with
+today's two looks intact (`midnight` = the old dark, `steel` = the old light).
+Stage 2 repaints the Dashboard. Shipping the switch and the repaint together
+would mean that if anything looked wrong, we could not attribute it.
+
+- **`src/skins.js`** owns the list, the default and the migration. Adding a skin
+  is one entry there plus one token block in `styles.css` — no third place.
+- 🔴 **A skin is custom-property VALUES and nothing else.** Identical layout,
+  geometry and type across all of them; only hue changes. A skin that needs its
+  own rule is a second design and does not ship.
+- **`.theme-light` → `[data-skin="steel"]`**, 79 selectors renamed, values
+  untouched. Those per-element overrides are dark/light-era debt and retire
+  screen by screen as each is rebuilt on tokens.
+- **One setter** (`setSkin` in `App.jsx`) applies and persists together, so no
+  call site can apply without saving or save what it did not apply.
+- **Preference migration, not data migration.** `ptapp-theme === 'light'` →
+  `steel`, else `midnight`, old key removed. Never lived in `data.json`, so
+  `DATA_VERSION` stays 6 and no live-diff gate applies.
+
+**`scripts/sanity/sanity-skins.mjs` (new).** The assertion that matters: **every
+skin defines every token.** Custom properties cascade, so an omitted token
+silently inherits the previous skin's value — nothing errors, the skin you are
+working in looks right, and only the other skin's users see the bug. Made to
+fail on purpose before being trusted. Also: no rgba white/black literal in any
+component (the never-hardcode-rgba rule, enforced rather than remembered), with
+`ErrorBoundary.jsx` exempt *and the exemption re-justified by asserting it still
+imports nothing*; one home for the skin list; and the migration run for real
+under a fake `localStorage`, including storage that THROWS (the iOS "Block All
+Cookies" trap — a preference must degrade to the default, never break first paint).
+
+**Verified in a browser against the built bundle:** a seeded legacy light user
+migrated to `steel` with the old values intact, the picker flipped to `midnight`
+and persisted, and both names render under `dir="rtl"` in Arabic.
+
+---
+
 ## v2.16.1 — demo mode addresses nobody (2026-08-21)
 
 **Trigger:** a closed-test tester tapped WhatsApp on the `DEMO` sample clients and

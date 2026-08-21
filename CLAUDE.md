@@ -9,7 +9,7 @@
 (Remote control, commit discipline, memory and session management: global `~/.claude/CLAUDE.md`)
 
 ## What This Project Is
-A mobile-first web app for a personal trainer managing his gym clients. The PT uses it on his iPhone; Pierre develops and tests on Android.
+A mobile-first app for a personal trainer managing his gym clients. The PT uses it on his iPhone; Pierre develops and tests on Android.
 - **Developer:** Pierre (pierreishere@gmail.com / GitHub pih-dev).
 - **End user:** Elie, the PT — has standing authority to drive changes (see Governance).
 
@@ -21,7 +21,7 @@ on these keywords — don't open them yourself, and never answer from recollecti
 |---|---|
 | architecture, file tree, project structure, tech stack, reducer, dispatch, roadmap | `docs/architecture.md` |
 | trap, traps, gotcha, why did this break, edge case | `docs/traps.md` — truncates at 8 KB; the TRAPS index below is the complete list |
-| colour, color, palette, theme, dark mode, light theme, typography, look and feel | `docs/design-system.md` |
+| colour, color, palette, theme, skin, skins, typography, look and feel | `docs/design-system.md`, `docs/design/2026-08-21-design-differentiation-brief.md` |
 | data size, ceiling, pruning, overhead, performance budget, how big | `docs/app-health.md` |
 | sync, syncing, offline, service worker, localStorage, stale device | `docs/sync-and-offline-review.md`, `docs/superpowers/specs/2026-04-13-sync-fix-design.md`, `docs/instructions-v2.6.md` |
 | Elie, the PT, next visit, standing authority, governance, snapshot | `docs/elie-next-visit.md` |
@@ -43,35 +43,37 @@ record) and `docs/changelog-technical.md`.
 a word boundary, so `trap` misses `traps` — list both. The rule a session can act on alone stays
 inline; only the evidence routes.
 
-## Current Version: v2.16.1
-**Demo mode messages nobody (08-21).** `DATA_VERSION` stays 6, no migration. Detail: `docs/instructions-v2.16.1.md` (v2.16.0: `instructions-v2.16.md`).
-- 🔴 **NOTHING IN THE DEMO DATASET MAY REACH A REAL PERSON** — a tester's WhatsApp tap hit real strangers. `openWhatsApp` builds `wa.me/?text=` with **no number** while `isDemo()` is true (gate `sanity-demo-whatsapp.mjs`), and **no real phone number is ever seeded into demo data — the repo is PUBLIC.** `TOKEN_KEY`/`DEMO_TOKEN`/`isDemo` moved to `utils.js` (import cycle), re-exported by `githubDriver`.
-- 🔴 **`DEMO` is a review credential, not a feature** — the token screen opens on seeded local data (`src/demoData.js`), every sync path off. **Seeds ONLY onto an empty store**; the gate checks EVERY `ptapp-data*` key.
-- **Sign-in exists and is DARK** — `src/auth.js` + the login half of `TokenSetup` render only when the build carries `VITE_SUPABASE_*`; this one does not. `HANDOFF-multi-user-build.md`.
-- **`sync.js` is now `src/backend/`** — `githubDriver` (moved, byte-verified) + a dormant `supabaseDriver` behind `BACKEND_MODE`. Play: `HANDOFF-spotset-publishing.md`.
+## Current Version: v2.17.0
+**Skins replace the dark/light pair — stage 1 of the design pass (08-21).** No visual change by design. `DATA_VERSION` stays 6. Detail: `docs/instructions-v2.17.md` (it links the spec).
+- 🔴 **A SKIN IS CUSTOM-PROPERTY VALUES AND NOTHING ELSE.** Same layout, geometry and type in every skin; only hue changes. One needing its own rule is a second design and does not ship. List/default/migration live ONLY in `src/skins.js`; `sanity-skins.mjs` asserts every skin defines every token — an omitted one inherits the previous skin's value and breaks only the *other* skin's users.
+- **`.theme-light` is now `[data-skin="steel"]`** — renamed, values untouched. Its per-element overrides are dark/light-era debt, retired as each screen is rebuilt on tokens. **Do not add more.**
+- **`TOKEN_KEY`/`DEMO_TOKEN`/`isDemo` live in `utils.js`** (import cycle), re-exported by `githubDriver`. Demo-data contact rule: see TRAPS.
+- 🔴 **`DEMO` is a review credential, not a feature** — opens on seeded local data (`src/demoData.js`), every sync path off. **Seeds ONLY onto an empty store**; the gate checks EVERY `ptapp-data*` key.
+- **Sign-in exists but is DARK** (needs `VITE_SUPABASE_*` at build; this build has none) and **`sync.js` is now `src/backend/`** — `githubDriver` + a dormant `supabaseDriver` behind `BACKEND_MODE`. State: `HANDOFF-multi-user-build.md`, `HANDOFF-spotset-publishing.md`.
 
 ## Governance — Elie's Standing Authority (granted 2026-07-18)
-Elie may drive app changes in-session, on Pierre's conditions (*"since we're using github we can roll back, make sure data backups are done at every juncture"*). Routes on `Elie` / `standing authority`.
-- **Everything goes through git** — commit + push every change, so anything Elie drives can be rolled back. No un-committed experimentation on live-facing branches.
-- **Live-data snapshot at every juncture (MANDATORY):** before any deploy, schema change, migration or data-touching operation, save `data.json` from makdissi-dev/ptapp-data to `_archive/PTApp/data-snapshots/YYYY-MM-DD-<desc>.json` and byte-verify it against the API's reported size.
+Elie may drive app changes in-session on Pierre's conditions (*"since we're using github we can roll back, make sure data backups are done at every juncture"*). Routes on `Elie`.
+- **Everything goes through git** — commit + push every change, so anything Elie drives can be rolled back. No un-committed work on live-facing branches.
+- **Live-data snapshot at every juncture (MANDATORY):** before any deploy, schema change, migration or data-touching operation, run `node scripts/snapshot-live.mjs <desc>` — it archives `data.json` and byte-verifies it against the API.
 - **Provenance discipline continues** — specs, commits and changelogs record who asked for what, so Pierre can audit post-hoc. The grant was accepted on trust; he can revoke or re-scope it by editing this section.
 
 ---
 
 ## Version History
-**One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules still in force live in TRAPS / CONVENTIONS, never here.
+**One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules in force live in TRAPS / CONVENTIONS, never here.
 
-- **v2.16.0** (08-21) — honest session numbers (a forgiven cancel has no ordinal); multi-user groundwork DARK; `sync.js` → `src/backend/`. → `v2.16.md`
-- **v2.15.0–.1** (08-20) — renamed SpotSet in the UI; real launcher icons; the `DEMO` credential. → `v2.15*.md`
-- **v2.14.0–.3** (07-14/17) — multi-day splits 3–6 days (`PROGRAM_RULES_VERSION` 3); booking-time suggestion; Arabic names. → `v2.14*.md`
-- **v2.13 and earlier** — program generation from a 1RM eval (v5→v6, additive `programs[]`); see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
+- **v2.16.1** (08-21) — demo mode addresses nobody: `wa.me/?text=`, no number, while `isDemo()`. → `v2.16.1.md`
+- **v2.16.0** (08-21) — honest session numbers (a forgiven cancel has no ordinal); multi-user groundwork DARK; the driver split. → `v2.16.md`
+- **v2.15.0–.1** (08-20) — renamed SpotSet in the UI; real launcher icons; the `DEMO` credential. → `v2.15*`
+- **v2.14.0–.3** (07-14/17) — multi-day splits 3–6 days (`PROGRAM_RULES_VERSION` 3); booking-time suggestion; Arabic names. → `v2.14*`
+- **v2.13 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
 
 ## Data Preservation Rules (CRITICAL)
 - **NEVER delete or lose user data.** The PT's clients and sessions are real business records.
 - **Backward compatible always.** Schema change ⇒ bump `DATA_VERSION` and write a `migrateData` step in `utils.js`. Never make the user re-enter anything; `_dataVersion` tracks the schema per blob.
-- **Preserve history.** A removed feature keeps its data — archive under another key if needed, never drop it.
+- **Preserve history.** A removed feature keeps its data — archive it, never drop it.
 - **Every top-level collection follows the `sessions[]` pattern** in `mergeData`, `mergeBackup` and `REPLACE_ALL`; `DELETE_CLIENT` cascades to that client's sessions, evaluations and programs. Never orphan a record; never let an explicit key list drop a collection.
 - **Test migrations against live data.** Synthetic fixtures are necessary but not sufficient — run the live-diff gate against the PT's real exported data before deploying a schema change.
 
@@ -113,8 +115,8 @@ One function owns the computation, and **both the live preview and the save path
 | `buildSession(clientId, date, time)` | The only constructor for a new session from the booking form | `Schedule.jsx` |
 
 Also single-source, from v2.10.1 — **never re-inline what they own:** `applyOverride`, `formatOverrideDraft`, `getFocusTags`, `getSessionType`, `openWhatsApp`, `friendly`, `makeTemplateSender`.
-- **`normCharts.js` owns ALL chart data + scoring.** Never inline a threshold in a component. **Bump `CHARTS_VERSION` on any table change** — old records keep their frozen scores, new evaluations use the new table, no migration needed. Currently **3** (Elie's age-banded 1RM numbers, v2.13.2).
-- **`EvalTimer.jsx` is retained but unrendered** — 1RM attempts aren't timed. **Do not delete it**; a future rep-based battery could reuse it.
+- **`normCharts.js` owns ALL chart data + scoring.** Never inline a threshold. **Bump `CHARTS_VERSION` on any table change** — old records keep frozen scores, new evaluations use the new table, no migration. Currently **3** (Elie's age-banded 1RM numbers, v2.13.2).
+- **`EvalTimer.jsx` is retained but unrendered** — 1RM attempts aren't timed. **Do not delete it**; a rep-based battery could reuse it.
 
 ### Program generation
 - **Frozen at generation.** `PROGRAM_RULES_VERSION` (`programRules.js`) + `EXERCISE_BANK_VERSION` (`exerciseBank.js`) are stamped per record; later changes never rewrite stored programs. **Bump either on ANY change** to volume tiers, method catalog, fat-loss thresholds, or the bank. **`exerciseBank.js` is GENERATED** — rebuild via `scripts/build_exercise_bank.py`, never hand-edit.
@@ -122,14 +124,14 @@ Also single-source, from v2.10.1 — **never re-inline what they own:** `applyOv
 - **The Deadlift anchor counts toward Back, not its bank primary (Quads).** Spec §6 maps Deadlift to the Pull day, so `fillBucket` force-overrides the anchor's `bucket` to the day's major — without it, Back runs an exercise short every block.
 
 ### Arabic / i18n
-- **Transliteration rule (Elie, standing):** when a literal Arabic translation wouldn't be understood in the gym, use the **English term written in Arabic letters** (Block → بلوك, not مرحلة). Applies to every future Arabic entry; also in the header comment of `src/exerciseNamesAr.js`.
+- **Transliteration rule (Elie, standing):** when a literal Arabic translation wouldn't be understood in the gym, use the **English term in Arabic letters** (Block → بلوك, not مرحلة). Every future Arabic entry; also in `src/exerciseNamesAr.js`'s header.
 - Use `getStatus(status, lang, t)` for translated status labels.
 
 ### Colour & badges
-Accent `#2563EB` / `#60A5FA` · danger `#EF4444` · success `#10B981` · active-session amber `#F59E0B` (`card-now`). **Status badges use a CSS class, NEVER inline `style={{color, background}}`** — ``className={`badge badge-${status}`}``. **Theme-aware vars `--t1`..`--t5` and `--sep` in inline styles; never hardcode rgba.**
+Accent `#2563EB` / `#60A5FA` · danger `#EF4444` · success `#10B981` · active-session amber `#F59E0B` (`card-now`). **Status badges use a CSS class, NEVER inline `style={{color,background}}`.** 🔴 **`--t1`..`--t5` / `--sep` in inline styles; never hardcode rgba — a literal belongs to ONE skin** (`sanity-skins.mjs` enforces it).
 
 ### Sync (v2.6+)
-Debounced 1s; localStorage saves immediately, the GitHub push waits. `pushRemoteData` retries 3× on 409 and **merges, never blind-overwrites**. Per-record `_modified` + union-by-ID means a freshly-edited record beats a stale device's copy. **Every failure must surface via `syncStatus` — never `.catch(() => {})` on a sync path.**
+Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` retries 3× on 409 and **merges, never blind-overwrites**; per-record `_modified` + union-by-ID means a freshly-edited record beats a stale device's. **Every failure surfaces via `syncStatus` — never `.catch(() => {})` on a sync path.**
 
 ### Reducer actions
 **Full table: `docs/architecture.md` → Reducer actions.** Read it before adding or dispatching an unfamiliar action. Non-negotiables:
@@ -140,22 +142,22 @@ Debounced 1s; localStorage saves immediately, the GitHub push waits. `pushRemote
 ---
 
 ## KNOWN ISSUES / OBLIGATIONS
-- 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev, ptapp-data Contents R/W only. Replacement UI: General → Backup → "Update sync token".
-- **Program pruning (v2.15)** — before `data.json` nears the 1 MB ceiling (14.5% on 2026-08-03; growth jumped 6.6× once programs shipped). 🔴 **Standing rule: archive `data.json` to `_archive/PTApp/data-snapshots/` BEFORE any pruning run** — cloud deletes are irreversible.
-- **Review finding P3 — DECIDED 2026-08-05, NOT BUILT.** Work order: `docs/reviews/2026-06-10-fable5-codebase-review.md`. SessionCard = **scope B** (Dashboard-expanded + Schedule only); also deletes the `focus: []` bug at `Schedule.jsx:201`. (P6 shipped in v2.16.0.)
-- **App name = SpotSet** (2026-08-20). `com.spotset.app` is PERMANENT.
+- 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev, ptapp-data Contents R/W. Replace via General → Backup → "Update sync token".
+- **Program pruning (v2.15)** — before `data.json` nears the 1 MB ceiling (14.5% on 2026-08-03; growth jumped 6.6× once programs shipped). 🔴 **Snapshot before any pruning run** — cloud deletes are irreversible.
+- **Review finding P3 — DECIDED 2026-08-05, NOT BUILT.** `docs/reviews/2026-06-10-fable5-codebase-review.md`. SessionCard = **scope B** (Dashboard-expanded + Schedule); also kills the `focus: []` bug at `Schedule.jsx:201`. 🔴 **Fold it into the Dashboard rebuild** — both touch the same component.
+- **App name = SpotSet** (2026-08-20); `com.spotset.app` is PERMANENT.
 
 ---
 
 ## REVIEW DISCIPLINE
-After **3+ feature changes** or ~2 hours of coding, pause and check: did the fix land everywhere the pattern exists? · every read AND write migrated on a storage refactor? · callbacks shadowing `t`/`d`? · inline `marginLeft`/`borderLeft` or hardcoded colours? · strings missing from `i18n.js`? · anything that deletes/overwrites/fails to migrate? · new `.catch(() => {})` or dispatches in loops? (The incident behind each check: `docs/release-hygiene.md` §3.)
+After **3+ feature changes** or ~2 h of coding, pause: did the fix land everywhere the pattern exists? · every read AND write migrated on a storage refactor? · callbacks shadowing `t`/`d`? · inline `marginLeft`/`borderLeft` or hardcoded colours? · strings missing from `i18n.js`? · anything that deletes/overwrites/fails to migrate? · new `.catch(() => {})` or dispatches in loops? (Incidents: `docs/release-hygiene.md` §3.)
 
-After every commit: **bug fix** → root cause + pattern into `docs/traps.md`, then grep for it elsewhere · **feature** → `docs/instructions-v{X}.md` + both changelogs · **design decision** → CONVENTIONS or `docs/architecture.md`, not just the commit message · **incident** → memory.
+After every commit: **bug fix** → root cause + pattern into `docs/traps.md`, then grep elsewhere · **feature** → `docs/instructions-v{X}.md` + both changelogs · **design decision** → CONVENTIONS or `docs/architecture.md` · **incident** → memory.
 
 ---
 
 ## How to Build, Verify, and Deploy
-Dev: `npm install && npm run dev`. Every code change goes through this pipeline — **never skip steps**:
+Dev: `npm install && npm run dev`. Every change goes through this pipeline — **never skip steps**:
 ```bash
 # 1. Build
 npm run build
@@ -188,7 +190,7 @@ git checkout master
 - Run the whole suite before every deploy — **check exit codes, don't eyeball output**: `for f in scripts/sanity/*.mjs; do node "$f" || echo "FAIL $f"; done`. 13 of 17 pass; the 3 above are the spent gates, and `sanity-rls-matrix` exits **2** = live RLS pass skipped (no Supabase instance). **Exit 2 is not a pass.**
 
 ### 🔒 Release hygiene — the five rules (added 2026-08-03)
-CLAUDE.md was slimmed to 19.5 KB at v2.9.2 and drifted back to 42 KB in five months: every release appended a section, none ever collapsed one. **Do not skip these "just this once" — that is how it regrew.** Why each exists: `docs/release-hygiene.md` §1.
+CLAUDE.md was slimmed to 19.5 KB at v2.9.2 and back to 42 KB in five months: every release appended, none collapsed. **Never skip these "just this once" — that is how it regrew.** Why: `docs/release-hygiene.md` §1.
 
 ```bash
 wc -c CLAUDE.md                              # RULE 1: must be < 22000 before committing

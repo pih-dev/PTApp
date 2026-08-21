@@ -4,6 +4,20 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.17.0 — themes you pick by name (August 21, 2026)
+
+**What you see:** the Drk/Lit switch in General is now a list of named looks —
+**Midnight** and **Steel** to start, more to come. Whichever you were using, you
+stay on it; the app moves your old setting across by itself the first time it
+opens.
+
+**What you do not see: anything else.** The app looks exactly as it did. That is
+on purpose. The next release repaints the home screen in a new visual language,
+and if the switch and the repaint arrived together and something looked wrong,
+there would be no way to tell which of the two caused it.
+
+---
+
 ## v2.16.1 — the demo can't message a stranger (August 21, 2026)
 
 **The problem, found by a tester:** the sample clients the `DEMO` login shows are

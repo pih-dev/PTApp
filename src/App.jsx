@@ -10,6 +10,7 @@ import { reducer, loadData, saveData, today, timeToMinutes, haptic, initElasticS
 import { getToken, fetchRemoteData, pushRemoteData, isDemo, resetConcurrencyTokens } from './sync';
 import { isSignedIn, isSessionExpired, getUserId, onAuthChange } from './auth';
 import { t } from './i18n';
+import { loadSkin, saveSkin } from './skins';
 
 // Debounce timer for GitHub sync — prevents burst of API calls when multiple
 // dispatches fire in quick succession (e.g. auto-completing several sessions).
@@ -45,7 +46,14 @@ export default function App() {
   // this true would park the reviewer on the spinner forever.
   const [initialLoad, setInitialLoad] = useState(!!getToken() && !isDemo());
   const [lang, setLang] = useState(() => localStorage.getItem('ptapp-lang') || 'en');
-  const [theme, setTheme] = useState(() => localStorage.getItem('ptapp-theme') || 'dark');
+  // v2.17: skins replace the dark/light pair. loadSkin() also performs the
+  // one-time ptapp-theme → ptapp-skin migration, guarded against the iOS
+  // "Block All Cookies" SecurityError — see src/skins.js.
+  const [skin, setSkinState] = useState(loadSkin);
+  // Persist and apply in one call, so no call site can change the skin without
+  // saving it (or save one it did not apply). saveSkin returns the value it
+  // actually stored, which is the default if an unknown id was passed.
+  const setSkin = (id) => setSkinState(saveSkin(id));
   const [syncStatus, setSyncStatus] = useState('idle');
   const [showDebug, setShowDebug] = useState(false);
   // v2.12.1 (Jun-30 token-expiry incident): when sync fails with a 401 the token is
@@ -234,7 +242,7 @@ export default function App() {
   ];
 
   return (
-    <div className={`app-container${theme === 'light' ? ' theme-light' : ''}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="app-container" data-skin={skin} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="header">
         <div className="logo">
           <div className="logo-icon">
@@ -291,7 +299,7 @@ export default function App() {
       </div>
 
       {showGeneral && <General state={state} dispatch={dispatch} onClose={() => setShowGeneral(false)}
-          lang={lang} setLang={setLang} theme={theme} setTheme={setTheme}
+          lang={lang} setLang={setLang} skin={skin} setSkin={setSkin}
           onUpdateToken={() => setShowTokenUpdate(true)} />}
 
       {/* v2.12.1: token re-entry — reachable from the red dot (when 401) and from
@@ -311,7 +319,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.16.1</div>
+          <div><strong>Version:</strong> v2.17.0</div>
           <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>
