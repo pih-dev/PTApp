@@ -54,6 +54,17 @@ export default function App() {
   // saving it (or save one it did not apply). saveSkin returns the value it
   // actually stored, which is the default if an unknown id was passed.
   const setSkin = (id) => setSkinState(saveSkin(id));
+  // v2.18: the attribute goes on <html>, not on the app container. The tokens
+  // live on :root, and <body> plus the area outside the 480px container have to
+  // paint the SAME ground — otherwise a steel (daylight) user gets a near-black
+  // strip wherever iOS collapses the URL bar. theme-color rides along so the
+  // iOS status bar and the Android task switcher match the chosen skin.
+  useEffect(() => {
+    document.documentElement.setAttribute('data-skin', skin);
+    const ground = getComputedStyle(document.documentElement).getPropertyValue('--ground').trim();
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta && ground) meta.setAttribute('content', ground);
+  }, [skin]);
   const [syncStatus, setSyncStatus] = useState('idle');
   const [showDebug, setShowDebug] = useState(false);
   // v2.12.1 (Jun-30 token-expiry incident): when sync fails with a 401 the token is
@@ -319,7 +330,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.17.0</div>
+          <div><strong>Version:</strong> v2.18.0</div>
           <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>

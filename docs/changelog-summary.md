@@ -4,6 +4,29 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.18.0 — the home screen, rebuilt (August 21, 2026)
+
+**What you see:** the home screen stopped looking like every other app. The boxes
+around each session are gone — sessions now sit on the floor of the screen with a
+short bar between them, the way plates sit on a rack. The three coloured tiles at
+the top are gone too: the week is drawn as seven small stacks, one per day, with
+today lit up, and the total beside it.
+
+**A client's package is now a picture.** Instead of reading "5/12", you see the
+plates: the solid ones are the sessions used, the hollow ones are what is left,
+and when a package is finished the whole row turns the bright accent colour so
+you cannot walk past it.
+
+**And the app has its own lettering** — names in a condensed uppercase, every
+number in a typewriter face so times and counts line up in a column instead of
+shifting about as the screen updates.
+
+**Nothing about your data changed.** Same sessions, same order, same buttons,
+same counts — this release only changes how the screen looks. The other screens
+keep the old look until each gets its own turn.
+
+---
+
 ## v2.17.0 — themes you pick by name (August 21, 2026)
 
 **What you see:** the Drk/Lit switch in General is now a list of named looks —

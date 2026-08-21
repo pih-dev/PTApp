@@ -10,6 +10,13 @@
 #
 # 22 KB rather than 20: ~3.4 KB of that file is a Topic Router that buys keyword
 # reach into all 83 docs. Raised 2026-08-05, adopted by CCHealth the same day.
+#
+# 24 KB from 2026-08-21 (v2.18): the design pass turned the visual language into
+# a per-session RULE SET — paint only from tokens, the accent never touches
+# chrome, no uppercase or letter-spacing under RTL, one screen per pass. Those
+# belong inline (hygiene rule 4: a durable rule never lives only in a changelog),
+# and routing them would mean a session repaints a screen without ever reading
+# them. ~1 KB of genuinely new law, bought deliberately.
 
-CLAUDE.md=22000
+CLAUDE.md=24000
 MEMORY.md=12000

@@ -33,13 +33,21 @@ console.log('\n[tokens] every skin defines every token');
 //    cascade, so a skin that omits one silently inherits the previous skin's
 //    value. Nothing errors, nothing looks wrong in the skin you are working in,
 //    and the bug appears only for the user who picked the OTHER one.
-const TOKENS = ['--t1', '--t2', '--t3', '--t4', '--t5', '--sep', '--card-bg'];
+const TOKENS = ['--t1', '--t2', '--t3', '--t4', '--t5', '--sep', '--card-bg',
+  // v2.18 (design pass stage 2) — the midnight & arc palette. Same rule, more
+  // surface: the Dashboard paints ONLY from these, so a skin that omits one
+  // renders another skin's colour on a screen its author never opened.
+  '--ground', '--ground-lit', '--raised', '--chalk', '--chalk-dim', '--chalk-faint',
+  '--accent', '--bar', '--ok', '--warn', '--anatomy'];
 const skinIds = [...css.matchAll(/\[data-skin="([a-z0-9-]+)"\]\s*\{/g)].map(m => m[1]);
 const declaredSkins = [...new Set(skinIds)];
 assert(declaredSkins.length >= 1, `styles.css declares skin blocks (${declaredSkins.join(', ') || 'none'})`);
 
-// The bare .app-container block carries the default skin's values.
-const baseBlock = css.slice(css.indexOf('.app-container {'), css.indexOf('.header {'));
+// v2.18: the default (midnight) values live on :root, not on .app-container —
+// <body> and the area outside the 480px container have to paint from the same
+// skin, and they cannot see a custom property scoped to a descendant.
+const rootStart = css.indexOf(':root {');
+const baseBlock = css.slice(rootStart, css.indexOf('}', rootStart));
 for (const tok of TOKENS) {
   assert(baseBlock.includes(`${tok}:`), `default (midnight) defines ${tok}`);
 }

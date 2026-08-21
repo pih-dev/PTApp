@@ -15,7 +15,7 @@ const T = {
     sessions: 'Sessions',
 
     // Dashboard
-    overview: '📊 Overview',
+    overview: 'Overview',
     statClients: 'Clients',
     statToday: 'Today',
     statWeek: 'This Week',
@@ -348,7 +348,7 @@ const T = {
     sessions: 'الجلسات',
 
     // Dashboard
-    overview: '📊 نظرة عامة',
+    overview: 'نظرة عامة',
     statClients: 'العملاء',
     statToday: 'اليوم',
     statWeek: 'هذا الأسبوع',

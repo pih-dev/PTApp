@@ -1,10 +1,65 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { height: 100%; overflow: hidden; }
 
+/* 🔴 THE TOKENS LIVE ON :root, NOT ON THE CONTAINER. `data-skin` is written on
+   <html> (App.jsx), so <body> and the area outside the 480px container paint
+   from the SAME skin. When they did not, a steel (daylight) user got a
+   near-black strip wherever iOS collapsed the URL bar or the viewport was wider
+   than the app — the old body gradient showing through. */
+:root {
+  /* Theme-aware colors for inline styles. 🔴 Never hardcode rgba(255,255,255,…)
+     in a component: a literal silently belongs to ONE skin and goes wrong in
+     every other one. */
+  --t1: rgba(255,255,255,0.9);   /* primary: bold, headings */
+  --t2: rgba(255,255,255,0.7);   /* secondary: titles, labels */
+  --t3: rgba(255,255,255,0.6);   /* tertiary: meta, descriptions */
+  --t4: rgba(255,255,255,0.5);   /* muted: hints, counts, icons */
+  --t5: rgba(255,255,255,0.4);   /* dim: subtle info */
+  --sep: rgba(255,255,255,0.06); /* separators / borders */
+  --card-bg: rgba(255,255,255,0.04); /* card base — consumed by color-mix for red renewal tint */
+
+  /* ─── The design-pass palette: "midnight & arc" (v2.18, spec §3.1) ───
+     🔴 EVERY SKIN DEFINES EVERY ONE OF THESE. A skin that omits a token
+     silently inherits the previous skin's value and looks wrong only for the
+     OTHER skin's users — sanity-skins.mjs is the gate that catches it.
+     Three hues, three jobs, no overlap: accent = load and urgency (🔴 and it
+     NEVER touches chrome — no tabs, buttons, links or focus rings), ok/warn =
+     status, anatomy = inside exercise figures only, never in the UI.
+
+     🔴 THE RAMP IS MEASURED, NOT EYEBALLED. Every value below clears its
+     contrast target against BOTH ends of the ground gradient — the lit end is
+     brighter and it is exactly where the week strip sits, so a ramp checked
+     only against --ground passes while the top of the screen fails. Text ≥4.5,
+     graphics (bar, plate outline) ≥3. --chalk-faint is DECORATION ONLY: hollow
+     plates, the collar, the chevron. No text below 13px may use it. */
+  --ground: #0A1524;        /* the floor everything sits on — no cards, so this IS the surface */
+  --ground-lit: #0F2A52;    /* the lit end of the ground gradient: hierarchy without floating */
+  --raised: #16263C;        /* the only "above the ground" value: wells, and the row press state */
+  --chalk: #E9EEF3;         /* primary text — chalk on a gym floor, not pure white */
+  --chalk-dim: #9DAABB;     /* secondary, and EVERY small label */
+  --chalk-faint: #6E7D95;   /* decoration only — never text under 13px */
+  --accent: #35B7E8;        /* arc. Load and urgency ONLY. Never #2563EB — that is the generated blue. */
+  --bar: #5A78A8;           /* every divider is a bar shaft, and a shaft has to be visible */
+  --ok: #4FC08D;
+  --warn: #E0A32B;
+  --anatomy: #F2622C;       /* reserved for the exercise figures — unused in the UI on purpose */
+
+  /* Type roles (spec §4). Saira Condensed uppercase reads as an instrument
+     label and is the fastest exit from the generated look; IBM Plex Mono with
+     tabular-nums stops every count and time jittering between renders.
+     🔴 Arabic gets NO uppercase and NO letter-spacing — see the [dir="rtl"]
+     block in THE PLATE AND THE BAR. */
+  --font-display: 'Saira Condensed', 'Saira', 'Segoe UI', -apple-system, sans-serif;
+  --font-body: 'Saira', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
 body {
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: linear-gradient(145deg, #0F0F0F 0%, #1A1A2E 50%, #16213E 100%);
-  color: #E8E8E8;
+  font-family: var(--font-body);
+  /* Same ground as the container: whatever shows around or behind the app
+     belongs to the chosen skin, never to a hardcoded dark gradient. */
+  background: var(--ground);
+  color: var(--chalk);
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
 }
@@ -38,6 +93,12 @@ button:active { transform: scale(0.97); }
 
 /* ─── Layout ─── */
 .app-container {
+  /* 🔴 THE GROUND, not a background. The card is deleted (spec §2), so rows sit
+     directly on this and the light from the top is what creates hierarchy —
+     nothing has to float to be legible. */
+  background: radial-gradient(130% 70% at 50% 6%, var(--ground-lit) 0%, var(--ground) 62%, var(--ground) 100%);
+  color: var(--chalk);
+
   max-width: 480px;
   margin: 0 auto;
   height: 100vh;
@@ -46,17 +107,6 @@ button:active { transform: scale(0.97); }
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  /* Theme-aware colors for inline styles — the `midnight` skin's values, which
-     are also the fallback when no skin attribute is present. Overridden per skin
-     below. 🔴 Never hardcode rgba(255,255,255,…) in a component: a literal
-     silently belongs to ONE skin and goes wrong in every other one. */
-  --t1: rgba(255,255,255,0.9);   /* primary: bold, headings */
-  --t2: rgba(255,255,255,0.7);   /* secondary: titles, labels */
-  --t3: rgba(255,255,255,0.6);   /* tertiary: meta, descriptions */
-  --t4: rgba(255,255,255,0.5);   /* muted: hints, counts, icons */
-  --t5: rgba(255,255,255,0.4);   /* dim: subtle info */
-  --sep: rgba(255,255,255,0.06); /* separators / borders */
-  --card-bg: rgba(255,255,255,0.04); /* card base — consumed by color-mix for red renewal tint */
 }
 
 .header {
@@ -169,7 +219,7 @@ button:active { transform: scale(0.97); }
   z-index: 300;
   min-width: 220px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  font-family: 'DM Sans', monospace;
+  font-family: var(--font-mono);
   -webkit-user-select: text;
   user-select: text;
 }
@@ -458,18 +508,11 @@ button:active { transform: scale(0.97); }
 .empty-icon { font-size: 50px; margin-bottom: 12px; }
 
 /* ─── Stats ─── */
-.stat-row { display: flex; gap: 10px; margin-bottom: 20px; }
-.stat-card {
-  border-radius: 16px; padding: 16px; flex: 1; min-width: 0;
-  background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(37,99,235,0.02));
-  border: 1px solid rgba(255,255,255,0.08);
-}
-.stat-num { font-size: 28px; font-weight: 900; }
-.stat-label { font-size: 12px; color: rgba(255,255,255,0.65); font-weight: 600; }
-/* Per-stat-card accent colors — dark theme defaults, light theme overrides below */
-.stat-clients { background: linear-gradient(135deg, rgba(99,102,241,0.31), rgba(99,102,241,0.19)); border-color: rgba(99,102,241,0.33); }
-.stat-today { background: linear-gradient(135deg, rgba(59,130,246,0.31), rgba(59,130,246,0.19)); border-color: rgba(59,130,246,0.33); }
-.stat-week { background: linear-gradient(135deg, rgba(16,185,129,0.31), rgba(16,185,129,0.19)); border-color: rgba(16,185,129,0.33); }
+/* v2.18: the three tinted stat tiles are GONE. They were the clearest instance
+   of the generated look (three translucent cards, three arbitrary hues) and the
+   week now reads as loaded columns instead — see .load-* below. Grepped across
+   all of src/ before deletion: Dashboard.jsx was the only consumer, and the
+   steel overrides for them went with them. */
 
 /* ─── Helpers ─── */
 .flex-row { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -848,6 +891,252 @@ button:active { transform: scale(0.97); }
   to { transform: rotate(360deg); }
 }
 
+/* ═══ THE PLATE AND THE BAR — Dashboard, design pass stage 2 (v2.18) ═════════
+   Spec: docs/superpowers/specs/2026-08-21-visual-language-dashboard-design.md §2, §6.
+
+   🔴 THE CARD IS DELETED HERE. No outline, no hairline box, no ambient shadow —
+   rows sit on the lit ground and a BAR separates them. That single decision
+   breaks four of the six traits the brief identified as the generated look;
+   type and palette break the other two.
+
+   🔴 EVERY VALUE BELOW IS A TOKEN. A literal colour here would belong to one
+   skin and go wrong in the other one — sanity-skins.mjs is the gate.
+
+   The grammar test for anything added to this section: it must answer "what
+   does this weigh?". If it cannot, it is decoration and it does not ship.
+
+   RTL: Arabic has no uppercase, AND letter-spacing breaks Arabic's joined
+   letterforms — so every rule that spaces or uppercases Latin is neutralised
+   under [dir="rtl"] at the end of this section, where hierarchy is carried by
+   weight instead. That is not a fallback; it is the Arabic design. */
+
+/* ─── The bar: collar, label, shaft, count. Replaces .section-title + hairline ─── */
+.bar {
+  display: flex; align-items: center; gap: 10px;
+  margin: 24px 0 12px;
+}
+.bar-collar {
+  flex: 0 0 auto; width: 5px; height: 20px; border-radius: 1px;
+  background: var(--chalk-faint);
+}
+.bar-label {
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--chalk); white-space: nowrap;
+}
+.bar-shaft { flex: 1; height: 3px; border-radius: 2px; background: var(--bar); }
+.bar-count {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: 13px; font-weight: 600; color: var(--chalk-dim);
+}
+
+/* ─── The week as loaded columns. Replaces the three tinted stat tiles ─── */
+.load { display: flex; align-items: flex-end; gap: 18px; margin-bottom: 4px; }
+.load-figure { flex: 0 0 auto; }
+.load-num {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: 42px; font-weight: 600; line-height: 0.9; color: var(--chalk);
+}
+.load-cap {
+  font-family: var(--font-display); text-transform: uppercase;
+  letter-spacing: 0.16em; font-size: 10px; font-weight: 600;
+  color: var(--chalk-dim); margin-top: 8px;
+}
+.load-cols { flex: 1; display: flex; align-items: flex-end; gap: 6px; }
+.load-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+/* column-reverse: the stack loads from the bar upward, the way plates go on */
+.load-stack { display: flex; flex-direction: column-reverse; gap: 3px; min-height: 9px; width: 100%; }
+.load-seg {
+  width: 100%; height: 9px; border-radius: 1px;
+  background: var(--chalk-faint);
+  transform-origin: bottom;
+  animation: plateOn 0.22s ease-out both;
+}
+.load-base { width: 100%; height: 3px; border-radius: 1px; background: var(--bar); }
+.load-day {
+  font-family: var(--font-display); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--chalk-dim);
+}
+/* 🔴 The accent marks TODAY — load and urgency. It is the only thing on this
+   screen allowed to wear it, and it never appears on a tab, button or link. */
+.load-col.is-today .load-seg { background: var(--accent); }
+.load-col.is-today .load-day { color: var(--accent); }
+.load-col.is-today .load-base { background: var(--accent); }
+
+@keyframes plateOn {
+  from { transform: scaleY(0); opacity: 0; }
+  to   { transform: scaleY(1); opacity: 1; }
+}
+
+/* ─── Plates: the package, read as load on a bar ───
+   filled = used · hollow = remaining · all-accent = spent and due to renew.
+   Past PLATE_MAX discs a row stops being countable at a glance, so it becomes a
+   loaded shaft instead — same meaning, still never a bare number. */
+.plates { display: flex; align-items: center; gap: 3px; }
+.plate {
+  width: 7px; height: 16px; border-radius: 2px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--chalk-faint);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+.plate.is-used { background: var(--chalk-dim); box-shadow: inset 0 0 0 1.5px var(--chalk-dim); }
+.plate.is-due  { background: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.plate-shaft {
+  position: relative; width: 78px; height: 7px; border-radius: 4px;
+  background: var(--bar); overflow: hidden;
+}
+.plate-shaft-fill {
+  position: absolute; inset-block: 0; inset-inline-start: 0;
+  background: var(--chalk-dim); border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.plate-shaft.is-due .plate-shaft-fill { background: var(--accent); }
+.plate-count {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: 12px; font-weight: 500; color: var(--chalk-dim);
+}
+
+/* ─── A session row on the ground ─── */
+.srows { margin-top: 2px; }
+.srow {
+  position: relative;
+  padding: 14px 0 16px;
+  transition: transform 0.16s ease;
+  animation: riseIn 0.26s ease-out both;
+  animation-delay: calc(var(--i, 0) * 30ms);
+}
+/* The divider IS a bar shaft — not a hairline, and not a box around anything. */
+.srow:not(:last-child)::after {
+  content: ''; position: absolute; inset-inline: 0; bottom: 0;
+  height: 2px; border-radius: 1px; background: var(--bar);
+}
+.srow-tap {
+  cursor: pointer;
+  /* Bleed the padding outward so the press state has a shape to fill without
+     moving a single pixel of layout. */
+  padding-inline: 12px; margin-inline: -12px; border-radius: 10px;
+  transition: transform 0.16s ease, background 0.12s ease;
+}
+.srow-tap:active { transform: scale(0.99); background: var(--raised); }
+/* 🔴 The inline-start bar is RESERVED for the session happening right now.
+   Every other row used to carry one in its session-type colour, which is how
+   six arbitrary hues ended up decorating a list. */
+.srow.is-now { padding-inline-start: 12px; }
+.srow.is-now::before {
+  content: ''; position: absolute; inset-block: 10px; inset-inline-start: 0;
+  width: 3px; border-radius: 2px; background: var(--accent);
+  box-shadow: 0 0 14px var(--accent);
+}
+.srow-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.srow-name {
+  font-family: var(--font-display); font-size: 19px; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase; color: var(--chalk);
+  display: flex; align-items: baseline; gap: 8px; min-width: 0;
+}
+.srow-time {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: 17px; font-weight: 600; color: var(--chalk); flex: 0 0 auto;
+}
+.srow-meta {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  margin-top: 6px; font-size: 12.5px; color: var(--chalk-dim);
+}
+.srow-mark {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--chalk-dim);
+}
+.srow-date {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: 12px; color: var(--chalk-dim);
+}
+.srow-load { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.srow-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.srow-chevron { color: var(--chalk-faint); flex: 0 0 auto; }
+
+/* The status badge keeps its CSS class (never an inline style) and is restyled
+   here for the rows that live on the ground: a mono instrument label, not a
+   coloured pill. Scoped, so every other screen's badges are untouched. */
+.srow .badge, .rrow .badge {
+  background: transparent; padding: 0; border-radius: 0;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.srow .badge-scheduled { color: var(--chalk-dim); }
+.srow .badge-confirmed { color: var(--ok); }
+.srow .badge-completed { color: var(--chalk-dim); }
+.srow .badge-cancelled { color: var(--warn); }
+
+/* The inline type selector loses its box on the Dashboard and reads as a mark. */
+.srow .inline-type-select {
+  border: none;
+  /* 🔴 A borderless control still needs a finger-sized target. The padding grows
+     the hit area to ~40px and the matching negative margin gives the layout back,
+     so the row looks identical and stops being a 14px sliver to hit. */
+  padding: 12px 8px; margin: -12px -8px;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--chalk-dim);
+}
+.srow .inline-type-select:active { color: var(--chalk); }
+
+/* ─── Renewal rows: the same row, with every plate on the accent ─── */
+.rrow {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0 14px; position: relative;
+  animation: riseIn 0.26s ease-out both;
+}
+.rrow:not(:last-child)::after {
+  content: ''; position: absolute; inset-inline: 0; bottom: 0;
+  height: 2px; border-radius: 1px; background: var(--bar);
+}
+.rrow-main { flex: 1; min-width: 0; }
+.rrow-name {
+  font-family: var(--font-display); font-size: 17px; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase; color: var(--chalk);
+}
+.rrow-load { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+
+/* ─── Empty state: a drawn mark, never an emoji ─── */
+.empty-mark { color: var(--chalk-faint); margin-bottom: 16px; }
+.empty-line {
+  font-family: var(--font-display); text-transform: uppercase;
+  letter-spacing: 0.12em; font-size: 13px; font-weight: 600; color: var(--chalk-dim);
+}
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 🔴 ARABIC. No uppercase (there is no case), and NO letter-spacing — spacing
+   Arabic breaks the joins between letters and turns a word into rubble. The
+   condensed display face has no Arabic coverage either, so RTL falls back to
+   the body stack and carries the same hierarchy through weight and size. */
+[dir="rtl"] .bar-label,
+[dir="rtl"] .load-cap,
+[dir="rtl"] .load-day,
+[dir="rtl"] .srow-name,
+[dir="rtl"] .rrow-name,
+[dir="rtl"] .empty-line,
+[dir="rtl"] .srow .badge,
+[dir="rtl"] .srow-mark,
+[dir="rtl"] .srow .inline-type-select {
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--font-body);
+}
+[dir="rtl"] .srow-name,
+[dir="rtl"] .rrow-name,
+[dir="rtl"] .bar-label { font-weight: 700; }
+
+/* 🔴 ACCESSIBILITY, NOT A PREFERENCE — and explicitly NOT covered by the
+   "build the best version, measure later" override (spec §5). */
+@media (prefers-reduced-motion: reduce) {
+  .srow, .rrow, .load-seg { animation: none; }
+  .srow, .plate, .plate-shaft-fill { transition: none; }
+  /* The press COLOUR stays — it is feedback, not motion. Only the movement goes. */
+  .srow-tap:active { transform: none; }
+}
+
 /* ─── Skin: steel ─── */
 /* v2.17 stage 1: this WAS `.theme-light`, renamed to a skin selector with every
    value untouched. Nothing here changed appearance — the rename is the change.
@@ -856,15 +1145,35 @@ button:active { transform: scale(0.97); }
    dark/light era and they are retired screen by screen as each one is rebuilt
    on the tokens, starting with the Dashboard. Do NOT add more of them. */
 [data-skin="steel"] {
-  /* Deep blue canvas — "blue theme" that's just lighter than dark, not bright */
-  background: linear-gradient(145deg, #94A8C8 0%, #8699BE 50%, #788DB4 100%); color: #1E1B4B;
-  --t1: rgba(30,27,75,0.92);
-  --t2: rgba(30,27,75,0.7);
-  --t3: rgba(30,27,75,0.6);
-  --t4: rgba(30,27,75,0.5);
-  --t5: rgba(30,27,75,0.42);
-  --sep: rgba(30,27,75,0.08);
-  --card-bg: rgba(210,228,255,0.55);
+  /* v2.18: the canvas is no longer declared here — :root paints the same lit
+     ground in every skin from --ground / --ground-lit, which is the whole point
+     of a skin being VALUES and never rules.
+     🔴 The ground was LIGHTENED (was #8EA2C2) because steel is a daylight skin
+     carrying dark text: measured against the old mid-blue, every small label sat
+     between 1.4:1 and 2.7:1 — invisible, and invisible only for the half of the
+     users who picked this skin. */
+  color: var(--chalk);
+  --t1: rgba(20,28,51,0.94);
+  --t2: rgba(20,28,51,0.74);
+  --t3: rgba(20,28,51,0.64);
+  --t4: rgba(20,28,51,0.54);
+  --t5: rgba(20,28,51,0.46);
+  --sep: rgba(20,28,51,0.10);
+  --card-bg: rgba(255,255,255,0.42);
+
+  /* The same eleven names, different values — never different rules. Every one
+     measured against BOTH #A9BAD2 and #D3DEEC. */
+  --ground: #A9BAD2;
+  --ground-lit: #D3DEEC;
+  --raised: rgba(255,255,255,0.55);
+  --chalk: #141C33;
+  --chalk-dim: #3A4767;
+  --chalk-faint: #46546F;
+  --accent: #06465F;
+  --bar: #475A80;
+  --ok: #0E5238;
+  --warn: #583E04;
+  --anatomy: #9C3A12;
 }
 /* Header: glossier glass — more transparent base, stronger blur for frosted look */
 [data-skin="steel"] .header { background: rgba(30,64,175,0.15); backdrop-filter: blur(28px) saturate(1.4); -webkit-backdrop-filter: blur(28px) saturate(1.4); border-bottom-color: rgba(37,99,235,0.12); }
@@ -899,12 +1208,7 @@ button:active { transform: scale(0.97); }
 [data-skin="steel"] .section-title { color: #1E1B4B; }
 [data-skin="steel"] .empty { color: rgba(30,27,75,0.5); }
 
-[data-skin="steel"] .stat-card { background: linear-gradient(135deg, rgba(210,228,255,0.6), rgba(210,228,255,0.4)); border: 1px solid rgba(37,99,235,0.15); color: #1E1B4B; }
-[data-skin="steel"] .stat-label { color: rgba(30,27,75,0.65); }
 /* Stat cards: more solid accent fills */
-[data-skin="steel"] .stat-clients { background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(99,102,241,0.18)); border-color: rgba(99,102,241,0.35); }
-[data-skin="steel"] .stat-today { background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(59,130,246,0.18)); border-color: rgba(59,130,246,0.35); }
-[data-skin="steel"] .stat-week { background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(16,185,129,0.18)); border-color: rgba(16,185,129,0.35); }
 
 [data-skin="steel"] .meta { color: rgba(30,27,75,0.6); }
 [data-skin="steel"] .client-name { color: #1E1B4B; }

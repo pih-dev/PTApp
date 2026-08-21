@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import ErrorBoundary from './components/ErrorBoundary'
+import './fonts.css'   // bundled faces — must load before styles.css names them
 import './styles.css'
 
 // ErrorBoundary wraps App so a render-time crash (corrupted localStorage,

@@ -36,20 +36,21 @@ on these keywords — don't open them yourself, and never answer from recollecti
 | split, training days, mass battery, eval timer, measurement console, observe and grade, booking time, free slot, recurring, repeat sessions, override, session count, backfill, contract, package, renewal, billing period, renew, upcoming, home screen, roll off, whatsapp, confirm link, calendar link, multi-client, group booking, visual polish, light redesign, focus tags, tag split, error boundary, white screen, ordinal, counting kernel, fork hygiene, screenshot, which doc, where is it documented | `docs/README.md` — the index of every doc, spec and per-release write-up. **It names the file; you still open it.** |
 
 The long tail routes through `docs/README.md`: a row costs bytes in *every* session, the index only
-on a match. Unrouted on purpose: `docs/superpowers/plans/*` (build logs — the **spec** is the design
-record) and `docs/changelog-technical.md`.
+on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the design record) and
+`docs/changelog-technical.md`.
 
-**Adding a row?** Keywords must match how Pierre *speaks*, not the doc's title; keys of ≤4 chars need
-a word boundary, so `trap` misses `traps` — list both. The rule a session can act on alone stays
-inline; only the evidence routes.
+**Adding a row?** Keywords match how Pierre *speaks*, not the doc's title; keys of ≤4 chars need a
+word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
+only the evidence routes.
 
-## Current Version: v2.17.0
-**Skins replace the dark/light pair — stage 1 of the design pass (08-21).** No visual change by design. `DATA_VERSION` stays 6. Detail: `docs/instructions-v2.17.md` (it links the spec).
-- 🔴 **A SKIN IS CUSTOM-PROPERTY VALUES AND NOTHING ELSE.** Same layout, geometry and type in every skin; only hue changes. One needing its own rule is a second design and does not ship. List/default/migration live ONLY in `src/skins.js`; `sanity-skins.mjs` asserts every skin defines every token — an omitted one inherits the previous skin's value and breaks only the *other* skin's users.
-- **`.theme-light` is now `[data-skin="steel"]`** — renamed, values untouched. Its per-element overrides are dark/light-era debt, retired as each screen is rebuilt on tokens. **Do not add more.**
+## Current Version: v2.18.0
+**The Dashboard rebuilt in the plate and the bar — stage 2 of the design pass (08-21).** Presentation only: `DATA_VERSION` stays 6, no migration, no new gate. Detail: `docs/instructions-v2.18.md`. Palette/type rules: CONVENTIONS → *Colour, type & badges*.
+- 🔴 **A SKIN IS CUSTOM-PROPERTY VALUES AND NOTHING ELSE** — same layout, geometry and type; only hue changes. List/default/migration live ONLY in `src/skins.js`.
+- 🔴 **THE CARD IS DELETED ON THE DASHBOARD**; rows divide with a 2px **bar shaft**. `.card` STAYS — four screens still render it. **One screen per pass, never a big-bang restyle**; `[data-skin="steel"]`'s per-element overrides retire as screens are rebuilt (**add no more**).
+- 🔴 **A restyle is presentation only** — if a kernel call or reducer action has to change, the slice has grown out of scope and **stops**.
 - **`TOKEN_KEY`/`DEMO_TOKEN`/`isDemo` live in `utils.js`** (import cycle), re-exported by `githubDriver`. Demo-data contact rule: see TRAPS.
-- 🔴 **`DEMO` is a review credential, not a feature** — opens on seeded local data (`src/demoData.js`), every sync path off. **Seeds ONLY onto an empty store**; the gate checks EVERY `ptapp-data*` key.
-- **Sign-in exists but is DARK** (needs `VITE_SUPABASE_*` at build; this build has none) and **`sync.js` is now `src/backend/`** — `githubDriver` + a dormant `supabaseDriver` behind `BACKEND_MODE`. State: `HANDOFF-multi-user-build.md`, `HANDOFF-spotset-publishing.md`.
+- 🔴 **`DEMO` is a review credential, not a feature** — seeded local data (`src/demoData.js`), sync off, **seeds ONLY onto an empty store** (the gate checks EVERY `ptapp-data*` key).
+- **Sign-in is DARK** (needs `VITE_SUPABASE_*`) and **`sync.js` is now `src/backend/`** — `githubDriver` + a dormant `supabaseDriver` behind `BACKEND_MODE`. State: `HANDOFF-multi-user-build.md`, `HANDOFF-spotset-publishing.md`.
 
 ## Governance — Elie's Standing Authority (granted 2026-07-18)
 Elie may drive app changes in-session on Pierre's conditions (*"since we're using github we can roll back, make sure data backups are done at every juncture"*). Routes on `Elie`.
@@ -62,8 +63,8 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 ## Version History
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules in force live in TRAPS / CONVENTIONS, never here.
 
-- **v2.16.1** (08-21) — demo mode addresses nobody: `wa.me/?text=`, no number, while `isDemo()`. → `v2.16.1.md`
-- **v2.16.0** (08-21) — honest session numbers (a forgiven cancel has no ordinal); multi-user groundwork DARK; the driver split. → `v2.16.md`
+- **v2.17.0** (08-21) — skins replace the dark/light pair; `.theme-light` → `[data-skin="steel"]`, values untouched. → `v2.17.md`
+- **v2.16.0–.1** (08-21) — honest session numbers (a forgiven cancel has no ordinal); multi-user groundwork DARK; the driver split; demo mode addresses nobody. → `v2.16*`
 - **v2.15.0–.1** (08-20) — renamed SpotSet in the UI; real launcher icons; the `DEMO` credential. → `v2.15*`
 - **v2.14.0–.3** (07-14/17) — multi-day splits 3–6 days (`PROGRAM_RULES_VERSION` 3); booking-time suggestion; Arabic names. → `v2.14*`
 - **v2.13 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
@@ -75,7 +76,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 - **Backward compatible always.** Schema change ⇒ bump `DATA_VERSION` and write a `migrateData` step in `utils.js`. Never make the user re-enter anything; `_dataVersion` tracks the schema per blob.
 - **Preserve history.** A removed feature keeps its data — archive it, never drop it.
 - **Every top-level collection follows the `sessions[]` pattern** in `mergeData`, `mergeBackup` and `REPLACE_ALL`; `DELETE_CLIENT` cascades to that client's sessions, evaluations and programs. Never orphan a record; never let an explicit key list drop a collection.
-- **Test migrations against live data.** Synthetic fixtures are necessary but not sufficient — run the live-diff gate against the PT's real exported data before deploying a schema change.
+- **Test migrations against live data.** Synthetic fixtures are not sufficient — run the live-diff gate against the PT's real exported data before deploying a schema change.
 
 ---
 
@@ -86,7 +87,7 @@ Full write-ups in **`docs/traps.md`** — read the relevant one first. Index:
 
 **iOS / mobile** — safe-area insets, modal z-index 200+, sticky `modal-footer`, visualViewport resize · tap targets in the bottom 60%, settings in General not the header · never start a textarea `readOnly` and clear it in `onFocus` · swipe-to-dismiss only when `scrollTop === 0` at touchstart · PWA standalone needs BOTH the meta tag AND `manifest.json` `"display":"standalone"`.
 
-**RTL / i18n** — `marginInlineStart`/`borderInlineStart`, never `marginLeft`/`borderLeft`.
+**RTL / i18n** — `marginInlineStart`/`borderInlineStart`, never `marginLeft`/`borderLeft` · **`letter-spacing` DESTROYS Arabic** (a joined script) — kill tracking and uppercase under `[dir="rtl"]` in the same block that adds them · a closed `<select>` prints its option's own text (emoji included).
 
 **Data & sync** — never hand out a credential that reaches live data; review/demo access must be fabricated data on a path that cannot reach the real store · never `.catch(() => {})` (the Hala Mouzanar data loss) · `initialLoad`+`syncReady`+`skipSync` must ALL pass before a push · never dispatch in a loop · `state.X` read right after `dispatch(ADD_X)` is stale (Session #0) · merge paths must `migrateData` the FOREIGN blob by its own `_dataVersion`, on a clone · `mergeData`'s key list drops collections a stale bundle doesn't know — after a deploy adding one, confirm BOTH phones show the new version first · a 401 must look different from a network blip and route to the replacement UI · **demo/fixture data must not carry a routable phone number, and demo mode must not address one** (real strangers were messaged).
 
@@ -127,14 +128,17 @@ Also single-source, from v2.10.1 — **never re-inline what they own:** `applyOv
 - **Transliteration rule (Elie, standing):** when a literal Arabic translation wouldn't be understood in the gym, use the **English term in Arabic letters** (Block → بلوك, not مرحلة). Every future Arabic entry; also in `src/exerciseNamesAr.js`'s header.
 - Use `getStatus(status, lang, t)` for translated status labels.
 
-### Colour & badges
-Accent `#2563EB` / `#60A5FA` · danger `#EF4444` · success `#10B981` · active-session amber `#F59E0B` (`card-now`). **Status badges use a CSS class, NEVER inline `style={{color,background}}`.** 🔴 **`--t1`..`--t5` / `--sep` in inline styles; never hardcode rgba — a literal belongs to ONE skin** (`sanity-skins.mjs` enforces it).
+### Colour, type & badges — everything paints from tokens
+🔴 **NEVER hardcode a colour: a literal belongs to ONE skin** (`sanity-skins.mjs` enforces it). 18 tokens, all defined by every skin: `--t1`..`--t5`/`--sep`/`--card-bg` (inline styles) and, from v2.18, `--ground/-lit`, `--raised`, `--chalk/-dim/-faint`, `--accent`, `--bar`, `--ok`, `--warn`, `--anatomy` (figures only, never UI).
+- 🔴 **THE ACCENT (arc `#35B7E8`) NEVER TOUCHES CHROME** — no tab, button, link or focus ring. Load, urgency, the live session; the inline-start bar means *happening now*. **Never `#2563EB`** in new work; legacy chrome keeps it until the app-shell pass. Danger `#EF4444` · success `#10B981` stand.
+- **Type: `--font-display` (Saira Condensed, uppercase) · `--font-body` · `--font-mono` (every digit).** 🔴 Bundled, never fetched — `src/fonts.css` is GENERATED by `scripts/build_fonts.mjs`. 🔴 **Under `[dir="rtl"]` uppercase AND letter-spacing are OFF** — Arabic has no case and spacing breaks its joins; hierarchy is weight.
+- **Status badges use a CSS class, NEVER inline `style={{color,background}}`** — restyle the class, scoped, so other screens keep theirs.
 
 ### Sync (v2.6+)
 Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` retries 3× on 409 and **merges, never blind-overwrites**; per-record `_modified` + union-by-ID means a freshly-edited record beats a stale device's. **Every failure surfaces via `syncStatus` — never `.catch(() => {})` on a sync path.**
 
 ### Reducer actions
-**Full table: `docs/architecture.md` → Reducer actions.** Read it before adding or dispatching an unfamiliar action. Non-negotiables:
+**Full table: `docs/architecture.md` → Reducer actions** — read it before dispatching an unfamiliar action. Non-negotiables:
 - **`EDIT_CURRENT_PACKAGE { clientId, pkg }` owns ALL replace-last-package writes** — reads the live client by id, stamps `_modified`, audits via `buildPackageAuditEntries`. Never hand-roll `packages.slice(0,-1)` at a call site.
 - **`EDIT_EVALUATION` / `EDIT_PROGRAM` are full-record** — partial patches forbidden; frozen fields must be re-computed by the kernel at the call site before dispatch.
 - **`ADD_PROGRAM` records come only from `generateProgram()`.** **`DELETE_CLIENT` cascades** to sessions, evaluations, programs. **Batch with `ADD_SESSIONS` / `BATCH_COMPLETE`** — never dispatch in a loop.
@@ -150,7 +154,7 @@ Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` r
 ---
 
 ## REVIEW DISCIPLINE
-After **3+ feature changes** or ~2 h of coding, pause: did the fix land everywhere the pattern exists? · every read AND write migrated on a storage refactor? · callbacks shadowing `t`/`d`? · inline `marginLeft`/`borderLeft` or hardcoded colours? · strings missing from `i18n.js`? · anything that deletes/overwrites/fails to migrate? · new `.catch(() => {})` or dispatches in loops? (Incidents: `docs/release-hygiene.md` §3.)
+After **3+ feature changes** or ~2 h of coding, pause: did the fix land everywhere the pattern exists? · every read AND write migrated on a storage refactor? · callbacks shadowing `t`/`d`? · inline `marginLeft`/`borderLeft` or hardcoded colours? · strings missing from `i18n.js`? · anything that deletes/overwrites/fails to migrate? · new `.catch(() => {})` or loop dispatches? (`docs/release-hygiene.md` §3.)
 
 After every commit: **bug fix** → root cause + pattern into `docs/traps.md`, then grep elsewhere · **feature** → `docs/instructions-v{X}.md` + both changelogs · **design decision** → CONVENTIONS or `docs/architecture.md` · **incident** → memory.
 
@@ -193,12 +197,12 @@ git checkout master
 CLAUDE.md was slimmed to 19.5 KB at v2.9.2 and back to 42 KB in five months: every release appended, none collapsed. **Never skip these "just this once" — that is how it regrew.** Why: `docs/release-hygiene.md` §1.
 
 ```bash
-wc -c CLAUDE.md                              # RULE 1: must be < 22000 before committing
+wc -c CLAUDE.md                              # RULE 1: must be < 24000 before committing
 git log --all --oneline | grep -i "Deploy v" # RULE 3: each resolves to a changelog line AND an instructions file
 ls docs/instructions-v*.md
 ```
 
-1. **Under 22 KB** (raised from 20 KB on 2026-08-05 to fund the ~3.4 KB Topic Router, which buys keyword reach into all 83 docs). Over budget ⇒ collapse the oldest version section before committing. ⚠️ `memory/MEMORY.md` loads every session too — keep it under ~12 KB and report **both** numbers when either moves.
+1. **Under 24 KB** (`.context-budget`; 20→22 funded the Topic Router, 22→24 the v2.18 design law). Over budget ⇒ collapse the oldest version section before committing. ⚠️ `memory/MEMORY.md` loads every session too — keep it under ~12 KB.
 2. **Only ONE full version section — `## Current Version`.** The outgoing one collapses to a `## Version History` line **in the same commit** that promotes the new one; History is capped at 8, the 9th drops to `docs/changelog-summary.md`.
 3. **No version ships without a changelog line AND an instructions file.** `.0` → `instructions-vX.Y.md`, patch → `instructions-vX.Y.Z.md` (`v2.10.0.md` is a legacy exception).
 4. **A durable rule NEVER lives only in a version/changelog entry** — a kernel claim, a "never do Y at call sites", a platform trap goes into `TRAPS` / `docs/traps.md` / CONVENTIONS **when written**. Version sections record what shipped; rule sections record what is true.

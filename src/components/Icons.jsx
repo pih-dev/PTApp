@@ -47,3 +47,25 @@ export const CloseIcon = ({ size = 20 }) => (
     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
   </svg>
 );
+
+// A loaded bar, drawn — the empty state's mark and the first appearance of the
+// design language's anchor as a picture. It replaces the 🏋️ emoji: an emoji
+// strip is one of the six traits the differentiation brief identified as the
+// generated look, and this app is about load on a bar.
+// Deliberately NOT the logo — the mark still has to be designed (spec §10).
+export const BarMark = ({ size = 56 }) => (
+  <svg width={size} height={size * 0.42} viewBox="0 0 120 50" fill="none" stroke="currentColor"
+    strokeWidth="3" strokeLinecap="round" aria-hidden="true">
+    {/* the shaft */}
+    <line x1="6" y1="25" x2="114" y2="25" />
+    {/* collars */}
+    <line x1="34" y1="16" x2="34" y2="34" />
+    <line x1="86" y1="16" x2="86" y2="34" />
+    {/* plates, outer pair lighter than the inner pair — a loaded bar reads
+        symmetrical, and the eye checks that before it reads anything else */}
+    <rect x="18" y="10" width="7" height="30" rx="2" />
+    <rect x="26" y="14" width="6" height="22" rx="2" />
+    <rect x="88" y="14" width="6" height="22" rx="2" />
+    <rect x="96" y="10" width="7" height="30" rx="2" />
+  </svg>
+);

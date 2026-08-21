@@ -1,17 +1,103 @@
 import React, { useState, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
-import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon, ChevronIcon } from './Icons';
+import { WhatsAppIcon, EditIcon, TrashIcon, ChevronIcon, BarMark } from './Icons';
 import { today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendReminderWhatsApp, getEffectiveSessionCount, timeToMinutes, localDateStr, getStatus, haptic, getRenewalDueMap } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import RenewalModal from './RenewalModal';
 import { t } from '../i18n';
 
+// ─── The plate and the bar (v2.18, design pass stage 2) ──────────────────────
+//
+// 🔴 THIS FILE IS PRESENTATION ONLY. Every handler, dispatch and kernel call is
+//    exactly what it was in v2.17 — getRenewalDueMap, getEffectiveSessionCount,
+//    getFocusTags, getStatus, sendReminderWhatsApp, the notes textarea, all of
+//    it. The rule from the spec (§6): if a kernel call or a reducer action has
+//    to change, the slice has grown out of scope and it stops. That is how a
+//    restyle turns into a data incident, and it is not happening here.
+//
+// What DID change is the visual language. The card is deleted: rows sit on the
+// lit ground and a bar shaft separates them. The three tinted stat tiles became
+// the week read as loaded columns. The package stopped being a bare "12/20" and
+// became plates — filled = used, hollow = remaining, all-accent = due. The
+// session-type colour left the row edge entirely, because six arbitrary hues
+// decorating a list is precisely the generated look the brief documented; the
+// inline-start bar now means one thing only, the session happening right now.
+//
+// Design record: docs/superpowers/specs/2026-08-21-visual-language-dashboard-design.md
+
+// A bar: collar, label, shaft, count. Replaces every `.section-title` on this
+// screen, and with it the emoji that used to lead each one.
+function Bar({ label, count, children }) {
+  return (
+    <div className="bar">
+      <span className="bar-collar" />
+      <span className="bar-label">{label}</span>
+      <span className="bar-shaft" />
+      {count !== undefined && <span className="bar-count">{count}</span>}
+      {children}
+    </div>
+  );
+}
+
+// Above this many sessions a disc row stops being countable at a glance, so the
+// package is drawn as a loaded shaft instead. Same meaning, still never a bare
+// number — 24- and 36-session contracts exist and a 36-disc row is noise.
+const PLATE_MAX = 16;
+
+// used = sessions consumed in the current period · size = the contract
+// due = the package is spent or expired, and the whole row goes to the accent.
+function Plates({ used, size, due }) {
+  const u = Math.max(0, Math.min(used, size)); // an override can push the count past the contract
+  if (size > PLATE_MAX) {
+    return (
+      <div className={`plate-shaft${due ? ' is-due' : ''}`}>
+        <div className="plate-shaft-fill" style={{ width: `${Math.round((u / size) * 100)}%` }} />
+      </div>
+    );
+  }
+  return (
+    <div className="plates">
+      {Array.from({ length: size }, (_, i) => (
+        <span key={i} className={`plate${due ? ' is-due' : i < u ? ' is-used' : ''}`} />
+      ))}
+    </div>
+  );
+}
+
+// The week as load on a rack: one column per day, one segment per session,
+// today's column on the accent. Eight segments is the visual cap — the headline
+// number carries the exact total, so a ten-session day does not stretch the row.
+const SEG_CAP = 8;
+function LoadWeek({ days, total, lang }) {
+  return (
+    <div className="load">
+      <div className="load-figure">
+        <div className="load-num">{total}</div>
+        <div className="load-cap">{t(lang, 'statWeek')}</div>
+      </div>
+      <div className="load-cols">
+        {days.map(d => (
+          <div key={d.date} className={`load-col${d.isToday ? ' is-today' : ''}`}>
+            <div className="load-stack">
+              {Array.from({ length: Math.min(d.count, SEG_CAP) }, (_, i) => (
+                <span key={i} className="load-seg" style={{ animationDelay: `${i * 35}ms` }} />
+              ))}
+            </div>
+            <div className="load-base" />
+            <div className="load-day">{d.letter}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard({ state, dispatch, setTab, lang }) {
   const [activeSession, setActiveSession] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
   const [cancelPrompt, setCancelPrompt] = useState(null);
-  const [expanded, setExpanded] = useState(true); // true = full cards, false = compact list
+  const [expanded, setExpanded] = useState(true); // true = full rows, false = compact list
   const [form, setForm] = useState({ clientId: '', type: 'Strength', date: today(), time: '09:00', duration: 45 }); // defaults are dead: openEdit always overwrites before the (edit-only) modal shows — see 2026-07-17 spec correction
   const [renewClient, setRenewClient] = useState(null);
 
@@ -23,16 +109,10 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
   // and none of these are precise deadlines.
   const todayStr = today();
 
-  // todaySessions still feeds the "Today" stat card (middle of stat row).
-  // It is NOT used as the section list anymore — `upcoming` is.
-  const todaySessions = useMemo(() => state.sessions
-    .filter(s => s.date === todayStr && s.status !== 'cancelled')
-    .sort((a, b) => a.time.localeCompare(b.time)), [state.sessions, todayStr]);
-
   // Highlight sessions currently in progress (started but not yet ended).
   // v2.10.1: must be TODAY's session — `upcoming` contains future dates since v2.7,
-  // and without the date check every future card at the current time-of-day glowed
-  // amber (e.g. all of a recurring Mon/Wed/Fri 18:00 series during today's 18:00).
+  // and without the date check every future row at the current time-of-day glowed
+  // (e.g. all of a recurring Mon/Wed/Fri 18:00 series during today's 18:00).
   const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
   const isNowSession = (s) => {
     if (s.date !== todayStr) return false;
@@ -73,19 +153,34 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
   // v2.10.3 (review P5): read from the shared selector (memoized in utils on the
   // (clients, sessions) array pair) — Schedule and Clients consume the SAME map, so the
   // renewal rule can't drift between tabs anymore.
+  // v2.18: the SAME map now also supplies the plate rows on every session row —
+  // contractSize and the effective count come from one place, so the plates and
+  // the renewal banner can never disagree about how full a package is.
   const renewalDue = getRenewalDueMap(state.clients, state.sessions);
   const renewalDueClients = state.clients.filter(c => renewalDue.get(c.id)?.due);
 
-  // "This Week" stat: today + the next 6 days (7 calendar days total).
+  // "This Week": today + the next 6 days (7 calendar days total).
   // v2.10.1: was `+ 7 days` with inclusive <=, silently counting 8 days.
   // Compare date strings to avoid fractional day math errors near midnight.
-  const weekSessions = useMemo(() => {
-    const we = new Date(todayStr + 'T00:00:00');
-    we.setDate(we.getDate() + 6);
-    const weekEndStr = localDateStr(we);
-    return state.sessions.filter(s =>
-      s.date >= todayStr && s.date <= weekEndStr && s.status !== 'cancelled');
-  }, [state.sessions, todayStr]);
+  // v2.18: the same pass also buckets by day, because the week is now drawn as
+  // seven loaded columns rather than a single tile. The total is unchanged —
+  // it is the sum of the buckets by construction, not a second count.
+  const week = useMemo(() => {
+    const locale = lang === 'ar' ? 'ar-LB' : 'en-US';
+    const days = [];
+    let total = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(todayStr + 'T00:00:00');
+      d.setDate(d.getDate() + i);
+      const date = localDateStr(d);
+      const count = state.sessions.filter(s => s.date === date && s.status !== 'cancelled').length;
+      total += count;
+      // Narrow weekday from the platform: correct in Arabic without a second
+      // hardcoded list to keep in sync (and no toISOString anywhere near it).
+      days.push({ date, count, isToday: i === 0, letter: d.toLocaleDateString(locale, { weekday: 'narrow' }) });
+    }
+    return { days, total };
+  }, [state.sessions, todayStr, lang]);
 
   const getClientName = (id) => state.clients.find(c => c.id === id)?.name || 'Unknown';
 
@@ -112,37 +207,36 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
     setCancelPrompt(session);
   };
 
+  // The empty state, shared by both views. A drawn bar, never an emoji.
+  const emptyState = (labelKey, ctaKey) => (
+    <div className="empty">
+      <div className="empty-mark"><BarMark /></div>
+      <div className="empty-line">{t(lang, labelKey)}</div>
+      <button onClick={() => setTab('schedule')} className="btn-primary mt-16" style={{ width: 'auto', display: 'inline-flex' }}>
+        {t(lang, ctaKey)}
+      </button>
+    </div>
+  );
+
   return (
     <div>
-      <div className="section-title" style={{ marginTop: 16 }}>{t(lang, 'overview')}</div>
-      <div className="stat-row">
-        <div className="stat-card stat-clients">
-          <div className="stat-num">{state.clients.length}</div>
-          <div className="stat-label">{t(lang, 'statClients')}</div>
-        </div>
-        <div className="stat-card stat-today">
-          <div className="stat-num">{todaySessions.length}</div>
-          <div className="stat-label">{t(lang, 'statToday')}</div>
-        </div>
-        <div className="stat-card stat-week">
-          <div className="stat-num">{weekSessions.length}</div>
-          <div className="stat-label">{t(lang, 'statWeek')}</div>
-        </div>
-      </div>
+      <Bar label={t(lang, 'overview')} count={`${state.clients.length} ${t(lang, 'statClients')}`} />
+      <LoadWeek days={week.days} total={week.total} lang={lang} />
 
       {renewalDueClients.length > 0 && (
         <div className="dashboard-renewal-section">
-          <div className="section-title" style={{ marginTop: 12 }}>
-            📋 {t(lang, 'dueForRenewal')} ({renewalDueClients.length})
-          </div>
+          <Bar label={t(lang, 'dueForRenewal')} count={renewalDueClients.length} />
           {renewalDueClients.map(c => {
             const { effective, contractSize } = renewalDue.get(c.id);
             return (
-              <div key={c.id} className="renewal-row card">
-                <div style={{ flex: 1 }}>
-                  <div className="client-name">{c.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--t4)' }}>
-                    {t(lang, 'session')} {effective}/{contractSize}
+              <div key={c.id} className="rrow">
+                <div className="rrow-main">
+                  <div className="rrow-name">{c.name}</div>
+                  {/* 🔴 Every plate on the accent: this package is spent. The accent
+                      means load and urgency and nothing else — never chrome. */}
+                  <div className="rrow-load">
+                    <Plates used={effective} size={contractSize} due />
+                    <span className="plate-count">{effective}/{contractSize}</span>
                   </div>
                 </div>
                 <button className="btn-renew" onClick={() => { haptic(); setRenewClient(c); }}>
@@ -154,153 +248,155 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
         </div>
       )}
 
-      <div className="section-title section-header">
-        <span>📅 {t(lang, 'upcomingSessions')} ({upcoming.length})</span>
-        <button className="btn-secondary" style={{ fontSize: 11, padding: '5px 10px' }}
-          onClick={() => setExpanded(e => !e)}>
+      <Bar label={t(lang, 'upcomingSessions')} count={upcoming.length}>
+        {/* Tapped often, and it sits at the top of the screen — the padding is the
+            minimum decency for a thumb, not a style choice. */}
+        <button className="btn-secondary" style={{ fontSize: 12, padding: '11px 14px' }}
+          onClick={() => { haptic(); setExpanded(e => !e); }}>
           {expanded ? t(lang, 'compact') : t(lang, 'expanded')}
         </button>
-      </div>
+      </Bar>
 
       {/* Expanded view: upcoming sessions with full inline functionality */}
       {expanded ? (
-        upcoming.length === 0 ? (
-          <div className="empty">
-            <div className="empty-icon">🏋️</div>
-            <div>{t(lang, 'noUpcoming')}</div>
-            <button onClick={() => setTab('schedule')} className="btn-primary mt-16" style={{ width: 'auto', display: 'inline-flex' }}>
-              {t(lang, 'bookSession')}
-            </button>
-          </div>
-        ) : (
-          upcoming.map((session, idx) => {
-            const st = getSessionType(session.type);
-            const status = getStatus(session.status, lang, t);
-            const client = state.clients.find(c => c.id === session.clientId);
-            // v2.8: effective count honours the PT's manual override for this period
-            const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
-            const tags = getFocusTags(session.type);
-            const focus = session.focus || [];
-            const isNext = isNowSession(session);
-            const toggleFocus = (tag) => {
-              const updated = focus.includes(tag) ? focus.filter(f => f !== tag) : [...focus, tag];
-              dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, focus: updated } });
-            };
-            return (
-              <div key={session.id}
-                className={`card${isNext ? ' card-now' : ''}`} style={{ borderInlineStart: `3px solid ${isNext ? '#F59E0B' : st.color}` }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                  <div>
-                    <div className="client-name">
-                      {getClientName(session.clientId)}{' '}
+        upcoming.length === 0 ? emptyState('noUpcoming', 'bookSession') : (
+          <div className="srows">
+            {upcoming.map((session, idx) => {
+              const status = getStatus(session.status, lang, t);
+              const client = state.clients.find(c => c.id === session.clientId);
+              // v2.8: effective count honours the PT's manual override for this period
+              const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
+              const pkg = client ? renewalDue.get(client.id) : undefined; // undefined for sliding (non-contract) clients
+              const tags = getFocusTags(session.type);
+              const focus = session.focus || [];
+              const isNext = isNowSession(session);
+              const toggleFocus = (tag) => {
+                const updated = focus.includes(tag) ? focus.filter(f => f !== tag) : [...focus, tag];
+                dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, focus: updated } });
+              };
+              return (
+                // --i staggers the reveal; capped so row 40 doesn't wait 1.2s
+                <div key={session.id} className={`srow${isNext ? ' is-now' : ''}`} style={{ '--i': Math.min(idx, 8) }}>
+                  <div className="srow-head">
+                    <span className="srow-name">
+                      {getClientName(session.clientId)}
                       <SessionCountPair auto={monthAuto} effective={monthCount} override={monthOverride} />
-                    </div>
-                    <div className="meta">
-                      <ClockIcon />
-                      {session.time} · {session.duration}{t(lang, 'min')} ·{' '}
-                      {/* Inline type selector — keep focus tags so switching back preserves selections */}
-                      <select className="inline-type-select" value={session.type} onChange={e => {
-                        dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value } });
-                      }}>
-                        {SESSION_TYPES.map(stype => <option key={stype.label} value={stype.label}>{stype.emoji} {stype.label}</option>)}
-                      </select>
-                    </div>
-                    {/* Date line — lets the PT distinguish today/tomorrow/later cards at a glance */}
-                    <div style={{ fontSize: 13, color: 'var(--t5)', marginTop: 4 }}>
-                      {session.date === todayStr ? t(lang, 'today') : formatDate(session.date, lang)}
-                    </div>
+                    </span>
+                    <span className="srow-time">{session.time}</span>
                   </div>
-                  <span className={`badge badge-${session.status}`}>{status.label}</span>
-                </div>
-                <div className="flex-row">
-                  {(session.status === 'scheduled' || session.status === 'confirmed') && (
-                    <button className="btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }}
-                      onClick={() => { haptic(); updateStatus(session.id, 'completed'); }}>{t(lang, 'complete')}</button>
+                  <div className="srow-meta">
+                    <span className="srow-mark">{session.duration}{t(lang, 'min')}</span>
+                    {/* Inline type selector — keep focus tags so switching back preserves
+                        selections. The emoji is deliberately NOT in the option label here:
+                        a <select> shows the chosen option's text on the surface, which would
+                        put an emoji back on a screen that just removed them. */}
+                    <select className="inline-type-select" value={session.type} onChange={e => {
+                      dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value } });
+                    }}>
+                      {SESSION_TYPES.map(stype => <option key={stype.label} value={stype.label}>{stype.label}</option>)}
+                    </select>
+                    <span className="srow-date">
+                      {session.date === todayStr ? t(lang, 'today') : formatDate(session.date, lang)}
+                    </span>
+                    <span className={`badge badge-${session.status}`}>{status.label}</span>
+                  </div>
+                  {/* The package, as load. Sliding clients have no contract and get no
+                      plates — an empty rack would imply a package that does not exist. */}
+                  {pkg && (
+                    <div className="srow-load">
+                      <Plates used={pkg.effective} size={pkg.contractSize} due={pkg.due} />
+                      <span className="plate-count">{pkg.effective}/{pkg.contractSize}</span>
+                    </div>
                   )}
-                  {client && (
-                    <button className="btn-whatsapp" style={{ fontSize: 12, padding: '6px 12px' }}
-                      onClick={() => sendReminderWhatsApp(client, session, state.messageTemplates, lang, state.sessions)}>
-                      <WhatsAppIcon size={14} />
-                      {t(lang, 'remind')}
+                  <div className="srow-actions">
+                    {(session.status === 'scheduled' || session.status === 'confirmed') && (
+                      <button className="btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }}
+                        onClick={() => { haptic(); updateStatus(session.id, 'completed'); }}>{t(lang, 'complete')}</button>
+                    )}
+                    {client && (
+                      <button className="btn-whatsapp" style={{ fontSize: 12, padding: '6px 12px' }}
+                        onClick={() => sendReminderWhatsApp(client, session, state.messageTemplates, lang, state.sessions)}>
+                        <WhatsAppIcon size={14} />
+                        {t(lang, 'remind')}
+                      </button>
+                    )}
+                    <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }}
+                      onClick={() => { setActiveSession(session); }}>
+                      <EditIcon size={14} />
+                      {t(lang, 'edit')}
                     </button>
-                  )}
-                  <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }}
-                    onClick={() => { setActiveSession(session); }}>
-                    <EditIcon size={14} />
-                    {t(lang, 'edit')}
-                  </button>
-                  {session.status !== 'cancelled' && (
-                    <button className="btn-danger-sm" onClick={() => { haptic(); cancelSession(session); }}>
-                      <TrashIcon />
-                    </button>
-                  )}
+                    {session.status !== 'cancelled' && (
+                      <button className="btn-danger-sm" onClick={() => { haptic(); cancelSession(session); }}>
+                        <TrashIcon />
+                      </button>
+                    )}
+                  </div>
+                  {/* Focus tags — tappable, auto-save */}
+                  <div className="focus-row" style={{ marginTop: 8 }}>
+                    {tags.map(tag => (
+                      <button key={tag} className={`focus-tag${focus.includes(tag) ? ' active' : ''}`}
+                        onClick={() => { haptic(); toggleFocus(tag); }}>{tag}</button>
+                    ))}
+                  </div>
+                  {/* NOTE: Do NOT add `readOnly` here. On iOS Safari, tapping a readonly
+                      textarea decides "no keyboard" before onFocus can run — even if onFocus
+                      sets readOnly=false. The collapsed/expanded behavior is handled entirely
+                      by the .editing CSS class, not by readOnly. */}
+                  <textarea key={session.sessionNotes || ''} className={`focus-notes${session.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
+                    defaultValue={session.sessionNotes || ''}
+                    onFocus={e => { e.target.classList.add('editing'); }}
+                    onBlur={e => {
+                      e.target.classList.remove('editing');
+                      e.target.classList.toggle('has-content', e.target.value.trim() !== '');
+                      if (e.target.value !== (session.sessionNotes || '')) {
+                        dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, sessionNotes: e.target.value } });
+                      }
+                    }}
+                  />
                 </div>
-                {/* Focus tags — tappable, auto-save */}
-                <div className="focus-row" style={{ marginTop: 8 }}>
-                  {tags.map(tag => (
-                    <button key={tag} className={`focus-tag${focus.includes(tag) ? ' active' : ''}`}
-                      onClick={() => { haptic(); toggleFocus(tag); }}>{tag}</button>
-                  ))}
-                </div>
-                {/* NOTE: Do NOT add `readOnly` here. On iOS Safari, tapping a readonly
-                    textarea decides "no keyboard" before onFocus can run — even if onFocus
-                    sets readOnly=false. The collapsed/expanded behavior is handled entirely
-                    by the .editing CSS class, not by readOnly. */}
-                <textarea key={session.sessionNotes || ''} className={`focus-notes${session.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
-                  defaultValue={session.sessionNotes || ''}
-                  onFocus={e => { e.target.classList.add('editing'); }}
-                  onBlur={e => {
-                    e.target.classList.remove('editing');
-                    e.target.classList.toggle('has-content', e.target.value.trim() !== '');
-                    if (e.target.value !== (session.sessionNotes || '')) {
-                      dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, sessionNotes: e.target.value } });
-                    }
-                  }}
-                />
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )
       ) : (
-        /* Compact view: all upcoming, tap for action sheet */
-        upcoming.length === 0 ? (
-          <div className="empty">
-            <div className="empty-icon">🏋️</div>
-            <div>{t(lang, 'noUpcoming')}</div>
-            <button onClick={() => setTab('schedule')} className="btn-primary mt-16" style={{ width: 'auto', display: 'inline-flex' }}>
-              {t(lang, 'bookFirst')}
-            </button>
-          </div>
-        ) : (
-          upcoming.map(session => {
-            const st = getSessionType(session.type);
-            const status = getStatus(session.status, lang, t);
-            const client = state.clients.find(c => c.id === session.clientId);
-            // v2.8: effective count honours the PT's manual override for this period
-            const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
-            return (
-              <div key={session.id} className="card card-tap" style={{ borderInlineStart: `3px solid ${st.color}`, cursor: 'pointer' }}
-                onClick={() => setActiveSession(session)}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <div className="client-name">
-                      {getClientName(session.clientId)}{' '}
+        /* Compact view: all upcoming, tap for the action sheet */
+        upcoming.length === 0 ? emptyState('noUpcoming', 'bookFirst') : (
+          <div className="srows">
+            {upcoming.map((session, idx) => {
+              const status = getStatus(session.status, lang, t);
+              const client = state.clients.find(c => c.id === session.clientId);
+              // v2.8: effective count honours the PT's manual override for this period
+              const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
+              const pkg = client ? renewalDue.get(client.id) : undefined;
+              const isNext = isNowSession(session);
+              return (
+                <div key={session.id} className={`srow srow-tap${isNext ? ' is-now' : ''}`}
+                  style={{ '--i': Math.min(idx, 8) }}
+                  onClick={() => { haptic(); setActiveSession(session); }}>
+                  <div className="srow-head">
+                    <span className="srow-name">
+                      {getClientName(session.clientId)}
                       <SessionCountPair auto={monthAuto} effective={monthCount} override={monthOverride} />
-                    </div>
-                    <div className="meta">
-                      <ClockIcon />
-                      {session.time} · {session.duration}{t(lang, 'min')} · {st.emoji} {session.type}
-                    </div>
-                    <div style={{ fontSize: 13, color: 'var(--t5)', marginTop: 4 }}>{formatDate(session.date, lang)}</div>
+                    </span>
+                    <span className="srow-time">{session.time}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div className="srow-meta">
+                    <span className="srow-mark">{session.type}</span>
+                    <span className="srow-date">{formatDate(session.date, lang)}</span>
                     <span className={`badge badge-${session.status}`}>{status.label}</span>
-                    <ChevronIcon size={16} style={{ color: 'var(--t4)' }} />
+                    <span className="srow-chevron" style={{ marginInlineStart: 'auto', display: 'flex' }}>
+                      <ChevronIcon size={16} />
+                    </span>
                   </div>
+                  {pkg && (
+                    <div className="srow-load">
+                      <Plates used={pkg.effective} size={pkg.contractSize} due={pkg.due} />
+                    </div>
+                  )}
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )
       )}
 

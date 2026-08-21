@@ -468,3 +468,40 @@ to `src/utils.js`: `openWhatsApp` lives in utils and needs demo-awareness, and t
 imports utils, so importing the driver back into utils would close an **import cycle**. utils is the
 leaf both sides can share. 🔴 The driver re-exports both names — moving a storage key means grepping
 every read and write of it, and leaving a second copy behind is how two definitions drift apart.
+
+---
+
+## TRAP: `letter-spacing` on Arabic destroys the word (2026-08-21, v2.18)
+
+**What happened.** The design pass leans on condensed uppercase with `letter-spacing: .05–.18em`
+for every label and name — the single strongest move away from the generated look. Applied
+globally, that rule reaches the Arabic build too.
+
+**Why it breaks.** Arabic is a *joined* script: letters connect to their neighbours, and the shape
+of a letter depends on whether it is joining left, right, both or neither. Adding tracking pushes
+those connected forms apart, so a word stops being a word and becomes a row of disconnected
+glyphs. `text-transform: uppercase` is merely a no-op on Arabic — this one is actively destructive,
+and it is invisible to anyone reviewing only the English screenshots.
+
+**The rule.** Every rule that tracks or uppercases Latin is neutralised under `[dir="rtl"]`, in the
+same block that introduces it, and the Arabic build carries the same hierarchy through **weight and
+size**. See the `[dir="rtl"]` block at the end of the `THE PLATE AND THE BAR` section in
+`src/styles.css`. A display face is also usually Latin-only (Saira has no Arabic), so RTL falls back
+to `--font-body` there too — state it, do not let it happen by accident.
+
+**Generalises to:** any future screen pass, and any bundled display face.
+
+---
+
+## TRAP: A `<select>` prints its chosen option's text onto your screen (2026-08-21, v2.18)
+
+**What happened.** The Dashboard rebuild removed every emoji from the surface — and the inline
+session-type selector still rendered `{stype.emoji} {stype.label}` in its `<option>`s. A closed
+`<select>` displays the *selected option's text*, so the emoji the pass had just removed was drawn
+straight back onto the screen by the control.
+
+**The rule.** What an `<option>` contains is not "list content" — it is the control's own label
+whenever the list is closed. Style and content decisions about a screen apply to option text.
+
+**Where it bit:** `Dashboard.jsx` only; `Schedule.jsx` keeps the emoji deliberately, because that
+screen has not had its pass yet.
