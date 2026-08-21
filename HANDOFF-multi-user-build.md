@@ -1,8 +1,15 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~16:10, Beirut.
+**Last updated:** 2026-08-21 ~16:40, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
+
+🔴 **STANDING INSTRUCTION FOR WHOEVER WORKS THIS SUBJECT: keep this file current AS YOU GO, not at
+session end.** Pierre's rule, and he should never have to ask for it: update §0 and commit at each
+milestone, on the assumption that a Windows restart, a crash or an interruption could end the
+session at any moment. A handoff written at the end is a handoff that does not exist when it is
+actually needed. `/wrap` is the safety net, never the trigger. Every fact below was written the
+moment it became true, and the working tree was clean and pushed at every point.
 
 > 📌 Two other threads exist and are NOT this one: `HANDOFF.md` (the queued-tasks overview,
 > which points here) and `HANDOFF-spotset-publishing.md` (Play Store). Design differentiation
@@ -55,6 +62,17 @@ Do not investigate, do not re-derive, do not ask follow-up questions.
   be written into this repo, which is public. 🔴 **Exit 2 is not a pass.** The SQL test proves the
   *policy*; only the .mjs one proves the *API surface* (a wrongly exposed table, a grant to `anon`,
   a refused PATCH) — `set role authenticated` bypasses PostgREST entirely.
+- 🔴 **DECIDED (Pierre, 2026-08-21 ~16:40) — the login screen sits BESIDE `DEMO`, it does not
+  replace it.** A tester who already typed `DEMO` keeps working exactly as they do now; signing in
+  is an *option* on the same screen, and exercising it is itself part of the closed test. `DEMO`
+  survives through Phase 4 regardless (store reviewers, and it is the only path that works in
+  Airplane Mode — the documented 4.2 white-screen trap).
+- **How a tester signs in, answered:** with their **email address and a password** — including a
+  Gmail address. **NOT "Sign in with Google."** There is no self-signup: Pierre provisions the
+  account from the Supabase console (§11.1) and hands over the password; the user can change it
+  in-app afterwards. 🔴 This is not a shortcut — adding Google sign-in *forces* Sign in with Apple
+  (Guideline 4.8). Own email/password keeps 4.8 dormant permanently, which is why §4 says
+  **no social login, ever.**
 - **Next action: the thin auth module in `src/`** — and 🔴 `STORAGE_KEY` → `ptapp-data:<userId>` is not optional (§4). ~~Superseded: `0002`, the tenant tables~~ (`tenants`, `tenant_snapshots`), with `owner_path`
   denormalized from `app_users` and restamped in the SAME function (§12.3).
 - **The design is settled and should not be re-opened:** two roles (`pt`/`client`), prime = a `pt`
