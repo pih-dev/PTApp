@@ -16,7 +16,8 @@ the safety net, never the trigger.
 
 ## 0. Status — read this out
 
-- ✅ **v2.19.1 IS LIVE** (Pages `built`, `v2.19.1` served). **Stage 3: the shell and the shared
+- ✅ **v2.20.0 IS LIVE** (Pages `built`, `v2.20.0` served). **A5 done — no screen is still in the old idiom.** The program viewer was rebuilt (it is read while coaching): name on its own line, prescription in mono under it, one-word swap. New primitives `.subbar`/`.lrow`/`.num`/`.exrow*`. Detail: `docs/instructions-v2.20.md`.
+- **Previously** (`v2.19.0/.1`): **Stage 3: the shell and the shared
   primitives joined the language** — Pierre's read on v2.18 was *"the landing page is very designed,
   but the rest are still the same."* `.card` is a row everywhere, the chrome is on tokens, the
   active tab is chalk, emoji left the interface, and **70 steel per-element overrides retired**.
@@ -34,9 +35,16 @@ the safety net, never the trigger.
   VERIFICATION (the mobile-ux reviewer found the steel contrast collapse) and for mechanical sweeps,
   never for taste. Fable is worth spawning for divergent visual *options* to judge, never for
   integration.
-- **NEXT ACTION: the screens that were never opened in this pass** — the program viewer/setup and
-  the evaluation screens. They inherit the primitives but their own layouts have not been judged.
-  After that, the three specs still queued: **the movement library, the exercise figures, the logo**.
+- **NEXT ACTION: B1 — the movement library** (`docs/design/2026-08-22-what-is-left.md`). Every
+  exercise name tappable + a searchable EN/AR screen. 340 movements already in `exerciseBank.js`
+  with Arabic for all of them; the gap is that a name is a dead end. **It is also where the
+  figures will live, so it comes before them.**
+- 🔴 **FIGURES: Pierre chose GENERATE, with the caveat *"we don't want stiffness"* (2026-08-22).**
+  That caveat is the whole spec: the brief's *curves not hinges* rule exists precisely because a
+  generated figure defaults to straight bones and hinge joints. A generated route must be built
+  from curved spline skeletons with weight shift and counter-rotation, and each pose judged
+  against a real photograph — not shipped because the maths ran. References read:
+  `docs/design/2026-08-22-figure-references.md`.
 - **The distinction that made stage 3 legal, and it must survive:** *one screen per pass* forbids
   rebuilding five screens' MARKUP at once. Moving VALUES and TYPE onto classes that already exist is
   a different, verifiable-in-a-browser thing. Do not read stage 3 as permission for the first.
