@@ -373,3 +373,58 @@ back on track — you would mark on the wrong one where it would cause an injury
   genuinely hides something.
 - The artifact now shows two movements for exactly this reason: a **row** (the spine is what you
   lose) and an **overhead press** (the shoulder is). Same system, different joint.
+
+### 7.13 Figure proportions are a CANON, not an eyeball
+
+Pierre, on the first two figures: *"these look like baby ratios… on the back one, the legs are too
+short and the back too long. On the shoulder ones, this looks like an obese person with attached
+feet."* Both correct, and both the same failure: the figures were drawn to fill a box rather than to
+a human canon, which reads as a cartoon and destroys the credibility a form reference needs.
+
+**The canon every figure is now built on (7.5 heads):**
+- **Head = 1/7.5 of standing height.** At a 130-unit figure, the head is ~17 tall, ~13 wide.
+- 🔴 **The hip joint sits at HALF of standing height.** This is the one that was most wrong — a long
+  torso on stub legs is exactly the infant ratio, because in a baby the hip really is low.
+- **Knee at the midpoint of hip-to-floor**; thigh ≈ shin ≈ 1.9 heads.
+- **Torso hip→shoulder ≈ 2.4 heads.** Shoulders ≈ 2 head-widths across, hips narrower.
+- **Upper arm ≈ 1.4 heads, forearm ≈ 1.2** — elbow lands at the waist, wrist at the hip.
+- 🔴 **The wrong-form figure must reuse the SAME bone lengths as the correct one.** Only the joint
+  angles change. If the limbs also change length, the reader cannot tell which difference is the
+  fault — the whole point of the pair collapses.
+
+**Also fixed in the same pass:** the overhead press is now drawn at the **bottom** of the rep, which
+is where elbow position actually decides whether the shoulder is safe. A figure at lockout cannot
+show the fault it is there to teach — **choose the moment in the lift where the error lives.**
+
+### 7.14 Scale — 600–650 movements, and we already hold 340
+
+Pierre (via Ali): the recognised bodies register **~600–650 movements**; cover the most common
+100–200 first and grow.
+
+🔴 **PROBED, not assumed:** `src/exerciseBank.js` already carries **340 exercises** — Elie's own
+list, generated from his spreadsheet by `scripts/build_exercise_bank.py` — and
+`src/exerciseNamesAr.js` carries **Arabic for all of them**. So the data spine exists; the drawing
+is what is missing. Order of work: **the movements `generateProgram()` actually emits first** (those
+are the ones a member will meet), then the rest of the 340, then whatever the 600 adds.
+
+🔴 **A movement with no figure is still listed** — name, muscles, type. Nothing waits on a complete
+set, and no screen may assume a figure exists.
+
+### 7.15 NEW FEATURE — the movement library, and tappable names
+
+**Pierre's correction of my assumption:** he said the app never names specific moves *yet*. It
+already does — `generateProgram()` fills each block with named exercises from the bank. **The real
+gap is that a name in a program is a dead end: nothing to tap, nowhere to look it up.**
+
+**Two ways in, and the first is the point:**
+1. 🔴 **Every exercise name in a session or a program is TAPPABLE**, opening the figure in context,
+   mid-workout. This is the one that matters — the member is already reading the name.
+2. **A searchable library screen**, for when someone was told a name in the gym and wants it cold
+   (*"if it tells me something like front arm row, I can search for it and see it"*). Search must be
+   forgiving: partial words, and Arabic as well as English.
+
+**A movement may carry its own risk flag** — an upright row is a shoulder problem for many people,
+and the library is where that belongs rather than buried inside a generated program.
+
+**Sequencing:** this is its own spec — it is a new screen, a new navigation entry and a search
+contract, not a styling task. It follows the Dashboard slice.
