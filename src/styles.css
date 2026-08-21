@@ -1370,9 +1370,16 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
       them or shrinking one would let a reader take the wrong figure for the
       reference, which is the one failure this panel cannot have. */
 .fig-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 2px 0 8px; }
-.fig-cell { margin: 0; }
+.fig-cell { margin: 0; min-width: 0; }
 .fig-art { color: var(--chalk); }
-.fig-art svg { width: 100%; height: auto; display: block; }
+/* 🔴 `min-width: 0` above and `max-width: 100%` here are BOTH load-bearing. An
+   inline <svg> with no width/height attribute is a replaced element with a
+   ratio but no intrinsic width, so a grid item's default `min-width: auto`
+   resolves against the CSS default object size of 300px: two of those plus the
+   gap is 610px of min-content inside a 320px sheet, and the modal body scrolls
+   sideways on a small phone. Invisible on a desktop browser, which is the same
+   class of bug as the v2.20.1 scrollbar. */
+.fig-art svg { width: 100%; max-width: 100%; height: auto; display: block; }
 .fig-cap {
   font-family: var(--font-display); font-size: 10px; letter-spacing: 0.14em;
   text-transform: uppercase; color: var(--chalk-dim); text-align: center; margin-top: 2px;

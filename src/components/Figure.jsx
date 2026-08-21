@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FIGURES } from '../figures/poses';
 import { figureSvg } from '../figures/svg';
 import { figureText } from '../figureText';
@@ -29,9 +29,13 @@ import { t } from '../i18n';
 export const hasFigure = (name) => !!FIGURES[name];
 
 function Fig({ pose, label, caption }) {
+  // Memoised because `figureSvg` mints a fresh clipPath id per call: without
+  // this the markup string differs on every render, so React tears down and
+  // re-parses both SVGs whenever anything above them re-renders.
+  const html = useMemo(() => figureSvg(pose, { title: label }), [pose, label]);
   return (
     <figure className="fig-cell">
-      <div className="fig-art" dangerouslySetInnerHTML={{ __html: figureSvg(pose, { title: label }) }} />
+      <div className="fig-art" dangerouslySetInnerHTML={{ __html: html }} />
       <figcaption className={`fig-cap${caption === 'fault' ? ' fig-cap-fault' : ''}`}>{label}</figcaption>
     </figure>
   );
