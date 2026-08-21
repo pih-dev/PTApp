@@ -1,12 +1,11 @@
 # PTApp / SpotSet — HANDOFF
 
-**Last updated:** 2026-08-21 ~12:40, Beirut.
+**Last updated:** 2026-08-21 ~23:55, Beirut.
 **To resume:** Pierre types `continue`. **Read §0 back to him and stop.** Do not investigate, do not
 draft, do not ask follow-up questions — he said explicitly: *"I will clear, and immediately after
 clear I will continue. I will not do anything between."* The state below is the state you will find.
 
-🔴 **He said what he starts with: the database and the internals of the application (Task A).**
-Do not open Task B unless he says so.
+🔴 **Both tasks are now open and each has its own handoff — pick by subject, not by habit.**
 
 ---
 
@@ -16,12 +15,19 @@ Do not open Task B unless he says so.
 
 ## 0. Status — read this out
 
-- 🔴 **Task A has STARTED — its own handoff is `HANDOFF-multi-user-build.md`. Read that one, not
-  this section, for its state.** Phase 1 schema (`supabase/migrations/0001_app_users.sql`) and the
-  RLS matrix are written, reviewed and committed; nothing is deployed and `src/` is untouched. The
-  next action is Pierre's: create the Supabase project.
-- **Task B — design differentiation — has NOT started.** Its own session, later, by his
-  instruction: `docs/design/2026-08-21-design-differentiation-brief.md`.
+- 🔴 **BOTH TASKS HAVE THEIR OWN HANDOFF NOW. Read the one for the subject, not this section.**
+  - **Task A — multi-user / Supabase → `HANDOFF-multi-user-build.md`.** Phase 1 is done and the
+    mirror is running; the next action is **wait out the soak** (`node scripts/soak-status.mjs` for
+    the count — never quote a remembered number). Nothing to build there.
+  - **Task B — the design pass → `HANDOFF-design.md`.** STARTED and shipping: **v2.17.0 is live**
+    (skins replace the dark/light pair, no visual change by design). Next action is **stage 2, the
+    Dashboard rebuild** — decided, specced, unblocked.
+  - **Store publishing → `HANDOFF-spotset-publishing.md`.** The iOS pipeline is written and
+    committed; the Apple enrolment is still processing. 🔴 **The Play testers are still on
+    versionCode 3 / v2.15.1** and do not have the demo-WhatsApp fix — only a new AAB reaches them.
+- **The design decision record** — anchor, palette, the reversal, the three features it spawned:
+  `docs/design/2026-08-21-design-differentiation-brief.md` §7; the spec is
+  `docs/superpowers/specs/2026-08-21-visual-language-dashboard-design.md`.
 - **Task A's decision record** (the design, not the build state):
   `docs/2026-08-21-multi-user-accounts-decision.md` — the role hierarchy is **§10**, the scoping and
   no-admin decisions **§11**, the priced RLS **§12**.
