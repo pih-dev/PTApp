@@ -61,6 +61,7 @@ you want; the spec is.
 | 1RM battery replacing the mass battery | `2026-07-06-1rm-battery-replaces-mass-design.md` |
 | Program generation from a 1RM evaluation | `2026-07-13-program-generation-design.md` |
 | Multi-day splits, 3–6 days | `2026-07-14-multi-day-split-design.md` |
+| The visual language (plate & bar, skins) and the Dashboard slice | `2026-08-21-visual-language-dashboard-design.md` |
 | Booking-time suggestion | `2026-07-17-booking-time-suggestion-design.md` |
 | Arabic exercise names | `2026-07-17-exercise-names-arabic-design.md` |
 
