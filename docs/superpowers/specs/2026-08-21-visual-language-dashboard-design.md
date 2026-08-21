@@ -1,7 +1,7 @@
 # SpotSet — Visual Language & the Dashboard Slice (Design)
 
-**Date:** 2026-08-21 · **Status:** approved in brainstorming with Pierre, awaiting his review of this
-file · **Brief:** `docs/design/2026-08-21-design-differentiation-brief.md` (§1–§7.15 — the evidence,
+**Date:** 2026-08-21 · **Status:** REVIEWED AND APPROVED by Pierre 2026-08-21, with one
+override applied (§5: ambition beats the frame budget) · **Brief:** `docs/design/2026-08-21-design-differentiation-brief.md` (§1–§7.15 — the evidence,
 every decision, and both sides of the one reversal) · **Mockup:** the `Plate & Bar` artifact.
 
 **Scope of THIS spec:** the visual language, the skin system that carries it, and **one screen —
@@ -99,14 +99,27 @@ through weight and letter-spacing, and it is judged on its own screenshots, not 
 
 ## 5. Motion
 
-Pierre chose **motion everywhere, cheap**, over one signature moment. The constraint that makes that
-safe is written into the spec, not left to taste:
+Pierre chose **motion everywhere, cheap**, over one signature moment — and then, on review,
+**overruled the performance brake** (2026-08-21): *"let's go with the best and worry about
+performance later, most have flagship phones. This goes for anything else where you mention
+performance."*
 
-1. 🔴 **`transform` and `opacity` only.** Nothing that triggers layout or paint.
-2. 🔴 **≤200ms**, and no animation on a list that can hold 500 sessions.
-3. **`prefers-reduced-motion: reduce` disables all of it.** Accessibility, not an option.
-4. 🔴 **Anything that cannot hold 60fps on Elie's iPhone is CUT, not tuned.** "Very snappy" was
-   volunteered as praise before any of this started; it outranks every transition here.
+🔴 **Standing instruction, and it applies to the whole design pass, not only motion: build the best
+version, measure afterwards.** A worse design is never chosen up front to protect a frame budget on
+hardware nobody in this audience is running.
+
+What remains, because none of it is a performance compromise:
+
+1. **`transform` and `opacity` first** — not as a ceiling, but because they are simply the correct
+   way to animate; reach past them when the effect genuinely needs it.
+2. **`prefers-reduced-motion: reduce` disables all of it.** Accessibility, not an option, and not
+   subject to the override above.
+3. **Measure on both phones after it is built**, and fix what actually stutters. A real measured
+   stutter is a bug to solve; an imagined one is not a reason to design smaller.
+
+**Superseded, recorded so nobody reinstates it:** the earlier rule *"anything that cannot hold 60fps
+on Elie's iPhone is cut, not tuned"*. It was written from Pierre's "very snappy" praise, and he has
+since ruled that ambition wins.
 
 Where it goes: row press (scale 0.99), plate fill on completion, tab change, section reveal on first
 paint. Haptics ride the same events via `@capacitor/haptics` — impact on completion, selection on
@@ -199,13 +212,18 @@ the two idioms coexisting for a release is the accepted cost of not breaking fou
 
 ## 11. Risks
 
-- 🔴 **Condensed uppercase names scan slower than sentence case**, and Arabic cannot use them at all.
-  Fallback: sentence-case condensed, which keeps the geometry and drops the risk. Decided on the
-  phone, not in the mockup.
+- **Condensed uppercase names — DECIDED: keep them** (Pierre, 2026-08-21, *"go with the best"*).
+  They scan slightly slower than sentence case; they are also the single strongest move away from
+  the generated look, and the app is read by people who open the same screen daily rather than by
+  strangers scanning it once. The sentence-case fallback stays documented and unused unless real use
+  says otherwise.
+  🔴 **The Arabic half is NOT a preference and does not go away: Arabic has no uppercase.** The
+  Arabic build carries the same hierarchy through weight and letter-spacing, and it is judged on its
+  own screenshots.
 - **Elie sees this as a shipped release** (his call). A daily user meeting a rebuilt home screen with
   no warning is the main adoption risk, and the mitigation is that the *information* does not move —
   same rows, same order, same actions.
 - **Two idioms coexist between stage 2 and the later screens.** Accepted, and bounded by doing the
   screens in sequence rather than in parallel.
-- **A lit gradient ground costs more to paint than a flat one.** One paint on a static background,
-  so it should be free — but it gets measured on the phone rather than assumed.
+- **A lit gradient ground costs more to paint than a flat one.** Measured after the fact, per the
+  standing instruction in §5 — not designed around in advance.
