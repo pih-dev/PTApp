@@ -584,3 +584,124 @@ The throwaway account was deleted afterwards; `auth.users` is back to **0 rows**
 **Nothing reads or writes `tenants` yet.** A signed-in user gets an empty local app with no sync —
 that is Phase 2 (dual-write) and Phase 3 (cutover), deliberately not built here. Elie's path today is
 unchanged: paste the PAT, sync to GitHub.
+
+---
+
+## 15. Phase 1 — the mirror is running (2026-08-21)
+
+Three scripts, none of them app code, none of them deployed. GitHub is still authoritative and
+nothing in this section writes to it.
+
+| Script | Does |
+|---|---|
+| `scripts/snapshot-live.mjs <desc>` | Archives live `data.json` to `_archive/PTApp/data-snapshots/` and **asserts the byte count against the API's reported size**, refuses to overwrite an existing snapshot, and parses before writing. A truncated download is silent — valid-looking JSON up to the cut, worthless as a rollback. |
+| `scripts/mirror-to-supabase.mjs --email <coach>` | Reads `data.json`, finds-or-provisions the coach (`auth.users` + `app_users`, role `pt`, no parent ⇒ prime), inserts-or-updates their `tenants` row, then **reads the blob back out of Postgres and asserts equality**. Idempotent: built to be re-run daily for a week without creating a second anything. |
+| `scripts/sanity/sanity-live-supabase-diff.mjs` | The **Phase-2 soak gate**. Compares the two stores daily. Exit 0 agree · 1 diverge · 2 not configured (**not a pass**). On divergence it names the collection and the record ids, because "two 173 KB strings differ" is not actionable on day 5. |
+| `scripts/lib/normalize.mjs` | The ONE deterministic serializer both sides go through. |
+
+### The first run, and the state it left
+
+- Snapshot: `_archive/PTApp/data-snapshots/2026-08-21-pre-supabase-mirror.json`,
+  **173,567 bytes on disk == 173,567 reported by the API** · `_dataVersion` 6 · 21 clients ·
+  514 sessions · 1 program.
+- Mirror target: `pierreghorra@gmail.com` — **Pierre's own address, and no password is set**, so
+  the account cannot be signed into. The mirror target must not become a live login by accident, and
+  Phase 3 is where a real sign-in is rehearsed with Elie. Re-pointing the tenant at Elie's account
+  later is safe: `0002` restamps `owner_path` in the same transaction as a `coach_id` change.
+- One tenant, holding a verified copy. The gate is green: `_dataVersion` 6, and
+  21/514/2/1/15/91 across clients, sessions, evaluations, programs, todos, auditLog.
+
+### 🔴 The gate was wrong on the first run, and it reported green
+
+`norm()` was `JSON.stringify(o, Object.keys(o).sort())` — which reads as "stringify with sorted
+keys" and is not. **An array in the second argument is a replacer ALLOWLIST applied at every
+depth**, so it kept the six top-level key names and discarded every nested field. It compared a
+173 KB blob against a **2,092-character skeleton** and printed *"byte-identical"*.
+
+The lesson is not "be careful with `JSON.stringify`". It is that **a gate nobody has seen fail is
+not evidence**, because its output gets quoted as though it were. Two things came out of it:
+
+1. `assertRealSize()` — the normalised form must be ≥100 KB or the run stops and says *the
+   normaliser is broken, not the data*. Those are different emergencies.
+2. **The gate was deliberately made to fail before it was trusted.** One session was dropped from
+   the Postgres copy; the gate went red, named `sessions: only in GitHub → nq70to9`, and exited 1.
+   The mirror then restored it and the gate went green again.
+
+`tenant_snapshots` recorded exactly what it should through that: **two rows, not five.** The trigger
+files the previous bytes only when `data` actually changed, so the two identical re-runs cost
+nothing, the corruption filed the last good copy (190,348 bytes) and the restore filed the corrupt
+one (190,140). Every mirror run leaves a recoverable trail without paying 190 KB for a no-op.
+
+One Windows detail worth keeping: `process.exit(1)` inside these scripts trips a libuv assertion
+while a `fetch` socket is closing and the shell sees **127**, not 1. They set `process.exitCode`
+and let the loop drain instead — a gate whose failure code is unreliable is a gate the suite loop
+can misreport.
+
+### What Phase 2 still needs
+
+The driver split in `src/` (`githubDriver` / `supabaseDriver` behind one build flag), so the app
+itself dual-writes rather than a laptop script doing it once a day. Then seven consecutive clean
+days of the gate above. **Any unexplained divergence halts the plan** — it is never worked around.
+
+
+---
+
+## 16. What the data-integrity review changed (2026-08-21)
+
+Six real defects in the Phase-1 scripts, none of which had a symptom. Worth reading as a set,
+because four of them are the same shape: **a check that could not fail.**
+
+- 🔴 **`assertRealSize` ignored its own argument.** It compared against a hardcoded 100 KB floor,
+  which only catches TOTAL collapse. A normaliser bug that dropped every nested `packages[]` and
+  `blocks[]` would leave ~120 KB, clear the floor, and print "byte-identical" — and it would clear
+  the equality check too, because a normaliser defect collapses **both sides identically**, and
+  `counts()` reads the raw objects rather than the normalised string. Now proportional: the
+  normalised form must be ≥90% of the source, which scales and does not falsely trip on a smaller
+  second coach.
+- 🔴 **Length was treated as content.** The metadata and the body are two separate API calls, and
+  the PT's phone can push between them — a status flip or one changed digit gives a **same-length**
+  revision. The archive would then hold revision B under revision A's logged sha. Both scripts now
+  compute the **git blob sha1** of the body and compare it to the API's, which also separates *"it
+  moved under me, re-run"* from *"it was truncated, stop"*.
+- 🔴 **Read skew was being reported as divergence.** The gate reads GitHub, then Postgres. A push in
+  that window is a real content difference — and escalating it to *"STOP THE LINE, do not re-run"*
+  would fire on a benign race, repeatedly, on Lebanese internet with a live phone. Two failures
+  follow: the rule forbids the one action that settles it, and an operator who learns the gate cries
+  wolf starts explaining real divergences as timing. The gate now re-reads the sha afterwards and
+  exits **2 — did not run**, never 1.
+- **The coach lookup was page-one-only and case-sensitive.** GoTrue pages at 50 and lowercases
+  emails, so `--email Elie@Example.com` would miss yesterday's row, fall through to create, and
+  hard-fail on the 422 — breaking the "re-run daily for a week" contract on about day 3.
+- **The PATCH never checked it hit a row.** PostgREST answers `200 []` when the filter matches
+  nothing, and the script logged success regardless. It was caught downstream by a crash, not by a
+  gate, after the log line had already claimed the write happened.
+- **`data._dataVersion ?? 6`** invented a schema version for a blob that had none. It refuses now.
+
+Also derived: `COLLECTIONS` is no longer a hardcoded key list but the union of array keys on both
+blobs — the `mergeData` key-list trap in CLAUDE.md wearing a different hat. A collection added in
+v2.16 would otherwise have been invisible to the count check and the per-record diagnostic on the
+day it shipped.
+
+### 🔴 `0003` — snapshots must outlive the tenant they document (WRITTEN, NOT YET APPLIED)
+
+`0002` gave `tenant_snapshots` **`on delete cascade`**. That table exists for exactly one reason,
+written in its own header: after Apr 13 and Apr 19, *"by the time anyone noticed, the old bytes were
+gone."* With a cascade, one `delete from tenants where …` in the SQL console — **the normal
+administrative route, because §11.1 deliberately gives us no in-app admin** — destroys the entire
+undo history in the same statement. No error, irreversible, and it is precisely the moment you would
+want that history.
+
+`restrict` would only make the tenant undeletable and push people to delete the snapshots first —
+the same loss by a longer route. `on delete set null` is the answer: the tenant goes, the history
+stays, orphaned but intact and still RLS-readable through its own denormalized `owner_path`. `0003`
+also files a final `reason='delete'` snapshot on the way out, and records
+`tenant_version` / `tenant_data_version` so a restore knows which generation it is putting back.
+
+**It cannot be applied from here** — no `psql`, no Supabase CLI, no database password and no
+management token on this machine; `0001` and `0002` were applied by hand in the SQL editor and so
+must this be. **`sanity-rls-matrix.mjs` now asserts the behaviour against the live database**, not
+against the file: it writes a tenant, confirms a snapshot exists, deletes the tenant, and requires
+the snapshot to survive with `tenant_id` null. It **fails today** — `snapshots SURVIVE their
+tenant's deletion (0/1 kept — 0 means 0003 is not applied)` — and turns green the moment the
+migration runs. `create table if not exists` skips silently, so an unapplied migration in the repo
+looks exactly like one that ran; asserting the database is the only way to tell.

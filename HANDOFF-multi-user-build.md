@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~19:15, Beirut.
+**Last updated:** 2026-08-21 ~19:50, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -118,10 +118,45 @@ moment it became true, and the working tree was clean and pushed at every point.
 - 🔴 **NOTHING READS OR WRITES `tenants` YET.** A signed-in user gets an empty local app with no
   sync; that is Phase 2 (dual-write) and Phase 3 (cutover), deliberately not built. **Elie's path is
   unchanged** — paste the PAT, sync to GitHub.
-- **Next action: Phase 2 — dual-write, GitHub still authoritative** (§5 step 2, §6). Every GitHub
-  push followed by a Supabase write; the mirror leg runs off the commit stream from Pierre's laptop,
-  never from the bundle. Then the 7-day soak, where **any unexplained byte divergence halts the
-  plan** rather than being worked around.
+- ✅ **PHASE 1 IS DONE — THE MIRROR IS RUNNING AND THE SOAK GATE IS GREEN.** Live `data.json`
+  archived and byte-verified (`2026-08-21-pre-supabase-mirror.json`, **173,567 == 173,567**, 21
+  clients / 514 sessions / 1 program), copied into `tenants`, and read back. Four new files, none of
+  them app code, nothing deployed: `scripts/snapshot-live.mjs`, `scripts/mirror-to-supabase.mjs`,
+  `scripts/lib/normalize.mjs`, `scripts/sanity/sanity-live-supabase-diff.mjs`. Record: §15.
+- **Mirror target is `pierreghorra@gmail.com` — Pierre's own address, with NO PASSWORD SET**, so it
+  cannot be signed into. Re-pointing the tenant at Elie's real account later is safe: `0002`
+  restamps `owner_path` in the same transaction as a `coach_id` change.
+- 🔴 **THE GATE WAS WRONG ON ITS FIRST RUN AND REPORTED GREEN.** `JSON.stringify(o, keys)` is a
+  replacer ALLOWLIST at every depth, not a key sort — it compared a 173 KB blob against a
+  2,092-char skeleton and said "byte-identical". Fixed, and then **the gate was deliberately made to
+  fail before being trusted**: one session dropped from the Postgres copy, gate red, named
+  `sessions: only in GitHub → nq70to9`, exit 1; restored, green again. `tenant_snapshots` filed 2
+  rows, not 5 — the trigger only copies when `data` actually changed.
+- 🔴 **ONE THING NEEDS PIERRE'S HANDS: apply `supabase/migrations/0003_snapshots_outlive_tenants.sql`
+  in the Supabase SQL editor.** `0002` gave `tenant_snapshots` **`on delete cascade`**, so a single
+  `delete from tenants` in the console — the normal admin route, since §11.1 gives no in-app admin —
+  would destroy the entire undo history in the same statement, silently. `0003` switches the FK to
+  `on delete set null` and files a final snapshot on the way out. It cannot be applied from the
+  terminal (no psql, no Supabase CLI, no DB password or management token here), same as 0001/0002.
+  **`sanity-rls-matrix.mjs` FAILS until it is applied** — by design, and it asserts the live
+  database, not the file, because `create table if not exists` skips silently.
+- **A data-integrity review found six more silent defects in the Phase-1 scripts, all fixed** — four
+  of them the same shape, *a check that could not fail*: `assertRealSize` ignored its own argument
+  (a fixed 100 KB floor passes a normaliser that drops every nested `packages[]`); length was
+  treated as content (a same-length revision pushed mid-read would be archived under the wrong sha —
+  both scripts now compare the **git blob sha1**); read skew was reported as divergence (now exit 2,
+  *did not run*, so a benign mid-soak push cannot teach the operator to dismiss real ones); the
+  coach lookup was page-one-only and case-sensitive; the PATCH never checked it hit a row; and
+  `?? 6` invented a schema version. Detail: §16.
+- **Next action: Phase 2 — the driver split in `src/`.** `sync.js` becomes `githubDriver` +
+  `supabaseDriver` behind one build flag, GitHub still authoritative, the Supabase leg best-effort
+  and non-blocking (a failing mirror must never turn Elie's dot red). Then **7 consecutive clean
+  days** of `sanity-live-supabase-diff.mjs`, run daily. 🔴 **Any unexplained divergence halts the
+  plan** — never worked around, never re-run until it passes.
+- **Syria (2026-08-21, from Ali):** testers there needed a VPN for the Play link. Not fixable from
+  the console — Syria's Google sanctions were lifted but Play is being restored IP-range by
+  IP-range, and Syria is still absent from Play Console's country list. **Give them the PWA instead:
+  `https://pih-dev.github.io/PTApp/`** — same app, no store, no VPN, Add to Home Screen.
 - **The design is settled and should not be re-opened:** two roles (`pt`/`client`), prime = a `pt`
   with no parent, one `ltree` containment predicate covering own-data + downline + peer isolation,
   no admin role (service_role from the SQL console instead), and *"mine"* as the default scope on

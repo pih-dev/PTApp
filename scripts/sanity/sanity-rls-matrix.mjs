@@ -346,19 +346,38 @@ async function teardown() {
   }
 
   // Verify, don't assume. This is the whole lesson of the paragraph above.
-  const count = async (table) => {
-    const r = await api(`/rest/v1/${table}?select=id`, { key: SERVICE });
+  //
+  // 🔴 COUNT THIS RUN'S ROWS, NOT THE TABLE.
+  //    The original version asserted the three tables were globally empty,
+  //    which was true only while this database held nothing but synthetic
+  //    rows. From 2026-08-21 the Phase-1 mirror keeps a real coach and a real
+  //    tenant holding the PT's blob (§15), so a global count would fail every
+  //    run from now on — and a gate that always fails gets ignored, which is
+  //    the same outcome as not having one. Scope to `made`, the ids this run
+  //    created; anything of ours left behind is still a hard failure.
+  const leftover = async (table, col) => {
+    if (!made.length) return 0;
+    const r = await api(`/rest/v1/${table}?select=id&${col}=in.(${made.join(',')})`, { key: SERVICE });
     if (!r.ok) return r.status === 404 ? 0 : 'UNKNOWN';
     const rows = await r.json().catch(() => null);
     return Array.isArray(rows) ? rows.length : 'UNKNOWN';
   };
-  const nUsers = await count('app_users');
-  const nTenants = await count('tenants');
-  const nSnaps = await count('tenant_snapshots');
+  const nUsers = await leftover('app_users', 'id');
+  const nTenants = await leftover('tenants', 'coach_id');
+  // Snapshots hang off tenants, which are gone by now; count by this run's
+  // tenant ids rather than by coach.
+  const nSnaps = tenantIds.length
+    ? await (async () => {
+        const r = await api(`/rest/v1/tenant_snapshots?select=id&tenant_id=in.(${tenantIds.join(',')})`, { key: SERVICE });
+        if (!r.ok) return r.status === 404 ? 0 : 'UNKNOWN';
+        const rows = await r.json().catch(() => null);
+        return Array.isArray(rows) ? rows.length : 'UNKNOWN';
+      })()
+    : 0;
 
   if (failed || nUsers !== 0 || nTenants !== 0 || nSnaps !== 0) {
     failures++;
-    console.error(`  ✗ 🔴 TEARDOWN INCOMPLETE — ${failed} delete(s) failed; left app_users=${nUsers}, tenants=${nTenants}, tenant_snapshots=${nSnaps}. Clean up before trusting this database.`);
+    console.error(`  ✗ 🔴 TEARDOWN INCOMPLETE — ${failed} delete(s) failed; left ${nUsers} app_users, ${nTenants} tenants, ${nSnaps} tenant_snapshots OF THIS RUN'S OWN. Clean up before trusting this database.`);
   } else {
     console.log('  ✓ teardown clean — 0 rows in app_users, tenants, tenant_snapshots');
   }
@@ -550,6 +569,50 @@ try {
     const eSees = await visibleTo(await signIn('D'));
     assert(eSees.has(ids.E),
       "🔴 B's own client E moved with the subtree — the restamp is recursive, not one level");
+
+    // ---- 0003: a snapshot must OUTLIVE the tenant it documents.
+    //
+    // 🔴 This is the highest-consequence assertion in the file after isolation.
+    //    tenant_snapshots exists because of Apr 13 and Apr 19 — "by the time
+    //    anyone noticed, the old bytes were gone". 0002 gave it ON DELETE
+    //    CASCADE, so one `delete from tenants` in the SQL console — the NORMAL
+    //    administrative route, since §11.1 gives us no in-app admin — would
+    //    take the entire undo history with it, silently. 0003 changes the FK to
+    //    ON DELETE SET NULL so the history survives, orphaned but intact and
+    //    still RLS-readable via its own denormalized owner_path.
+    //
+    //    This asserts the DATABASE, not the file. `create table if not exists`
+    //    skips silently, so a migration sitting in the repo unapplied looks
+    //    exactly like one that ran. Until 0003 is applied in the SQL console,
+    //    this FAILS — which is the point.
+    const tSnapTarget = tenantIds[tenantIds.length - 1];
+    // Force one snapshot to exist by changing the blob.
+    await api(`/rest/v1/tenants?id=eq.${tSnapTarget}`, {
+      key: SERVICE, method: 'PATCH', body: { data: { probe: 'pre-delete' } },
+    });
+    const before = await (await api(
+      `/rest/v1/tenant_snapshots?select=id,tenant_id&tenant_id=eq.${tSnapTarget}`, { key: SERVICE })).json();
+    assert(Array.isArray(before) && before.length > 0,
+      `a write to a tenant files a snapshot (${before.length ?? 0} row(s))`);
+
+    const delRes = await api(`/rest/v1/tenants?id=eq.${tSnapTarget}`, { key: SERVICE, method: 'DELETE' });
+    if (delRes.ok) {
+      tenantIds.splice(tenantIds.indexOf(tSnapTarget), 1); // teardown must not retry it
+      const survivors = await (await api(
+        `/rest/v1/tenant_snapshots?select=id,tenant_id,reason&id=in.(${before.map(r => r.id).join(',')})`,
+        { key: SERVICE })).json();
+      assert(survivors.length === before.length,
+        `🔴 snapshots SURVIVE their tenant's deletion (${survivors.length}/${before.length} kept — 0 means 0003 is not applied)`);
+      // `.every()` on an empty array is true — a vacuous pass right underneath a
+      // real failure is exactly the kind of green line that gets quoted.
+      assert(survivors.length > 0 && survivors.every(r => r.tenant_id === null),
+        'orphaned snapshots have tenant_id set to null, not a dangling id');
+      // Clean up ours — they are synthetic, and nothing else will collect them
+      // now that the cascade no longer does.
+      for (const r of survivors) await api(`/rest/v1/tenant_snapshots?id=eq.${r.id}`, { key: SERVICE, method: 'DELETE' });
+    } else {
+      assert(false, `delete tenant for the snapshot-survival check: ${delRes.status} ${await delRes.text()}`);
+    }
   }
 
 } catch (e) {
