@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~21:35, Beirut.
+**Last updated:** 2026-08-21 ~22:05, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -185,7 +185,12 @@ moment it became true, and the working tree was clean and pushed at every point.
 - 🔴 **`BACKEND_MODE` is the ROLLBACK switch, not yet the CUTOVER switch.** `App.jsx` still gates
   every sync path on `getToken()`, so under `supabase-primary` a signed-in coach with no PAT would
   never sync. **Widening that gate to identity-or-token is the first job of Phase 3.**
-- **Next action: nothing to build — WAIT OUT THE SOAK.** `node scripts/soak-status.mjs` for the
+- OK **v2.16.0 IS LIVE ON gh-pages** (Pages build verified `built`, `v2.16.0` served). It ships the
+  multi-user groundwork **DARK** — no `VITE_SUPABASE_*` in that build, so `isAuthConfigured()` is
+  false, the login half of `TokenSetup` does not render, and `BACKEND_MODE` is `github-primary`.
+  Elie's path is unchanged. The only user-visible change is P6: a forgiven cancel shows no session
+  number. Release notes: `docs/instructions-v2.16.md`.
+- **Next action: nothing to build here — WAIT OUT THE SOAK.** `node scripts/soak-status.mjs` for the
   count; the hourly task keeps it running. Phase 3 needs 7 consecutive clean days AND a byte-verified
   `_archive` snapshot AND a `tenant_snapshots` row with `reason='pre-migration'` AND both phones
   confirmed on the new build. Elie's account is provisioned at cutover, rehearsed with him, not on a
