@@ -8,7 +8,8 @@ Do not investigate, do not re-derive, do not ask follow-up questions.
 at each milestone, on the assumption that a restart could end the session at any moment. `/wrap` is
 the safety net, never the trigger.
 
-> 📌 Three other threads exist and are NOT this one: `HANDOFF.md` (the queued-task overview),
+> 📌 Other threads exist and are NOT this one: **`HANDOFF-figures.md`** (B2, the figures — trigger
+> word `figures`), `HANDOFF.md` (the queued-task overview),
 > `HANDOFF-multi-user-build.md` (Supabase / Task A — waiting out a soak), and
 > `HANDOFF-spotset-publishing.md` (Play + Apple).
 

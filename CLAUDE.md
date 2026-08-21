@@ -24,6 +24,7 @@ on these keywords — don't open them yourself, and never answer from recollecti
 | colour, color, palette, theme, skin, skins, typography, look and feel | `docs/design-system.md`, `docs/design/2026-08-21-design-differentiation-brief.md` |
 | data size, ceiling, pruning, overhead, performance budget, how big | `docs/app-health.md` |
 | sync, syncing, offline, service worker, localStorage, stale device | `docs/sync-and-offline-review.md`, `docs/superpowers/specs/2026-04-13-sync-fix-design.md`, `docs/instructions-v2.6.md` |
+| figures, silhouette, drawing, anatomy, movement figure | `HANDOFF-figures.md` — B2: the brief, Pierre's prompt template, the clinical-text decision |
 | Elie, the PT, next visit, standing authority, governance, snapshot | `docs/elie-next-visit.md` |
 | health check, sanity suite, live diff, spent gate, MEMORY.md size | `docs/health-check-2026-08-03.md` |
 | deploy, gh-pages, pages build, release hygiene, review discipline | `docs/release-hygiene.md` — the 7-step pipeline, the Jun 11 Pages race, the spent gates |
@@ -153,7 +154,7 @@ Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` r
 
 ## KNOWN ISSUES / OBLIGATIONS
 - 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev. Replace via General → Backup → "Update sync token".
-- **Program pruning (v2.15)** — before `data.json` nears 1 MB (14.5% on 2026-08-03). 🔴 **Snapshot before any pruning run** — cloud deletes are irreversible.
+- **Program pruning (v2.15)** — before `data.json` nears 1 MB. 🔴 **Snapshot first** — cloud deletes are irreversible.
 - **Review finding P3 — DECIDED 2026-08-05, NOT BUILT.** SessionCard scope B (Dashboard-expanded + Schedule); kills the `focus: []` bug at `Schedule.jsx:201`. **Do it with the Schedule layout pass.**
 - **App name = SpotSet**; `com.spotset.app` is PERMANENT.
 

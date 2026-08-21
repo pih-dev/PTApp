@@ -16,7 +16,7 @@ anyone but us, except where it says so.
 | A2 | The Dashboard in the plate and the bar | ✅ v2.18 |
 | A3 | The shell + shared primitives | ✅ v2.19 |
 | A4 | Press affordance — fill means press | ✅ v2.19.1 |
-| **A5** | **The screens nobody opened: program setup, program viewer, evaluations, norm charts** | **next** |
+| A5 | The screens nobody opened: programs, evaluations, norm charts | ✅ v2.20 |
 | A6 | The chrome question — is a bottom tab bar still the right nav? | open, see below |
 | A7 | Measure on both phones, both skins, both languages; fix what actually stutters | after A5 |
 
@@ -31,8 +31,8 @@ a layout question and it wants the screens finished first.
 
 | # | Item | Notes |
 |---|---|---|
-| **B1** | **The movement library** | Every exercise name in a session or program becomes tappable; a searchable screen, EN + AR. 🔴 The data spine already exists — 340 movements in `exerciseBank.js`, Arabic for all of them. The gap is that a name is a dead end today. |
-| **B2** | **The exercise figures** | Pierre's references read in `docs/design/2026-08-22-figure-references.md`. Style, canon, and the figure/mark split are settled enough to spec; **production route is the open question**, and it constrains the style. |
+| B1 | The movement library — ✅ **v2.21** | Every exercise name in a session or program becomes tappable; a searchable screen, EN + AR. 🔴 The data spine already exists — 340 movements in `exerciseBank.js`, Arabic for all of them. The gap is that a name is a dead end today. |
+| **B2** | **The exercise figures** | 🔴 **Its own handoff now: `HANDOFF-figures.md`** (trigger `figures`). Route chosen — GENERATE, *"without stiffness"*. Line drawings are out; solid silhouettes win. Waiting on Pierre's ideas and one decision about clinical text. |
 | B3 | The logo | After the language, so the mark is drawn into a system that exists. It must carry *spot*, not just a dumbbell. |
 | B4 | Gym photography | A ground, never a surface: empty states, the completed moment, login. |
 
