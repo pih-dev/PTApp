@@ -33,11 +33,22 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 - 🔴 **There is still no Mac and none is needed** — the decided build path is **Codemagic**
   (hosted macOS, free 500 min/mo, signs via the API key, `npx cap add ios` runs as a CI step
   because it cannot run on Windows). **Ionic Appflow is being wound down — never start there.**
-- 🟢 **THE ANDROID SIDE IS DONE AND SUBMITTED.** SpotSet **v2.15.1 / versionCode 3** plus 13 other
-  changes went to Google on **2026-08-20 ~14:10** and sit in **"Changes in review"**. Nothing is
-  left for Pierre to do on the submission itself. Reviews are "typically within 7 days".
-- **Next action is Google's, not ours.** When it clears, the console shows the opt-in link on the
-  closed-testing Testers tab. Only then does anything else happen.
+- 🟢 **THE ANDROID SIDE IS LIVE.** SpotSet **v2.15.1 / versionCode 3** went to Google 2026-08-20
+  ~14:10 and **PUBLISHED the same day**. Verified in the console 2026-08-21: track
+  `Closed testing - Alpha` is **Active**, Latest release **3 (2.15.1)**, 177 countries/regions,
+  email list `SpotSet Alpha Testers` = **14 users, ticked**.
+- 🔴 **THE BLOCKER IS PIERRE, NOT GOOGLE — `0 testers currently opted-in`.** The dashboard's
+  production checklist reads: ✅ Publish a closed testing release · ⭕ Have at least 12 testers
+  opted-in (*0 currently*) · ⭕ Run the test 14 days. **Being on the email list is NOT opting in.**
+  Google sends the testers nothing. Pierre must send the link himself and each tester must open it
+  and press *Become a tester*. **Day 1 is the day the 12th accepts.**
+- **The opt-in links (verified in the console, 2026-08-21):**
+  - Web (the one to send — it carries the *Become a tester* button):
+    `https://play.google.com/apps/testing/com.spotset.app`
+  - Android store page (only works after opting in): `https://play.google.com/store/apps/details?id=com.spotset.app`
+- ⚠️ **A session claimed on 2026-08-21 that the release was still "in review". It was not.** The
+  console is the record; this file was stale for a day. Re-read the console before asserting store
+  state.
 - **14 testers on the list** (`SpotSet Alpha Testers`) — above the 12 minimum, list closed.
 - 🔴 **The 14-day clock has NOT started.** It starts when the release is rolled out AND 12 testers
   have **opted in**; opting out resets it.
