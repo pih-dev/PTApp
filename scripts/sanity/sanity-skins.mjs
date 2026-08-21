@@ -38,7 +38,10 @@ const TOKENS = ['--t1', '--t2', '--t3', '--t4', '--t5', '--sep', '--card-bg',
   // surface: the Dashboard paints ONLY from these, so a skin that omits one
   // renders another skin's colour on a screen its author never opened.
   '--ground', '--ground-lit', '--raised', '--chalk', '--chalk-dim', '--chalk-faint',
-  '--accent', '--bar', '--ok', '--warn', '--anatomy'];
+  '--accent', '--bar', '--ok', '--warn', '--anatomy',
+  // v2.22.1 — the muscle code. Same rule as --anatomy: figure-internal, and a
+  // skin that omits one washes the OTHER skin's hue over a body.
+  '--muscle', '--muscle-2'];
 const skinIds = [...css.matchAll(/\[data-skin="([a-z0-9-]+)"\]\s*\{/g)].map(m => m[1]);
 const declaredSkins = [...new Set(skinIds)];
 assert(declaredSkins.length >= 1, `styles.css declares skin blocks (${declaredSkins.join(', ') || 'none'})`);

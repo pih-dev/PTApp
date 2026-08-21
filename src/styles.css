@@ -42,7 +42,14 @@ html, body, #root { height: 100%; overflow: hidden; }
   --bar: #5A78A8;           /* every divider is a bar shaft, and a shaft has to be visible */
   --ok: #4FC08D;
   --warn: #E0A32B;
-  --anatomy: #F2622C;       /* reserved for the exercise figures — unused in the UI on purpose */
+  --anatomy: #F2622C;       /* the FAULT marker inside a figure — unused in the UI on purpose */
+  /* v2.22.1: the muscle code. Two hues, one question each — "what does this
+     movement train" (--muscle, the prime movers) and "what else is working"
+     (--muscle-2). 🔴 FIGURE-INTERNAL, exactly like --anatomy: neither may
+     appear in the interface. They sit clear of --anatomy's orange on purpose,
+     so an engaged muscle can never be misread as the injured joint. */
+  --muscle: #D8436A;
+  --muscle-2: #9A7BC8;
 
   /* Type roles (spec §4). Saira Condensed uppercase reads as an instrument
      label and is the fastest exit from the generated look; IBM Plex Mono with
@@ -1391,6 +1398,11 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
    every other display label in the app. */
 [dir="rtl"] .fig-cap { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
+/* The third figure gets the full width because the second camera is always a
+   view from above, and a supine figure from above is wide and short — squeezing
+   it into a third column would throw away the only reason it exists. */
+.fig-wide { margin: 4px 0 8px; }
+
 .fig-text { margin: 2px 0 6px; }
 .fig-text p { margin: 0 0 6px; font-size: 13px; line-height: 1.5; color: var(--chalk-dim); }
 .fig-text p:last-child { margin-bottom: 0; }
@@ -1495,6 +1507,8 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   --chalk: #141C33;
   --chalk-dim: #3A4767;
   --chalk-faint: #46546F;
+  --muscle: #A81F45;
+  --muscle-2: #5A4C9E;
   --accent: #06465F;
   --bar: #475A80;
   --ok: #0E5238;

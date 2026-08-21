@@ -16,10 +16,11 @@ import { FIGURES } from '../src/figures/poses.js';
 import { figureSvg } from '../src/figures/svg.js';
 
 const skins = [
-  { id: 'midnight', ground: '#0A1524', groundLit: '#0F2A52', chalk: '#E9EEF3', dim: '#9DAABB', bar: '#5A78A8' },
-  { id: 'steel', ground: '#A9BAD2', groundLit: '#D3DEEC', chalk: '#141C33', dim: '#3A4767', bar: '#4A5D80' },
+  { id: 'midnight', ground: '#0A1524', groundLit: '#0F2A52', chalk: '#E9EEF3', dim: '#9DAABB', bar: '#5A78A8',
+    accent: '#35B7E8', warn: '#E0A32B', anatomy: '#F2622C', muscle: '#D8436A', muscle2: '#9A7BC8' },
+  { id: 'steel', ground: '#A9BAD2', groundLit: '#D3DEEC', chalk: '#141C33', dim: '#3A4767', bar: '#4A5D80',
+    accent: '#06465F', warn: '#8A5A00', anatomy: '#F2622C', muscle: '#A81F45', muscle2: '#5A4C9E' },
 ];
-const ANATOMY = '#F2622C';
 
 const cell = (name, kind, pose) => `
   <div class="cell">
@@ -33,7 +34,7 @@ const cell = (name, kind, pose) => `
   </div>`;
 
 const board = (s) => `
-<section class="skin" style="--ground:${s.ground};--ground-lit:${s.groundLit};--chalk:${s.chalk};--chalk-dim:${s.dim};--bar:${s.bar};--anatomy:${ANATOMY}">
+<section class="skin" style="--ground:${s.ground};--ground-lit:${s.groundLit};--chalk:${s.chalk};--chalk-dim:${s.dim};--bar:${s.bar};--accent:${s.accent};--warn:${s.warn};--anatomy:${s.anatomy};--muscle:${s.muscle};--muscle-2:${s.muscle2}">
   <h2>${s.id}</h2>
   ${Object.entries(FIGURES).map(([name, pair]) => `
     <div class="pair">

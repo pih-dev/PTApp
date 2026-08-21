@@ -44,6 +44,10 @@ function equipMarkup(equip) {
 
 const r = (v) => Math.round(v * 10) / 10;
 
+const washes = (list, colour, opacity, id) => (list && list.length
+  ? `<g clip-path="url(#${id})" fill="${colour}" opacity="${opacity}">${list.map(d => `<path d="${d}"/>`).join('')}</g>`
+  : '');
+
 let uid = 0;
 
 // detail:
@@ -55,6 +59,11 @@ export function figureSvg(pose, { detail = 'full', title = '', className = '' } 
   const f = buildFigure(pose);
   const mark = detail === 'mark';
   const id = `fg${++uid}`;
+  // Held versus lost, and the hue carries it: --accent is this app's "under
+  // load, pay attention" colour and --warn is its "this is going wrong" one.
+  // The pose says which by whether it marks a fault, so the two can never be
+  // set inconsistently from a pose file.
+  const guideStroke = f.fault.length ? 'var(--warn)' : 'var(--accent)';
 
   const bodyPaths = f.body.map(d => `<path d="${d}"/>`).join('')
     + f.deltoids.map(c => `<circle cx="${r(c.cx)}" cy="${r(c.cy)}" r="${r(c.r)}"/>`).join('')
@@ -66,20 +75,32 @@ export function figureSvg(pose, { detail = 'full', title = '', className = '' } 
     ? `<g fill="currentColor">${bodyPaths}${equipMarkup(f.equip.filter(e => e.k !== 'quad'))}</g>`
     : [
       `<g fill="currentColor" opacity="0.42">${equipMarkup(f.equip)}</g>`,
-      `<clipPath id="${id}"><g>${bodyPaths}</g></clipPath>`,
+      // 🔴 NO <g> INSIDE A clipPath. Only shapes, text and <use> are legal
+      //    children; a group is silently ignored, the clip resolves to EMPTY,
+      //    and everything clipped by it — the whole muscle code and the filled
+      //    half of the fault marker — disappears. It fails silently and it
+      //    looks exactly like "the wash isn't implemented yet".
+      `<clipPath id="${id}">${bodyPaths}</clipPath>`,
       `<g fill="currentColor" opacity="0.78">${bodyPaths}</g>`,
-      // The muscle wash is the SAME colour at full strength rather than a new
-      // hue: "highlight the primary muscles" without inventing a decorative
-      // colour the palette does not own. Clipped, so it can only ever paint on
-      // the body — a wash that spills outside the silhouette reads as a bug.
-      f.muscles.length
-        ? `<g clip-path="url(#${id})" fill="currentColor" opacity="0.42">${f.muscles.map(m => `<circle cx="${r(m.x)}" cy="${r(m.y)}" r="${r(m.r)}"/>`).join('')}</g>`
+      // The muscle wash, COLOUR-CODED: primary movers in --muscle, supporting
+      // work in --muscle-2. Clipped, so it can only ever paint on the body — a
+      // wash that spills outside the silhouette reads as a bug, not as anatomy.
+      washes(f.muscles.secondary, 'var(--muscle-2)', 0.5, id),
+      washes(f.muscles.primary, 'var(--muscle)', 0.62, id),
+      // 🔴 THE POSTURE LINE, over everything the body paints and under the fault
+      //    marker. The halo is not decoration: an accent stroke laid straight on
+      //    a silhouette of similar value disappears at list size, and this line
+      //    is the one thing a reader is meant to compare between the two figures.
+      f.guide
+        ? [f.guide.d, f.guide.mirror].filter(Boolean).map(d =>
+            `<path d="${d}" fill="none" stroke="var(--ground)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>`
+            + `<path d="${d}" fill="none" stroke="${guideStroke}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`).join('')
         : '',
       // The fault marker: filled INSIDE the body so it reads as tissue under
       // load, plus a ring outside it so the eye finds it at a glance. On the
       // joint that takes the stress — never an outline round the whole figure.
       f.fault.length
-        ? `<g clip-path="url(#${id})" fill="var(--anatomy)">${f.fault.map(m => `<circle cx="${r(m.x)}" cy="${r(m.y)}" r="${r(m.r)}"/>`).join('')}</g>`
+        ? `<g clip-path="url(#${id})" fill="var(--anatomy)" opacity="0.8">${f.fault.map(m => `<circle cx="${r(m.x)}" cy="${r(m.y)}" r="${r(m.r)}"/>`).join('')}</g>`
           + `<g fill="none" stroke="var(--anatomy)" stroke-width="7" opacity="0.85">${f.fault.map(m => `<circle cx="${r(m.x)}" cy="${r(m.y)}" r="${r(m.r + 12)}"/>`).join('')}</g>`
         : '',
     ].join('');

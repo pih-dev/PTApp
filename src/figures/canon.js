@@ -186,24 +186,38 @@ export function skeleton(pose) {
 }
 
 // Where a muscle sits ON the skeleton, so a pose names muscles rather than
-// coordinates. Radii are deliberately generous: this is a wash over a region,
-// not an anatomy plate, and a tight blob reads as a bruise.
+// coordinates.
+//
+// 🔴 A MUSCLE IS A SEGMENT, NOT A DOT. The first version painted circles and
+//    the figures came back covered in spots — a muscle group runs ALONG a bone,
+//    so it is drawn as a band down that bone, clipped to the silhouette. That
+//    single change is the difference between "highlighted anatomy" and
+//    "measles". Each entry returns the two ends of the band and its width.
 export const MUSCLE_ANCHORS = {
-  quads: (s) => mid(s.hipN, s.kneeN, 0.55, 34),
-  hamstrings: (s) => mid(s.hipN, s.kneeN, 0.5, 32),
-  glutes: (s) => mid(s.pelvis, s.hipN, 0.4, 36),
-  calves: (s) => mid(s.kneeN, s.ankleN, 0.45, 22),
-  erectors: (s) => mid(s.pelvis, s.thorax, 0.55, 30),
-  lats: (s) => mid(s.thorax, s.lumbar, 0.35, 34),
-  chest: (s) => mid(s.thorax, s.shoulderN, 0.55, 34),
-  delts: (s) => ({ ...s.shoulderN, r: 28 }),
-  triceps: (s) => mid(s.shoulderN, s.elbowN, 0.55, 22),
-  biceps: (s) => mid(s.shoulderN, s.elbowN, 0.55, 22),
-  forearms: (s) => mid(s.elbowN, s.wristN, 0.55, 17),
-  abs: (s) => mid(s.pelvis, s.lumbar, 0.6, 30),
-  traps: (s) => mid(s.neckBase, s.shoulderN, 0.5, 26),
+  quads: (s, S) => band(s['hip' + S], s['knee' + S], 0.16, 0.9, 26),
+  hamstrings: (s, S) => band(s['hip' + S], s['knee' + S], 0.16, 0.86, 24),
+  glutes: (s, S) => band(s.lumbar, s['hip' + S], 0.55, 1.05, 30),
+  calves: (s, S) => band(s['knee' + S], s['ankle' + S], 0.12, 0.6, 18),
+  erectors: (s) => band(s.pelvis, s.thorax, 0.15, 0.95, 22),
+  lats: (s) => band(s.thorax, s.lumbar, 0.1, 0.75, 27),
+  chest: (s, S) => band(s['shoulder' + S], s.thorax, 0.15, 0.85, 28),
+  delts: (s, S) => band(s['shoulder' + S], s['elbow' + S], -0.1, 0.26, 24),
+  triceps: (s, S) => band(s['shoulder' + S], s['elbow' + S], 0.28, 0.9, 20),
+  biceps: (s, S) => band(s['shoulder' + S], s['elbow' + S], 0.28, 0.9, 20),
+  forearms: (s, S) => band(s['elbow' + S], s['wrist' + S], 0.18, 0.82, 15),
+  abs: (s) => band(s.pelvis, s.lumbar, 0.1, 0.95, 26),
+  traps: (s, S) => band(s.neckBase, s['shoulder' + S], -0.1, 0.8, 21),
 };
 
-function mid(a, b, t, r) {
-  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, r };
+// 🔴 A LIMB MUSCLE IS PAINTED ON BOTH SIDES IN A FRONT VIEW. A squat with one
+//    crimson thigh reads as a rendering bug, not as anatomy — the viewer sees
+//    both legs, so both legs work. In profile the far limb is hidden behind the
+//    near one and painting it twice buys nothing, so the near side alone.
+//    The trunk muscles ignore the side letter entirely; that is why they take
+//    one argument.
+export const MUSCLE_SIDES = (view) => (view === 'front' ? ['N', 'F'] : ['N']);
+
+function band(a, b, t0, t1, w) {
+  const at = (t) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+  return { pts: [at(t0), at((t0 + t1) / 2), at(t1)], w };
 }

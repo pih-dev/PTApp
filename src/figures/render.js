@@ -23,7 +23,7 @@
 // the joint. That single trick is the difference between "anatomical" and
 // "inflatable".
 
-import { skeleton, GIRTH, MUSCLE_ANCHORS, HEAD_W, HEAD_H } from './canon.js';
+import { skeleton, GIRTH, MUSCLE_ANCHORS, MUSCLE_SIDES, HEAD_W, HEAD_H } from './canon.js';
 
 const SAMPLES_PER_SEG = 5;   // enough to smooth; few enough to keep paths small
 const CAP_STEPS = 7;
@@ -191,9 +191,32 @@ export function buildFigure(pose) {
 
   body.push(leg('N'), foot('N'), arm('N'));
 
-  const muscles = (pose.muscles || [])
-    .map(k => MUSCLE_ANCHORS[k] && MUSCLE_ANCHORS[k](sk))
-    .filter(Boolean);
+  // Muscles are now CODED, not just washed (Pierre, 2026-08-22 — "you also
+  // highlighted the muscles that are engaged with a colour code"). Primary
+  // movers and supporting muscles paint from two different tokens, so the
+  // figure answers "what does this train" and not merely "something happens
+  // here". An array is still accepted and means primary-only.
+  const ms = Array.isArray(pose.muscles) ? { primary: pose.muscles, secondary: [] } : (pose.muscles || {});
+  const sides = MUSCLE_SIDES(sk.view);
+  const anchor = (list) => (list || [])
+    .flatMap(k => (MUSCLE_ANCHORS[k] ? sides.map(S => MUSCLE_ANCHORS[k](sk, S)) : []))
+    .filter(Boolean)
+    .map(m => ribbon(m.pts, m.pts.map(() => m.w)));
+  const muscles = { primary: anchor(ms.primary), secondary: anchor(ms.secondary) };
+
+  // 🔴 THE POSTURE LINE — brief §7.9: "the spine is the hero line, drawn in the
+  //    accent when held and in the warn hue when lost." Generalised past the
+  //    spine, because the line that decides a rep is not always the back: for a
+  //    squat it is the leg (hip → knee → ankle), for a press it is the arm.
+  //    It rides ON the silhouette rather than replacing it — the body says what
+  //    the movement is, the line says what to look at.
+  //    Drawn from the SAME joints the body is built from, so it can never
+  //    disagree with the figure it is annotating.
+  const guideChain = pose.guide && pose.guide.joints;
+  const guide = guideChain
+    ? { d: polyline(guideChain.map(j => jointAt(sk, j))), mirror: pose.guide.mirror
+        ? polyline(guideChain.map(j => jointAt(sk, mirrorJoint(j)))) : null }
+    : null;
 
   // The fault marker sits ON the joint that takes the load (brief §7.12) — never
   // a red outline around the whole body, because "where" is the entire message.
@@ -211,7 +234,22 @@ export function buildFigure(pose) {
 
   const equip = typeof pose.equip === 'function' ? pose.equip(sk).filter(Boolean) : [];
 
-  return { sk, body: body.filter(Boolean), deltoids, head: headPath(sk), muscles, fault, equip, view: sk.view };
+  return { sk, body: body.filter(Boolean), deltoids, head: headPath(sk), muscles, guide, fault, equip, view: sk.view };
+}
+
+// A bilateral fault (both knees, both shoulders) needs the line on both sides,
+// and a pose should not have to spell the mirror out — one typo there would
+// draw two different chains and read as a drawing error rather than a fault.
+const mirrorJoint = (j) => (j.endsWith('N') ? j.slice(0, -1) + 'F' : j);
+
+// The guide as an open, smoothed path. Same Catmull-Rom the silhouette uses, so
+// the line follows the curve of the limb it sits on instead of cutting the
+// corner off every joint.
+function polyline(pts) {
+  const [P] = densify(pts, pts.map(() => 0));
+  const s = sampleSpline(P, P.map(() => 0));
+  if (s.length < 2) return '';
+  return `M${r(s[0].x)} ${r(s[0].y)}` + s.slice(1).map(p => `L${r(p.x)} ${r(p.y)}`).join('');
 }
 
 // Resolve a joint name from a pose ('kneeN', 'lumbar', …) with a readable

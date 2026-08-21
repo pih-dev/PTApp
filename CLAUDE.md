@@ -162,6 +162,7 @@ Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` r
 - **Program pruning (v2.15)** — before `data.json` nears 1 MB. 🔴 **Snapshot first** — cloud deletes are irreversible.
 - **Review finding P3 — DECIDED 2026-08-05, NOT BUILT.** SessionCard scope B (Dashboard-expanded + Schedule); kills the `focus: []` bug at `Schedule.jsx:201`. **Do it with the Schedule layout pass.**
 - **App name = SpotSet**; `com.spotset.app` is PERMANENT.
+- 🔴 **TODO — FRESH EYES ON DESIGN, THE STRIPPED-STRUCTURE WAY (Pierre, 2026-08-22).** Before a design is called done, hand it to a subagent that has never seen it — **Fable 5, max effort — with ALL FORMATTING STRIPPED**, so it receives structure and words only and cannot be anchored by the treatment already chosen. Brief it to argue the **opposite side**: what is missing, what earns nothing, is the order wrong. First run: v2.22 figures review page.
 
 ---
 

@@ -78,7 +78,10 @@ const squatBase = {
   head: 0,
   fs: { thigh: 0.75, shin: 0.95, foot: 0.45, upperArm: 0.83, forearm: 0.77, hand: 0.7 },
   arms: { near: [42, 135, 6], far: [-42, -135, -6] },
-  muscles: ['quads', 'glutes'],
+  // No glutes in a FRONT view — they are behind the figure, and washing the
+  // pelvis crimson from the front marks a muscle the viewer cannot see.
+  muscles: { primary: ['quads'], secondary: ['erectors'] },
+  guide: { joints: ['hipN', 'kneeN', 'ankleN'], mirror: true },
   equip: (sk) => barbellAcross({ x: sk.neckBase.x, y: sk.neckBase.y + 26 }, 330, PLATE),
 };
 
@@ -102,7 +105,8 @@ const deadliftBase = {
   root: { x: -171, y: 430 },
   ground: { joint: 'ankleN', y: FLOOR - 43 },
   legs: { near: [25, -10, 75], far: [22, -7, 75] },
-  muscles: ['erectors', 'glutes', 'hamstrings'],
+  muscles: { primary: ['erectors', 'glutes'], secondary: ['lats'] },
+  guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
   equip: (sk) => barbellEndOn(midpoint(sk.wristN, sk.handN)),
 };
 
@@ -127,7 +131,8 @@ const chestPressBase = {
   spine: [-8, 2, 3],
   head: 4,
   legs: { near: [78, -86, 96], far: [74, -82, 96] },
-  muscles: ['chest', 'delts', 'triceps'],
+  muscles: { primary: ['chest'], secondary: ['delts', 'triceps'] },
+  guide: { joints: ['shoulderN', 'elbowN', 'wristN'] },
   equip: (sk) => {
     const h = midpoint(sk.wristN, sk.handN);
     return [
@@ -153,7 +158,8 @@ const pullupBase = {
   root: { x: 0, y: 500 },
   ground: { joint: 'wristN', x: 118, y: 62 },
   legs: { near: [-30, -70, 100], far: [-26, -74, 100] },
-  muscles: ['lats', 'biceps', 'forearms'],
+  muscles: { primary: ['lats'], secondary: ['biceps', 'forearms'] },
+  guide: { joints: ['shoulderN', 'elbowN', 'wristN'], mirror: true },
   equip: (sk) => {
     const y = (sk.wristN.y + sk.wristF.y) / 2;
     return [
@@ -176,7 +182,8 @@ const curlBase = {
   view: 'side',
   root: { x: 0, y: 375 },
   ground: { joint: 'ankleN', y: FLOOR - 43 },
-  muscles: ['biceps', 'forearms'],
+  muscles: { primary: ['biceps'], secondary: ['forearms'] },
+  guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
   equip: (sk) => barbellEndOn(midpoint(sk.wristN, sk.handN), CURL_PLATE),
 };
 
@@ -191,7 +198,8 @@ const legPressBase = {
   spine: [-50, 4, -6],
   head: 8,
   arms: { near: [-38, 62, 10], far: [-34, 58, 10] },
-  muscles: ['quads', 'glutes'],
+  muscles: { primary: ['quads'], secondary: ['glutes', 'calves'] },
+  guide: { joints: ['hipN', 'kneeN', 'ankleN'] },
   equip: (sk) => {
     const foot = midpoint(sk.ankleN, sk.toeN);
     // The platform is perpendicular to the press axis, and the press axis is

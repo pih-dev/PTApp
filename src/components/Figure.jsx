@@ -28,13 +28,13 @@ import { t } from '../i18n';
 
 export const hasFigure = (name) => !!FIGURES[name];
 
-function Fig({ pose, label, caption }) {
+function Fig({ pose, label, caption, wide }) {
   // Memoised because `figureSvg` mints a fresh clipPath id per call: without
   // this the markup string differs on every render, so React tears down and
   // re-parses both SVGs whenever anything above them re-renders.
   const html = useMemo(() => figureSvg(pose, { title: label }), [pose, label]);
   return (
-    <figure className="fig-cell">
+    <figure className={`fig-cell${wide ? ' fig-wide' : ''}`}>
       <div className="fig-art" dangerouslySetInnerHTML={{ __html: html }} />
       <figcaption className={`fig-cap${caption === 'fault' ? ' fig-cap-fault' : ''}`}>{label}</figcaption>
     </figure>
@@ -53,6 +53,18 @@ export default function Figure({ name, lang }) {
         <Fig pose={pair.correct} label={t(lang, 'figureCorrect')} caption="correct" />
         <Fig pose={pair.fault} label={t(lang, 'figureFault')} caption="fault" />
       </div>
+
+      {/* 🔴 THE THIRD FIGURE, and it exists for ONE reason: some faults do not
+          happen in the plane the pair is drawn in. Elbow flare on a bench press
+          is abduction — from the side, good form and bad form are the same
+          picture. So a movement may declare `extra`: a second camera, full
+          width because a supine figure seen from above is wide and short.
+          Approved by Pierre, 2026-08-22 ("instead of two pictures... three
+          pictures? yeah, sure"). It is NOT a default — a movement that can be
+          taught in one view gets one view. */}
+      {pair.extra && (
+        <Fig pose={pair.extra.pose} label={t(lang, pair.extra.labelKey)} caption={pair.extra.caption} wide />
+      )}
 
       {/* The text is DATA (src/figureText.js), not UI copy — a movement can have
           a figure and no text yet, and the panel has to survive that. */}
