@@ -95,6 +95,19 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   **696HYTRB7F**, Mastercard ···6915, ordered **2026-08-21 ~01:55 Beirut**. Apple says up to
   **2 business days** to process, then an activation email to pierreishere@gmail.com. **Next
   action is Apple's.** Check the inbox before assuming it is still pending.
+- ✅ **THE iOS PIPELINE IS WRITTEN AND COMMITTED (2026-08-21 ~22:30) — the Apple-side work that
+  does NOT need the portal is done.** `codemagic.yaml`, `@capacitor/ios` in `package.json`, `ios/`
+  git-ignored, and `docs/apple-testflight-checklist.md` carrying the ordered post-approval list,
+  the App Store listing copy, the privacy-label answers and the review notes. Commit `54db3bd`.
+  **No app code changed, nothing deployed.**
+- **The pipeline is tag-triggered only (`ios-v*`) and the tag IS the marketing version**, so the
+  Android trap — a stale `versionName` shipping because `gradlew` exits 0 on a failed build — has
+  no place to happen on iOS. Build numbers are queried from App Store Connect, never counted
+  locally. `verify-bundle.mjs` runs inside the build.
+- 🔴 **Inbox probed 2026-08-21 ~22:25: NO mail from Apple yet** (`from:apple.com newer_than:3d`
+  and `Apple Developer newer_than:5d` both empty). Everything left — bundle ID, the App Store
+  Connect record, the API key, the Codemagic integration — is behind the portal and cannot be
+  pre-registered. **Probe the inbox again before assuming; never quote this line as current.**
 - **When it activates, the order is:** App Store Connect app record for SpotSet
   (`com.spotset.app`, name must be unique App-Store-wide) → App Store Connect **API key** →
   Codemagic pipeline → TestFlight. Detail in §8.
