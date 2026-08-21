@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~12:40, Beirut.
+**Last updated:** 2026-08-21 ~13:05, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -86,6 +86,34 @@ time instead of leaking at read time.
 
 ---
 
+## 2b. And three ways the TEST could have passed over a real hole
+
+An adversarial review of the committed matrix found the weak part was the matrix, not the schema.
+Worth keeping because all three produce a **green suite**:
+
+1. **The static pass was pinned to `0001`.** `0002` (the tenant tables — the ones that will hold
+   Elie's data) would have had zero RLS coverage while the suite printed all-green. Now globs.
+2. **A policy with no `FOR` clause defaults to `FOR ALL`.** The write-policy check matched only an
+   explicit `for update/insert/delete/all`, so a bare `using (true)` policy read as harmless — the
+   exact policy that permits self-promotion to prime.
+3. **The self-promotion assertion could not tell refused from succeeded.** A PostgREST `PATCH`
+   without `Prefer: return=representation` returns **204 with an empty body**: `.ok` is true,
+   `.json()` throws, the throw was swallowed as a "harness error", and **the anon-key assertion
+   after it never ran.** Now reads the row back with `service_role` and trusts the table, not the
+   HTTP response.
+
+Two schema hardening changes from the same pass: `alter default privileges … revoke execute … from
+public, anon` (a `security definer` function in `public` is an anon-callable RPC by default — inert
+today, which is why it is set now), and a guard trigger on direct `path` writes.
+
+🔴 **The one assumption the whole design rests on, named by the reviewer and not yet asserted:**
+that the role owning these objects holds `BYPASSRLS`. `private.my_path()` must read `app_users`
+unfiltered or the policy recurses. It is checked at *write* time (the restamp row-count guard) but
+never at *read* time — and a restore or an ownership change is exactly what silently changes it.
+**Add a read-time assertion to the live pass when the instance exists.**
+
+---
+
 ## 3. Next steps, in order
 
 1. **Pierre creates the Supabase project** (free tier). Blocking everything below.
@@ -107,4 +135,4 @@ time instead of leaking at read time.
 
 `4f5ce4e` §11 decisions + first §12 · `4698b12` §12 corrected after verification + traps entry ·
 `cb6e953` **bad — committed the decision doc as 0 bytes** · `3d18964` restored it ·
-`250344d` the schema and the matrix.
+`250344d` the schema and the matrix · `54377a1` the matrix's own three test-defeating bugs, fixed.
