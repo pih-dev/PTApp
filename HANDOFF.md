@@ -1,33 +1,71 @@
-# PTApp — HANDOFF
+# PTApp / SpotSet — HANDOFF
 
-**Last updated:** 2026-08-05, Beirut.
-**To resume:** Pierre types `continue`. **Read §0 back to him and stop.** Do not start work, do not
-investigate, do not ask follow-up questions beyond the single one in §0.
+**Last updated:** 2026-08-21 ~11:40, Beirut.
+**To resume:** Pierre types `continue`. **Read §0 back to him and stop.** Do not investigate, do not
+draft, do not ask follow-up questions — he said explicitly: *"I will clear, and immediately after
+clear I will continue. I will not do anything between."* The state below is the state you will find.
+
+🔴 **He said what he starts with: the database and the internals of the application (Task A).**
+Do not open Task B unless he says so.
 
 ---
 
-> 📌 **Store publishing is a SEPARATE, NEWER thread** — `HANDOFF-spotset-publishing.md`
-> (2026-08-20). If he says `spotset` or `publish`, read that one instead. The app is now named
-> **SpotSet**; "PTApp" is only the repo/project name.
+> 📌 **Store publishing is a SEPARATE thread** — `HANDOFF-spotset-publishing.md`. If he says
+> `spotset`, `publish` or `illume`, read that one instead. The app is named **SpotSet**; "PTApp" is
+> only the repo/project name.
 
 ## 0. Status — read this out
 
-- App is at **v2.14.3**, deployed, working. **Nothing is broken. Nothing is urgent.**
-- **Topic Router shipped** — PTApp's 81 unreachable docs are now keyword-addressable. 15 rows,
-  22 targets, 0 broken; routine prompts (`continue`, `git status`, `commit and push`) stay silent.
-- **Budgets:** `CLAUDE.md` **21,980 B**, `memory/MEMORY.md` under 12 KB. The **22 KB** gate is
-  declared in `.context-budget` and adopted by CCHealth's `/sweep` and `/wrap` — settled, not a
-  pending question. Reasoning: `docs/release-hygiene.md` §1.
-- **Marketing deck delivered** (2026-08-05, Elie's ask) — EN + AR PPTX for his clients, in
-  `_archive/PTApp/marketing-deck/`, never committed here. The reusable half is a puppeteer
-  screenshot harness that drives the real app: `docs/marketing-deck.md`.
-- **P3 and P6 are decided but NOT built** — that is the next coding session. P3 = scope B
-  (Dashboard-expanded + Schedule). P6 = ordinal stays live via `getClientCountedSessions`, never
-  stored. Details in `CLAUDE.md` → KNOWN ISSUES.
-- Nothing needs re-deriving.
+- **Two tasks are queued, both documented, neither started.**
+  **A — accounts + database (multi-tenant).** He starts here. Decision doc:
+  `docs/2026-08-21-multi-user-accounts-decision.md`; his new role-hierarchy requirement is **§10**.
+  **B — design differentiation.** Its own session, later, by his instruction:
+  `docs/design/2026-08-21-design-differentiation-brief.md`.
+- **Task A, the shape he specified (2026-08-21):** exactly **two roles**, `pt` and `client`. A PT may
+  have PTs *or* clients under them — so `parent_pt_id` lives on both. **"Prime" is not a role**; it
+  is simply a PT with no parent, which is why Elie's position is data and never hardcoded. The one
+  real new cost is recursive RLS (a parent PT reading down the tree) — price it before committing.
+- **Backend is decided:** Supabase Postgres (free tier now, VPS later), auth behind ONE thin module.
+  See `docs/2026-08-21-backend-platform-decision.md`. `DATA_VERSION` stays 6; the merge kernel is
+  untouched in Phase 1.
+- **Task B's finding, so it is not re-derived:** the app is not ugly, it is *generic* — three
+  independent artifacts (SpotSet, the Agribond grouping page, and a cancellation email from
+  ayoubcomputers.com, an unrelated Lebanese retailer) share one visual grammar. The house style is an
+  industry-wide LLM default, named as ~10 concrete traits in §2/§2b of the brief. **Escaping it is a
+  differentiation problem, not a cleanup problem** — copying "what good apps do" lands back in it.
+- **Google closed test is running and unaffected by any of this** — the tester clock counts testers,
+  not builds. 🔴 The opted-in count is a live reading; **never quote one from a file.** Probe:
+  Play Console → SpotSet → Dashboard, and the console is at `play.google.com/console/u/1/…`
+  (**u/1**, because the Play account is `pierreghorra@` while Chrome's default profile is
+  `pierreishere@`). Latest observation is in §0a of the publishing handoff.
+- **P3 / P6 (SessionCard refactor, live ordinal) remain decided-but-unbuilt.** They are now *behind*
+  A and B. Details in `CLAUDE.md` → KNOWN ISSUES.
+- Nothing is broken and nothing is urgent. **No question to ask him — start Task A.**
 
-**Ask him:** *"P3/P6 are decided and unbuilt — start the SessionCard refactor (scope B), or do P6
-first since it's smaller?"* Then stop.
+---
+
+## 0b. What this session did (2026-08-21, ~09:00–11:40)
+
+1. **Testers.** Probed the console live: 7 → **9 opted in** (12 needed). Added
+   `pierreishere@gmail.com` and `Bigzfitness@gmail.com` to `SpotSet Alpha Testers` — list now
+   **18 users**, saved. Chase list (not committed, contains emails):
+   `C:/projects/_archive/PTApp/tester-optin/2026-08-21-optin-chase-list.txt`.
+2. **Two facts established about the tester flow**, both of which corrected a wrong premise:
+   - Play **never reports *which* testers opted in**, only the count — so a "who hasn't" list cannot
+     be built, only inferred.
+   - **The in-app token screen is not a Play problem.** It appears *after* install, and a closed test
+     can only be installed by someone who already opted in. Romeo's screenshot was therefore proof
+     the opt-in worked. Testers get past it by typing **`DEMO`** (case-insensitive, trimmed;
+     `src/components/TokenSetup.jsx`) — it refuses on a phone that already holds clients/sessions.
+   - "Item not found" on the store page right after opting in is normal propagation delay.
+3. **Task A requirement captured** — §10 of the decision doc, committed and pushed.
+4. **Task B brief compiled** — `docs/design/2026-08-21-design-differentiation-brief.md`, with the
+   Agribond page measured against `src/styles.css` and the Ayoub Computers email added as §2b
+   third-party evidence. Indexed in `docs/README.md`.
+
+**Raw session dump (uncontaminated, written before this handoff):**
+`C:/projects/_archive/PTApp/claude-incidents/` → the `spotset-testers-and-design-brief` set
+(RAW 3.3 MB, READABLE 82 KB, MY-TURNS 5.8 KB).
 
 ---
 
