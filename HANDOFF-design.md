@@ -1,6 +1,6 @@
 # SpotSet — The Design Pass (Task B) HANDOFF
 
-**Last updated:** 2026-08-21 ~23:55, Beirut.
+**Last updated:** 2026-08-22 ~01:4x, Beirut.
 **To resume:** Pierre types `continue` or `design`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -16,19 +16,27 @@ the safety net, never the trigger.
 
 ## 0. Status — read this out
 
-- ✅ **v2.17.0 IS LIVE** (Pages build verified `built`, `v2.17.0` served). **Stage 1 of the design
-  pass: skins replace the dark/light pair, with NO visual change by design.** The picker in General
-  lists **Midnight** (the old dark) and **Steel** (the old light); the old preference migrates
-  itself. `DATA_VERSION` stays 6.
-- **NEXT ACTION: stage 2 — rebuild the Dashboard in the new visual language.** Everything it needs
-  is decided and written; nothing is blocked and nothing is waiting on Pierre.
-- 🔴 **Fold review finding P3 into that rebuild** — scope B (Dashboard-expanded + Schedule) touches
-  the same component, and it also kills the `focus: []` bug at `Schedule.jsx:201`.
+- ✅ **v2.18.0 IS LIVE** (Pages build verified `built`, `v2.18.0` served). **Stage 2 of the design
+  pass: the Dashboard rebuilt in the plate and the bar.** The card is deleted, the week is seven
+  loaded columns, a package is plates, type is Saira Condensed / Saira / IBM Plex Mono (bundled).
+  `DATA_VERSION` stays 6, presentation only. Detail: `docs/instructions-v2.18.md`.
+- **NEXT ACTION: pick the next screen and give it its own pass** — Schedule is the natural one
+  (it shares the session row and still renders `.card`). 🔴 **Never a big-bang restyle**, and
+  `[data-skin="steel"]`'s per-element overrides retire as each screen is rebuilt.
+- 🔴 **Contrast is measured against BOTH ends of the ground gradient, never eyeballed.** The first
+  stage-2 pass shipped a steel ramp at 1.4–2.7:1 — invisible, and only for the users who picked
+  steel. The steel ground was lightened to a daylight value and both ramps re-derived.
+  **`--chalk-faint` is decoration only: no text under 13px.**
+- **Still outstanding from stage 1's list:** review finding P3 (SessionCard, scope B) was NOT folded
+  in — the Dashboard row was rebuilt in place instead, and Schedule still has its own copy plus the
+  `focus: []` bug at `Schedule.jsx:201`. **Do P3 with the Schedule pass**, where both copies are on
+  the table at once.
 - **The anchor is THE PLATE AND THE BAR.** Plates = the package (filled used / hollow left /
   all-accent spent and due), the bar = every divider. 🔴 **The card is deleted** — no outline, no
   hairline, no shadow. That one move breaks four of the six generated-look traits.
-- **Palette decided: "midnight & arc"** — ground `#0A1524` lit to `#123262`, chalk `#E9EEF3`, accent
-  **arc `#35B7E8`**, bar `#26374E`, ok `#4FC08D`, warn `#E0A32B`, anatomy `#F2622C`.
+- **Palette shipped: "midnight & arc"** — ground `#0A1524` lit to `#0F2A52`, chalk `#E9EEF3`, dim
+  `#9DAABB`, faint `#6E7D95`, accent **arc `#35B7E8`**, bar `#5A78A8`, ok `#4FC08D`, warn `#E0A32B`,
+  anatomy `#F2622C`. Steel is the same eleven names at daylight values (`src/styles.css`).
   🔴 **THE ACCENT NEVER TOUCHES CHROME** — not tabs, buttons, links or focus rings. Load and urgency
   only. And **never `#2563EB`**, which is the exact value in the evidence table.
 - 🔴 **PIERRE'S STANDING OVERRIDE (2026-08-21): build the best version, measure afterwards.**
