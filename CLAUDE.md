@@ -43,10 +43,13 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.18.0
-**The Dashboard rebuilt in the plate and the bar — stage 2 of the design pass (08-21).** Presentation only: `DATA_VERSION` stays 6, no migration, no new gate. Detail: `docs/instructions-v2.18.md`. Palette/type rules: CONVENTIONS → *Colour, type & badges*.
-- 🔴 **A SKIN IS CUSTOM-PROPERTY VALUES AND NOTHING ELSE** — same layout, geometry and type; only hue changes. List/default/migration live ONLY in `src/skins.js`.
-- 🔴 **THE CARD IS DELETED ON THE DASHBOARD**; rows divide with a 2px **bar shaft**. `.card` STAYS — four screens still render it. **One screen per pass, never a big-bang restyle**; `[data-skin="steel"]`'s per-element overrides retire as screens are rebuilt (**add no more**).
+## Current Version: v2.19.0
+**The whole app in the plate and the bar — stage 3 (08-22).** The shared primitives moved onto the tokens, so every screen inherits the language. Presentation only; `DATA_VERSION` stays 6. Detail: `docs/instructions-v2.19.md`. Palette/type rules: CONVENTIONS → *Colour, type & badges*.
+- 🔴 **`.card` IS A ROW, NOT A CARD** — transparent, no border, no shadow, a 2px `--bar` shaft underneath. Ten components render it. **A real container is `.panel`.** `.srow`/`.bar`/`.plates` remain the Dashboard's richer idiom.
+- 🔴 **SELECTION IS CHALK · LOAD IS THE ACCENT · RED IS DESTRUCTIVE ONLY.** Chips, slots, filters and the active tab fill with `--bar` and brighten; the accent marks load, urgency and the live session; `#EF4444` is cancel/delete and nothing else.
+- 🔴 **NO EMOJI IN THE INTERFACE** — headings, buttons, empty states (`BarMark`), `<option>` labels. **WhatsApp message templates keep theirs**: that is text the client receives.
+- **`[data-skin="steel"]` is now the token block ONLY** — 70 per-element overrides retired. **Never add another**; if a skin needs a rule it is a second design.
+- 🔴 **A SKIN IS CUSTOM-PROPERTY VALUES AND NOTHING ELSE.** List/default/migration live ONLY in `src/skins.js`; `sanity-skins.mjs` asserts every skin defines all 18 tokens.
 - 🔴 **A restyle is presentation only** — if a kernel call or reducer action has to change, the slice has grown out of scope and **stops**.
 - **`TOKEN_KEY`/`DEMO_TOKEN`/`isDemo` live in `utils.js`** (import cycle), re-exported by `githubDriver`. Demo-data contact rule: see TRAPS.
 - 🔴 **`DEMO` is a review credential, not a feature** — seeded local data (`src/demoData.js`), sync off, **seeds ONLY onto an empty store** (the gate checks EVERY `ptapp-data*` key).
@@ -63,9 +66,9 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 ## Version History
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules in force live in TRAPS / CONVENTIONS, never here.
 
+- **v2.18.0** (08-21) — the Dashboard rebuilt in the plate and the bar; bundled type; measured contrast ramps. → `v2.18.md`
 - **v2.17.0** (08-21) — skins replace the dark/light pair; `.theme-light` → `[data-skin="steel"]`, values untouched. → `v2.17.md`
 - **v2.16.0–.1** (08-21) — honest session numbers (a forgiven cancel has no ordinal); multi-user groundwork DARK; the driver split; demo mode addresses nobody. → `v2.16*`
-- **v2.15.0–.1** (08-20) — renamed SpotSet in the UI; real launcher icons; the `DEMO` credential. → `v2.15*`
 - **v2.14.0–.3** (07-14/17) — multi-day splits 3–6 days (`PROGRAM_RULES_VERSION` 3); booking-time suggestion; Arabic names. → `v2.14*`
 - **v2.13 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
@@ -93,7 +96,7 @@ Full write-ups in **`docs/traps.md`** — read the relevant one first. Index:
 
 **Identity (`src/auth.js`)** — key is `ptapp-data:<userId>` once signed in, NO fallback to the bare key (a bare write pushes one coach's dataset into another's tenant, and RLS authorises it) · gate on identity, **never** token validity — expired ⇒ banner, never a login wall · **no social login, EVER** (Google forces Sign in with Apple, 4.8) · sign-out clears the session only.
 
-**Refactoring** — a string only reachable BEFORE login is invisible to a rename sweep (the v2.15.0 token screen) — grep all of `src/`, not the screens you can open · grep EVERY read and write when moving a storage location · a renamed catalog key silently kills `|| CATALOG.oldKey` fallbacks (property refs don't match string greps) · re-read a helper's fallback contract before guarding its return; "did the world change" checks read LIVE state and compare stable IDs · `parseSessionCountOverride` returns `{ type, value }`, not `.mode` · legacy `periodLength` was the billing master switch, not `periodStart`.
+**Refactoring** — a string only reachable BEFORE login is invisible to a rename sweep (the v2.15.0 token screen) — grep all of `src/`, not the screens you can open · **reusing a control class inherits the size its ORIGINAL content needed** (`.lang-toggle`'s 36px cells overlapped the skin names for two releases) — new content shape ⇒ modifier class, and OPEN the screen · grep EVERY read and write when moving a storage location · a renamed catalog key silently kills `|| CATALOG.oldKey` fallbacks (property refs don't match string greps) · re-read a helper's fallback contract before guarding its return; "did the world change" checks read LIVE state and compare stable IDs · `parseSessionCountOverride` returns `{ type, value }`, not `.mode` · legacy `periodLength` was the billing master switch, not `periodStart`.
 
 **Correctness across screens** — a pre-action badge and a post-action badge in one flow must use the same helper (the "(0) → #1" confusion) · synthetic fixtures model what you designed, live data holds what shipped: diff counting/date-resolution/migration changes against the archived snapshot first, and re-read the OLD code exactly when writing a migration.
 

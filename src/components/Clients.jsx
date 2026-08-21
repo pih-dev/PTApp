@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import Modal from './Modal';
-import { WhatsAppIcon, EditIcon, TrashIcon, PhoneIcon, ChevronIcon } from './Icons';
+import { WhatsAppIcon, EditIcon, TrashIcon, PhoneIcon, ChevronIcon, BarMark } from './Icons';
 import { genId, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode, getSessionType, getFocusTags, getMonthlySessionCount, formatDate, capitalizeName, localMonthStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, applyOverride, getRenewalDueMap, getCurrentPackage, getEffectivePeriod, getPeriodSessionCount, getEffectiveClientCount, today, friendly, openWhatsApp } from '../utils';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import RenewalModal from './RenewalModal';
@@ -179,13 +179,13 @@ export default function Clients({ state, dispatch, lang }) {
 
       {state.clients.length === 0 ? (
         <div className="empty">
-          <div className="empty-icon">👤</div>
+          <div className="empty-mark"><BarMark /></div>
           <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>{t(lang, 'noClients')}</div>
           <div>{t(lang, 'tapAdd')}</div>
         </div>
       ) : filteredClients.length === 0 ? (
         <div className="empty">
-          <div className="empty-icon">🔍</div>
+          <div className="empty-mark"><BarMark /></div>
           <div>{t(lang, 'noMatch')} "{search}"</div>
         </div>
       ) : (

@@ -12,7 +12,7 @@ import { SKINS } from '../skins';
 // the in-app "App Instructions" button silently served stale docs. Bumping this
 // is now an explicit step in the CLAUDE.md deploy checklist.
 const DOCS = {
-  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.18.md',
+  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.19.md',
   changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
 };
 
@@ -190,7 +190,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
             control rather than a dropdown so every option is one tap and the
             current one is visible without opening anything — and it grows to
             the 3rd and 4th skin without changing shape. */}
-        <button className="lang-toggle" onClick={() => {
+        <button className="lang-toggle seg-toggle" onClick={() => {
           haptic();
           // Cycle rather than open a menu: with 2-4 entries a cycle is faster
           // than a sheet, and the picker lives in the same row as the language
@@ -218,7 +218,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
 
       {/* Backup section */}
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'var(--t2)' }}>{t(lang, 'backupTitle')}</div>
+        <div className="section-title" style={{ marginTop: 20 }}>{t(lang, 'backupTitle')}</div>
 
         <div className="flex-row" style={{ gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
           <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
@@ -377,7 +377,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
 
       {/* To-do list — shared between PT and developer */}
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'var(--t2)' }}>{t(lang, 'todoTitle')}</div>
+        <div className="section-title" style={{ marginTop: 20 }}>{t(lang, 'todoTitle')}</div>
 
         {(state.todos || []).length === 0 && (
           <div style={{ fontSize: 13, color: 'var(--t4)', marginBottom: 8 }}>{t(lang, 'noItems')}</div>
@@ -455,7 +455,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
 
       {/* WhatsApp message templates — editable by PT */}
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'var(--t2)' }}>{t(lang, 'waTitle')}</div>
+        <div className="section-title" style={{ marginTop: 20 }}>{t(lang, 'waTitle')}</div>
         <div style={{ fontSize: 11, color: 'var(--t4)', marginBottom: 10 }}>
           {t(lang, 'waPlaceholders')} {'{name}'} {'{type}'} {'{emoji}'} {'{date}'} {'{time}'} {'{duration}'} {'{number}'} {'{periodEnd}'}
         </div>
@@ -495,7 +495,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
 
       {/* Documentation — opens in-app */}
       <div>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'var(--t2)' }}>{t(lang, 'docsTitle')}</div>
+        <div className="section-title" style={{ marginTop: 20 }}>{t(lang, 'docsTitle')}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px' }}
             disabled={docLoading}

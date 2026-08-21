@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
-import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon } from './Icons';
+import { WhatsAppIcon, EditIcon, TrashIcon, ClockIcon, BarMark } from './Icons';
 import { genId, today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, localDateStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, getRenewalDueMap, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict, suggestBookingTime } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import OverrideHelpPopup from './OverrideHelpPopup';
@@ -295,12 +295,12 @@ export default function Schedule({ state, dispatch, lang }) {
 
       {state.clients.length === 0 ? (
         <div className="empty">
-          <div className="empty-icon">👤</div>
+          <div className="empty-mark"><BarMark /></div>
           <div>{t(lang, 'addClientFirst')}</div>
         </div>
       ) : daySessions.length === 0 ? (
         <div className="empty">
-          <div className="empty-icon">📭</div>
+          <div className="empty-mark"><BarMark /></div>
           <div>{t(lang, 'noSessionsDay')}</div>
         </div>
       ) : (

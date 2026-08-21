@@ -65,22 +65,23 @@ body {
 }
 
 input, select, button, textarea { font-family: inherit; }
-input:focus, select:focus {
-  border-color: #2563EB !important;
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.15) !important;
+input:focus, select:focus, textarea:focus {
+  /* 🔴 A FOCUS RING IS CHROME — it may never wear the accent, and the old ring
+     was the generated blue itself. Brightening the shaft is enough. */
+  border-color: var(--chalk-dim) !important;
   outline: none;
 }
 button { cursor: pointer; border: none; background: none; }
 button:active { transform: scale(0.97); }
-.btn-primary:active, .btn-sm:active, .btn-whatsapp:active, .btn-whatsapp-lg:active {
-  box-shadow: 0 1px 4px rgba(37,99,235,0.15);
-  filter: brightness(0.92);
+.btn-primary:active, .btn-sm:active, .btn-whatsapp:active, .btn-whatsapp-lg:active,
+.btn-confirm:active {
+  filter: brightness(0.88);
 }
-.btn-secondary:active, .btn-ghost:active {
-  background: rgba(255,255,255,0.12);
+.btn-secondary:active, .btn-ghost:active, .btn-danger-sm:active, .btn-icon:active {
+  background: var(--raised);
 }
 ::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: var(--bar); border-radius: 4px; }
 
 @keyframes slideUp {
   from { transform: translateY(100%); opacity: 0; }
@@ -109,42 +110,63 @@ button:active { transform: scale(0.97); }
   overflow: hidden;
 }
 
+/* ═══ THE SHELL AND THE SHARED PRIMITIVES — v2.19, design pass stage 3 ═══════
+   Stage 2 rebuilt the Dashboard and left every other screen in the old look.
+   Pierre's read on seeing it: *"the landing page is very designed, but the rest
+   are still the same"* — and he is right that the split costs more than the
+   "one screen per pass" rule was meant to buy. So this stage moves the SHARED
+   primitives onto the tokens: the shell, the card, buttons, inputs, badges,
+   modals, chips. Every screen inherits the language at once, and each screen
+   still gets its own layout pass afterwards.
+
+   🔴 WHAT MAKES THIS SAFE where a big-bang restyle would not be: nothing here
+   changes MARKUP or behaviour. It is values and type on classes that already
+   exist, which is why it could be verified screen by screen in a browser
+   instead of reasoned about.
+
+   🔴 THE ACCENT STILL NEVER TOUCHES CHROME. That rule is what decided the nav
+   and the buttons below: the active tab is CHALK, not the accent, and the
+   primary button is chalk-on-ground. If the accent decorated the chrome it
+   would stop meaning load, which is the one job it has. */
+
 .header {
   padding: 16px 20px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
   flex-shrink: 0;
-  /* Subtle blue glass — visually distinct from the darker nav bar */
-  background: rgba(37,99,235,0.06);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* The shaft, not a hairline — the header is separated from the content the
+     same way two rows are. The old blue glass is gone: it tinted every screen
+     with the exact accent value the brief called out as the generated blue. */
+  border-bottom: 2px solid var(--bar);
+  background: transparent;
 }
 
 .logo { display: flex; align-items: center; gap: 10px; width: 100%; }
 
 .logo-icon {
-  width: 42px; height: 42px; border-radius: 12px;
-  background: linear-gradient(135deg, #2563EB, #60A5FA);
+  width: 40px; height: 40px; border-radius: 6px;
+  background: var(--raised);
+  border: 2px solid var(--bar);
   display: flex; align-items: center; justify-content: center;
-  color: #fff;
-  box-shadow: 0 4px 20px rgba(37,99,235,0.3);
+  color: var(--chalk);
 }
 
 .logo-text {
-  font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
-  background: linear-gradient(135deg, #fff, #aaa);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  font-family: var(--font-display);
+  font-size: 24px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--chalk);
 }
 
 .logo-sub {
-  font-size: 11px; color: rgba(255,255,255,0.5);
-  font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  font-family: var(--font-mono);
+  font-size: 10px; color: var(--chalk-dim);
+  font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase;
 }
 .app-version {
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: rgba(255,255,255,0.4);
+  color: var(--chalk-dim);
   font-weight: 500;
 }
 
@@ -168,14 +190,17 @@ button:active { transform: scale(0.97); }
 }
 /* Three-dots icon — prominent so it's clearly tappable on iPhone */
 .header-dots {
-  color: rgba(255,255,255,0.75);
+  color: var(--chalk-dim);
   font-size: 32px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -2px;
 }
 
-/* Sync dot wrapper — 36px tap target (close to Apple's 44px HIG) */
+/* Sync dot wrapper — 36px tap target (close to Apple's 44px HIG).
+   🔴 The three sync colours are STATUS, not chrome, and they stay literal:
+   green/blue/red mean the same thing in every skin and a user reads them at a
+   glance without learning them. */
 .sync-btn {
   display: flex;
   align-items: center;
@@ -197,8 +222,8 @@ button:active { transform: scale(0.97); }
   flex-shrink: 0;
   transition: background 0.3s ease;
 }
-.sync-dot.synced { background: #10B981; }
-.sync-dot.syncing { background: #3B82F6; animation: sync-pulse 1.2s ease-in-out infinite; }
+.sync-dot.synced { background: var(--ok); }
+.sync-dot.syncing { background: var(--accent); animation: sync-pulse 1.2s ease-in-out infinite; }
 .sync-dot.failed { background: #EF4444; animation: sync-pulse 2s ease-in-out infinite; }
 @keyframes sync-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
@@ -210,27 +235,27 @@ button:active { transform: scale(0.97); }
   position: fixed;
   top: 60px;
   right: 12px;
-  background: rgba(0,0,0,0.92);
-  color: #e5e7eb;
-  border-radius: 10px;
+  background: var(--ground);
+  color: var(--chalk);
+  border: 2px solid var(--bar);
+  border-radius: 8px;
   padding: 12px 16px;
   font-size: 11px;
   line-height: 1.7;
   z-index: 300;
   min-width: 220px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
   font-family: var(--font-mono);
   -webkit-user-select: text;
   user-select: text;
 }
-.debug-panel strong { color: #93c5fd; }
+.debug-panel strong { color: var(--chalk-dim); }
 .debug-panel .debug-close {
   position: absolute;
   top: 6px;
   right: 10px;
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--chalk-dim);
   font-size: 16px;
   cursor: pointer;
 }
@@ -238,23 +263,36 @@ button:active { transform: scale(0.97); }
 /* Language toggle (Ar/En) */
 .lang-toggle {
   display: flex; align-items: center; gap: 0;
-  margin-left: auto;
-  background: rgba(255,255,255,0.06);
-  border-radius: 8px;
+  margin-inline-start: auto;
+  background: var(--raised);
+  border: 2px solid var(--bar);
+  border-radius: 6px;
   padding: 2px;
-  font-size: 12px; font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
 }
 .lang-toggle span {
   padding: 5px 0;
   width: 36px; text-align: center;
-  border-radius: 6px;
-  color: rgba(255,255,255,0.45);
+  border-radius: 4px;
+  color: var(--chalk-dim);
   transition: all 0.2s;
 }
 .lang-toggle .lang-active {
-  background: rgba(37,99,235,0.2);
-  color: #60A5FA;
+  background: var(--bar);
+  color: var(--chalk);
 }
+/* The skin picker is the same control with WORD-length cells. `.lang-toggle`
+   hard-codes 36px per cell because "Ar"/"En" are two letters; "Midnight" and
+   "Steel" overlapped inside it. Same look, content-sized. */
+.seg-toggle { flex: 0 1 auto; min-width: 0; }
+.seg-toggle span {
+  width: auto;
+  padding: 5px 12px;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+[dir="rtl"] .seg-toggle span { text-transform: none; letter-spacing: 0; }
 
 .content {
   flex: 1;
@@ -272,11 +310,11 @@ button:active { transform: scale(0.97); }
   left: 0;
   right: 0;
   z-index: 100;
-  /* Blue-tinted glass — matches header for cohesion */
-  background: rgba(37,99,235,0.06);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255,255,255,0.08);
+  /* Opaque ground, not glass: a translucent bar over a lit gradient is exactly
+     the "frosted panel" trait, and it made the tab labels sit on whatever
+     happened to be scrolling underneath. */
+  background: var(--ground);
+  border-top: 2px solid var(--bar);
   display: flex;
   justify-content: space-around;
   max-width: 480px;
@@ -288,164 +326,236 @@ button:active { transform: scale(0.97); }
 .nav-btn {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: 8px 16px;
-  color: rgba(255,255,255,0.75);
-  font-size: 11px; font-weight: 500;
+  color: var(--chalk-dim);
+  font-family: var(--font-display);
+  font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase;
   transition: color 0.2s;
 }
-.nav-btn.active { color: #3B82F6; font-weight: 700; }
+/* 🔴 CHALK, NOT THE ACCENT. The active tab is the one place a designer's hand
+   reaches for the brand colour first, and it is the exact habit the reference
+   screens demonstrate. Weight and brightness carry it instead. */
+.nav-btn.active { color: var(--chalk); font-weight: 700; }
 .nav-btn.active::after {
   content: '';
   display: block;
-  width: 4px;
-  height: 4px;
-  border-radius: 2px;
-  background: #3B82F6;
+  width: 14px;
+  height: 3px;
+  border-radius: 1px;
+  background: var(--chalk);
   margin-top: 2px;
   transition: opacity 0.2s;
 }
 .nav-btn svg { width: 22px; height: 22px; }
-
-/* ─── Cards ─── */
-.card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 12px;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+[dir="rtl"] .nav-btn, [dir="rtl"] .lang-toggle, [dir="rtl"] .logo-text, [dir="rtl"] .logo-sub {
+  letter-spacing: 0; text-transform: none; font-family: var(--font-body);
 }
+
+/* ─── Cards → rows on the ground ───
+   🔴 `.card` IS NOT A CARD ANY MORE. The class survives because ten components
+   render it and renaming them all is churn, not design — but it now paints a
+   row: no fill, no outline, no shadow, and a bar shaft underneath. Anything
+   that genuinely needs a container (a form panel, a callout) uses `.panel`. */
+.card {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--bar);
+  border-radius: 0;
+  padding: 14px 0 16px;
+  margin-bottom: 0;
+  transition: background 0.16s, transform 0.16s;
+}
+/* The live session: the accent as an inline-start bar, the same mark the
+   Dashboard uses. The amber glow box is gone with the card it lived in. */
 .card.card-now {
-  background: rgba(245,158,11,0.12);
-  border: 1px solid rgba(245,158,11,0.45);
-  box-shadow: 0 0 20px rgba(245,158,11,0.25), inset 0 0 30px rgba(245,158,11,0.04);
+  padding-inline-start: 12px;
+  position: relative;
+}
+.card.card-now::before {
+  content: ''; position: absolute; inset-block: 10px; inset-inline-start: 0;
+  width: 3px; border-radius: 2px; background: var(--accent);
+  box-shadow: 0 0 14px var(--accent);
 }
 .card.card-tap:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  transform: scale(0.99);
+  background: var(--raised);
+}
+/* The container that is still a container. Used where a group of controls has
+   to read as one object rather than as a list row. */
+.panel {
+  background: var(--raised);
+  border: 2px solid var(--bar);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
 }
 
-/* ─── Buttons ─── */
+/* ─── Buttons ───
+   Uppercase condensed, flat, no gradients: a gradient-filled pill is trait #2
+   of the generated look, and every one of these used the same #2563EB→#60A5FA
+   ramp. 🔴 None of them may use the accent. */
 .btn-primary {
-  padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 15px;
+  padding: 14px 24px; border-radius: 8px; font-size: 14px;
+  font-family: var(--font-display); font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  background: linear-gradient(135deg, #2563EB, #60A5FA); color: #fff;
-  box-shadow: 0 4px 16px rgba(37,99,235,0.3);
+  background: var(--chalk); color: var(--ground);
   width: 100%;
 }
 .btn-sm {
-  padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 13px;
+  padding: 9px 14px; border-radius: 6px; font-size: 12px;
+  font-family: var(--font-display); font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 6px;
-  background: linear-gradient(135deg, #2563EB, #60A5FA); color: #fff;
+  background: var(--chalk); color: var(--ground);
 }
 .btn-secondary {
-  padding: 8px 14px; border-radius: 10px; font-weight: 600; font-size: 13px;
+  padding: 9px 14px; border-radius: 6px; font-size: 12px;
+  font-family: var(--font-display); font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(255,255,255,0.08); color: #fff;
-  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent; color: var(--chalk);
+  border: 2px solid var(--bar);
 }
+/* WhatsApp keeps its own green in both skins: it is a third party's identity,
+   not our palette, and the PT recognises the button by it. Flattened, not
+   re-hued. */
 .btn-whatsapp {
-  padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 13px;
+  padding: 9px 14px; border-radius: 6px; font-size: 12px;
+  font-family: var(--font-display); font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 6px;
-  background: linear-gradient(135deg, #25D366, #128C7E); color: #fff;
+  background: #128C7E; color: #fff;
 }
 .btn-whatsapp-lg {
-  padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 15px;
+  padding: 14px 24px; border-radius: 8px; font-size: 14px;
+  font-family: var(--font-display); font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  background: linear-gradient(135deg, #25D366, #128C7E); color: #fff;
-  box-shadow: 0 4px 16px rgba(37,211,102,0.3);
+  background: #128C7E; color: #fff;
   width: 100%;
 }
 .btn-confirm {
-  padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 12px;
+  padding: 7px 12px; border-radius: 6px; font-size: 11px;
+  font-family: var(--font-display); font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 4px;
-  background: linear-gradient(135deg, #10B981, #059669); color: #fff;
+  background: var(--ok); color: var(--ground);
 }
 .btn-danger-sm {
-  padding: 6px 8px; border-radius: 8px;
-  background: #EF4444;
-  border: 1px solid #EF4444;
-  color: #fff;
+  padding: 8px 10px; border-radius: 6px;
+  background: transparent;
+  border: 2px solid #EF4444;
+  color: #EF4444;
 }
 .btn-ghost {
-  padding: 6px 8px; border-radius: 8px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.6);
+  padding: 9px 12px; border-radius: 6px;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent;
+  border: 2px solid transparent;
+  color: var(--chalk-dim);
 }
-.btn-icon { padding: 6px; color: rgba(255,255,255,0.45); }
+.btn-icon { padding: 8px; color: var(--chalk-dim); }
+[dir="rtl"] .btn-primary, [dir="rtl"] .btn-sm, [dir="rtl"] .btn-secondary,
+[dir="rtl"] .btn-whatsapp, [dir="rtl"] .btn-whatsapp-lg, [dir="rtl"] .btn-confirm,
+[dir="rtl"] .btn-ghost, [dir="rtl"] .field-label, [dir="rtl"] .section-title {
+  letter-spacing: 0; text-transform: none; font-family: var(--font-body);
+}
 
 /* ─── Form ─── */
-.input, .select {
-  width: 100%; padding: 14px 16px; border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.06); color: #fff; font-size: 15px;
+.input, .select, textarea.input {
+  width: 100%; padding: 13px 14px; border-radius: 8px;
+  border: 2px solid var(--bar);
+  background: var(--raised); color: var(--chalk); font-size: 15px;
+  font-family: var(--font-body);
 }
-.select { background: rgba(30,30,50,0.9); appearance: none; }
+/* Every digit is mono, including the ones the user types. */
+input[type="date"].input, input[type="time"].input, input[type="number"].input {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+}
+.select { appearance: none; }
 .field { margin-bottom: 16px; }
 .field-label {
-  display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;
-  color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 0.5px;
+  display: block; margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-size: 11px; font-weight: 700;
+  color: var(--chalk-dim); text-transform: uppercase; letter-spacing: 0.14em;
 }
 
-/* ─── Badge ─── */
+/* ─── Badge ───
+   A status is a reading, not a sticker: mono, uppercase, coloured type on the
+   ground. This is the Dashboard's badge treatment promoted to every screen,
+   which is why the `.srow .badge` overrides could be deleted. */
 .badge {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700;
-  transition: background 0.2s, color 0.2s;
+  padding: 0; border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  background: transparent;
+  transition: color 0.2s;
 }
-/* Status badge colors — solid fills for visibility in both themes */
-.badge-scheduled { background: #2563EB; color: #fff; }
-.badge-confirmed { background: #10B981; color: #fff; }
-.badge-completed { background: #2563EB; color: #fff; }
-.badge-cancelled { background: #EF4444; color: #fff; }
+.badge-scheduled { background: transparent; color: var(--chalk-dim); }
+.badge-confirmed { background: transparent; color: var(--ok); }
+.badge-completed { background: transparent; color: var(--chalk-dim); }
+.badge-cancelled { background: transparent; color: var(--warn); }
+[dir="rtl"] .badge { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
-/* ─── Evaluation system (v2.11) ─── */
-/* Classification badges — Beg A → Pro progression (grey → blue → indigo → purple → amber) */
+/* ─── Evaluation system (v2.11) ───
+   🔴 THE CLASSIFICATION SCALE KEEPS ITS OWN HUES. Beg A → Pro is an ordered
+   scale the PT reads as a progression, and a scale is information, not
+   decoration — flattening it to chalk would delete the meaning. Filled pills
+   stay here, and only here. */
 .badge-class-begA { background: #6B7280; color: #fff; }
-.badge-class-begB { background: #60A5FA; color: #fff; }
+.badge-class-begB { background: #60A5FA; color: #0A1524; }
 .badge-class-intA { background: #2563EB; color: #fff; }
 .badge-class-intB { background: #7C3AED; color: #fff; }
-.badge-class-pro  { background: #F59E0B; color: #fff; }
+.badge-class-pro  { background: #F59E0B; color: #0A1524; }
+.badge-class-begA, .badge-class-begB, .badge-class-intA,
+.badge-class-intB, .badge-class-pro {
+  padding: 4px 10px; border-radius: 4px;
+}
 
 /* Per-test verdict chips (1 weak → 5 excellent; run maps poor→1, avg→3, good→4, exc→5) */
 .eval-chip {
-  flex: 0 0 auto; padding: 3px 10px; border-radius: 10px;
-  font-size: 11px; font-weight: 600; color: #fff; white-space: nowrap;
+  flex: 0 0 auto; padding: 3px 10px; border-radius: 4px;
+  font-family: var(--font-display); letter-spacing: 0.06em;
+  font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap;
 }
 .eval-chip-1 { background: #EF4444; }
-.eval-chip-2 { background: #F59E0B; }
+.eval-chip-2 { background: #F59E0B; color: #0A1524; }
 .eval-chip-3 { background: #6B7280; }
-.eval-chip-4 { background: #10B981; }
+.eval-chip-4 { background: #10B981; color: #0A1524; }
 .eval-chip-5 { background: #059669; }
 
 /* ─── Evaluation measurement console (v2.11.1) ─── */
 .eval-console {
-  border: 1px solid var(--sep);
-  border-radius: 12px;
+  border: 2px solid var(--bar);
+  border-radius: 10px;
   padding: 12px;
   margin-bottom: 14px;
-  background: var(--sep);
+  background: var(--raised);
 }
 .eval-timer-display {
-  font-size: 40px;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 44px;
+  font-weight: 600;
   text-align: center;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 1px;
-  color: var(--t1);
+  color: var(--chalk);
   margin: 6px 0 10px;
 }
 /* Brief highlight on a test row when its countdown ends — draws the eye so the PT
-   taps it to type the rep count (no programmatic focus on iOS). The amber matches the
-   app's active-glow accent (#F59E0B); a transient animation tint, like card-now. */
+   taps it to type the rep count (no programmatic focus on iOS). */
 @keyframes evalRowFlash {
-  0% { background: rgba(245, 158, 11, 0.35); }
+  0% { background: var(--bar); }
   100% { background: transparent; }
 }
 .eval-row-flash {
   animation: evalRowFlash 1.5s ease-out;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 /* ─── Modal ─── */
@@ -458,21 +568,23 @@ button:active { transform: scale(0.97); }
 }
 .modal-bg {
   position: absolute; inset: 0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(4,8,16,0.66);
 }
 .modal-content {
   position: relative; width: 100%; max-width: 480px;
   max-height: 90vh; max-height: 90dvh;
-  background: linear-gradient(180deg, #1E1E30, #151525);
-  border-radius: 24px 24px 0 0;
+  /* The sheet is the ground, lifted — same gradient, brighter, with a collar
+     across the top instead of a rounded floating card. */
+  background: linear-gradient(180deg, var(--ground-lit) 0%, var(--ground) 46%);
+  border-top: 3px solid var(--bar);
+  border-radius: 14px 14px 0 0;
   padding: 0 20px 16px;
   display: flex; flex-direction: column;
   animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .modal-handle {
-  width: 36px; height: 4px; border-radius: 2px;
-  background: rgba(255,255,255,0.25);
+  width: 40px; height: 4px; border-radius: 2px;
+  background: var(--chalk-faint);
   margin: 10px auto 0; flex-shrink: 0;
 }
 .modal-header {
@@ -486,16 +598,31 @@ button:active { transform: scale(0.97); }
   -webkit-overflow-scrolling: touch;
   padding-bottom: 8px;
 }
-.modal-title { font-size: 20px; font-weight: 800; }
-.modal-close { color: rgba(255,255,255,0.6); padding: 4px; }
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--chalk);
+}
+.modal-close { color: var(--chalk-dim); padding: 8px; }
 .modal-footer {
   flex-shrink: 0;
   padding: 12px 0 0;
 }
+[dir="rtl"] .modal-title { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
-/* ─── Misc ─── */
+/* ─── Misc ───
+   `.section-title` is the bar's older sibling: the screens that have not had
+   their layout pass yet still render it, so it carries the same type. When a
+   screen is rebuilt it graduates to a real `.bar`. */
 .section-title {
-  font-size: 18px; font-weight: 800; margin: 20px 0 16px;
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--chalk);
+  margin: 24px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--bar);
   display: flex; align-items: center; gap: 8px;
 }
 .section-header {
@@ -503,9 +630,9 @@ button:active { transform: scale(0.97); }
 }
 .empty {
   text-align: center; padding: 60px 20px;
-  color: rgba(255,255,255,0.5); font-size: 15px;
+  color: var(--chalk-dim); font-size: 15px;
 }
-.empty-icon { font-size: 50px; margin-bottom: 12px; }
+.empty-icon { font-size: 44px; margin-bottom: 12px; opacity: 0.7; }
 
 /* ─── Stats ─── */
 /* v2.18: the three tinted stat tiles are GONE. They were the clearest instance
@@ -519,48 +646,60 @@ button:active { transform: scale(0.97); }
 .flex-row-12 { display: flex; gap: 12px; }
 .meta {
   display: flex; gap: 8px; align-items: center;
-  color: rgba(255,255,255,0.6); font-size: 13px; margin-top: 4px;
+  color: var(--chalk-dim); font-size: 13px; margin-top: 4px;
 }
-.client-name { font-weight: 700; font-size: 16px; margin-bottom: 2px; }
+.client-name {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 18px;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--chalk);
+  margin-bottom: 2px;
+}
 .client-phone {
   display: flex; align-items: center; gap: 6px;
-  color: rgba(255,255,255,0.55); font-size: 13px; margin-bottom: 4px;
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  color: var(--chalk-dim); font-size: 13px; margin-bottom: 4px;
 }
-.client-notes { font-size: 13px; color: rgba(255,255,255,0.5); font-style: italic; }
-/* Bumped from 0.5 → 0.72 in v2.8 — PT said the count was hard to read without squinting */
-.session-count { font-size: 12px; color: rgba(255,255,255,0.72); margin-top: 6px; }
+.client-notes { font-size: 13px; color: var(--chalk-dim); font-style: italic; }
+.session-count {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: 12px; color: var(--chalk-dim); margin-top: 6px;
+}
+[dir="rtl"] .client-name { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
 /* ─── Session count pair (v2.8) — auto → effective ─── */
-/* Used inline next to the client name on session cards, and in the period summary
-   of the client edit form. When no override is active, only .count-auto-solo renders.
-   When an override is active, both numbers show with an arrow. Pierre's hierarchy:
-   "auto readable, effective unmissable" — auto at 0.72 alpha (readable), effective
-   in accent blue with a subtle pill background. */
+/* Used inline next to the client name on session rows, and in the period summary
+   of the client edit form. When no override is active, only .count-auto-solo
+   renders. Pierre's hierarchy stands — "auto readable, effective unmissable" —
+   but it is now carried by BRIGHTNESS AND A FILLED SHAFT, not by a blue that
+   collided with the accent's one job. */
 .count-pair {
   display: inline-flex;
   align-items: baseline;
   gap: 3px;
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
   font-size: 12px;
   font-weight: 500;
 }
 .count-auto {
-  color: rgba(255,255,255,0.72);
+  color: var(--chalk-dim);
 }
 .count-arrow {
-  color: #60A5FA;
+  color: var(--chalk-dim);
   font-size: 11px;
   padding: 0 2px;
 }
 .count-effective {
-  color: #60A5FA;
-  font-weight: 700;
+  color: var(--chalk);
+  font-weight: 600;
   font-size: 13px;
-  background: rgba(96,165,250,0.14);
-  padding: 0 5px;
-  border-radius: 5px;
+  background: var(--bar);
+  padding: 1px 5px;
+  border-radius: 3px;
 }
 .count-auto-solo {
-  color: rgba(255,255,255,0.72);
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  color: var(--chalk-dim);
   font-size: 12px;
   font-weight: 500;
 }
@@ -575,22 +714,26 @@ button:active { transform: scale(0.97); }
 }
 .period-count-preview {
   font-size: 13px;
-  color: var(--t3);
+  color: var(--chalk-dim);
 }
 .period-count-preview strong {
-  color: var(--t1);
+  color: var(--chalk);
   font-weight: 700;
 }
 .period-count-preview strong.accent {
-  color: #60A5FA;
+  color: var(--chalk);
+  background: var(--bar);
+  padding: 1px 5px;
+  border-radius: 3px;
 }
 .override-input {
   width: 64px;
-  padding: 8px 10px;
-  border: 1px solid var(--sep);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--t1);
+  padding: 10px;
+  border: 2px solid var(--bar);
+  border-radius: 6px;
+  background: var(--raised);
+  color: var(--chalk);
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
   font-size: 15px;
   font-weight: 600;
   text-align: center;
@@ -599,14 +742,14 @@ button:active { transform: scale(0.97); }
 }
 .override-input:focus {
   outline: none;
-  border-color: #60A5FA;
-  box-shadow: 0 0 0 3px rgba(96,165,250,0.15);
+  border-color: var(--chalk-dim);
+  box-shadow: none;
 }
 .override-edit-btn {
   background: transparent;
   border: none;
-  padding: 6px 8px;
-  color: var(--t3);
+  padding: 8px 10px;
+  color: var(--chalk-dim);
   cursor: pointer;
   font-size: 15px;
 }
@@ -615,35 +758,47 @@ button:active { transform: scale(0.97); }
 /* Help popup body — preformatted multi-line syntax explanation */
 .override-help-body {
   font-size: 14px;
-  color: var(--t2);
+  color: var(--chalk-dim);
   line-height: 1.5;
   white-space: pre-wrap;
   margin-bottom: 16px;
 }
 
-/* ─── Week Strip ─── */
+/* ─── Week Strip ───
+   🔴 SELECTION IS CHALK; LOAD IS THE ACCENT. The selected day is chrome — the
+   user's own cursor — so it fills with the bar and brightens. The dot under a
+   day means that day HAS sessions, which is load, so the dot is the one thing
+   here allowed to wear the accent. */
 .week-strip { display: flex; gap: 4px; padding: 16px 0; overflow-x: auto; }
 .week-day {
   flex: 1; min-width: 48px; padding: 10px 4px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.03);
-  color: rgba(255,255,255,0.6);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: transparent;
+  color: var(--chalk-dim);
   text-align: center; font-family: inherit;
   transition: all 0.15s ease;
 }
 .week-day.selected {
-  border: 2px solid #2563EB;
-  background: rgba(37,99,235,0.15);
-  color: #60A5FA;
+  border-color: var(--chalk-dim);
+  background: var(--bar);
+  color: var(--chalk);
 }
-.week-day.is-today { color: #fff; }
-.week-day-label { font-size: 11px; font-weight: 600; text-transform: uppercase; }
-.week-day-num { font-size: 20px; font-weight: 800; margin-top: 2px; }
+.week-day.is-today { color: var(--chalk); }
+.week-day-label {
+  font-family: var(--font-display);
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.week-day-num {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: 20px; font-weight: 600; margin-top: 2px;
+}
 .week-day-dot {
   width: 6px; height: 6px; border-radius: 50%;
-  background: #2563EB; margin: 4px auto 0;
+  background: var(--accent); margin: 4px auto 0;
 }
+[dir="rtl"] .week-day-label { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
 /* ─── Week Nav ─── */
 .week-nav {
@@ -651,15 +806,22 @@ button:active { transform: scale(0.97); }
   margin: 4px 0 12px;
 }
 .week-nav-label {
-  font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75);
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--chalk);
 }
+[dir="rtl"] .week-nav-label { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
-/* ─── Session Type Picker ─── */
+/* ─── Session Type Picker ───
+   The per-type colour survives HERE and nowhere else. In the picker it is a
+   legend — the user is choosing between six named things and the swatch is how
+   they tell them apart. On a row it was decoration, which is why it left. */
 .type-btn {
-  padding: 8px 14px; border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.65);
+  padding: 9px 14px; border-radius: 6px;
+  border: 2px solid var(--bar);
+  background: transparent;
+  color: var(--chalk-dim);
   font-size: 13px; font-weight: 600; font-family: inherit;
 }
 .type-btn.selected {
@@ -673,23 +835,20 @@ button:active { transform: scale(0.97); }
 }
 .client-chip {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 10px 6px 12px;
-  border-radius: 10px;
-  background: rgba(37,99,235,0.15);
-  border: 1px solid rgba(37,99,235,0.3);
-  color: #60A5FA;
+  padding: 7px 10px 7px 12px;
+  border-radius: 6px;
+  background: var(--bar);
+  border: 2px solid var(--bar);
+  color: var(--chalk);
   font-size: 13px; font-weight: 600;
 }
 .client-chip-x {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 18px; height: 18px; border-radius: 50%;
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.6);
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--raised);
+  color: var(--chalk);
   font-size: 14px; line-height: 1;
   cursor: pointer;
-}
-.client-chip-x:hover {
-  background: rgba(255,255,255,0.2);
 }
 
 /* ─── Time Slot Grid ─── */
@@ -704,76 +863,81 @@ button:active { transform: scale(0.97); }
 }
 .time-slot {
   padding: 8px 4px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.6);
-  font-size: 12px; font-weight: 600;
+  border-radius: 6px;
+  border: 2px solid var(--bar);
+  background: transparent;
+  color: var(--chalk-dim);
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: 12px; font-weight: 500;
   text-align: center;
-  font-family: inherit;
-  min-height: 38px;
+  min-height: 40px;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 1px;
 }
 .time-slot.selected {
-  border: 2px solid #2563EB;
-  background: rgba(37,99,235,0.15);
-  color: #60A5FA;
+  border-color: var(--chalk-dim);
+  background: var(--bar);
+  color: var(--chalk);
 }
+/* Occupied is a WARNING about a clash, not an error — it is still a legal pick
+   (that is what group bookings are), so it warns rather than shouting danger. */
 .time-slot.occupied {
-  background: rgba(239,68,68,0.12);
-  border-color: rgba(239,68,68,0.25);
-  color: rgba(239,68,68,0.8);
+  border-color: var(--warn);
+  color: var(--warn);
 }
 .time-slot.occupied.selected {
-  border: 2px solid #2563EB;
-  background: rgba(239,68,68,0.2);
+  background: var(--warn);
+  color: var(--ground);
 }
 .time-slot-name {
+  font-family: var(--font-body);
   font-size: 9px;
   font-weight: 500;
-  opacity: 0.7;
+  opacity: 0.8;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* ─── Focus Tags (on session cards) ─── */
+/* ─── Focus Tags (on session rows) ─── */
 .focus-row {
   display: flex; flex-wrap: wrap; gap: 4px;
   margin-top: 8px;
 }
 .focus-tag {
-  padding: 4px 10px; border-radius: 8px;
+  padding: 6px 10px; border-radius: 4px;
+  font-family: var(--font-display);
   font-size: 11px; font-weight: 600;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.55);
-  font-family: inherit;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  border: 2px solid var(--bar);
+  background: transparent;
+  color: var(--chalk-dim);
   transition: all 0.15s ease;
 }
 .focus-tag.active {
-  background: rgba(37,99,235,0.15);
-  border-color: rgba(37,99,235,0.3);
-  color: #60A5FA;
+  background: var(--bar);
+  border-color: var(--chalk-dim);
+  color: var(--chalk);
 }
 .focus-tag.readonly {
   cursor: default;
 }
+[dir="rtl"] .focus-tag { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
+
 .focus-notes {
   width: 100%; margin-top: 6px;
-  padding: 8px 10px; border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.7);
-  font-size: 12px; font-family: inherit;
+  padding: 9px 10px; border-radius: 6px;
+  border: 2px solid var(--bar);
+  background: transparent;
+  color: var(--chalk-dim);
+  font-size: 12px; font-family: var(--font-body);
   resize: none;
   /* Collapsed: single line, no internal scroll, page scrolls over it */
   overflow: hidden;
   touch-action: pan-y;
-  max-height: 32px;
+  max-height: 34px;
   transition: max-height 0.25s ease, overflow 0s;
 }
 /* Expanded: tap to edit — grows downward, scrollable */
@@ -784,34 +948,33 @@ button:active { transform: scale(0.97); }
   touch-action: auto;
 }
 .focus-notes::placeholder {
-  color: rgba(255,255,255,0.3);
+  color: var(--chalk-faint);
 }
-/* Blue hue when focused (recording mode) */
+/* Recording mode, and the state that persists once there is something in it:
+   the well lifts off the ground and the text goes to full chalk. */
 .focus-notes:focus {
-  background: rgba(37,99,235,0.15);
-  border-color: rgba(37,99,235,0.35);
-  color: #60A5FA;
+  background: var(--raised);
+  border-color: var(--chalk-dim);
+  color: var(--chalk);
   outline: none;
 }
-/* Blue hue persists when textarea has content (even when blurred) */
 .focus-notes.has-content {
-  background: rgba(37,99,235,0.12);
-  border-color: rgba(37,99,235,0.25);
-  color: #60A5FA;
+  background: var(--raised);
+  color: var(--chalk);
 }
 .focus-display {
-  font-size: 11px; color: rgba(255,255,255,0.5);
+  font-size: 11px; color: var(--chalk-dim);
   margin-top: 4px;
 }
-/* Inline type selector on session cards — blends with meta text */
+/* Inline type selector on session rows — blends with meta text */
 .inline-type-select {
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 6px;
+  border: 2px solid var(--bar);
+  border-radius: 4px;
   color: inherit;
   font-size: inherit;
   font-family: inherit;
-  padding: 2px 4px;
+  padding: 3px 6px;
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
@@ -820,25 +983,34 @@ button:active { transform: scale(0.97); }
 /* ─── Filter Buttons ─── */
 .filter-row { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
 .filter-btn {
-  padding: 7px 14px; border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.1);
+  padding: 9px 14px; border-radius: 6px;
+  border: 2px solid var(--bar);
   background: transparent;
-  color: rgba(255,255,255,0.6);
-  font-size: 12px; font-weight: 700; text-transform: capitalize;
-  font-family: inherit; white-space: nowrap;
+  color: var(--chalk-dim);
+  font-family: var(--font-display);
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  white-space: nowrap;
   transition: all 0.15s ease;
 }
 .filter-btn.active {
-  border: 2px solid #2563EB;
-  background: #2563EB;
-  color: #fff;
+  border-color: var(--chalk);
+  background: var(--chalk);
+  color: var(--ground);
 }
+[dir="rtl"] .filter-btn { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
 /* ─── Success Modal ─── */
 .success-center { text-align: center; margin-bottom: 20px; }
-.success-icon { font-size: 50px; margin-bottom: 12px; }
-.success-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-.success-detail { font-size: 14px; color: rgba(255,255,255,0.6); }
+.success-icon { font-size: 44px; margin-bottom: 12px; }
+.success-name {
+  font-family: var(--font-display);
+  font-size: 17px; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.success-detail { font-size: 14px; color: var(--chalk-dim); }
+[dir="rtl"] .success-name { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 .mb-10 { margin-bottom: 10px; }
 .mt-16 { margin-top: 16px; }
 
@@ -849,32 +1021,43 @@ button:active { transform: scale(0.97); }
    the keyboard to find the button. Latent since the screen was written; it only
    became urgent when a Play reviewer had to complete this exact form.
    `margin: auto` on the card keeps it optically centred when there IS room, while
-   overflow-y lets it scroll when there isn't. */
+   overflow-y lets it scroll when there isn't.
+   🔴 v2.19: this screen is reachable BEFORE anything else, and a rename sweep
+   that only opens the screens you can log into misses it (the v2.15.0 trap). It
+   is on the tokens like everything else. */
 .setup-container {
   height: 100vh; height: 100dvh;
   display: flex; justify-content: center;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 24px;
+  background: radial-gradient(130% 70% at 50% 6%, var(--ground-lit) 0%, var(--ground) 62%, var(--ground) 100%);
 }
 .setup-card {
   width: 100%; max-width: 360px;
   margin: auto;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 20px;
-  padding: 32px 24px;
+  background: transparent;
+  border: none;
+  border-top: 3px solid var(--bar);
+  border-bottom: 3px solid var(--bar);
+  border-radius: 0;
+  padding: 32px 4px;
 }
 .setup-logo {
   width: 48px; height: 48px;
   margin: 0 auto 16px;
+  color: var(--chalk);
 }
 .setup-title {
-  text-align: center; font-size: 24px; font-weight: 800;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 26px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--chalk);
   margin-bottom: 8px;
 }
 .setup-sub {
-  text-align: center; color: rgba(255,255,255,0.55);
+  text-align: center; color: var(--chalk-dim);
   font-size: 14px; margin-bottom: 24px;
 }
 .setup-error {
@@ -882,11 +1065,12 @@ button:active { transform: scale(0.97); }
 }
 .setup-spinner {
   width: 32px; height: 32px; margin: 0 auto;
-  border: 3px solid rgba(255,255,255,0.1);
-  border-top-color: #2563EB;
+  border: 3px solid var(--bar);
+  border-top-color: var(--chalk);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+[dir="rtl"] .setup-title { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -1053,18 +1237,9 @@ button:active { transform: scale(0.97); }
 .srow-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 .srow-chevron { color: var(--chalk-faint); flex: 0 0 auto; }
 
-/* The status badge keeps its CSS class (never an inline style) and is restyled
-   here for the rows that live on the ground: a mono instrument label, not a
-   coloured pill. Scoped, so every other screen's badges are untouched. */
-.srow .badge, .rrow .badge {
-  background: transparent; padding: 0; border-radius: 0;
-  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-  letter-spacing: 0.1em; text-transform: uppercase;
-}
-.srow .badge-scheduled { color: var(--chalk-dim); }
-.srow .badge-confirmed { color: var(--ok); }
-.srow .badge-completed { color: var(--chalk-dim); }
-.srow .badge-cancelled { color: var(--warn); }
+/* v2.19: the Dashboard's badge treatment was PROMOTED to `.badge` itself —
+   every screen now reads a status as a mono instrument label — so the four
+   scoped overrides that used to live here are gone rather than duplicated. */
 
 /* The inline type selector loses its box on the Dashboard and reads as a mark. */
 .srow .inline-type-select {
@@ -1176,104 +1351,34 @@ button:active { transform: scale(0.97); }
   --anatomy: #9C3A12;
 }
 /* Header: glossier glass — more transparent base, stronger blur for frosted look */
-[data-skin="steel"] .header { background: rgba(30,64,175,0.15); backdrop-filter: blur(28px) saturate(1.4); -webkit-backdrop-filter: blur(28px) saturate(1.4); border-bottom-color: rgba(37,99,235,0.12); }
-[data-skin="steel"] .logo-text { background: linear-gradient(135deg, #1E1B4B, #3730A3); -webkit-background-clip: text; }
-[data-skin="steel"] .logo-sub { color: rgba(30,27,75,0.65); }
-[data-skin="steel"] .app-version { color: rgba(30,27,75,0.45); }
-[data-skin="steel"] .header-dots { color: rgba(30,27,75,0.6); }
-[data-skin="steel"] .debug-panel { background: rgba(255,255,255,0.95); color: #1e1b4b; box-shadow: 0 8px 24px rgba(30,27,75,0.2); }
-[data-skin="steel"] .debug-panel strong { color: #2563eb; }
-[data-skin="steel"] .debug-panel .debug-close { color: #6b7280; }
 /* Nav: glossier glass — more transparent base, stronger blur + saturate for frosted look */
-[data-skin="steel"] .nav { background: rgba(30,64,175,0.15); backdrop-filter: blur(28px) saturate(1.4); -webkit-backdrop-filter: blur(28px) saturate(1.4); border-top-color: rgba(37,99,235,0.12); box-shadow: 0 -2px 12px rgba(30,27,75,0.1); }
-[data-skin="steel"] .nav-btn { color: rgba(30,27,75,0.7); }
-[data-skin="steel"] .nav-btn.active { color: #1D4ED8; font-weight: 700; }
 
-[data-skin="steel"] .card { background: rgba(210,228,255,0.55); border-color: rgba(37,99,235,0.12); box-shadow: 0 2px 12px rgba(30,27,75,0.1); }
-[data-skin="steel"] .card.card-now { background: rgba(245,158,11,0.18); border-color: rgba(245,158,11,0.45); box-shadow: 0 2px 16px rgba(245,158,11,0.25); }
-[data-skin="steel"] .card.card-tap:active { transform: translateY(1px); box-shadow: 0 1px 4px rgba(30,27,75,0.06); }
 
-[data-skin="steel"] .btn-primary { background: linear-gradient(135deg, #2563EB, #60A5FA); box-shadow: 0 4px 16px rgba(37,99,235,0.3); }
-[data-skin="steel"] .btn-sm { background: linear-gradient(135deg, #2563EB, #60A5FA); }
-[data-skin="steel"] .btn-secondary { background: rgba(255,255,255,0.2); color: #1E1B4B; border-color: rgba(37,99,235,0.15); }
-[data-skin="steel"] .btn-ghost { background: rgba(30,27,75,0.04); border-color: rgba(30,27,75,0.08); color: rgba(30,27,75,0.5); }
-[data-skin="steel"] .btn-icon { color: rgba(30,27,75,0.35); }
-[data-skin="steel"] .btn-confirm { background: linear-gradient(135deg, #10B981, #059669); }
 
-[data-skin="steel"] .input, [data-skin="steel"] .select { border-color: rgba(37,99,235,0.15); background: rgba(96,165,250,0.2); color: #1E1B4B; }
-[data-skin="steel"] .select { background: rgba(96,165,250,0.25); }
-[data-skin="steel"] .field-label { color: rgba(30,27,75,0.65); }
 
-[data-skin="steel"] .badge-completed { background: #2563EB; }
-[data-skin="steel"] .section-title { color: #1E1B4B; }
-[data-skin="steel"] .empty { color: rgba(30,27,75,0.5); }
 
 /* Stat cards: more solid accent fills */
 
-[data-skin="steel"] .meta { color: rgba(30,27,75,0.6); }
-[data-skin="steel"] .client-name { color: #1E1B4B; }
-[data-skin="steel"] .client-phone { color: rgba(30,27,75,0.55); }
-[data-skin="steel"] .client-notes { color: rgba(30,27,75,0.5); }
 /* Bumped from 0.5 → 0.72 in v2.8 (same readability concern as dark theme) */
-[data-skin="steel"] .session-count { color: rgba(30,27,75,0.72); }
 
 /* Light theme — indigo tint instead of white alpha for count pair */
-[data-skin="steel"] .count-auto,
-[data-skin="steel"] .count-auto-solo { color: rgba(30,27,75,0.78); }
-[data-skin="steel"] .count-arrow { color: #2563EB; }
-[data-skin="steel"] .count-effective {
   color: #1E40AF;
   background: rgba(37,99,235,0.14);
 }
-[data-skin="steel"] .period-count-preview strong.accent { color: #1E40AF; }
-[data-skin="steel"] .override-input:focus {
   border-color: #2563EB;
   box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
 }
 
-[data-skin="steel"] .week-day { border-color: rgba(37,99,235,0.12); background: rgba(255,255,255,0.15); color: rgba(30,27,75,0.6); }
-[data-skin="steel"] .week-day.selected { border-color: #2563EB; background: rgba(37,99,235,0.25); color: #fff; }
-[data-skin="steel"] .week-day.is-today { color: #1E1B4B; }
-[data-skin="steel"] .week-day-dot { background: #2563EB; }
-[data-skin="steel"] .week-nav-label { color: rgba(30,27,75,0.7); }
 
-[data-skin="steel"] .type-btn { border-color: rgba(37,99,235,0.12); background: rgba(255,255,255,0.15); color: rgba(30,27,75,0.6); }
-[data-skin="steel"] .client-chip { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.25); color: #2563EB; }
-[data-skin="steel"] .client-chip-x { background: rgba(30,27,75,0.08); color: rgba(30,27,75,0.5); }
 
-[data-skin="steel"] .time-slot { border-color: rgba(37,99,235,0.12); background: rgba(255,255,255,0.15); color: rgba(30,27,75,0.6); }
-[data-skin="steel"] .time-slot.selected { border-color: #2563EB; background: rgba(37,99,235,0.25); color: #fff; }
 
-[data-skin="steel"] .focus-tag { border-color: rgba(37,99,235,0.12); background: rgba(255,255,255,0.15); color: rgba(30,27,75,0.55); }
-[data-skin="steel"] .focus-tag.active { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.25); color: #2563EB; }
-[data-skin="steel"] .focus-notes { border-color: rgba(37,99,235,0.12); background: rgba(255,255,255,0.35); color: rgba(30,27,75,0.6); }
-[data-skin="steel"] .focus-notes:focus { background: rgba(37,99,235,0.12); border-color: rgba(37,99,235,0.3); color: #2563EB; }
-[data-skin="steel"] .focus-notes.has-content { background: rgba(37,99,235,0.08); border-color: rgba(37,99,235,0.2); color: #2563EB; }
-[data-skin="steel"] .focus-notes::placeholder { color: rgba(30,27,75,0.35); }
-[data-skin="steel"] .inline-type-select { border-color: rgba(30,27,75,0.12); }
 
-[data-skin="steel"] .filter-btn { border-color: rgba(37,99,235,0.12); background: rgba(255,255,255,0.15); color: rgba(30,27,75,0.6); }
-[data-skin="steel"] .filter-btn.active { border-color: #2563EB; background: #2563EB; color: #fff; }
 
-[data-skin="steel"] .modal-bg { background: rgba(0,0,0,0.4); }
-[data-skin="steel"] .modal-content { background: linear-gradient(180deg, rgba(220,232,250,0.97), rgba(200,218,240,0.98)); }
-[data-skin="steel"] .modal-title { color: #1E1B4B; }
-[data-skin="steel"] .modal-close { color: rgba(30,27,75,0.5); }
-[data-skin="steel"] .modal-handle { background: rgba(30,27,75,0.2); }
 
-[data-skin="steel"] .success-detail { color: rgba(30,27,75,0.6); }
-[data-skin="steel"] .setup-card { background: rgba(255,255,255,0.35); border-color: rgba(37,99,235,0.12); }
-[data-skin="steel"] .setup-sub { color: rgba(30,27,75,0.55); }
-[data-skin="steel"] .setup-spinner { border-color: rgba(30,27,75,0.1); border-top-color: #2563EB; }
 
 /* Toggle buttons: stronger glass bg, darker inactive text for contrast */
-[data-skin="steel"] .lang-toggle { background: rgba(255,255,255,0.25); border: 1px solid rgba(30,27,75,0.08); }
-[data-skin="steel"] .lang-toggle span { color: rgba(30,27,75,0.55); }
-[data-skin="steel"] .lang-toggle .lang-active { background: rgba(37,99,235,0.2); color: #1D4ED8; }
 
-[data-skin="steel"] .btn-secondary:active, [data-skin="steel"] .btn-ghost:active { background: rgba(30,27,75,0.08); }
 
-[data-skin="steel"] ::-webkit-scrollbar-thumb { background: rgba(30,27,75,0.1); }
 
 /* ─── RTL overrides (Arabic) ─── */
 [dir="rtl"] .logo { direction: ltr; } /* Keep logo LTR — "PTApp" is a brand name */
@@ -1286,33 +1391,41 @@ button:active { transform: scale(0.97); }
 
 /* ─── v2.9 Session Contracts — red renewal-due state ─── */
 .card-renewal-due {
-  border-inline-start: 3px solid #EF4444;
-  background: color-mix(in srgb, var(--card-bg, white) 92%, #EF4444);
+  /* v2.19: due-for-renewal is URGENCY, which is the accent's job. It used to be
+     a red-tinted box; red now means destructive only (cancel, delete). */
+  border-inline-start: 3px solid var(--accent);
+  background: transparent;
 }
 
 .renewal-pill {
   display: inline-block;
-  background: #EF4444;
-  color: white;
+  background: var(--accent);
+  color: var(--ground);
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.06em;
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: 3px;
   margin-top: 4px;
 }
 
 .btn-renew {
-  background: linear-gradient(135deg, #3B82F6, #2563EB);
-  color: white;
+  background: var(--accent);
+  color: var(--ground);
+  font-family: var(--font-display);
   font-size: 12px;
-  font-weight: 600;
-  padding: 6px 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 9px 14px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
 }
 .btn-renew:active { transform: translateY(1px); }
+[dir="rtl"] .btn-renew { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
 .dashboard-renewal-section {
   margin-top: 12px;
@@ -1323,43 +1436,45 @@ button:active { transform: scale(0.97); }
   align-items: center;
   gap: 12px;
   padding: 12px;
-  border-inline-start: 3px solid #EF4444;
-  background: color-mix(in srgb, var(--card-bg, white) 92%, #EF4444);
+  border-inline-start: 3px solid var(--accent);
+  background: transparent;
   margin-bottom: 8px;
 }
 
 .booking-renewal-banner {
-  background: rgba(239, 68, 68, 0.12);
-  border-inline-start: 3px solid #EF4444;
+  background: var(--raised);
+  border-inline-start: 3px solid var(--accent);
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 13px;
-  color: var(--t2, inherit);
+  color: var(--chalk);
   margin-bottom: 12px;
 }
 
 /* ─── Recurring booking (v2.10) ─── */
 /* Theme-aware via --t* / --sep; RTL-safe via logical properties. */
-.repeat-toggle { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 14px; color: var(--t2); }
+.repeat-toggle { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 14px; color: var(--chalk-dim); }
 .repeat-toggle input { width: 18px; height: 18px; }
 
 .weekday-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 12px; }
 .weekday-chip {
   flex: 1 1 auto; min-width: 40px; padding: 8px 4px; border-radius: 8px;
-  border: 1px solid var(--sep); background: transparent; color: var(--t2);
-  font-size: 13px; cursor: pointer;
+  border: 2px solid var(--bar); background: transparent; color: var(--chalk-dim);
+  font-family: var(--font-display); font-size: 13px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
 }
-.weekday-chip.selected { background: #2563EB; border-color: #2563EB; color: #fff; }
+.weekday-chip.selected { background: var(--bar); border-color: var(--chalk-dim); color: var(--chalk); }
+[dir="rtl"] .weekday-chip { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
 .recurring-preview { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
 .preview-row {
   display: flex; align-items: center; gap: 10px; padding: 10px 12px;
-  border: 1px solid var(--sep); border-radius: 8px; font-size: 14px; color: var(--t2);
+  border: 2px solid var(--bar); border-radius: 6px; font-size: 14px; color: var(--chalk-dim);
 }
 .preview-row input { width: 18px; height: 18px; flex-shrink: 0; }
 .preview-date { flex: 1; }
-.preview-row.conflict { border-color: #F59E0B; }
-.preview-flag { font-size: 12px; color: #F59E0B; }
+.preview-row.conflict { border-color: var(--warn); }
+.preview-flag { font-family: var(--font-mono); font-size: 12px; color: var(--warn); }
 
 /* Expired-session banner (v2.16 groundwork).
    🔴 A banner, never a wall — the auth gate is identity, not token validity.
@@ -1375,8 +1490,8 @@ button:active { transform: scale(0.97); }
   font-size: 13px;
   font-weight: 600;
   text-align: center;
-  color: #F59E0B;
-  background: rgba(245, 158, 11, 0.12);
-  border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+  color: var(--warn);
+  background: var(--raised);
+  border-bottom: 2px solid var(--warn);
 }
 .auth-banner:active { opacity: 0.7; }

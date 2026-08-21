@@ -505,3 +505,23 @@ whenever the list is closed. Style and content decisions about a screen apply to
 
 **Where it bit:** `Dashboard.jsx` only; `Schedule.jsx` keeps the emoji deliberately, because that
 screen has not had its pass yet.
+
+---
+
+## TRAP: Reusing a control class inherits the size its ORIGINAL content needed (2026-08-22, v2.19)
+
+**What happened.** The v2.17 skin picker reused `.lang-toggle`, the Ar/En segmented control. That
+class sets `width: 36px` on each cell — the right size for two letters. With skin *names* in the
+cells, **"Midnight" and "Steel" rendered on top of each other**, and it shipped that way in two
+releases because the picker is inside a modal nobody screenshots.
+
+**Why it survived review.** The markup reads perfectly: same control, same states, one class. The
+defect is in a value inherited from a different content shape, and nothing in the JSX hints at it.
+
+**The rule.** Reusing a control class is fine; reusing its *sizing* is the trap. When the new
+content is a different shape (words instead of letters, numbers instead of icons), add a modifier
+class that sizes to content — `.seg-toggle` here — and **open the screen**. This is the same family
+as the v2.15.0 pre-login trap: the bug lives on a surface the sweep never opened.
+
+**Generalises to:** any shared chip/segment/button class taking new labels, and every translated
+string — the Arabic label for the same control is rarely the same width as the English one.

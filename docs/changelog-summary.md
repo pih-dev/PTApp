@@ -4,6 +4,30 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.19.0 — the rest of the app catches up (August 22, 2026)
+
+**What you see:** every screen now looks like the home screen did after the last
+release. Pierre put it plainly — the home screen was designed and the rest were
+not — so the shared pieces moved across in one go: the header, the tab bar, the
+lists, the buttons, the forms, the pop-up sheets.
+
+**The boxes are gone everywhere.** Clients, sessions and schedule entries sit on
+the floor of the screen with a short bar between them. Buttons are flat and
+lettered in the new condensed type instead of the blue gradient pills. A status
+reads as a small typewriter label rather than a coloured sticker.
+
+**The little pictures left the interface** — the icons that used to sit in front
+of headings and on buttons. The messages you send clients on WhatsApp keep
+theirs; those are for the client, not for you.
+
+**One thing that was simply broken is fixed:** in Settings, the two theme names
+were printed on top of each other. They now sit side by side.
+
+**Nothing about your data changed** — same records, same counts, same buttons in
+the same places.
+
+---
+
 ## v2.18.0 — the home screen, rebuilt (August 21, 2026)
 
 **What you see:** the home screen stopped looking like every other app. The boxes

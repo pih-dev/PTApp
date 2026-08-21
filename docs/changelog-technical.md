@@ -4,6 +4,56 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.19.0 — the shell and the shared primitives (2026-08-22)
+
+**Stage 3 of the design pass**, triggered by Pierre on seeing v2.18: *"the
+landing page is very designed, but the rest are still the same."* Full write-up:
+`docs/instructions-v2.19.md`.
+
+**This is not the big-bang restyle the spec forbids, and the distinction is the
+whole point.** The rule was written to stop five screens' MARKUP and layout
+changing at once. This moves VALUES AND TYPE onto classes that already exist —
+two small markup edits aside — which is why it could be verified screen by
+screen in a browser rather than argued about. By v2.18 the coexistence cost had
+become the larger risk, which is what the rule was protecting against.
+
+- **The shell is on the tokens.** Header and nav lose the `rgba(37,99,235,0.06)`
+  glass; both are separated by a 2px bar shaft. 🔴 **The active tab is CHALK.**
+  The accent never touches chrome, and a highlighted tab is where that rule
+  usually dies first.
+- **`.card` now paints a row** — transparent, no border, no shadow, a bar
+  underneath — so every list on every screen inherits the Dashboard's idiom
+  without its markup changing. `.panel` is the new class for the cases that
+  genuinely are containers.
+- **The badge treatment was PROMOTED** from `.srow .badge` to `.badge`, and the
+  four scoped overrides deleted rather than duplicated.
+- **Selection = chalk, load = accent, red = destructive only.** Week-day chips,
+  time slots and filter buttons fill with `--bar`; the "this day has sessions"
+  dot keeps the accent; renewal-due moved from a red-tinted box to the accent.
+- 🔴 **70 `[data-skin="steel"]` per-element overrides retired in the same
+  commit.** Written against the old hardcoded rules, they would have fought
+  every rule this pass rewrote. `[data-skin="steel"]` is now the token block and
+  nothing else — the retirement v2.17 promised, arriving when what justified it
+  became true.
+- **Emoji left the interface** (headings, buttons, empty states, `<option>`
+  labels). 🔴 WhatsApp message templates keep theirs: that is text a client
+  receives, not chrome.
+- **`Sessions.jsx`** lost its inline session-type `borderInlineStart` and its
+  type emoji, and took the Dashboard's row classes — the only list-level markup
+  edit in the release.
+- **`General.jsx` skin picker bug:** it reused `.lang-toggle`, whose cells are a
+  hard 36px for "Ar"/"En", so **"Midnight" and "Steel" overlapped**. New
+  `.seg-toggle` sizes to content. Found by opening the screen, not by reading it.
+- **The token screen** is on the tokens too — it renders BEFORE login, the exact
+  surface a "walk the screens you can open" sweep misses (v2.15.0 trap).
+
+No reducer action, kernel call or dispatch changed. `DATA_VERSION` stays 6.
+`sanity-live-supabase-diff` passes again — the divergence seen during v2.18 has
+cleared on its own, which is consistent with the read-skew case that gate
+documents.
+
+---
+
 ## v2.18.0 — the Dashboard in the plate and the bar (2026-08-21)
 
 **Stage 2 of 2 of the design pass.** Spec:

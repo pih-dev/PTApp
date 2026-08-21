@@ -30,7 +30,7 @@ const T = {
     bookFirst: '+ Book First Session',
 
     // Common actions
-    complete: '✅ Complete',
+    complete: 'Complete',
     remind: 'Remind',
     edit: 'Edit',
     editSession: 'Edit Session',
@@ -83,11 +83,11 @@ const T = {
     recurringCreate: 'Create',
     sessionsLower: 'sessions',
     recurringBack: 'Back',
-    sessionBooked: 'Session Booked! 🎉',
+    sessionBooked: 'Session Booked',
     sendConfirmWA: 'Send Confirmation via WhatsApp',
 
     // Sessions tab
-    allSessions: '📋 All Sessions',
+    allSessions: 'All Sessions',
     active: 'Active',
     all: 'All',
     scheduled: 'Scheduled',
@@ -96,7 +96,7 @@ const T = {
     noSessionsFound: 'No sessions found',
 
     // Clients
-    myClients: '👥 My Clients',
+    myClients: 'My Clients',
     searchPlaceholder: 'Search by name or phone...',
     noClients: 'No clients yet',
     tapAdd: 'Tap "Add" to register your first client',
@@ -109,22 +109,22 @@ const T = {
 
     // General
     general: 'General',
-    backupTitle: '💾 Clients/Sessions Backup',
+    backupTitle: 'Clients/Sessions Backup',
     backup: 'Backup',
     cloudBackup: 'Cloud Backup',
     restoreBtn: 'Restore',
     cloudRestore: 'Cloud Restore',
     restoreNote: 'Restore merges data — adds missing records without replacing existing ones.',
     merge: 'Merge',
-    todoTitle: '📝 To Do',
+    todoTitle: 'To Do',
     noItems: 'No items yet',
     addSomething: 'Add something...',
-    waTitle: '💬 WhatsApp Messages',
+    waTitle: 'WhatsApp Messages',
     waPlaceholders: 'Placeholders:',
     bookingMsg: 'Booking Message',
     reminderMsg: 'Reminder Message',
     resetDefaults: 'Reset to Defaults',
-    docsTitle: '📖 Documentation',
+    docsTitle: 'Documentation',
     // v2.17 skin names. Deliberately NOT 'Dark'/'Light' — they are named looks,
     // not modes, and the picker shows them side by side.
     skinMidnight: 'Midnight',
@@ -363,7 +363,7 @@ const T = {
     bookFirst: '+ حجز أول جلسة',
 
     // Common actions
-    complete: '✅ إتمام',
+    complete: 'إتمام',
     remind: 'تذكير',
     edit: 'تعديل',
     editSession: 'تعديل الجلسة',
@@ -416,11 +416,11 @@ const T = {
     recurringCreate: 'إنشاء',
     sessionsLower: 'جلسات',
     recurringBack: 'رجوع',
-    sessionBooked: 'تمّ الحجز! 🎉',
+    sessionBooked: 'تمّ الحجز',
     sendConfirmWA: 'إرسال تأكيد عبر واتساب',
 
     // Sessions tab
-    allSessions: '📋 كل الجلسات',
+    allSessions: 'كل الجلسات',
     active: 'نشطة',
     all: 'الكل',
     scheduled: 'مجدولة',
@@ -429,7 +429,7 @@ const T = {
     noSessionsFound: 'لا جلسات',
 
     // Clients
-    myClients: '👥 عملائي',
+    myClients: 'عملائي',
     searchPlaceholder: 'البحث بالاسم أو الهاتف...',
     noClients: 'لا عملاء بعد',
     tapAdd: 'اضغط "إضافة" لتسجيل أول عميل',
@@ -442,22 +442,22 @@ const T = {
 
     // General
     general: 'عام',
-    backupTitle: '💾 نسخ احتياطي',
+    backupTitle: 'نسخ احتياطي',
     backup: 'نسخ',
     cloudBackup: 'نسخ سحابي',
     restoreBtn: 'استعادة',
     cloudRestore: 'استعادة سحابية',
     restoreNote: 'الاستعادة تدمج البيانات — تضيف السجلات المفقودة دون استبدال الموجودة.',
     merge: 'دمج',
-    todoTitle: '📝 المهام',
+    todoTitle: 'المهام',
     noItems: 'لا عناصر بعد',
     addSomething: 'أضف شيئاً...',
-    waTitle: '💬 رسائل واتساب',
+    waTitle: 'رسائل واتساب',
     waPlaceholders: 'المتغيّرات:',
     bookingMsg: 'رسالة الحجز',
     reminderMsg: 'رسالة التذكير',
     resetDefaults: 'إعادة للأصل',
-    docsTitle: '📖 الوثائق',
+    docsTitle: 'الوثائق',
     skinMidnight: 'ميدنايت',
     skinSteel: 'ستيل',
     appInstructions: 'تعليمات التطبيق',

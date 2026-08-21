@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { formatDate, SESSION_TYPES, getSessionType, getEffectiveSessionCount, getFocusTags, DURATIONS, TIMES, getStatus, haptic } from '../utils';
+import { formatDate, SESSION_TYPES, getEffectiveSessionCount, getFocusTags, DURATIONS, TIMES, getStatus, haptic } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import { t } from '../i18n';
+import { BarMark } from './Icons';
 
 // Editable focus tags + notes for completed sessions
 function EditableFocus({ session, dispatch, lang }) {
@@ -69,29 +70,32 @@ export default function Sessions({ state, dispatch, lang }) {
 
       {sorted.length === 0 ? (
         <div className="empty">
-          <div className="empty-icon">📭</div>
+          <div className="empty-mark"><BarMark /></div>
           <div>{t(lang, 'noSessionsFound')}</div>
         </div>
       ) : (
         sorted.map(session => {
-          const stype = getSessionType(session.type);
           const status = getStatus(session.status, lang, t);
           const client = state.clients.find(c => c.id === session.clientId);
           // v2.8: effective count honours the PT's manual override for this period
           const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
           return (
-            <div key={session.id} className="card" style={{ borderInlineStart: `3px solid ${stype.color}`, padding: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>
-                    {getClientName(session.clientId)}{' '}
-                    <SessionCountPair auto={monthAuto} effective={monthCount} override={monthOverride} />
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--t5)', marginTop: 2 }}>
-                    {formatDate(session.date, lang)} · {session.time} · {session.duration}{t(lang, 'min')} · {stype.emoji} {session.type}
-                  </div>
-                </div>
+            // v2.19: the row idiom from the Dashboard. The session-type colour
+            // that used to paint the inline-start edge is gone — that bar means
+            // "happening now" and nothing else — and the type is a mono mark.
+            <div key={session.id} className="card">
+              <div className="srow-head">
+                <span className="srow-name">
+                  {getClientName(session.clientId)}
+                  <SessionCountPair auto={monthAuto} effective={monthCount} override={monthOverride} />
+                </span>
                 <span className={`badge badge-${session.status}`}>{status.label}</span>
+              </div>
+              <div className="srow-meta">
+                <span className="srow-date">{formatDate(session.date, lang)}</span>
+                <span className="srow-time" style={{ fontSize: 14 }}>{session.time}</span>
+                <span className="srow-mark">{session.duration}{t(lang, 'min')}</span>
+                <span className="srow-mark">{session.type}</span>
               </div>
               {/* Actions for scheduled/confirmed sessions */}
               {(session.status === 'scheduled' || session.status === 'confirmed') && (
@@ -99,7 +103,7 @@ export default function Sessions({ state, dispatch, lang }) {
                   <button className="btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }}
                     onClick={() => dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, status: 'completed' } })}>{t(lang, 'complete')}</button>
                   <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }}
-                    onClick={() => openEdit(session)}>{'📝 ' + t(lang, 'edit')}</button>
+                    onClick={() => openEdit(session)}>{t(lang, 'edit')}</button>
                 </div>
               )}
               {/* Restore cancelled sessions */}
@@ -126,7 +130,7 @@ export default function Sessions({ state, dispatch, lang }) {
           <div className="field">
             <label className="field-label">{t(lang, 'sessionType')}</label>
             <select className="select" value={editForm.type} onChange={e => setEditForm(p => ({ ...p, type: e.target.value }))}>
-              {SESSION_TYPES.map(stype => <option key={stype.label} value={stype.label}>{stype.emoji} {stype.label}</option>)}
+              {SESSION_TYPES.map(stype => <option key={stype.label} value={stype.label}>{stype.label}</option>)}
             </select>
           </div>
           <div className="field">
