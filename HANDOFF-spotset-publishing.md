@@ -148,6 +148,9 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 
 ## 0a. Readings — TRUE ONLY AT THE STAMP, re-probe before quoting
 
+- **2026-08-21 ~09:1x Beirut** — Play Console → SpotSet → Dashboard: **"7 testers currently
+  opted-in"** (was 5 at ~07:0x). **5 more needed.** Probed live in Chrome (console is under the
+  `pierreghorra@` profile = `/u/1/`, not `/u/0/`).
 - **2026-08-21 ~07:0x Beirut** — Play Console → SpotSet → Dashboard: **"5 testers currently
   opted-in"** (was 1 at ~06:0x the same morning; four arrived while Pierre worked, after he
   messaged Elie). **7 more needed.**
