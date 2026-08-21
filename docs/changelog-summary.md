@@ -4,6 +4,25 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.16.1 — the demo can't message a stranger (August 21, 2026)
+
+**The problem, found by a tester:** the sample clients the `DEMO` login shows are
+invented, but their phone numbers used real Lebanese mobile prefixes — so a couple
+of them belonged to actual people. Tapping WhatsApp on a fake client opened a chat
+with a real stranger. Every tester and every store reviewer shares that same sample
+data, so it was aimed at everybody.
+
+**The fix:** in demo mode WhatsApp now opens with the message written out but **no
+recipient** — the person picks who to send it to, or sends it to nobody. That
+actually shows the feature off better, because you get to read the message the app
+composes. It also avoided the alternative of putting one real phone number into the
+app for everyone to reach, which would have published that number permanently.
+
+**Nothing changes for Elie.** With his sync token in place, WhatsApp still opens
+straight to the client he tapped.
+
+---
+
 ## v2.16.0 — honest session numbers, and the groundwork for multiple coaches (August 21, 2026)
 
 **What Elie sees:** cancelled sessions he forgave no longer show a session number.

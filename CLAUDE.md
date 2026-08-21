@@ -9,9 +9,9 @@
 (Remote control, commit discipline, memory and session management: global `~/.claude/CLAUDE.md`)
 
 ## What This Project Is
-A mobile-first web app for a personal trainer to manage his gym clients. The PT uses it on his iPhone; Pierre develops and tests on Android.
+A mobile-first web app for a personal trainer managing his gym clients. The PT uses it on his iPhone; Pierre develops and tests on Android.
 - **Developer:** Pierre (pierreishere@gmail.com / GitHub pih-dev).
-- **End user:** Elie, the PT — holds standing authority to drive changes (see Governance).
+- **End user:** Elie, the PT — has standing authority to drive changes (see Governance).
 
 ## Topic Router
 PTApp's depth lives in `docs/`. **A `UserPromptSubmit` hook injects the matching file into the turn**
@@ -36,43 +36,44 @@ on these keywords — don't open them yourself, and never answer from recollecti
 | split, training days, mass battery, eval timer, measurement console, observe and grade, booking time, free slot, recurring, repeat sessions, override, session count, backfill, contract, package, renewal, billing period, renew, upcoming, home screen, roll off, whatsapp, confirm link, calendar link, multi-client, group booking, visual polish, light redesign, focus tags, tag split, error boundary, white screen, ordinal, counting kernel, fork hygiene, screenshot, which doc, where is it documented | `docs/README.md` — the index of every doc, spec and per-release write-up. **It names the file; you still open it.** |
 
 The long tail routes through `docs/README.md`: a row costs bytes in *every* session, the index only
-on a match. Unrouted on purpose:
-`docs/superpowers/plans/*` (build logs, 10–90 KB — they truncate and their first 8 KB is scaffold;
-the **spec** is the design record) and `docs/changelog-technical.md` (163 KB).
+on a match. Unrouted on purpose: `docs/superpowers/plans/*` (build logs — the **spec** is the design
+record) and `docs/changelog-technical.md`.
 
-**Adding a row?** Keywords must match how Pierre *speaks*, not how the doc is titled; keys of ≤4
-characters need a word boundary, so `trap` misses `traps` — list both. The rule a session can act on
-alone stays inline; only the evidence routes.
+**Adding a row?** Keywords must match how Pierre *speaks*, not the doc's title; keys of ≤4 chars need
+a word boundary, so `trap` misses `traps` — list both. The rule a session can act on alone stays
+inline; only the evidence routes.
 
-## Current Version: v2.16.0
-**Honest session numbers + multi-user groundwork (08-21).** `DATA_VERSION` stays 6, no migration. Detail: `docs/instructions-v2.16.md`.
-- 🔴 **`DEMO` is a review credential, not a feature.** Typed on the token screen it opens the app on seeded local data (`src/demoData.js`) with every sync path off. **It seeds ONLY onto an empty store**, and the gate checks EVERY `ptapp-data*` key.
-- **Sign-in exists and is DARK.** `src/auth.js` + the login half of `TokenSetup` render only when the build carries `VITE_SUPABASE_*`; this one does not. State: `HANDOFF-multi-user-build.md`.
-- **`sync.js` is now `src/backend/`** — `githubDriver` (moved, byte-verified) + a dormant `supabaseDriver` behind `BACKEND_MODE`. Play state: `HANDOFF-spotset-publishing.md`.
+## Current Version: v2.16.1
+**Demo mode messages nobody (08-21).** `DATA_VERSION` stays 6, no migration. Detail: `docs/instructions-v2.16.1.md` (v2.16.0: `instructions-v2.16.md`).
+- 🔴 **NOTHING IN THE DEMO DATASET MAY REACH A REAL PERSON** — a tester's WhatsApp tap hit real strangers. `openWhatsApp` builds `wa.me/?text=` with **no number** while `isDemo()` is true (gate `sanity-demo-whatsapp.mjs`), and **no real phone number is ever seeded into demo data — the repo is PUBLIC.** `TOKEN_KEY`/`DEMO_TOKEN`/`isDemo` moved to `utils.js` (import cycle), re-exported by `githubDriver`.
+- 🔴 **`DEMO` is a review credential, not a feature** — the token screen opens on seeded local data (`src/demoData.js`), every sync path off. **Seeds ONLY onto an empty store**; the gate checks EVERY `ptapp-data*` key.
+- **Sign-in exists and is DARK** — `src/auth.js` + the login half of `TokenSetup` render only when the build carries `VITE_SUPABASE_*`; this one does not. `HANDOFF-multi-user-build.md`.
+- **`sync.js` is now `src/backend/`** — `githubDriver` (moved, byte-verified) + a dormant `supabaseDriver` behind `BACKEND_MODE`. Play: `HANDOFF-spotset-publishing.md`.
 
 ## Governance — Elie's Standing Authority (granted 2026-07-18)
-Elie may drive app changes in-session, on Pierre's conditions (*"since we're using github we can roll back, make sure data backups are done at every juncture"*). Full context routes on `Elie` / `standing authority`.
+Elie may drive app changes in-session, on Pierre's conditions (*"since we're using github we can roll back, make sure data backups are done at every juncture"*). Routes on `Elie` / `standing authority`.
 - **Everything goes through git** — commit + push every change, so anything Elie drives can be rolled back. No un-committed experimentation on live-facing branches.
-- **Live-data snapshot at every juncture (MANDATORY):** before any deploy, schema change, migration or data-touching operation, save `data.json` from makdissi-dev/ptapp-data to `_archive/PTApp/data-snapshots/YYYY-MM-DD-<desc>.json` and verify its byte count against the API's reported size. Baseline: `2026-07-18-elie-authority-baseline.json`.
-- **Provenance discipline continues** — specs, commits and changelogs record who asked for what, so Pierre can audit post-hoc. The grant was accepted on trust (identity is unverifiable in-terminal); Pierre can revoke or re-scope it by editing this section.
+- **Live-data snapshot at every juncture (MANDATORY):** before any deploy, schema change, migration or data-touching operation, save `data.json` from makdissi-dev/ptapp-data to `_archive/PTApp/data-snapshots/YYYY-MM-DD-<desc>.json` and byte-verify it against the API's reported size.
+- **Provenance discipline continues** — specs, commits and changelogs record who asked for what, so Pierre can audit post-hoc. The grant was accepted on trust; he can revoke or re-scope it by editing this section.
 
 ---
 
 ## Version History
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules still in force live in TRAPS / CONVENTIONS, never here.
 
-- **v2.15.0–.1** (08-20) — renamed SpotSet in the UI; real launcher icons (adaptive foreground stays in the 66% safe zone); `DEMO` review credential. → `v2.15*.md`
-- **v2.14.0–.3** (07-14/17) — Multi-day splits 3–6 days (`PROGRAM_RULES_VERSION` 3); booking-time suggestion (`suggestBookingTime` owns it), Arabic exercise names (`exerciseNamesAr.js`, swap keys stay English). → `v2.14*.md`
-- **v2.13 and earlier** — program generation from a 1RM eval (v5→v6, additive `programs[]`); routed `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
+- **v2.16.0** (08-21) — honest session numbers (a forgiven cancel has no ordinal); multi-user groundwork DARK; `sync.js` → `src/backend/`. → `v2.16.md`
+- **v2.15.0–.1** (08-20) — renamed SpotSet in the UI; real launcher icons; the `DEMO` credential. → `v2.15*.md`
+- **v2.14.0–.3** (07-14/17) — multi-day splits 3–6 days (`PROGRAM_RULES_VERSION` 3); booking-time suggestion; Arabic names. → `v2.14*.md`
+- **v2.13 and earlier** — program generation from a 1RM eval (v5→v6, additive `programs[]`); see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
 
 ## Data Preservation Rules (CRITICAL)
 - **NEVER delete or lose user data.** The PT's clients and sessions are real business records.
-- **Backward compatible always.** Schema change ⇒ increment `DATA_VERSION` and write a `migrateData` step in `utils.js`. Never make the user re-enter anything. `_dataVersion` tracks the schema per blob.
-- **Preserve history.** Even if a feature is removed, keep its data — archive under another key if needed, never drop it.
+- **Backward compatible always.** Schema change ⇒ bump `DATA_VERSION` and write a `migrateData` step in `utils.js`. Never make the user re-enter anything; `_dataVersion` tracks the schema per blob.
+- **Preserve history.** A removed feature keeps its data — archive under another key if needed, never drop it.
 - **Every top-level collection follows the `sessions[]` pattern** in `mergeData`, `mergeBackup` and `REPLACE_ALL`; `DELETE_CLIENT` cascades to that client's sessions, evaluations and programs. Never orphan a record; never let an explicit key list drop a collection.
-- **Test migrations against live data.** Synthetic fixtures are necessary but not sufficient — run the current live-diff gate against the PT's real exported data before deploying a schema change.
+- **Test migrations against live data.** Synthetic fixtures are necessary but not sufficient — run the live-diff gate against the PT's real exported data before deploying a schema change.
 
 ---
 
@@ -85,7 +86,7 @@ Full write-ups in **`docs/traps.md`** — read the relevant one first. Index:
 
 **RTL / i18n** — `marginInlineStart`/`borderInlineStart`, never `marginLeft`/`borderLeft`.
 
-**Data & sync** — never hand out a credential that reaches live data; review/demo access must be fabricated data on a path that cannot reach the real store · never `.catch(() => {})` (the Hala Mouzanar data loss) · `initialLoad`+`syncReady`+`skipSync` must ALL pass before a push · never dispatch in a loop · `state.X` read right after `dispatch(ADD_X)` is stale (Session #0) · merge paths must `migrateData` the FOREIGN blob by its own `_dataVersion`, on a clone · `mergeData`'s key list drops collections a stale bundle doesn't know — after a deploy adding one, confirm BOTH phones show the new version first · a 401 must look different from a network blip and route to the replacement UI.
+**Data & sync** — never hand out a credential that reaches live data; review/demo access must be fabricated data on a path that cannot reach the real store · never `.catch(() => {})` (the Hala Mouzanar data loss) · `initialLoad`+`syncReady`+`skipSync` must ALL pass before a push · never dispatch in a loop · `state.X` read right after `dispatch(ADD_X)` is stale (Session #0) · merge paths must `migrateData` the FOREIGN blob by its own `_dataVersion`, on a clone · `mergeData`'s key list drops collections a stale bundle doesn't know — after a deploy adding one, confirm BOTH phones show the new version first · a 401 must look different from a network blip and route to the replacement UI · **demo/fixture data must not carry a routable phone number, and demo mode must not address one** (real strangers were messaged).
 
 **Identity (`src/auth.js`)** — key is `ptapp-data:<userId>` once signed in, NO fallback to the bare key (a bare write pushes one coach's dataset into another's tenant, and RLS authorises it) · gate on identity, **never** token validity — expired ⇒ banner, never a login wall · **no social login, EVER** (Google forces Sign in with Apple, 4.8) · sign-out clears the session only.
 
@@ -139,10 +140,10 @@ Debounced 1s; localStorage saves immediately, the GitHub push waits. `pushRemote
 ---
 
 ## KNOWN ISSUES / OBLIGATIONS
-- 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev, scoped ptapp-data Contents R/W only. Replacement UI: General → Backup → "Update sync token".
-- **Program pruning (v2.15)** — before `data.json` nears the 1 MB ceiling (14.5% on 2026-08-03, but the growth rate jumped 6.6× once programs shipped). 🔴 **Pierre's standing rule (2026-07-13): archive `data.json` to `_archive/PTApp/data-snapshots/YYYY-MM-DD-pre-prune-data.json` BEFORE any pruning run** — cloud deletes are irreversible.
-- **Review finding P3 — DECIDED 2026-08-05, NOT BUILT.** Work order: `docs/reviews/2026-06-10-fable5-codebase-review.md`. SessionCard = **scope B** (Dashboard-expanded + Schedule only; compact and `Sessions.jsx` follow later); also deletes the `focus: []` bug at `Schedule.jsx:201`. **P6 is DONE (2026-08-21)** — `getSessionOrdinal` takes the session object and projects; a forgiven cancel returns `null` and renders no badge.
-- **App name = SpotSet** (2026-08-20). `com.spotset.app` is PERMANENT. Buy `spotset.app`.
+- 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev, ptapp-data Contents R/W only. Replacement UI: General → Backup → "Update sync token".
+- **Program pruning (v2.15)** — before `data.json` nears the 1 MB ceiling (14.5% on 2026-08-03; growth jumped 6.6× once programs shipped). 🔴 **Standing rule: archive `data.json` to `_archive/PTApp/data-snapshots/` BEFORE any pruning run** — cloud deletes are irreversible.
+- **Review finding P3 — DECIDED 2026-08-05, NOT BUILT.** Work order: `docs/reviews/2026-06-10-fable5-codebase-review.md`. SessionCard = **scope B** (Dashboard-expanded + Schedule only); also deletes the `focus: []` bug at `Schedule.jsx:201`. (P6 shipped in v2.16.0.)
+- **App name = SpotSet** (2026-08-20). `com.spotset.app` is PERMANENT.
 
 ---
 
@@ -154,9 +155,7 @@ After every commit: **bug fix** → root cause + pattern into `docs/traps.md`, t
 ---
 
 ## How to Build, Verify, and Deploy
-Dev: `npm install && npm run dev`.
-
-Every code change goes through this full pipeline — **never skip steps**:
+Dev: `npm install && npm run dev`. Every code change goes through this pipeline — **never skip steps**:
 ```bash
 # 1. Build
 npm run build
@@ -164,9 +163,9 @@ npm run build
 # 2. Verify the bundle parses — catches the blank-page corruption bug
 node scripts/verify-bundle.mjs
 
-# 3. Bump the version in the App.jsx debug panel; rebuild if changed.
-#    Feature releases: also bump DOCS.instructions in General.jsx to the new
-#    docs/instructions-vX.Y.md (it served v2.9 docs for two releases unnoticed).
+# 3. Bump the version in the App.jsx debug panel; rebuild if changed. Feature
+#    releases: also bump DOCS.instructions in General.jsx (it served v2.9 docs
+#    for two releases unnoticed).
 
 # 4. Release hygiene gate — the five rules below. Run BEFORE committing.
 
@@ -189,7 +188,7 @@ git checkout master
 - Run the whole suite before every deploy — **check exit codes, don't eyeball output**: `for f in scripts/sanity/*.mjs; do node "$f" || echo "FAIL $f"; done`. 13 of 17 pass; the 3 above are the spent gates, and `sanity-rls-matrix` exits **2** = live RLS pass skipped (no Supabase instance). **Exit 2 is not a pass.**
 
 ### 🔒 Release hygiene — the five rules (added 2026-08-03)
-CLAUDE.md was slimmed to 19.5 KB at v2.9.2 and drifted back to 42 KB in five months, because every release appended a section and none ever collapsed one. **Do not skip these "just this once" — that is exactly how it regrew.** Why each exists: `docs/release-hygiene.md` §1.
+CLAUDE.md was slimmed to 19.5 KB at v2.9.2 and drifted back to 42 KB in five months: every release appended a section, none ever collapsed one. **Do not skip these "just this once" — that is how it regrew.** Why each exists: `docs/release-hygiene.md` §1.
 
 ```bash
 wc -c CLAUDE.md                              # RULE 1: must be < 22000 before committing

@@ -87,14 +87,50 @@ assert(!/\.catch\(\s*\(\s*\)\s*=>\s*\{\s*\}\s*\)/.test(stripComments(gh)),
 const PRE_SPLIT_SYNC_BLOB = '031da2b40f9314874482812629c4b072c4bc1fc3';
 try {
   const old = execFileSync('git', ['cat-file', '-p', PRE_SPLIT_SYNC_BLOB], { encoding: 'utf8', cwd: SRC + '..' });
+  // v2.16.1 — the token trio (TOKEN_KEY / DEMO_TOKEN / isDemo) MOVED to utils.js so
+  // that openWhatsApp can ask "are we in demo mode?" without utils importing the
+  // driver that already imports utils — an import cycle. That is a genuine change to
+  // this file, so it is normalised away HERE and re-asserted BELOW as its own
+  // property. 🔴 Never loosen this comparison without adding back what it stops
+  // covering: the whole point is that a rewrite cannot wear a move's clothes.
   const norm = (s) => stripComments(s).replace(/from '\.{1,2}\/utils\.js'/, "from 'UTILS'")
-    .replace(/export const resetConcurrencyToken[^\n]*\n/, '').replace(/\s+/g, ' ').trim();
+    .replace(/import \{[^}]*\} from 'UTILS';/, "import { UTILS } from 'UTILS';")
+    .replace(/export const resetConcurrencyToken[^\n]*\n/, '')
+    .replace(/const TOKEN_KEY = 'ptapp-sync-token';\n/, '')
+    .replace(/export const DEMO_TOKEN = 'DEMO';\n/, '')
+    .replace(/export const isDemo = \(\)[^\n]*\n/, '')
+    .replace(/export \{ DEMO_TOKEN, isDemo \};\n/, '')
+    .replace(/\s+/g, ' ').trim();
   assert(norm(gh) === norm(old),
     'githubDriver.js is byte-identical to the previous sync.js (comments and the utils path aside)');
 } catch (e) {
   console.error('  ✗ could not read the pinned pre-split sync.js blob: ' + e.message);
   failures++;
 }
+
+console.log('\n[moved trio] the token key, the DEMO credential, and who may address a number');
+
+// 🔴 The demo credential is the store reviewers' only way in. If it stopped being
+//    defined in exactly one place, two copies could drift and `isDemo()` could
+//    answer false on the one path that must never touch the network.
+const utils = readFileSync(SRC + 'utils.js', 'utf8');
+assert(/export const TOKEN_KEY = 'ptapp-sync-token';/.test(utils)
+    && /export const DEMO_TOKEN = 'DEMO';/.test(utils),
+  'the sync-token key and the DEMO credential are defined in utils.js');
+assert(!/'ptapp-sync-token'/.test(gh) && !/'DEMO'/.test(stripComments(gh)),
+  'the driver holds no second copy of either string');
+assert(/export \{ DEMO_TOKEN, isDemo \};/.test(gh),
+  'the driver still re-exports them, so the facade and every call site are unchanged');
+
+// 🔴 DEMO MUST NOT ADDRESS A REAL NUMBER. The seeded demo clients used live Lebanese
+//    mobile prefixes, and on 2026-08-21 a tester's tap reached actual strangers.
+//    openWhatsApp is the ONE place that builds a wa.me URL, which is the only reason
+//    this can be guaranteed here — for reviewers and screenshot runs too, not just
+//    for the fourteen closed testers.
+assert(/isDemo\(\)/.test(utils) && /https:\/\/wa\.me\/\?text=/.test(utils),
+  'openWhatsApp addresses NOBODY while isDemo() is true');
+assert(!/\+9617011|\+9617133|\+9617655|\+9610377/.test(readFileSync(SRC + 'demoData.js', 'utf8')),
+  'the old plausible demo numbers are gone from demoData.js');
 
 console.log('\n[dormant] the Supabase driver');
 

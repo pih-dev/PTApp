@@ -14,12 +14,14 @@
 //    Callers do not import this directly. `src/backend/index.js` chooses the
 //    driver; `src/sync.js` re-exports that so no call site changed.
 
-import { mergeData } from '../utils.js';
+import { mergeData, TOKEN_KEY, DEMO_TOKEN, isDemo } from '../utils.js';
 
 const REPO_OWNER = 'makdissi-dev';
 const REPO_NAME = 'ptapp-data';
 const DATA_FILE = 'data.json';
-const TOKEN_KEY = 'ptapp-sync-token';
+// TOKEN_KEY / DEMO_TOKEN / isDemo now live in utils.js — see the note there.
+// utils cannot import this file (it already imports utils), and openWhatsApp needs
+// to know about demo mode. Re-exported below so every existing call site is unchanged.
 
 let currentSha = null;
 
@@ -34,8 +36,7 @@ export const resetConcurrencyToken = () => { currentSha = null; };
 // only real token is a PAT with write access to the PT's live client data. DEMO is
 // accepted in its place: it unlocks the UI on a seeded local dataset and every sync
 // path below is skipped, so a reviewer can never read or write the real repo.
-export const DEMO_TOKEN = 'DEMO';
-export const isDemo = () => localStorage.getItem(TOKEN_KEY) === DEMO_TOKEN;
+export { DEMO_TOKEN, isDemo };
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const saveToken = (token) => localStorage.setItem(TOKEN_KEY, token);

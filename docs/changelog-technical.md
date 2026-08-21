@@ -4,6 +4,61 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.16.1 — demo mode addresses nobody (2026-08-21)
+
+**Trigger:** a closed-test tester tapped WhatsApp on the `DEMO` sample clients and
+reached **real strangers**. The demo phones in `src/demoData.js` were invented by
+us but used live Lebanese mobile prefixes (70/71/76/03) with plausible bodies —
+"invented" is not "unassigned". The demo dataset is shared by all fourteen testers,
+by Google's reviewer, by Apple's when that starts, and by every screenshot run.
+
+**Fix:** `openWhatsApp` builds `https://wa.me/?text=…` — no phone number — whenever
+`isDemo()` is true. That is WhatsApp's documented share-this-text form: the composed
+message is fully visible and the user chooses the recipient. Rejected alternative:
+seeding one real number (Elie's or Pierre's) into every demo client. It would have
+sent stray tester messages to a working trainer mid-session, and — the decisive
+objection — **hardcoded a personal mobile number into a PUBLIC repo, permanently.**
+`pih-dev/PTApp` is public and the app is a single `index.html`; anything in the demo
+data is published.
+
+**Structural change this required:** `TOKEN_KEY`, `DEMO_TOKEN` and `isDemo()` moved
+from `src/backend/githubDriver.js` to `src/utils.js`. `openWhatsApp` lives in utils
+and needed demo-awareness; the driver already imports utils, so importing the driver
+back into utils would have closed an **import cycle**. utils is the leaf both share.
+The driver keeps every token *operation* and re-exports both names, so the facade,
+`src/sync.js` and every call site are unchanged — asserted, not assumed.
+
+**Gates.** New `scripts/sanity/sanity-demo-whatsapp.mjs` is behavioural: it runs the
+real `openWhatsApp` under a fake DOM in three states (demo / real token / no token)
+and asserts the URL each produces. 🔴 It was **made to fail before being trusted** —
+guard removed, gate red naming the leaked number, guard restored, green.
+`sanity-backend-split.mjs` gained the structural half and its "moved, not rewritten"
+byte comparison was **narrowed to the trio that actually moved rather than loosened**:
+everything the normalisation now strips is re-asserted as its own property.
+
+**Demo numbers scrubbed too** (`+961 70 000 0001`–`4`), belt and braces: if a future
+path ever displays, copies or dials a demo phone, it must not read as a real line.
+
+---
+
+## v2.16.0 — honest session numbers, multi-user groundwork dark (2026-08-21)
+
+Full record: `docs/instructions-v2.16.md` (this entry exists because the release
+shipped without one — rule 3 of release hygiene, caught on 08-21 and backfilled).
+
+- **P6 — `getSessionOrdinal` takes the session object and the projected list.** A
+  forgiven cancel returns `null` and renders no badge; it never counted toward the
+  package, but the badge printed whatever the *next* session's number would be — 44
+  of these on live data. Also fixed: a session booked into a past date inside the
+  current period was numbered as if it came last, so two rows could show one number.
+- **Multi-user groundwork, shipped DARK.** `src/auth.js` and the login half of
+  `TokenSetup` render only when the build carries `VITE_SUPABASE_*`; that build does
+  not, so `isAuthConfigured()` is false and the app is byte-equivalent for Elie.
+- **`sync.js` became `src/backend/`** — `githubDriver` (moved, byte-verified against
+  the pinned pre-split blob) plus a dormant `supabaseDriver` behind `BACKEND_MODE`.
+
+---
+
 ## v2.15.0 — rename the UI to SpotSet, real launcher icon (2026-08-20)
 
 **Trigger:** the Play Console store listing was filled in as **SpotSet** while

@@ -34,24 +34,30 @@ const pkg = (id, startOffset, contractSize) => ({
 });
 
 // Names are invented. Nothing here corresponds to a real client.
+// 🔴 So are the numbers — and they did not used to be safe. The first set used live
+// Lebanese mobile prefixes (70/71/76/03) with plausible bodies, and a tester tapping
+// WhatsApp on 2026-08-21 reached real strangers. These are now an obvious dummy run
+// (…0000001-4). Belt AND braces: `openWhatsApp` also refuses to address a number at
+// all while `isDemo()` is true, so nothing here is ever dialled. Do not "improve"
+// these into realistic-looking numbers.
 const clients = [
   {
-    id: 'demo_c1', name: 'Sami Haddad', nickname: 'Sami', phone: '+961700000002',
+    id: 'demo_c1', name: 'Sami Haddad', nickname: 'Sami', phone: '+96170000001',
     gender: 'male', birthdate: '1992-03-14', notes: 'Wants upper-body focus.',
     packages: [pkg('pkg_demo_1', -20, 12)],
   },
   {
-    id: 'demo_c2', name: 'Nour Khoury', nickname: 'Nour', phone: '+961700000003',
+    id: 'demo_c2', name: 'Nour Khoury', nickname: 'Nour', phone: '+96170000002',
     gender: 'female', birthdate: '1996-11-02', notes: 'Returning after a knee injury.',
     packages: [pkg('pkg_demo_2', -12, 8)],
   },
   {
-    id: 'demo_c3', name: 'Karim Aoun', nickname: '', phone: '+961700000004',
+    id: 'demo_c3', name: 'Karim Aoun', nickname: '', phone: '+96170000003',
     gender: 'male', birthdate: '1985-07-21', notes: '',
     packages: [pkg('pkg_demo_3', -5, 16)],
   },
   {
-    id: 'demo_c4', name: 'Rita Semaan', nickname: 'Rita', phone: '+961700000001',
+    id: 'demo_c4', name: 'Rita Semaan', nickname: 'Rita', phone: '+96170000004',
     gender: 'female', birthdate: '2000-01-09', notes: 'Fat-loss goal.',
     packages: [pkg('pkg_demo_4', -2, 10)],
   },

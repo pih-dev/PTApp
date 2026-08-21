@@ -917,6 +917,22 @@ export function migrateData(data) {
 //    act performed at cutover — see `claimLegacyStore` below.
 const STORAGE_KEY = 'ptapp-data';
 
+// v2.16.1 — the sync-token key and the DEMO credential MOVED HERE from
+// backend/githubDriver.js. They did not move for tidiness: `openWhatsApp` (below)
+// must know whether the app is in demo mode, and `githubDriver` already imports
+// utils — so importing the driver back into utils would close an import cycle.
+// utils is the leaf both sides can share. The driver still owns every *token*
+// operation and re-exports these, so no call site changed.
+// 🔴 These strings exist in exactly one place. Moving a storage location means
+//    grepping every read AND write of it — that is the trap this move respects.
+export const TOKEN_KEY = 'ptapp-sync-token';
+export const DEMO_TOKEN = 'DEMO';
+export const isDemo = () => {
+  // Guarded like anyLocalDataExists: localStorage throws SecurityError on iOS
+  // with "Block All Cookies". Unreadable storage means no demo token.
+  try { return localStorage.getItem(TOKEN_KEY) === DEMO_TOKEN; } catch (e) { return false; }
+};
+
 export const storageKey = () => {
   const uid = getUserId();
   return uid ? `${STORAGE_KEY}:${uid}` : STORAGE_KEY;
@@ -1435,7 +1451,23 @@ export const friendly = (client) => client.nickname || client.name.split(' ')[0]
 // Open WhatsApp with a prefilled message. The ONE place that builds wa.me URLs —
 // phone-normalization changes (deferred revisit) must only ever land here.
 export const openWhatsApp = (client, msg) => {
-  window.open(`https://wa.me/${formatPhone(client.phone)}?text=${encodeURIComponent(msg)}`, '_blank');
+  // 🔴 DEMO MODE SENDS TO NOBODY. Found 2026-08-21: a tester on the seeded demo
+  //    data tapped WhatsApp and reached REAL STRANGERS — the invented numbers in
+  //    demoData.js use live Lebanese mobile prefixes, so two or three of them are
+  //    somebody's actual line. Every tester, every reviewer, every screenshot run
+  //    shares that dataset, so this is not a one-off.
+  //
+  //    The fix is wa.me with NO phone number, which is WhatsApp's documented
+  //    "share this text" form: WhatsApp opens, shows the fully composed message,
+  //    and asks the user to pick a recipient. So the feature demos BETTER than a
+  //    fixed number would (the tester actually reads the message the PT sends),
+  //    nobody is contacted unless the tester deliberately chooses them, and no
+  //    real person's number is hardcoded into a PUBLIC repo — which is what
+  //    seeding one owner's number everywhere would have meant, permanently.
+  const url = isDemo()
+    ? `https://wa.me/?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/${formatPhone(client.phone)}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
 };
 
 // Default message templates — editable by PT in General panel

@@ -417,3 +417,54 @@ answer. A cancel marked `cancelCounted` is an ordinary counted session and keeps
 what shipped. The diff against `2026-08-21-pre-supabase-mirror.json` showed 44 changed ordinals and
 **zero on a counted session** — that second number is the one that made the change safe to ship.
 Script kept at `_archive/PTApp/migrations/2026-08-21-p6-ordinal-livediff.mjs`.
+
+---
+
+## TRAP: "Invented" test data can still reach real people (2026-08-21, v2.16.1)
+
+**Symptom.** A closed-test tester opened SpotSet with the `DEMO` credential, tapped the WhatsApp
+button on the seeded sample clients, and **landed in chats with real strangers.** Two or three of
+the four demo numbers were somebody's actual line.
+
+**Cause.** The demo phones were invented — by us. They were not *unassigned*. They used live
+Lebanese mobile prefixes (`70`, `71`, `76`, `03`) with plausible bodies, which is exactly what a
+real number looks like, because that is what makes fixture data feel real. The two properties are
+in direct tension and nobody had separated them.
+
+**Why it was worse than a one-off.** There is exactly ONE demo dataset, and it is shared by every
+closed tester, Google's reviewer, Apple's reviewer, and every marketing-screenshot run. A defect in
+it is aimed at all of them simultaneously, and at third parties who never opted into anything.
+
+**The fix, and the fix that was rejected.** `openWhatsApp` now builds `https://wa.me/?text=…` — no
+phone number at all — whenever `isDemo()` is true. WhatsApp opens, shows the fully composed message,
+and asks the user to pick a recipient.
+
+The obvious alternative was to seed **one real number** (the trainer's, or the developer's) into
+every demo client, so a stray tap lands somewhere harmless. Rejected on two counts: it sends stray
+messages to a working trainer mid-session from every curious tester, and — decisively — it
+**hardcodes a personal mobile number into a PUBLIC repo, permanently.** `pih-dev/PTApp` is public
+and the app ships as a single `index.html`; anything in the demo data is published, forever, to
+anyone who views source.
+
+**The rules this leaves behind.**
+1. 🔴 **Fixture and demo data must not contain a routable contact of any kind** — phone, email,
+   address. Not a real one, and not a plausible fake one, which is the same thing to a dialler.
+2. 🔴 **A demo/review mode must not just be harmless to OUR data — it must be harmless to
+   OUTSIDERS.** Every existing DEMO guard asked "can this reach Elie's records?" The answer was no,
+   correctly, and the mode still reached strangers, because outbound contact was never on the list.
+   When adding a mode, enumerate what it can *send*, not only what it can *read and write*.
+3. **Never seed a real personal number to make a demo feel complete.** In a public repo it is
+   published; in a private one it is still shared with everyone who installs the build.
+4. **One choke point is what made this a one-line fix.** `openWhatsApp` had been the single place
+   that builds a `wa.me` URL since v2.10.1 (three inline copies were collapsed into it). Had the
+   three copies survived, this would have been three fixes and a fourth one missed.
+
+**Gates.** `scripts/sanity/sanity-demo-whatsapp.mjs` runs the real `openWhatsApp` under a fake DOM
+in three states and asserts each URL; it was made to fail on purpose before being trusted.
+`sanity-backend-split.mjs` carries the structural half.
+
+**Related move.** `TOKEN_KEY` / `DEMO_TOKEN` / `isDemo` had to move from `src/backend/githubDriver.js`
+to `src/utils.js`: `openWhatsApp` lives in utils and needs demo-awareness, and the driver already
+imports utils, so importing the driver back into utils would close an **import cycle**. utils is the
+leaf both sides can share. 🔴 The driver re-exports both names — moving a storage key means grepping
+every read and write of it, and leaving a second copy behind is how two definitions drift apart.
