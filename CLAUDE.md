@@ -44,10 +44,11 @@ the **spec** is the design record) and `docs/changelog-technical.md` (163 KB).
 characters need a word boundary, so `trap` misses `traps` — list both. The rule a session can act on
 alone stays inline; only the evidence routes.
 
-## Current Version: v2.15.1
-**Store-review fix (2026-08-20).** `DATA_VERSION` stays 6, no migration. Detail: `docs/instructions-v2.15.1.md`.
-- 🔴 **`DEMO` is a review credential, not a feature.** Typed on the token screen it opens the app on seeded local data (`src/demoData.js`) with every sync path off. Given to Google because the only real token has write access to Elie's live records, and `sync.js` hardcodes the repo so no demo repo is possible. **It seeds ONLY onto an empty store** — typing it on a live phone must never wipe clients.
-- **`versionCode 3` / `versionName 2.15.1`** on the Play closed-testing track; App access declared as sign-in-required with `DEMO`. Store state: `HANDOFF-spotset-publishing.md`.
+## Current Version: v2.16.0
+**Honest session numbers + multi-user groundwork (08-21).** `DATA_VERSION` stays 6, no migration. Detail: `docs/instructions-v2.16.md`.
+- 🔴 **`DEMO` is a review credential, not a feature.** Typed on the token screen it opens the app on seeded local data (`src/demoData.js`) with every sync path off. **It seeds ONLY onto an empty store**, and the gate checks EVERY `ptapp-data*` key.
+- **Sign-in exists and is DARK.** `src/auth.js` + the login half of `TokenSetup` render only when the build carries `VITE_SUPABASE_*`; this one does not. State: `HANDOFF-multi-user-build.md`.
+- **`sync.js` is now `src/backend/`** — `githubDriver` (moved, byte-verified) + a dormant `supabaseDriver` behind `BACKEND_MODE`. Play state: `HANDOFF-spotset-publishing.md`.
 
 ## Governance — Elie's Standing Authority (granted 2026-07-18)
 Elie may drive app changes in-session, on Pierre's conditions (*"since we're using github we can roll back, make sure data backups are done at every juncture"*). Full context routes on `Elie` / `standing authority`.
@@ -60,9 +61,9 @@ Elie may drive app changes in-session, on Pierre's conditions (*"since we're usi
 ## Version History
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules still in force live in TRAPS / CONVENTIONS, never here.
 
-- **v2.15.0** (08-20) — renamed to SpotSet in the UI; real launcher icons (adaptive foreground must stay in the 66% safe zone). → `v2.15.0.md`
-- **v2.14.0–.3** (07-14/17) — Multi-day splits 3–6 days (`PROGRAM_RULES_VERSION` 3); Elie's UI run: booking-time suggestion (`suggestBookingTime` owns it), Arabic exercise names (`exerciseNamesAr.js`, swap keys stay English). → `v2.14*.md`
-- **v2.13 and earlier** — program generation from a 1RM evaluation (v5→v6, additive `programs[]`); routed `changelog-summary.md`. v3→v4 tag-split rollback tag: `snapshot-pre-v2.9.5`.
+- **v2.15.0–.1** (08-20) — renamed SpotSet in the UI; real launcher icons (adaptive foreground stays in the 66% safe zone); `DEMO` review credential. → `v2.15*.md`
+- **v2.14.0–.3** (07-14/17) — Multi-day splits 3–6 days (`PROGRAM_RULES_VERSION` 3); booking-time suggestion (`suggestBookingTime` owns it), Arabic exercise names (`exerciseNamesAr.js`, swap keys stay English). → `v2.14*.md`
+- **v2.13 and earlier** — program generation from a 1RM eval (v5→v6, additive `programs[]`); routed `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
 

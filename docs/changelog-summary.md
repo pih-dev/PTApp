@@ -4,6 +4,30 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.16.0 — honest session numbers, and the groundwork for multiple coaches (August 21, 2026)
+
+**What Elie sees:** cancelled sessions he forgave no longer show a session number.
+They never counted toward the client's paid sessions, but the badge still printed
+one — and it was whatever the *next* session's number would be. On the real data
+there were 44 of these, some reading "#11" on a session worth nothing. They now
+show nothing at all. A cancel he did charge for keeps its number.
+
+There was also a real bug in the maths: a session booked into a **past date**
+inside the current period was numbered as if it came last. Book on the 2nd with
+sessions already on the 1st and 3rd and it said "#4" instead of "#2" — and the
+genuine #2 kept its number too, so two rows showed the same one.
+
+**What nobody sees:** a login screen exists but is switched off; the sync code was
+split so a database backend can be added later, with the GitHub half **moved, not
+rewritten** and verified byte for byte; Arabic layout fixed on the connect screen;
+and the crash screen's backup and reset buttons were reading the wrong storage
+location.
+
+Checked against Elie's real exported data before shipping: 44 numbers change, and
+**not one of them belongs to a session that counts.**
+
+---
+
 ## v2.15.1 — a way in for the store reviewers (August 20, 2026)
 
 Google would not accept the app for testing. Its automated check opened SpotSet,
