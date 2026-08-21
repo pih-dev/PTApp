@@ -43,6 +43,11 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   have **opted in**; opting out resets it.
 - 🔴 **Google emails testers nothing.** The opt-in link appears in the console after publishing and
   Pierre sends it himself. There is no invitation email. (Answers the question he asked this session.)
+- 🆕 **The company name is decided and the domain is bought: `calnorm.com`, registered 2026-08-21,
+  verified via RDAP.** Pierre wants the Play developer name changed from **Illume** (not "Elumi")
+  to **Calnorm** — **not done, and must wait until the Android review clears.** Three checks first:
+  Play developer names are globally unique, the public `getillume@gmail.com` would no longer match,
+  and Apple is unaffected. See **§5a**.
 - **Android only.** iPhone owners cannot take part — that needs Apple/TestFlight and a Mac.
 - ✅ **Why v2.15.1 exists.** The first submit was blocked by Google's check — *"Missing sign in
   details"* — with a screenshot showing the token screen still saying **"PTApp"**. Two real defects,
@@ -361,6 +366,52 @@ Filled in-session over Chrome; every value below was read off the live form, not
 | Sensitive categories | None of the above | A trainer app is in none of them. |
 | Other Google accounts | Yes → pierreishere@gmail.com | The abandoned attempt, declared honestly. |
 | Contact (private) | Pierre Ghorra · pierreghorra@gmail.com · +961 3 193619 | |
+
+### 5a. The company name now exists — `calnorm.com` is registered (2026-08-21)
+
+**Career settled the company name and Pierre bought the domain the same night.** Verified against
+Verisign RDAP, not assumed: `CALNORM.COM`, **registered 2026-08-21 01:28:44Z, expiring
+2027-08-21**, on Cloudflare nameservers (`MEMPHIS`/`POLA.NS.CLOUDFLARE.COM`), USD 10.46/yr with
+auto-renew on. The full decision record is `Career/Business_Registration_and_Naming.md` §12 —
+**Career still owns the name and the domain; this file only records the consequence for the store
+listings.**
+
+**Wilumo is dead.** It held the decision for one day (2026-08-20) and was replaced by **Calnorm**,
+built from two roots Pierre named himself: *cal* from **calibrate**, *norm* from **Normcore**, the
+coffee tools he owns.
+
+#### Pierre's ask: change the Play developer name from Illume to Calnorm
+
+His words, 2026-08-21: *"perhaps we should change the developer from the apps on the Google Play
+store from Elumi to Calnorm."* 🔴 **The developer name on the account is `Illume`, not "Elumi"** —
+worth stating plainly because the two sound identical dictated, and the wrong one typed into a
+Google form is a support ticket.
+
+**Not done, and deliberately not done in that session.** What has to be checked first, in the
+console, before anything is typed:
+
+1. **Whether the name is free.** The Play developer name is **globally unique across every
+   developer on the store** — that is what killed Sila, Lumen, Lumos, Lumine and Numen when Illume
+   was chosen (§5). `calnorm.com` being free says **nothing** about the Play namespace. The signup
+   form is the oracle; the account settings page will reject a taken name the same way.
+2. **Whether it is still editable at this point.** §5 recorded it as changeable later, but that was
+   before the app was **submitted and sitting in review**. Renaming the publisher while a review is
+   in flight is exactly the kind of mid-review change that can bounce a submission. **The Android
+   release went in 2026-08-20 ~14:10 and is still "Changes in review" — leave the name alone until
+   it clears.**
+3. **The published email does not follow the name.** `getillume@gmail.com` is public on every
+   listing forever and was purpose-made to match *Illume*. Renaming the developer to Calnorm leaves
+   a listing that says **Calnorm** with a contact address that says **illume**, which reads as
+   either a typo or a sold account. If the name changes, a matching address (e.g. a Calnorm one)
+   should change with it — and that is a second, separate change to a field that is also public
+   forever.
+4. **Apple is unaffected.** The Apple enrolment is **Individual** and publishes **"Pierre Ghorra"**,
+   not Illume (§5, and the enrolment is still processing). Changing Google does not change Apple,
+   and Apple's seller name on an Individual account is the legal person, not a brand.
+
+**Recommended order, once the review clears:** test `Calnorm` for availability in the Play console →
+if free, change the developer name → then decide the email. **Do not touch any of it while the
+submission is in review.**
 
 ### Why "Illume", and not the company name
 
