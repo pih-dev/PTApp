@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~13:40, Beirut.
+**Last updated:** 2026-08-21 ~15:20, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -30,7 +30,17 @@ Do not investigate, do not re-derive, do not ask follow-up questions.
 - **Nothing in `src/` touches any of this.** The app is exactly as it was; this is additive.
 - **Two files are the work so far:** `supabase/migrations/0001_app_users.sql` (+ its `_down`) and
   `scripts/sanity/sanity-rls-matrix.mjs`.
-- **Still outstanding: the HTTP half.** `node scripts/sanity/sanity-rls-matrix.mjs` still exits **2**
+- ✅ **THE RLS MATRIX IS GREEN — `node scripts/sanity/sanity-rls-matrix.mjs` exits 0.** Static +
+  live, against the real project over real HTTP: 6 visibility cases and 8 refusals, including peer
+  isolation, a failed self-promotion (403, row confirmed unchanged in the table afterwards) and the
+  anon key getting 401. Credentials come from
+  `C:/projects/_archive/PTApp/supabase-spotset.env` — outside the repo, never in git.
+- **Two defects the first live run exposed, both now fixed:** `service_role` had no table
+  privileges (BYPASSRLS exempts a role from *policies*, not from ordinary table grants — and
+  auto-expose is off, so every grant is ours to write); and teardown deleted users in creation
+  order, hit `on delete restrict`, swallowed the error and **left three synthetic users behind in a
+  run it reported as passing**. Teardown is now leaf-first and verifies the table is empty.
+- **Superseded — ignore the line below if it still reads as outstanding:** `node scripts/sanity/sanity-rls-matrix.mjs` still exits **2**
   (static passes, live skipped) because it needs `SUPABASE_URL`, `SUPABASE_ANON_KEY` and
   `SUPABASE_SERVICE_ROLE_KEY` in the environment, and those are Pierre's to supply — they must never
   be written into this repo, which is public. 🔴 **Exit 2 is not a pass.** The SQL test proves the
