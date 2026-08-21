@@ -268,3 +268,54 @@ Both correct in isolation — they answer different questions. But the user can'
 **The actual danger:** if the ONLY device holding the new collection's records is also the one that goes stale-and-dies (crashes, gets reset, loses local storage) before a second v2.13+ push happens, there is no surviving copy to heal FROM — remote stays stripped permanently. This is the same shape as the Jun 10 stranded-sync incident, one layer up: that incident was a broken push path; this is a broken MERGE contract across app versions.
 
 **Rule:** After any deploy that adds a new top-level collection, verify BOTH phones show the new version number in the debug panel before creating any record of the new type. Take a pre-deploy snapshot (`_archive/PTApp/data-snapshots/`) as a recovery point regardless — same precedent as the Jun 10 stranded-sync incident. Don't treat "the merge code looks right" as sufficient; the risk lives in devices that haven't loaded that code yet.
+
+---
+
+## Postgres RLS: `(select fn(row_column))` is NOT an initPlan — it runs per row
+
+**Found:** 2026-08-21, while pricing the multi-tenant ancestry policy (decision doc
+`docs/2026-08-21-multi-user-accounts-decision.md` §12). Caught by a verifier before any code existed
+— nothing shipped with it, which is the only reason this is a trap entry and not an incident.
+
+**The trap.** Supabase's RLS-performance guidance says to wrap function calls in `select` inside a
+policy — `using ( (select private.can_reach(coach_id)) )` — so the planner runs them once as an
+**initPlan** instead of once per row. It is easy to read that as "wrapping in `select` makes any
+policy function cheap." It does not. The optimization applies **only when the result does not depend
+on the row.**
+
+- A function taking a **row column** as an argument becomes a **correlated SubPlan**: evaluated once
+  per candidate row, exactly what the wrap was supposed to avoid.
+- `security definer` SQL functions are **never inlined**, so each row pays a real function call plus
+  whatever the function itself reads.
+- The predicate looks optimized. There is no error, no warning, and at small row counts no visible
+  slowness — it only shows up when the table grows.
+
+**The rule.** Split the predicate so the expensive half takes no row input. Hoist the caller-side
+value into an argument-less `stable security definer` function and compare it against a plain column
+on the row:
+
+```sql
+-- per row: one function call        -> WRONG shape
+using ( (select private.can_reach(coach_id)) )
+
+-- per statement: one function call  -> RIGHT shape
+using ( owner_path <@ (select private.my_path()) )
+```
+
+That usually means **denormalizing the owner-side key onto the row** (here, `owner_path` stamped on
+`tenants` by trigger). The cost of the hoist is derived data that can go stale — so the write that
+changes the source must update the denormalized copy **in the same transaction**.
+
+**Two adjacent Supabase specifics found in the same check, both of which break silently:**
+
+- 🔴 **`set search_path = ''` breaks any extension type or operator.** Supabase installs extensions
+  into the `extensions` schema, so with an empty `search_path` neither `ltree` nor its `<@` operator
+  resolves. Use `set search_path = 'extensions', 'public'`, or schema-qualify everything.
+- **`ltree` labels accept hyphens only from Postgres 16** (relaxed specifically for UUID and base64
+  ids). On PG 15 or older a UUID must have its hyphens stripped before it can be a label. **Check
+  `server_version` on the actual instance** — do not assume either way from a doc page.
+
+**The general shape, which is why this is worth remembering outside Postgres:** an optimization with
+a precondition, quoted without its precondition, produces code that looks careful and performs like
+code that wasn't. The tell is that the "fix" was applied without checking whether the condition it
+requires — here, row-independence — actually held.

@@ -314,90 +314,129 @@ only read, and whether a client can be shared between two PTs. §11.3 assumes re
 which is what Pierre described; the write policy is priced in §12.
 
 ---
-
 ## 12. Pricing the recursive RLS — the §10 blocker, resolved
 
 §10 named one real new cost: *"a parent PT reading down the tree… a recursive RLS predicate
-(`WITH RECURSIVE` ancestry check) — price it before committing."* Priced below. **It is cheap, on one
-condition: do not actually recurse at query time.**
+(`WITH RECURSIVE` ancestry check) — price it before committing."* Priced below. **Verdict: build it.**
+Two conditions, and the second is the one a first attempt gets wrong.
 
-### 12.1 Why the naive version is the expensive one
+1. **Do not recurse at query time.** Materialize the ancestry.
+2. **Do not let the policy call a function that takes row data as an argument.** That is the trap
+   §12.1 exists to name.
 
-A policy of the form `using ( exists (with recursive ancestors as (...) select 1 ...) )` is evaluated
-**per candidate row**, and Postgres has no way to hoist it — the CTE depends on the row's owner. On a
-tenant table that is one graph walk per row scanned. Supabase's own RLS-performance guidance names
-this class of policy as the main cause of slow RLS, and prescribes three fixes: index the columns the
-policy filters, wrap function calls in `select` so the optimizer runs them once as an `initPlan`, and
-name the role in the policy. Only the second is available to a genuinely row-dependent predicate.
+### 12.1 The two ways to get this wrong
 
-### 12.2 The design that avoids it — materialized path
+**Wrong #1 — recurse per row.** `using ( exists (with recursive ancestors as (…) select 1 …) )` is
+evaluated against each candidate row and cannot be hoisted, because the CTE depends on the row. One
+graph walk per row scanned.
 
-Store the ancestry **on the row**, maintained on write, so the read-side test is a string prefix
-match instead of a graph walk.
+🔴 **Wrong #2 — assume `(select fn(row_column))` fixes it. It does not.** Supabase's RLS-performance
+guidance says to wrap function calls in `select` so the planner runs them once as an **initPlan** —
+but that applies *only where the result does not depend on the row*. A `security definer` function
+taking a row column as a parameter becomes a **correlated SubPlan**, which runs **once per candidate
+row**, and `security definer` SQL functions are never inlined, so every row pays a real function
+call. A predicate shaped `(select private.can_reach(coach_id))` therefore buys nothing: it is the
+shape that *looks* optimized and isn't. **The fix is not to wrap the row-dependent call — it is to
+split the predicate so the expensive half takes no row input.**
+
+### 12.2 The design — materialized path, with the row-independent half hoisted
+
+Store ancestry **on the row**, maintained on write, so the read test is an indexable containment
+match; and pass the *caller's* path in, never the row's id.
 
 ```sql
+create extension if not exists ltree with schema extensions;
+create schema if not exists private;
+
 -- app_users: one row per human. Two roles, per §10. Prime = parent_pt_id is null.
+-- 'path' is the materialized ancestry: '<root>.<child>.<self>'.
+-- ⚠️ ltree labels accept hyphens only from Postgres 16 (the change was made for
+--    UUID/base64 ids). CONFIRM the Supabase instance's server_version at build
+--    time: on PG 16+ store the uuid as-is; on 15 or older strip the hyphens.
 create table public.app_users (
   id            uuid primary key references auth.users(id) on delete cascade,
   role          text not null check (role in ('pt','client')),
   parent_pt_id  uuid references public.app_users(id),
-  -- Materialized ancestry: '<root>.<child>.<self>', dots as separators, ids
-  -- de-hyphenated because ltree labels allow only [A-Za-z0-9_].
-  path          ltree not null,
+  path          extensions.ltree not null,
   created_at    timestamptz not null default now()
 );
-create index app_users_path_gist on public.app_users using gist (path);
+create index app_users_path_gist on public.app_users
+  using gist (path extensions.gist_ltree_ops);
 create index app_users_parent_idx on public.app_users (parent_pt_id);
 
--- Ancestry test, one row lookup, no recursion.
-create function private.can_reach(target uuid)
-returns boolean language sql stable security definer set search_path = '' as $$
-  select exists (
-    select 1
-    from public.app_users me, public.app_users them
-    where me.id = auth.uid() and them.id = target and them.path <@ me.path
-  );
-$$;
+-- Row-INDEPENDENT: the caller's own path. No arguments, so a policy calling it as
+-- (select private.my_path()) is a genuine initPlan — evaluated once per statement.
+-- ⚠️ search_path is 'extensions', NOT '' — Supabase installs ltree there, and with
+--    an empty search_path neither the type nor the <@ operator resolves.
+create function private.my_path()
+returns extensions.ltree
+language sql stable security definer set search_path = 'extensions', 'public' as $fn$
+  select path from public.app_users where id = auth.uid();
+$fn$;
 ```
 
-`them.path <@ me.path` is *"them is at or below me"* — a GiST-indexed containment test. Peer
-isolation (§11.2) needs no separate rule: two primes have disjoint roots, so neither path contains
-the other. Self-access is the degenerate case where the paths are equal, so **one predicate covers
-own-data, downline and peer-isolation together.**
-
-Applied to the tenant table, wrapped in `select` per the guidance above:
+Denormalize the owner's path onto every tenant row (stamped by trigger from `app_users`), so the
+policy compares two values and can use an index:
 
 ```sql
+alter table public.tenants add column owner_path extensions.ltree not null;
+create index tenants_owner_path_gist on public.tenants
+  using gist (owner_path extensions.gist_ltree_ops);
+
 alter table public.tenants enable row level security;
 alter table public.tenants force row level security;
 
-create policy tenants_read on public.tenants for select to authenticated
-  using ( (select private.can_reach(coach_id)) );
+-- "this row's owner is at or below me". <@ is "is a descendant of, or equal to",
+-- so ONE predicate covers own-data, downline and peer isolation:
+--   equal paths     -> own data
+--   contained path  -> a descendant
+--   disjoint roots  -> two primes, neither contains the other -> isolated (§11.2)
+create policy tenants_read_pt on public.tenants for select to authenticated
+  using ( owner_path <@ (select private.my_path()) );
 
--- Write: own tenant always; a descendant's only if §11.3's deferred write question
--- lands on "yes". Start with own-only — widening a policy later is safe, narrowing
--- one after Elie has relied on it is not.
+-- Write: own tenant only, to start. Widening a policy later is safe; narrowing one
+-- after Elie has relied on it is not. INSERT and DELETE need their own policies —
+-- a FOR UPDATE policy alone leaves both closed, which is the correct default but
+-- must be a decision, not an oversight.
 create policy tenants_write on public.tenants for update to authenticated
   using ( coach_id = (select auth.uid()) )
   with check ( coach_id = (select auth.uid()) );
 ```
 
+🔴 **The `client` role needs its own predicate — the path rule does NOT cover it.** A client sits
+*below* their PT, so the PT's tenant row is not contained in the client's path and
+`tenants_read_pt` correctly returns **nothing** for a signed-in client. That is not a bug to patch
+here: clients were never meant to read the coach blob (§4 — RLS cannot restrict *columns*, so a
+client reading `tenants` would see every other client's notes). Client reads go through
+`client_views` in Phase 5, matched on `client_ref`, with its own policy. **Recorded because §11.2's
+table reasons only about PTs and reads as if it were complete.**
+
 ### 12.3 The cost, itemised
 
 | Cost | Verdict |
 |---|---|
-| Read-path performance | **Effectively zero.** One GiST containment test per row, and `can_reach` is `stable` + `select`-wrapped, so the optimizer caches it per statement rather than per row. Elie's tree will hold single-digit PTs and tens of clients for years. |
+| Read-path performance | **Low, and now honestly stated.** `private.my_path()` is row-independent, so `(select …)` makes it a true initPlan — one call per statement. What remains per row is one `ltree` containment comparison, index-assisted. Materially cheaper than the `can_reach(coach_id)` shape, which would have been a per-row function call. |
 | Recursion at query time | **None.** It moved to write time. |
-| `path` maintenance | A `before insert` trigger stamping `parent.path \|\| self`, plus **one** `WITH RECURSIVE` update to restamp a subtree on re-parent — an operation that per §11.1 happens from the SQL console a few times a year. |
-| Extra table | One (`app_users`). It also replaces §4's `memberships`, since the parent link and the role now live in the same row. |
-| `ltree` extension | `create extension ltree` — ships with Supabase Postgres, no cost. |
-| Correctness risk | The real one. A wrong `path` silently grants cross-tree reads and looks like nothing. Mitigation: `sanity-rls-matrix.mjs` (§4) grows a **peer-isolation pair** — prime A must read A's tenant and must be refused B's — and that assertion runs in the deploy gate. |
+| Path maintenance | A `before insert` trigger stamping `parent.path \|\| self`, a trigger denormalizing `owner_path` onto `tenants`, and **one** `WITH RECURSIVE` update to restamp a subtree on re-parent — which per §11.1 runs from the SQL console a few times a year. |
+| Denormalized `owner_path` | The price of the hoist. It is derived data, so it can go stale; the restamp must update `tenants` in the same transaction as `app_users`. |
+| Extra table | One (`app_users`). It also replaces §4's `memberships` — role and parent link now live in one row. |
+| `ltree` extension | Available on hosted Supabase. Installed into `extensions`, hence the `search_path` note above. |
+| Correctness risk | **The real one.** A wrong `path` silently grants cross-tree reads and has no symptom. Mitigation: `sanity-rls-matrix.mjs` (§4) grows a **peer-isolation pair** — prime A must read A's tenant and must be **refused** B's — in the deploy gate. |
 
-**Verdict: the §10 requirement is not a reason to change the architecture.** Build it. The line that
-matters is the last one — the negative assertion, not the positive one, is what proves isolation.
+**The §10 requirement is not a reason to change the architecture.** The line that matters is the last
+row: the negative assertion, not the positive one, is what proves isolation.
 
 ### 12.4 Open, and deliberately not decided here
 
 - **Parent write access** to a descendant's tenant (§11.3). Starting closed.
-- **A client shared between two PTs** — breaks the single-path assumption and would need a second
-  grant table. Not needed for Elie; do not build it speculatively.
+- **INSERT / DELETE policies on `tenants`** — closed by default above; decide explicitly at build.
+- **A client shared between two PTs** — breaks the single-path assumption and needs a second grant
+  table. Not needed for Elie; do not build it speculatively.
+
+### 12.5 Verified
+
+§11–§12 were fact-checked against the current Postgres and Supabase docs (2026-08-21). Three claims
+in the first draft were wrong and are corrected above: the `initPlan` reasoning was **inverted**
+(§12.1), the ltree hyphen restriction was **outdated** (relaxed in PG 16), and the `search_path = ''`
+idiom **breaks `ltree` on Supabase**. A fourth was a gap rather than an error: the `client` role has
+no read path under the ancestry predicate (§12.2).
