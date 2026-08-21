@@ -28,6 +28,7 @@ session-start weight to list as router rows.
 | `screenshots/CATALOG.md` | Dated visual history, v1.x → v2.9, with the device each shot came from |
 | `2026-07-14-app-name-research.md` | Store-name screening round 1. "PTApp" is weak, "PTAssist" is dead; PT-prefixed candidates ranked |
 | `2026-08-20-app-name-brainstorm.md` | Round 2 — PT prefix dropped. **Also the current product definition**: the owner→coach→client three-role platform, the evaluation→norms→program pipeline as the real value, the future AI direction, and who Elie actually is. Name candidates re-ranked and screened; **DECIDED: Elie chose PTAssyst** (Play is fine, Apple confusable-name risk vs the live "PT Assist" is unresolved) |
+| `2026-08-21-backend-platform-decision.md` | **DECIDED 2026-08-21:** Supabase free-tier Postgres now, self-hosted VPS Postgres later. Why Postgres RLS beat Cloudflare D1, why the free tier is enough, and the standing build constraint — **auth stays behind one thin module** so the exit is a weekend, not a rewrite. Supersedes the platform half of `2026-08-21-multi-user-accounts-decision.md` |
 | `stage2-publishing-guide.md` | Capacitor build, App Store / Play Store requirements, whether a company is needed, liability |
 | `marketing-deck.md` | Elie's client-facing PPTX (EN + AR, lives in `_archive`, never committed here) and the **puppeteer screenshot harness** that regenerates it — incl. the invalid-token rule that stops a capture run pushing to live data |
 
