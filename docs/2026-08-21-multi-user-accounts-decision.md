@@ -773,3 +773,45 @@ authorised to overwrite Elie's tenant.
 The appendix already carries a DO-NOT-IMPLEMENT banner for its schema; this is the second place it
 would have led a future session to build the wrong thing, and the reason that banner is worth its
 bytes.
+
+
+---
+
+## 19. The driver split (2026-08-21)
+
+```
+src/sync.js                     3 lines: export * from './backend/index.js'
+src/backend/index.js            the facade — BACKEND_MODE, activeDriver()
+src/backend/githubDriver.js     the old sync.js, MOVED
+src/backend/supabaseDriver.js   written, DORMANT until Phase 3
+```
+
+**Zero call sites changed.** `App.jsx`, `General.jsx`, `TokenSetup.jsx` and `TokenUpdateModal.jsx`
+still `import … from '../sync'`. That was a requirement, not a convenience: `sync.js` is the one file
+here that has already lost the PT's data twice, and touching the sync path and its call sites in the
+same commit is two variables in one release.
+
+**`githubDriver.js` was moved, not rewritten** — `git mv`, then a header, the `../utils.js` path, and
+one new export. `sanity-backend-split.mjs` proves it by diffing the file against the **pinned blob
+sha** of the pre-split `sync.js` (`031da2b`), comments and the import path normalised away. Pinned to
+the blob rather than to `HEAD:src/sync.js`, because from the next commit that ref is the three-line
+shim and the comparison would quietly start passing against nothing.
+
+**The Supabase driver has no credential and never will.** Every request carries the *signed-in
+user's* access token from `auth.js`; `isAvailable()` is false with nobody signed in, so the facade
+never routes to it. §18 is why. It is written now so Phase 3 is a flag flip against reviewed code
+rather than a rewrite performed on the day the storage layer moves under live records.
+
+**The contract maps one-for-one.** `update … where version = $v` returning zero rows *is* the 409:
+re-read, `mergeData` per record by `_modified`, retry ×3, then surface. `DATA_VERSION` stays 6 and no
+`migrateData` runs during the cutover.
+
+🔴 **Both drivers cache a concurrency token and both now expose a reset** — GitHub a `sha`, Supabase a
+`version`. §4 called this out and it is the subtle one: a stale token at the moment of a driver flip
+or an identity change is a **blind overwrite**, a write claiming to replace a revision the store has
+already moved past. `App.jsx` clears both before reloading on an identity change, and the gate
+asserts that call still exists.
+
+**Rollback is one constant.** Flip `BACKEND_MODE`, rebuild, redeploy gh-pages: under 15 minutes, no
+data reconstruction — but only while *both* legs keep running, which is what the hourly mirror and
+the soak gate are for.

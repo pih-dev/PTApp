@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~20:45, Beirut.
+**Last updated:** 2026-08-21 ~21:10, Beirut.
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -163,7 +163,21 @@ moment it became true, and the working tree was clean and pushed at every point.
   *correctly* authorised to overwrite it. So the mirror leg stays on the laptop (done, above), and
   the `src/` work is a driver split whose `supabaseDriver` is **written and DORMANT** until a real
   user session exists in Phase 3. Detail: §18.
-- **Next action: the driver split in `src/`.** `sync.js` becomes `githubDriver` +
+- OK **THE DRIVER SPLIT IS DONE.** `src/sync.js` is now three lines re-exporting
+  `src/backend/index.js`; the old file is `src/backend/githubDriver.js`, **moved not rewritten**
+  (proved by diffing against the pinned blob sha `031da2b` of the pre-split `sync.js`);
+  `src/backend/supabaseDriver.js` is written and **DORMANT** — every request uses the signed-in
+  user's own token, `isAvailable()` is false with nobody signed in, and there is no credential in it.
+  **Zero call sites changed.** New gate: `scripts/sanity/sanity-backend-split.mjs`, exit 0.
+  Detail: §19.
+- 🔴 **Both drivers cache a concurrency token and both now reset** — GitHub a `sha`, Supabase a
+  `version`. A stale one across a driver flip or an identity change is a **blind overwrite**;
+  `App.jsx` clears both before reloading, and the gate asserts that call still exists.
+- **Next action: nothing to build — WAIT OUT THE SOAK.** `node scripts/soak-status.mjs` for the
+  count; the hourly task keeps it running. Phase 3 needs 7 consecutive clean days AND a byte-verified
+  `_archive` snapshot AND a `tenant_snapshots` row with `reason='pre-migration'` AND both phones
+  confirmed on the new build. Elie's account is provisioned at cutover, rehearsed with him, not on a
+  day he has clients back-to-back. `sync.js` becomes `githubDriver` +
   `supabaseDriver` behind one build flag, GitHub still authoritative, the Supabase leg best-effort
   and non-blocking (a failing mirror must never turn Elie's dot red). Then **7 consecutive clean
   days** of `sanity-live-supabase-diff.mjs`, run daily. 🔴 **Any unexplained divergence halts the

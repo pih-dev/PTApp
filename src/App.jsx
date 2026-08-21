@@ -7,7 +7,7 @@ import TokenSetup from './components/TokenSetup';
 import TokenUpdateModal from './components/TokenUpdateModal';
 import General from './components/General';
 import { reducer, loadData, saveData, today, timeToMinutes, haptic, initElasticScroll, mergeData, dataEquals } from './utils';
-import { getToken, fetchRemoteData, pushRemoteData, isDemo } from './sync';
+import { getToken, fetchRemoteData, pushRemoteData, isDemo, resetConcurrencyTokens } from './sync';
 import { isSignedIn, isSessionExpired, getUserId, onAuthChange } from './auth';
 import { t } from './i18n';
 
@@ -179,7 +179,14 @@ export default function App() {
   useEffect(() => {
     const bootId = getUserId();
     return onAuthChange((session) => {
-      if ((session?.user?.id || null) !== bootId) window.location.reload();
+      if ((session?.user?.id || null) === bootId) return;
+      // 🔴 Clear the cached concurrency tokens BEFORE the reload (§4). Both
+      //    drivers cache one — GitHub a `sha`, Supabase a `version` — and a
+      //    stale one carried across an identity change is a blind overwrite:
+      //    the write claims to be replacing a revision that belongs to someone
+      //    else's store. Cheap, and the failure it prevents is silent.
+      resetConcurrencyTokens();
+      window.location.reload();
     });
   }, []);
 
