@@ -32,7 +32,7 @@ export default function NormChartsView({ lang, onClose }) {
       {/* One row per lift: threshold ratios to REACH levels 2..5 (below min2 = level 1).
           Values are 1RM ÷ bodyweight — flat for all ages (pull-up chart precedent). */}
       <div style={{ display: 'flex', fontSize: 11, fontWeight: 600, color: 'var(--t3)',
-        borderBottom: '1px solid var(--sep)', padding: '4px 0' }}>
+        borderBottom: '2px solid var(--bar)', padding: '4px 0' }}>
         <div style={{ flex: 1.4 }} />
         {[2, 3, 4, 5].map(n => (
           <div key={n} style={{ flex: 1, textAlign: 'center' }}>{t(lang, `level${n}`)}</div>
@@ -40,7 +40,7 @@ export default function NormChartsView({ lang, onClose }) {
       </div>
       {ONE_RM_TESTS.map(testId => (
         <div key={testId} style={{ display: 'flex', fontSize: 12, color: 'var(--t2)',
-          borderBottom: '1px solid var(--sep)', padding: '6px 0' }}>
+          borderBottom: '2px solid var(--bar)', padding: '6px 0' }}>
           <div style={{ flex: 1.4, color: 'var(--t4)' }}>{t(lang, TEST_LABELS[testId])}</div>
           {CHARTS[testId][gender][0].t.map((min, i) => (
             <div key={i} style={{ flex: 1, textAlign: 'center' }}>≥{min}{t(lang, 'bwRatio')}</div>

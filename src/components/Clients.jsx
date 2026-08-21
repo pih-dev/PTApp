@@ -270,21 +270,21 @@ export default function Clients({ state, dispatch, lang }) {
 
             {/* Expanded: month navigator + session list */}
             {isExpanded && (
-              <div style={{ marginTop: 12, borderTop: '1px solid var(--sep)', paddingTop: 12 }}>
+              <div style={{ marginTop: 4 }}>
                 {/* v2.11.1: evaluations moved to the TOP of the expanded card (was below sessions) */}
                 <EvalSection client={c} state={state} dispatch={dispatch} lang={lang} />
                 {/* Month navigator */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <button className="btn-ghost" style={{ padding: '4px 8px', fontSize: 18 }} onClick={() => shiftMonth(-1)}>‹</button>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>{monthLabel(viewMonth)}</div>
-                  <button className="btn-ghost" style={{ padding: '4px 8px', fontSize: 18 }} onClick={() => shiftMonth(1)}>›</button>
+                <div className="subbar" style={{ marginTop: 14 }}>
+                  <button className="btn-ghost" style={{ padding: '6px 10px', fontSize: 18 }} onClick={() => shiftMonth(-1)}>‹</button>
+                  <span className="num">{monthLabel(viewMonth)}</span>
+                  <button className="btn-ghost" style={{ padding: '6px 10px', fontSize: 18 }} onClick={() => shiftMonth(1)}>›</button>
                 </div>
 
                 {/* Month summary */}
-                <div style={{ display: 'flex', gap: 12, marginBottom: 10, fontSize: 12, color: 'var(--t4)' }}>
+                <div className="num" style={{ display: 'flex', gap: 12, marginBottom: 10, fontSize: 12, color: 'var(--chalk-dim)' }}>
                   <span>{monthTotal} {t(lang, 'sessionWord')}</span>
-                  {completedCount > 0 && <span style={{ color: '#10B981' }}>{completedCount} {t(lang, 'completed')}</span>}
-                  {cancelledCount > 0 && <span style={{ color: '#EF4444' }}>{cancelledCount} {t(lang, 'cancelled')}</span>}
+                  {completedCount > 0 && <span style={{ color: 'var(--ok)' }}>{completedCount} {t(lang, 'completed')}</span>}
+                  {cancelledCount > 0 && <span style={{ color: 'var(--warn)' }}>{cancelledCount} {t(lang, 'cancelled')}</span>}
                 </div>
 
                 {/* Session list */}
@@ -304,7 +304,7 @@ export default function Clients({ state, dispatch, lang }) {
                     };
                     return (
                       <div key={s.id} style={{
-                        padding: '10px 0', borderBottom: '1px solid var(--sep)', fontSize: 13
+                        padding: '10px 0', borderBottom: '2px solid var(--bar)', fontSize: 13
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
@@ -312,7 +312,7 @@ export default function Clients({ state, dispatch, lang }) {
                               {formatDate(s.date, lang)} · {s.time} · {s.duration}{t(lang, 'min')}
                             </div>
                             <div style={{ fontSize: 12, color: 'var(--t5)', marginTop: 2 }}>
-                              {st.emoji} {s.type}
+                              {s.type}
                             </div>
                           </div>
                           <span className={`badge badge-${s.status}`} style={{ fontSize: 11 }}>{status.label}</span>
@@ -403,7 +403,7 @@ export default function Clients({ state, dispatch, lang }) {
               onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
           </div>
           {/* Billing — period + contract. Edits the current open package. */}
-          <div className="field" style={{ borderTop: '1px solid var(--sep)', paddingTop: 12, marginTop: 4 }}>
+          <div className="field" style={{ borderTop: '2px solid var(--bar)', paddingTop: 12, marginTop: 4 }}>
             {/* Status line — read-only, shows package position */}
             {editingClient && (() => {
               const pkg = getCurrentPackage(editingClient);
@@ -536,7 +536,7 @@ export default function Clients({ state, dispatch, lang }) {
             <div className="success-name">{deletePrompt.name}</div>
             <div className="success-detail">{t(lang, 'deleteConfirmMsg')}</div>
           </div>
-          <button className="btn-primary" style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)', marginBottom: 8, width: '100%' }}
+          <button className="btn-primary" style={{ background: '#EF4444', color: '#fff', marginBottom: 8, width: '100%' }}
             onClick={() => {
               dispatch({ type: 'DELETE_CLIENT', payload: deletePrompt.id });
               setDeletePrompt(null);

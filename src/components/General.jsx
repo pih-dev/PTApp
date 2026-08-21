@@ -12,7 +12,7 @@ import { SKINS } from '../skins';
 // the in-app "App Instructions" button silently served stale docs. Bumping this
 // is now an explicit step in the CLAUDE.md deploy checklist.
 const DOCS = {
-  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.19.1.md',
+  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.20.md',
   changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
 };
 
@@ -47,7 +47,7 @@ function renderMarkdown(text) {
 
     // Horizontal rule
     if (/^---+$/.test(line.trim())) {
-      elements.push(<hr key={key++} style={{ border: 'none', borderTop: '1px solid var(--sep)', margin: '16px 0' }} />);
+      elements.push(<hr key={key++} style={{ border: 'none', borderTop: '2px solid var(--bar)', margin: '16px 0' }} />);
       i++; continue;
     }
 
@@ -76,7 +76,7 @@ function renderMarkdown(text) {
         <div key={key++} style={{ fontSize: 12, marginBottom: 10, overflowX: 'auto' }}>
           {rows.map((row, ri) => (
             <div key={ri} style={{
-              display: 'flex', borderBottom: '1px solid var(--sep)',
+              display: 'flex', borderBottom: '2px solid var(--bar)',
               padding: '6px 0', fontWeight: ri === 0 ? 600 : 400,
               color: ri === 0 ? 'var(--t2)' : 'var(--t3)'
             }}>
@@ -345,7 +345,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
             {snapshots.map(s => (
               <div key={s.name} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '8px 0', borderBottom: '1px solid var(--sep)', fontSize: 13
+                padding: '8px 0', borderBottom: '2px solid var(--bar)', fontSize: 13
               }}>
                 <span style={{ color: 'var(--t3)' }}>{s.name}</span>
                 <button className="btn-confirm" style={{ fontSize: 11, padding: '4px 10px' }}
@@ -386,7 +386,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
         {(state.todos || []).map(todo => (
           <div key={todo.id} style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            padding: '8px 0', borderBottom: '1px solid var(--sep)'
+            padding: '8px 0', borderBottom: '2px solid var(--bar)'
           }}>
             {/* Done toggle — checkbox */}
             <button onClick={() => { haptic(); dispatch({ type: 'TOGGLE_TODO', payload: todo.id }); }}

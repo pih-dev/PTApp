@@ -4,6 +4,34 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.20.0 — the screens under the client card, A5 (2026-08-22)
+
+Stage 4, picked by Pierre from `docs/design/2026-08-22-what-is-left.md`. Full
+write-up: `docs/instructions-v2.20.md`. **No screen is still in the old idiom.**
+
+- **New primitives:** `.subbar` (the bar at sub-section scale), `.lrow`, `.num`,
+  and the program viewer's `.exrow`/`.exrow-rx`/`.exrow-swap`/`.blockhead`.
+  These screens had inherited the TOKENS in v2.19 but not the LANGUAGE — inline
+  `fontSize: 14, fontWeight: 600` headings and 1px `--sep` hairlines.
+- 🔴 **The program viewer was rebuilt** — it is the screen the PT reads while
+  coaching and it was the worst in the app: one wrapping line per exercise with
+  a two-word SWAP EXERCISE button taking the right third. Name on its own line,
+  prescription in mono underneath, one-word swap. New `swap` string, EN + AR.
+- **The last interface emoji** (⚠️ in the delete-evaluation confirm) became a
+  drawn mark; four destructive buttons lost their red gradient.
+- **The double divider** under an expanded client card — the row's bar plus the
+  panel's `borderTop` — removed.
+- **RTL bug:** the English gloss beside an Arabic exercise name sat flush
+  against it. `marginInlineStart` spaces ONE side and a bidi-isolated run has
+  nothing on the other; `marginInline` spaces both. Found by opening the viewer
+  in Arabic, not by reading it.
+
+Verified by driving the real paths in a browser: a 1RM evaluation saved, a
+6-block program generated from it, the viewer opened in both languages. No
+kernel, reducer or dispatch change; DATA_VERSION stays 6.
+
+---
+
 ## v2.19.1 — fill means press (2026-08-22)
 
 Pierre on v2.19: *"the contours of the boxes... more inviting to press the

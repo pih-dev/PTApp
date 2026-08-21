@@ -29,7 +29,7 @@ export default function OverrideHelpPopup({ show, onClose, onClear, lang }) {
       }>
       <div className="override-help-body">{t(lang, 'overrideHelpBody')}</div>
       {onClear && (
-        <button className="btn-primary" style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)', width: '100%' }}
+        <button className="btn-primary" style={{ background: '#EF4444', color: '#fff', width: '100%' }}
           onClick={() => { onClear(); onClose(); }}>
           {t(lang, 'overrideClear')}
         </button>

@@ -121,7 +121,7 @@ export default function EvalForm({ client, evalRecord, dispatch, lang, onClose }
       {/* Classification — appears once all four numbers are valid AND the kernel
           resolved a classification (null = gender drift → visibly incomplete) */}
       {frozen && frozen.classification && (
-        <div className="field" style={{ borderTop: '1px solid var(--sep)', paddingTop: 12, marginTop: 4,
+        <div className="field" style={{ borderTop: '2px solid var(--bar)', paddingTop: 12, marginTop: 4,
           display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 13, color: 'var(--t3)' }}>
             {t(lang, 'liftAvg')}: <strong style={{ color: 'var(--t1)' }}>{frozen.liftAvg}</strong>

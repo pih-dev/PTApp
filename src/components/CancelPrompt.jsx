@@ -20,7 +20,7 @@ export default function CancelPrompt({ session, clientName, lang, onConfirm, onC
         <div className="success-detail">{formatDate(session.date, lang)} {t(lang, 'at')} {session.time}</div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
-        <button className="btn-primary" style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}
+        <button className="btn-primary" style={{ background: '#EF4444', color: '#fff' }}
           onClick={() => onConfirm(true)}>
           {t(lang, 'countNoShow')}
         </button>

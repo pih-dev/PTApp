@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
+import { BarMark } from './Icons';
 import { formatDate, haptic } from '../utils';
 import { formatRunTime } from '../normCharts';
 import EvalForm, { scoreLabel, scoreChipClass } from './EvalForm';
@@ -42,9 +43,9 @@ export default function EvalSection({ client, state, dispatch, lang }) {
   ];
 
   return (
-    <div style={{ marginTop: 12, borderTop: '1px solid var(--sep)', paddingTop: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <div style={{ fontSize: 14, fontWeight: 600 }}>{t(lang, 'evaluations')}</div>
+    <div style={{ marginTop: 12, borderTop: '2px solid var(--bar)', paddingTop: 12 }}>
+      <div className="subbar">
+        <span>{t(lang, 'evaluations')}</span>
         <button className="btn-sm" disabled={!profileReady}
           onClick={() => { haptic(); setFormTarget('new'); }}>
           {t(lang, 'evaluate')}
@@ -59,12 +60,12 @@ export default function EvalSection({ client, state, dispatch, lang }) {
       {evals.length === 0 ? (
         profileReady && <div style={{ fontSize: 13, color: 'var(--t4)', padding: '4px 0' }}>{t(lang, 'noEvals')}</div>
       ) : evals.map(ev => (
-        <div key={ev.id} style={{ padding: '8px 0', borderBottom: '1px solid var(--sep)', fontSize: 13 }}>
+        <div key={ev.id} className="lrow" style={{ display: 'block', fontSize: 13 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
             onClick={() => setOpenEvalId(openEvalId === ev.id ? null : ev.id)}>
-            <div style={{ color: 'var(--t2)' }}>
+            <div className="num" style={{ color: 'var(--t2)' }}>
               {formatDate(ev.date, lang)}
-              <span style={{ color: 'var(--t5)', marginInlineStart: 8 }}>
+              <span className="num" style={{ color: 'var(--t4)', marginInlineStart: 8 }}>
                 {ev.branch === '1rm'
                   ? <>{t(lang, 'liftAvg')} {ev.frozen.liftAvg ?? '—'}</>
                   : <>{t(lang, 'muscleAvg')} {ev.frozen.muscleAvg ?? '—'}</>}
@@ -120,11 +121,11 @@ export default function EvalSection({ client, state, dispatch, lang }) {
             </button>
           }>
           <div className="success-center">
-            <div className="success-icon" style={{ fontSize: 40 }}>⚠️</div>
+            <div className="empty-mark" style={{ color: '#EF4444' }}><BarMark size={44} /></div>
             <div className="success-name">{formatDate(deleteTarget.date, lang)} · {classLabel(lang, deleteTarget.frozen.classification)}</div>
             <div className="success-detail">{t(lang, 'deleteEvalMsg')}</div>
           </div>
-          <button className="btn-primary" style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)', marginBottom: 8, width: '100%' }}
+          <button className="btn-primary" style={{ background: '#EF4444', color: '#fff', marginBottom: 8, width: '100%' }}
             onClick={() => {
               dispatch({ type: 'DELETE_EVALUATION', payload: deleteTarget.id });
               setDeleteTarget(null);
@@ -148,15 +149,15 @@ function ProgramBlock({ client, state, dispatch, lang, evals }) {
   const latest = progs[0];
   return (
     <div style={{ marginTop: 10 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontSize: 14, fontWeight: 600 }}>{t(lang, 'programs')}</div>
+      <div className="subbar">
+        <span>{t(lang, 'programs')}</span>
         <button className="btn-sm" disabled={!latest1rm}
           onClick={() => { haptic(); setSetupOpen(true); }}>{t(lang, 'generateProgram')}</button>
       </div>
       {!latest1rm && <div style={{ fontSize: 12, color: 'var(--t4)' }}>{t(lang, 'needs1rmEval')}</div>}
       {latest ? (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, padding: '6px 0' }}>
-          <span style={{ color: 'var(--t3)' }}>{formatDate(latest.startDate, lang)} · {latest.blocks.length} {t(lang, 'blockLabel')}</span>
+        <div className="lrow" style={{ fontSize: 13 }}>
+          <span className="num" style={{ color: 'var(--t3)' }}>{formatDate(latest.startDate, lang)} · {latest.blocks.length} {t(lang, 'blockLabel')}</span>
           <button className="btn-ghost" style={{ fontSize: 12 }} onClick={() => setViewerOpen(true)}>{t(lang, 'viewProgram')}</button>
         </div>
       ) : latest1rm && <div style={{ fontSize: 13, color: 'var(--t4)', padding: '4px 0' }}>{t(lang, 'noPrograms')}</div>}

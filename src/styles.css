@@ -1260,6 +1260,65 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 }
 .srow .inline-type-select:active { color: var(--chalk); }
 
+/* ─── A5 (v2.20): the screens under the client card ───
+   Evaluations, programs, the program viewer and the norm charts were built with
+   ad-hoc inline headings (`fontSize: 14, fontWeight: 600`) and 1px `--sep`
+   hairlines. They inherited the tokens in v2.19 but not the LANGUAGE: a hairline
+   is the trait the pass removed, and a bold body heading is not a bar.
+   `.subbar` is the bar at sub-section scale — inside a card, in a modal — and
+   `.lrow` is the row it separates. */
+.subbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin: 18px 0 8px; padding-bottom: 6px;
+  border-bottom: 2px solid var(--bar);
+  font-family: var(--font-display);
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--chalk);
+}
+.lrow {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 0;
+  border-bottom: 2px solid var(--bar);
+}
+.lrow:last-child { border-bottom: none; }
+/* Every number in the app is mono and tabular — this is the class for the ones
+   that live inside a sentence rather than in a dedicated element. */
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+[dir="rtl"] .subbar { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
+
+/* ─── The program viewer's exercise row (v2.20) ───
+   The movement NAME is what the PT scans for; the prescription is what he reads
+   once he has found it. One line each, and the numbers in mono so four
+   percentages and four weights line up down the column instead of jittering. */
+.exrow { padding: 10px 0; border-bottom: 2px solid var(--bar); }
+.exrow:last-child { border-bottom: none; }
+.exrow-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.exrow-name { font-size: 14px; font-weight: 600; color: var(--chalk); min-width: 0; }
+.exrow-rx {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: 11px; color: var(--chalk-dim); margin-top: 3px;
+}
+.exrow-swap { flex: 0 0 auto; font-size: 11px !important; padding: 8px 10px !important; }
+/* The swap picker: a list of movements to choose from, so it reads as rows. */
+.exrow-pick {
+  display: block; width: 100%; text-align: start;
+  padding: 14px 2px; font-size: 14px; font-family: var(--font-body);
+  color: var(--chalk); background: transparent;
+  border: none; border-bottom: 2px solid var(--bar);
+}
+.exrow-pick:active { background: var(--raised); }
+.blockhead {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 10px; flex-wrap: wrap; cursor: pointer; padding: 12px 0;
+}
+.blockhead-label {
+  font-family: var(--font-display); font-size: 14px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--chalk);
+}
+.blockhead-meta { font-size: 11px; color: var(--chalk-dim); }
+[dir="rtl"] .blockhead-label { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
+
 /* ─── Renewal rows: the same row, with every plate on the accent ─── */
 .rrow {
   display: flex; align-items: center; gap: 12px;

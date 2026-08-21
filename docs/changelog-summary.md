@@ -4,6 +4,24 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.20.0 — the last screens catch up (August 22, 2026)
+
+**What you see:** the evaluation and program screens under a client — and the
+program sheet itself — now match everything else. Nothing in the app is still in
+the old look.
+
+**The program sheet is the real change.** Each exercise used to be one long
+wrapping line with a two-word SWAP EXERCISE button squeezing it, so the movement
+name was hard to find. Now the name sits on its own line with the sets, weights
+and rest underneath in the typewriter face, lined up down the page, and the swap
+control is a small one-word button. It reads like a training sheet.
+
+Also: the last little warning picture is gone from the delete confirmation, the
+red buttons are flat instead of gradient, and the doubled line under an opened
+client card is fixed.
+
+---
+
 ## v2.19.1 — the buttons look pressable again (August 22, 2026)
 
 Pierre's read on the last release: the outlines everywhere made it harder, not
