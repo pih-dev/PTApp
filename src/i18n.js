@@ -318,6 +318,22 @@ const T = {
     objHypertrophy: 'Hypertrophy',
     objStrength: 'Strength',
     objFatLoss: 'Fat loss',
+    // Movement library (v2.21, B1)
+    movementLibrary: 'Movement library',
+    searchMovements: 'Search movements…',
+    movementsCount: 'movements',
+    noMovementsFound: 'No movements match',
+    movementNotInBank: 'Not in the current exercise bank',
+    muscles: 'Muscles',
+    movementFacts: 'Movement',
+    movementType: 'Type',
+    typeCompound: 'Compound',
+    typeIsolation: 'Isolation',
+    daySlot: 'Training day',
+    dayMajor: 'Day major',
+    level: 'Level',
+    advancedMovement: 'Advanced',
+    filterAll: 'All',
     swapExercise: 'Swap exercise',
     swap: 'Swap',
     regenerateProgram: 'Regenerate',
@@ -650,6 +666,22 @@ const T = {
     objHypertrophy: 'تضخيم',
     objStrength: 'قوة',
     objFatLoss: 'حرق دهون',
+    // Movement library (v2.21, B1)
+    movementLibrary: 'مكتبة التمارين',
+    searchMovements: 'ابحث عن تمرين…',
+    movementsCount: 'تمرين',
+    noMovementsFound: 'لا يوجد تمرين مطابق',
+    movementNotInBank: 'غير موجود في بنك التمارين الحالي',
+    muscles: 'العضلات',
+    movementFacts: 'التمرين',
+    movementType: 'النوع',
+    typeCompound: 'مركّب',
+    typeIsolation: 'عزل',
+    daySlot: 'يوم التمرين',
+    dayMajor: 'العضلة الأساسية لليوم',
+    level: 'المستوى',
+    advancedMovement: 'متقدّم',
+    filterAll: 'الكل',
     swapExercise: 'تبديل التمرين',
     swap: 'تبديل',
     regenerateProgram: 'إعادة الإنشاء',
@@ -673,6 +705,43 @@ const T = {
 };
 
 // Get a translated string - falls back to English, then to the key itself
+
+// ─── Muscle names (v2.21) ───
+// Keyed by the EXACT English string in exerciseBank.js `muscles`/`primary`.
+// 🔴 Elie's standing transliteration rule applies: where the gym says the English
+// word, the Arabic is that word in Arabic letters (بايسبس, لاتس, كوادز) rather
+// than a literal anatomical translation nobody uses on the floor.
+// A missing key falls back to the English — never to the key name, which is what
+// t() would do. sanity-movement-library asserts full coverage, because ONE
+// missing muscle shows as a single English word in a row of Arabic ones, on a
+// screen an English-reading developer never opens in Arabic.
+const MUSCLE_AR = {
+  'Abductors': 'مبعدات الفخذ',
+  'Abs': 'عضلات البطن',
+  'Adductors': 'مقرّبات الفخذ',
+  'Back': 'الظهر',
+  'Biceps': 'بايسبس',
+  'Calves': 'السمانة',
+  'Chest': 'الصدر',
+  'Forearms': 'الساعد',
+  'Glutes': 'الغلوتس',
+  'Hamstrings': 'الهامسترينغ',
+  'Lats': 'اللاتس',
+  'Middle Back': 'وسط الظهر',
+  'Obliques': 'العضلات المائلة',
+  'Psoas': 'البسواس',
+  'Quads': 'الكوادز',
+  'Rear Delts': 'الكتف الخلفي',
+  'Rotator Cuffs': 'الكفّة المدوّرة',
+  'Serratus': 'السيراتوس',
+  'Shoulders': 'الأكتاف',
+  'Spinal Erectors': 'أسفل الظهر',
+  'Traps': 'الترابيس',
+  'Triceps': 'ترايسبس',
+  'Upper Back': 'أعلى الظهر',
+};
+export const muscleLabel = (lang, m) => (lang === 'ar' && MUSCLE_AR[m]) || m;
+
 export const t = (lang, key) => (T[lang] && T[lang][key]) || T.en[key] || key;
 
 // Date locale for the current language

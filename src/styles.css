@@ -1325,6 +1325,42 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 .blockhead-meta { font-size: 11px; color: var(--chalk-dim); }
 [dir="rtl"] .blockhead-label { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
+/* ─── The movement library and sheet (v2.21, B1) ─── */
+/* A movement NAME is now a control everywhere it appears. It gets no button
+   chrome — a boxed button inside a row of six exercises would be noise — but it
+   does get a press state, because a tappable thing that never reacts reads as
+   dead text. */
+.mv-tap {
+  background: none; border: none; padding: 0;
+  text-align: start; font: inherit; color: inherit;
+  min-height: 32px;
+}
+.mv-tap:active { color: var(--chalk-dim); transform: none; }
+
+.mv-row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  width: 100%; text-align: start;
+  padding: 12px 2px;
+  background: transparent; border: none;
+  border-bottom: 2px solid var(--bar);
+}
+.mv-row:active { background: var(--raised); }
+.mv-row-name { font-size: 14px; font-weight: 600; color: var(--chalk); min-width: 0; }
+.mv-row-alt { font-size: 10px; color: var(--chalk-faint); margin-inline: 6px; }
+.mv-row-muscle {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--chalk-dim);
+}
+[dir="rtl"] .mv-row-muscle { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
+
+.mv-sub { font-size: 12px; color: var(--chalk-dim); margin: -4px 0 4px; }
+.mv-muscles { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.mv-key { font-size: 13px; color: var(--chalk-dim); }
+.mv-val { font-size: 13px; color: var(--chalk); font-weight: 600; }
+
 /* ─── Renewal rows: the same row, with every plate on the accent ─── */
 .rrow {
   display: flex; align-items: center; gap: 12px;

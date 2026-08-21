@@ -657,6 +657,22 @@ export const getRenewalDueMap = (clients, sessions) => {
   return map;
 };
 
+
+// ─── Bilingual search folding (v2.21, movement library) ───
+// 🔴 TYPED ARABIC IS NOT WRITTEN ARABIC, and the differences are invisible on
+// screen but fatal to `includes()`: harakat, tatweel (ـ), and the alef / ya /
+// ta-marbuta variants. Fold both the index and the query through this, or
+// searching "كيرل" misses "كيرْل" and the feature looks broken to exactly the
+// half of the audience it was built for.
+export const normaliseSearch = (s) => (s || '')
+  .toLowerCase()
+  .replace(/[ً-ْـ]/g, '')   // harakat + tatweel
+  .replace(/[آأإٱ]/g, 'ا')  // آأإٱ → ا
+  .replace(/ى/g, 'ي')             // ى → ي
+  .replace(/ة/g, 'ه')             // ة → ه
+  .replace(/[‎‏؜]/g, '')    // stray bidi marks from copy-paste
+  .trim();
+
 // ─── Date helpers ───
 // NEVER use toISOString() for display dates — it converts to UTC, so midnight in
 // Beirut (UTC+3) becomes the previous day. All date→string must use local time.

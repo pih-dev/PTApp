@@ -43,31 +43,31 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.20.1
-**Every screen in the plate and the bar — stages 3–4 (08-22).** No screen is still in the old idiom. Presentation only; `DATA_VERSION` stays 6. Detail: `docs/instructions-v2.20.md`, `-v2.20.1.md`. Palette/type rules: CONVENTIONS → *Colour, type & badges*.
+## Current Version: v2.21.0
+**The movement library (B1) — the first new capability since v2.14 (08-22).** A movement name is no longer a dead end: tappable in the program viewer, plus a searchable library in General. `DATA_VERSION` stays 6 (reads the frozen bank, writes nothing). Detail: `docs/instructions-v2.21.md`. Palette/type rules: CONVENTIONS → *Colour, type & badges*.
+- 🔴 **THE MOVEMENT SHEET SHOWS ONLY WHAT THE BANK KNOWS** — name/muscles/type/slot/advanced. **No cues, no rep advice, no tips**: coaching content needs an owner and a review process, and that is Elie, not a component. The figure lands here later.
+- **Bilingual search folds through `normaliseSearch` (`utils.js`) on BOTH sides** — typed Arabic differs from written Arabic (harakat, tatweel, alef/ya/ta-marbuta) invisibly, and `includes()` fails on it. `muscleLabel`/`MUSCLE_AR` in `i18n.js` own muscle names; `t()` returns the KEY on a miss, so never use it for data labels.
 - **Sub-section scale: `.subbar` (the bar inside a card/modal) · `.lrow` (the row it divides) · `.num` (mono digits inside a sentence).** A bold body heading is not a bar; a 1px `--sep` hairline is the retired trait.
-- 🔴 **`.card` IS A ROW** — transparent, no border/shadow, a 2px `--bar` shaft under it; ten components render it. **A real container is `.panel`**; `.srow`/`.bar`/`.plates` are the Dashboard's richer idiom.
-- 🔴 **SELECTION IS CHALK · LOAD IS THE ACCENT · RED IS DESTRUCTIVE ONLY.** Chips, slots, filters and the active tab fill with `--bar` and brighten; the accent marks load, urgency and the live session; `#EF4444` is cancel/delete and nothing else.
-- 🔴 **NO EMOJI IN THE INTERFACE** — headings, buttons, empty states (`BarMark`), `<option>` labels. **WhatsApp templates keep theirs** (the client reads those).
-- **`[data-skin="steel"]` is the token block ONLY** — 70 overrides retired; **never add another**.
-- 🔴 **A SKIN IS VALUES, NOTHING ELSE** — list/default/migration ONLY in `src/skins.js`; `sanity-skins.mjs` asserts all 18 tokens per skin.
-- 🔴 **A restyle is presentation only** — if a kernel call or reducer action has to change, the slice has grown out of scope and **stops**.
-- **`TOKEN_KEY`/`DEMO_TOKEN`/`isDemo` live in `utils.js`** (import cycle), re-exported by `githubDriver`. 🔴 **`DEMO` is a review credential, not a feature** — seeded local data (`src/demoData.js`), sync off, **seeds ONLY onto an empty store** (the gate checks EVERY `ptapp-data*` key).
-- **Sign-in is DARK** (needs `VITE_SUPABASE_*`) and **`sync.js` is now `src/backend/`** — `githubDriver` + a dormant `supabaseDriver` behind `BACKEND_MODE`. State: `HANDOFF-multi-user-build.md`, `HANDOFF-spotset-publishing.md`.
+- 🔴 **`.card` IS A ROW** — transparent, no border/shadow, a 2px `--bar` shaft under it. **A real container is `.panel`**; `.srow`/`.bar`/`.plates` are the Dashboard's richer idiom.
+- 🔴 **SELECTION IS CHALK · LOAD IS THE ACCENT · RED IS DESTRUCTIVE ONLY** · 🔴 **NO EMOJI IN THE INTERFACE** (WhatsApp templates keep theirs — the client reads those).
+- 🔴 **A SKIN IS VALUES, NOTHING ELSE** — ONLY in `src/skins.js`; `sanity-skins.mjs` asserts all 18 tokens per skin. `[data-skin="steel"]` is the token block only; **never add a per-element override**.
+- 🔴 **A restyle is presentation only** — if a kernel call or reducer action has to change, it has grown out of scope and **stops**.
+- **`TOKEN_KEY`/`DEMO_TOKEN`/`isDemo` in `utils.js`** (import cycle), re-exported by `githubDriver`. 🔴 **`DEMO` is a review credential** — seeded local data, sync off, **seeds ONLY onto an empty store**.
+- **Sign-in is DARK** (needs `VITE_SUPABASE_*`); **`sync.js` is `src/backend/`** — `githubDriver` + dormant `supabaseDriver`. State: `HANDOFF-multi-user-build.md`, `HANDOFF-spotset-publishing.md`.
 
 ## Governance — Elie's Standing Authority (granted 2026-07-18)
 Elie may drive app changes in-session on Pierre's conditions (*"since we're using github we can roll back, make sure data backups are done at every juncture"*). Routes on `Elie`.
-- **Everything goes through git** — commit + push every change, so anything Elie drives can be rolled back. No un-committed work on live-facing branches.
+- **Everything goes through git** — commit + push every change, so anything Elie drives can be rolled back.
 - **Live-data snapshot at every juncture (MANDATORY):** before any deploy, schema change, migration or data-touching operation, run `node scripts/snapshot-live.mjs <desc>` — it archives `data.json` and byte-verifies it against the API.
-- **Provenance discipline continues** — specs, commits and changelogs record who asked for what, so Pierre can audit post-hoc. The grant was accepted on trust; he can revoke or re-scope it by editing this section.
+- **Provenance discipline** — specs, commits and changelogs record who asked for what, so Pierre can audit post-hoc. He can revoke or re-scope by editing this section.
 
 ---
 
 ## Version History
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules in force live in TRAPS / CONVENTIONS, never here.
 
-- **v2.17–v2.18** (08-21) — skins replace dark/light; the Dashboard rebuilt in the plate and the bar; bundled type. → `v2.17.md`, `v2.18.md`
-- **v2.19.0–.1** (08-22) — the shell and shared primitives on tokens; 70 steel overrides retired; fill means press. → `v2.19*`
+- **v2.17–v2.20.1** (08-21/22) — THE DESIGN PASS, five stages: skins, the Dashboard, the shell and shared primitives, the deep screens, press affordance. Rules in force live in CONVENTIONS/TRAPS. → `v2.17`…`v2.20.1`
+- **v2.16.0–.1** (08-21) — honest session numbers; multi-user groundwork DARK; the driver split. → `v2.16*`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
@@ -84,15 +84,17 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 ## TRAPS
 Full write-ups in **`docs/traps.md`** — read the relevant one first. Index:
 
-**Dates & JS** — `toISOString()` is UTC: use `today`/`localDateStr`/`localMonthStr`/`currentMonth` · never shadow `t` in a `.map`/`.find` callback · `defaultValue` inputs need a `key` tied to state · `fn(...arr)` throws past ~65K elements on iOS, chunk with `.apply` · hardcoded date stamps in fixtures rot, compute them at runtime.
+**Dates & JS** — `toISOString()` is UTC: use `today`/`localDateStr`/`localMonthStr` · never shadow `t` in a `.map`/`.find` callback · `defaultValue` inputs need a `key` tied to state · `fn(...arr)` throws past ~65K elements on iOS, chunk with `.apply` · hardcoded date stamps in fixtures rot.
 
-**iOS / mobile** — safe-area insets, modal z-index 200+, sticky `modal-footer`, visualViewport resize · tap targets in the bottom 60%, settings in General not the header · never start a textarea `readOnly` and clear it in `onFocus` · swipe-to-dismiss only when `scrollTop === 0` at touchstart · PWA standalone needs BOTH the meta tag AND `manifest.json` `"display":"standalone"`.
+**iOS / mobile** — safe-area insets, modal z-index 200+, sticky `modal-footer`, visualViewport resize · tap targets in the bottom 60% · never start a textarea `readOnly` and clear it in `onFocus` · swipe-to-dismiss only when `scrollTop === 0` at touchstart · PWA standalone needs BOTH the meta tag AND `manifest.json` `"display":"standalone"`.
 
 **RTL / i18n** — `marginInlineStart`/`borderInlineStart`, never `marginLeft`/`borderLeft` · **`letter-spacing` DESTROYS Arabic** (a joined script) — kill tracking and uppercase under `[dir="rtl"]` in the same block that adds them · a closed `<select>` prints its option's own text (emoji included).
 
 **Data & sync** — never hand out a credential that reaches live data; review/demo access must be fabricated data on a path that cannot reach the real store · never `.catch(() => {})` (the Hala Mouzanar data loss) · `initialLoad`+`syncReady`+`skipSync` must ALL pass before a push · never dispatch in a loop · `state.X` read right after `dispatch(ADD_X)` is stale (Session #0) · merge paths must `migrateData` the FOREIGN blob by its own `_dataVersion`, on a clone · `mergeData`'s key list drops collections a stale bundle doesn't know — after a deploy adding one, confirm BOTH phones show the new version first · a 401 must look different from a network blip and route to the replacement UI · **demo/fixture data must not carry a routable phone number, and demo mode must not address one** (real strangers were messaged).
 
 **Identity (`src/auth.js`)** — key is `ptapp-data:<userId>` once signed in, NO fallback to the bare key (a bare write pushes one coach's dataset into another's tenant, and RLS authorises it) · gate on identity, **never** token validity — expired ⇒ banner, never a login wall · **no social login, EVER** (Google forces Sign in with Apple, 4.8) · sign-out clears the session only.
+
+**Git** — 🔴 **never `git checkout -- <file>` to undo a test mutation**: it reverts to HEAD and takes any uncommitted work in that file with it (v2.21, the i18n strings). Revert the exact mutation, or stash first.
 
 **Refactoring** — a string only reachable BEFORE login is invisible to a rename sweep (the v2.15.0 token screen) — grep all of `src/`, not the screens you can open · **reusing a control class inherits the size its ORIGINAL content needed** (`.lang-toggle`'s 36px cells overlapped the skin names for two releases) — new content shape ⇒ modifier class, and OPEN the screen · grep EVERY read and write when moving a storage location · a renamed catalog key silently kills `|| CATALOG.oldKey` fallbacks (property refs don't match string greps) · re-read a helper's fallback contract before guarding its return; "did the world change" checks read LIVE state and compare stable IDs · `parseSessionCountOverride` returns `{ type, value }`, not `.mode` · legacy `periodLength` was the billing master switch, not `periodStart`.
 
@@ -132,11 +134,12 @@ Also single-source, from v2.10.1 — **never re-inline what they own:** `applyOv
 - Use `getStatus(status, lang, t)` for translated status labels.
 
 ### Colour, type & badges — everything paints from tokens
-🔴 **NEVER hardcode a colour: a literal belongs to ONE skin** (`sanity-skins.mjs` enforces it). 18 tokens, all defined by every skin: `--t1`..`--t5`/`--sep`/`--card-bg` (inline styles) and, from v2.18, `--ground/-lit`, `--raised`, `--chalk/-dim/-faint`, `--accent`, `--bar`, `--ok`, `--warn`, `--anatomy` (figures only, never UI).
-- 🔴 **THE ACCENT (arc `#35B7E8`) NEVER TOUCHES CHROME** — no tab, button, link or focus ring. Load, urgency, the live session; the inline-start bar means *happening now*. **Never `#2563EB`** in new work; legacy chrome keeps it until the app-shell pass. Danger `#EF4444` · success `#10B981` stand.
-- **Type: `--font-display` (Saira Condensed, uppercase) · `--font-body` · `--font-mono` (every digit).** 🔴 Bundled, never fetched — `src/fonts.css` is GENERATED by `scripts/build_fonts.mjs`. 🔴 **Under `[dir="rtl"]` uppercase AND letter-spacing are OFF** — Arabic has no case, spacing breaks its joins; hierarchy is weight.
-- 🔴 **OUTLINE MEANS "OFF", FILL MEANS "PRESS ME"** (v2.19.1, Pierre: *"more inviting to press the buttons"*). A tappable control gets a surface (`--raised`, or `--bar` for the primary action in a row); two states of one control differ by **fill and text colour**, never by border width. An all-outline screen is coherent and inert.
-- **Status badges use a CSS class, NEVER inline `style={{color,background}}`** — restyle the class, scoped, so other screens keep theirs.
+🔴 **NEVER hardcode a colour: a literal belongs to ONE skin** (`sanity-skins.mjs` enforces it). **The full 18-token inventory and the type roles live in `docs/design-system.md`** (routed on colour/palette/skin/typography).
+- 🔴 **THE ACCENT (arc `#35B7E8`) NEVER TOUCHES CHROME** — no tab, button, link or focus ring. Load, urgency, the live session. **Never `#2563EB`** in new work; `#EF4444` = destructive only.
+- 🔴 **`--chalk-faint` is DECORATION ONLY** (no text under 13px) and **`--anatomy` is for figures, never the UI**.
+- 🔴 **Bundled type, never fetched** — `src/fonts.css` is GENERATED by `scripts/build_fonts.mjs`. 🔴 **Under `[dir="rtl"]` uppercase AND letter-spacing are OFF** — Arabic has no case, spacing breaks its joins; hierarchy is weight.
+- 🔴 **OUTLINE MEANS "OFF", FILL MEANS "PRESS ME"** — a tappable control gets a surface; two states of one control differ by **fill and text colour**, never border width. An all-outline screen is coherent and inert.
+- **Status badges use a CSS class, NEVER inline `style={{color,background}}`.**
 
 ### Sync (v2.6+)
 Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` retries 3× on 409 and **merges, never blind-overwrites**; per-record `_modified` + union-by-ID means a freshly-edited record beats a stale device's. **Every failure surfaces via `syncStatus` — never `.catch(() => {})` on a sync path.**
@@ -150,17 +153,17 @@ Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` r
 ---
 
 ## KNOWN ISSUES / OBLIGATIONS
-- 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev, ptapp-data Contents R/W. Replace via General → Backup → "Update sync token".
-- **Program pruning (v2.15)** — before `data.json` nears the 1 MB ceiling (14.5% on 2026-08-03; growth jumped 6.6× once programs shipped). 🔴 **Snapshot before any pruning run** — cloud deletes are irreversible.
-- **Review finding P3 — DECIDED 2026-08-05, NOT BUILT.** `docs/reviews/2026-06-10-fable5-codebase-review.md`. SessionCard = **scope B** (Dashboard-expanded + Schedule); also kills the `focus: []` bug at `Schedule.jsx:201`. 🔴 **Fold it into the Dashboard rebuild** — both touch the same component.
-- **App name = SpotSet** (2026-08-20); `com.spotset.app` is PERMANENT.
+- 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev. Replace via General → Backup → "Update sync token".
+- **Program pruning (v2.15)** — before `data.json` nears 1 MB (14.5% on 2026-08-03). 🔴 **Snapshot before any pruning run** — cloud deletes are irreversible.
+- **Review finding P3 — DECIDED 2026-08-05, NOT BUILT.** SessionCard scope B (Dashboard-expanded + Schedule); kills the `focus: []` bug at `Schedule.jsx:201`. **Do it with the Schedule layout pass.**
+- **App name = SpotSet**; `com.spotset.app` is PERMANENT.
 
 ---
 
 ## REVIEW DISCIPLINE
 After **3+ feature changes** or ~2 h of coding, pause: did the fix land everywhere the pattern exists? · every read AND write migrated on a storage refactor? · callbacks shadowing `t`/`d`? · inline `marginLeft`/`borderLeft` or hardcoded colours? · strings missing from `i18n.js`? · anything that deletes/overwrites/fails to migrate? · new `.catch(() => {})` or loop dispatches? (`docs/release-hygiene.md` §3.)
 
-After every commit: **bug fix** → root cause + pattern into `docs/traps.md`, then grep elsewhere · **feature** → `docs/instructions-v{X}.md` + both changelogs · **design decision** → CONVENTIONS or `docs/architecture.md` · **incident** → memory.
+After every commit: **bug fix** → root cause + pattern into `docs/traps.md`, then grep elsewhere · **feature** → `docs/instructions-v{X}.md` + both changelogs · **design decision** → CONVENTIONS · **incident** → memory.
 
 ---
 

@@ -4,6 +4,47 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.21.0 — the movement library, feature B1 (2026-08-22)
+
+The first new capability since v2.14; everything between was the design pass.
+Full write-up: `docs/instructions-v2.21.md`. Spec origin: the visual-language
+spec §10 item 1.
+
+**The gap:** 340 movements with handwritten Arabic for every one have been in
+`exerciseBank.js` since v2.13, and a movement NAME was a dead end. The data was
+there; the door was missing.
+
+- **Hot path:** every exercise name in `ProgramViewer` opens `MovementSheet`.
+  That is the one that matters — it is used mid-session with a client waiting.
+- **Cold path:** General → Movement library, with the norm charts, because it is
+  the same kind of thing: reference the PT consults, not something he operates.
+  🔴 A fifth nav tab was REJECTED — the tab bar is a working tool and A6 will
+  revisit what the four tabs are before anything is added to them.
+- 🔴 **The sheet shows only what the bank knows** — muscles (primary marked),
+  compound/isolation, training day + day major, the advanced flag. No cues, no
+  rep advice: coaching content needs an owner and a review process, and that is
+  Elie. The figure lands here later and is deliberately NOT stubbed.
+- 🔴 **`normaliseSearch` (utils.js) folds typed Arabic on BOTH sides** — harakat,
+  tatweel, alef/ya/ta-marbuta. Invisible on screen, fatal to `includes()`:
+  without it `كيرل` misses `كيرْل`. It lives in utils, not the component, so the
+  gate can exercise it — a fold inside JSX is a fold nobody can prove.
+- **`muscleLabel`/`MUSCLE_AR` in i18n.js** own the 23 muscle names. Note `t()`
+  returns the KEY on a miss, so it is the wrong tool for data labels.
+- **`sanity-movement-library.mjs` (new)** — renderability, full Arabic coverage
+  (one missing muscle = one English word in a row of Arabic ones, on a screen an
+  English-reading developer never opens), the fold, and an end-to-end search.
+  **Made to fail on purpose first:** deleting one Arabic muscle named `Quads` in
+  the failure; removing the harakat fold turned three assertions red.
+
+No schema change; DATA_VERSION 6 — the library reads the frozen bank and writes
+nothing.
+
+🔴 **Near-miss, now in TRAPS:** `git checkout -- src/i18n.js` to undo a gate
+mutation reverts to HEAD and takes the release's uncommitted strings with it.
+Revert the mutation you made, or stash.
+
+---
+
 ## v2.20.1 — the line down the right edge (2026-08-22)
 
 Pierre, on a real phone: *"there is a line around with the missing left side."*

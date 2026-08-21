@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import { formatDate, haptic } from '../utils';
 import { t } from '../i18n';
+import MovementSheet from './MovementSheet';
 import { bankForBucket } from '../exerciseBank';
 import { exNameAr } from '../exerciseNamesAr';
 
@@ -33,6 +34,7 @@ const exLabel = (lang, name) => {
 // by design — the trainer improvises by performance (Elie).
 export default function ProgramViewer({ program, dispatch, lang, onClose }) {
   const [openBlock, setOpenBlock] = useState(0);
+  const [movement, setMovement] = useState(null);  // v2.21: the movement sheet, opened from a name
   const [swap, setSwap] = useState(null);   // { blockIdx, dayKey:'days'|'daysAlt', dayIdx, exIdx }
 
   const doSwap = (replacementName) => {
@@ -72,7 +74,11 @@ export default function ProgramViewer({ program, dispatch, lang, onClose }) {
            own line, prescription in mono under it, swap as a one-word target. */
         <div key={ei} className="exrow">
           <div className="exrow-head">
-            <span className="exrow-name">{exLabel(lang, e.name)}</span>
+            {/* v2.21 (B1): the movement name is the way IN. It was a dead end —
+                340 movements with Arabic for all of them sat behind it. */}
+            <button className="exrow-name mv-tap" onClick={() => { haptic(); setMovement(e.name); }}>
+              {exLabel(lang, e.name)}
+            </button>
             {/* Anchors (bench/squat/deadlift) are un-swappable — their kg comes from the
                 eval 1RM and a swap would carry deadlift kilos onto the replacement
                 (spec §6: anchors appear in every block; setKg only exists on them). */}
@@ -113,6 +119,8 @@ export default function ProgramViewer({ program, dispatch, lang, onClose }) {
           )}
         </div>
       ))}
+
+      {movement && <MovementSheet name={movement} lang={lang} onClose={() => setMovement(null)} />}
 
       {swap && swapTarget && (
         <Modal title={t(lang, 'swapExercise')} onClose={() => setSwap(null)}>

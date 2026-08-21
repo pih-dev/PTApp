@@ -4,6 +4,30 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.21.0 — the movement library (August 22, 2026)
+
+**The first genuinely new feature in a while** — everything since July was the
+visual rework.
+
+The app has known 340 exercises, with Arabic names for all of them, since the
+program feature shipped. But an exercise name was just text: you could read
+"Reverse-Grip Barbell Curl" in a program and there was nowhere to go.
+
+**Now every exercise name in a program is tappable** and opens a sheet: what
+muscles it works (with the main one marked), whether it is a compound or an
+isolation movement, which training day it belongs to, and whether it is an
+advanced movement. And under General there is a **Movement library** — search or
+browse all 340.
+
+**The search understands both languages from one box.** Type Arabic or English,
+or type a muscle like "biceps", and it finds what you mean — including the small
+spelling differences that come from typing Arabic on a phone.
+
+Drawings of the movements come later; the sheet deliberately does not show an
+empty box where they will go.
+
+---
+
 ## v2.20.1 — that odd line on the right (August 22, 2026)
 
 You spotted a line boxing the screen with no left side. Two of its three edges

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
 import NormChartsView from './NormChartsView';
+import MovementLibrary from './MovementLibrary';
 import { exportBackup, mergeBackup, genId, DEFAULT_TEMPLATES, haptic, saveData } from '../utils';
 import { getToken, saveSnapshot, listSnapshots, fetchSnapshot, isDemo, clearToken } from '../sync';
 import { isSignedIn, isSessionExpired, getUserEmail, signOut } from '../auth';
@@ -12,7 +13,7 @@ import { SKINS } from '../skins';
 // the in-app "App Instructions" button silently served stale docs. Bumping this
 // is now an explicit step in the CLAUDE.md deploy checklist.
 const DOCS = {
-  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.20.1.md',
+  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.21.md',
   changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
 };
 
@@ -152,6 +153,10 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
   const [editingTodo, setEditingTodo] = useState(null); // id of todo being edited
   const [notification, setNotification] = useState(null); // { text, type: 'success'|'error' }
   const [showCharts, setShowCharts] = useState(false);
+  // v2.21 (B1): the movement library lives with the other REFERENCE material —
+  // the norm charts opened from here first, and this is the same kind of thing:
+  // something the PT consults, not something he operates.
+  const [showLibrary, setShowLibrary] = useState(false);
 
   // Auto-dismiss notification after 4 seconds
   useEffect(() => {
@@ -511,6 +516,10 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
             onClick={() => setShowCharts(true)}>
             {t(lang, 'normCharts')}
           </button>
+          <button className="btn-secondary" style={{ fontSize: 13, padding: '10px 14px' }}
+            onClick={() => { haptic(); setShowLibrary(true); }}>
+            {t(lang, 'movementLibrary')}
+          </button>
         </div>
       </div>
 
@@ -521,6 +530,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
         </Modal>
       )}
       {showCharts && <NormChartsView lang={lang} onClose={() => setShowCharts(false)} />}
+      {showLibrary && <MovementLibrary lang={lang} onClose={() => setShowLibrary(false)} />}
     </Modal>
   );
 }
