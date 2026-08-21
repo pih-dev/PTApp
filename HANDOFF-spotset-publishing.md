@@ -1,6 +1,7 @@
 # SpotSet — Store Publishing HANDOFF
 
-**Last updated:** 2026-08-21 ~06:25, Beirut — the tester-opt-in / Calnorm-email session.
+**Last updated:** 2026-08-21 ~07:10, Beirut — the Calnorm identity pass + backend-platform decision.
+Next session opens on a **major task**, not on this thread — Pierre wrapped deliberately to start one.
 **To resume:** Pierre types `spotset`, `publish`, `illume` or `continue`. **Read §0 back to him
 and stop.** Do not investigate, do not draft, do not ask follow-up questions beyond the one §0 names.
 
@@ -23,15 +24,38 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 
 ## 0. Status — read this out
 
-- 🔴 **THE ONE THING THAT MATTERS: SEND THE OPT-IN LINK.** `https://play.google.com/apps/testing/com.spotset.app`
-  Console read 2026-08-21 06:0x: **1 of 12 testers opted in.** Pierre opted in himself with
-  `cclendt@gmail.com`; **the other 13 have not been sent the link.** The 14-day clock starts the day
-  the 12th accepts, and NOTHING else on this project moves until then. The full list, formatted to
-  paste into WhatsApp, is in §5b.
+- 🔴 **THE ONE THING THAT MATTERS: THE OPT-IN LINK.** `https://play.google.com/apps/testing/com.spotset.app`
+  **12 testers must opt in before the 14-day clock starts, and NOTHING else on this project moves
+  until then.** Being on the email list is NOT opting in — each person must open that link and press
+  *Become a tester*. Pierre messaged Elie on 2026-08-21 morning to push the rest.
+  🔴 **The opted-in count is a live reading — do NOT quote one from this file.** Probe it first:
+  Play Console → SpotSet → Dashboard, the production checklist line *"N testers currently
+  opted-in"*. Latest observation is in §0a below, with its timestamp. The WhatsApp-ready list is §5b.
 - ⚠️ **"Item not found" on the store page right after opting in is normal** — a newly-published
   closed test takes a few hours to become installable. It does NOT affect the opt-in or the clock.
-- 🆕 **Play developer name change SUBMITTED** — Illume → **Calnorm**, 2026-08-21. Console: *"Your new
-  developer name is being reviewed. Users will see Illume until Calnorm is approved."* No action.
+- ✅ **Play developer name is now Calnorm.** Submitted and approved 2026-08-21; the console header
+  and Developer account → Developer name both read **Calnorm**. Nothing further to do.
+- ✅ **THE CALNORM EMAIL/IDENTITY PASS IS FINISHED (2026-08-21).** All four fields changed off the
+  old `getillume@gmail.com` and confirmed on screen:
+  - Store listing → Store settings → **contact email = `support@calnorm.com`** (public; "Change published")
+  - Store listing → **Website = `https://spotset.calnorm.com`** (public; "Change published")
+  - Developer account → **public developer profile email = `dev@calnorm.com`**, verified + saved
+    (Pierre did the verification click on his phone — Google did not self-verify)
+  - Developer account → **Google-only contact email stays `pierreghorra@gmail.com`** — deliberate,
+    changing it triggers re-verification and it is Google's channel to him.
+  - New Zoho alias **`dev@calnorm.com`** ("Calnorm Developer"), alongside `review@` and `support@`.
+- 🔴 **PRODUCT-LEVEL EMAIL IS NOT POSSIBLE ON THE CURRENT PLAN — tried and blocked 2026-08-21.**
+  `support@spotset.calnorm.com` needs spotset.calnorm.com added as a **second domain**; Zoho
+  returned *"You have reached the maximum number of domains allowed. Please upgrade to a paid plan."*
+  Settled: stay on `support@`/`dev@calnorm.com`. If product-level addressing is ever wanted on the
+  free plan it must be `spotset-support@calnorm.com` style aliases, not sub-domain mailboxes.
+  Revisit only at the next hosting/plan change. **Do not re-propose this unprompted.**
+- ✅ **`spotset.calnorm.com` EXISTS AND RESOLVES.** Cloudflare: proxied A record `spotset` →
+  192.0.2.1 (dummy origin), plus Redirect Rule *"spotset subdomain to app"*,
+  `https://spotset.calnorm.com/*` → `https://pih-dev.github.io/PTApp/`, **302 not 301** — chosen
+  deliberately so browsers do not permanently cache the hop when real hosting lands there.
+  🔴 **GitHub Pages itself was NOT repointed** — doing so would break the PWA already installed on
+  Elie's iPhone mid-test. Verify with `curl -sI https://spotset.calnorm.com/`.
 - 🆕 **EMAIL ON calnorm.com IS LIVE** — Zoho Mail **Forever Free** (1 domain, 5 users, 5 GB each,
   **no IMAP/POP/ActiveSync**, so the Zoho app is the only client). Mailbox `pierre@calnorm.com`
   (super-admin; Zoho login is pierreghorra@gmail.com). Aliases `review@calnorm.com` and
@@ -43,17 +67,28 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   Apple needs a domain you control, and calnorm.com is one. **Pierre decided NOT to buy spotset.app**
   (*"I dont care of someone bought .app, its not .com"*). If deep links are ever needed, use
   `spotset.calnorm.com`. Strike the "buy spotset.app" line wherever it still appears.
-- 🆕 **MULTI-USER / ROLES DECISION DOC EXISTS, NOTHING APPROVED, NOTHING BUILT** —
-  `docs/2026-08-21-multi-user-accounts-decision.md` (+ `-appendix.md`), from a 12-agent ultracode
-  run. It recommends Supabase; **Pierre then reframed the whole thing** — Calnorm is a real Lebanese
-  IT-services business, SpotSet is product #1, 50/50 revenue split with Elie, possible global scale,
-  and he owns Cloudflare already. **The doc is therefore scoped to the wrong problem** and he was
-  offered a re-run on the platform-first brief. Not yet started. Cloudflare numbers verified this
-  session: Workers Paid **$5/mo**, D1 25bn reads / 50M writes / 10 GB per DB. The real trade is
-  Postgres RLS (DB-enforced) vs D1 (auth enforced in Worker code I write).
-- 🔴 **UNSETTLED, AND HE WANTS IT DISCUSSED NEXT:** trust. This session cost him a day (see §9).
-  He asked to *"discuss the tricky bits… the annoying stuff. We need to settle some things."*
-  **Open that conversation first, before any technical work.** Do not re-litigate; listen.
+- ✅ **BACKEND PLATFORM IS DECIDED (2026-08-21): Supabase free-tier Postgres now, self-hosted VPS
+  Postgres later.** Full reasoning, and the one build constraint that keeps the exit cheap, in
+  **`docs/2026-08-21-backend-platform-decision.md`**. Cloudflare D1 lost on two axes Pierre named
+  himself: he cannot open D1 in a normal SQL client, and D1 has no RLS so tenant isolation would be
+  code I write. **Performance was explicitly ruled out as a factor — do not re-open it on those
+  grounds.** Nothing built, nothing bought, no Supabase project exists.
+  🔴 **The load-bearing constraint: auth lives behind ONE thin module.** `pg_dump` carries schema,
+  data and RLS to a VPS; it cannot carry Supabase Auth. Scattering `supabase.auth.*` calls the way
+  `sync.js` calls are scattered today turns a weekend migration into a rewrite.
+  ⚠️ This **supersedes the platform half** of `docs/2026-08-21-multi-user-accounts-decision.md`
+  (+ `-appendix.md`, the 12-agent ultracode run). Its per-design **store-review** analysis is still
+  worth reading; its platform recommendation is not. The re-run that was offered is now moot.
+- 🆕 **CALNORM IS BEING REGISTERED AS A REAL LEBANESE COMPANY.** Pierre's lawyer is initiating it and
+  asked for the business description in Arabic. A deliberately broad objects clause (غرض الشركة) was
+  drafted and given to him 2026-08-21 — IT services, software/platform development, consulting,
+  training, networks + data centres, import/export and trade of IT hardware, hosting/cloud, plus the
+  standard catch-all — archived at
+  `C:/projects/_archive/Calnorm/2026-08-21-company-objects-clause-ar.md`.
+  🔴 **Rule behind it: list every future activity NOW.** In Lebanon the objects clause sits in the
+  statutes; adding one later needs amended articles + an extraordinary general assembly + notary +
+  commercial-register filing. Listing an activity does not oblige him to do it. Fees and MoET/customs
+  requirements were **not** verified — the lawyer is the authority.
 
 
 - 🍎 **APPLE: THE $99 ORDER IS PLACED.** Apple Developer Program, **Individual**, enrolment ID
@@ -67,14 +102,13 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   (hosted macOS, free 500 min/mo, signs via the API key, `npx cap add ios` runs as a CI step
   because it cannot run on Windows). **Ionic Appflow is being wound down — never start there.**
 - 🟢 **THE ANDROID SIDE IS LIVE.** SpotSet **v2.15.1 / versionCode 3** went to Google 2026-08-20
-  ~14:10 and **PUBLISHED the same day**. Verified in the console 2026-08-21: track
-  `Closed testing - Alpha` is **Active**, Latest release **3 (2.15.1)**, 177 countries/regions,
-  email list `SpotSet Alpha Testers` = **14 users, ticked**.
-- 🔴 **THE BLOCKER IS PIERRE, NOT GOOGLE — `0 testers currently opted-in`.** The dashboard's
-  production checklist reads: ✅ Publish a closed testing release · ⭕ Have at least 12 testers
-  opted-in (*0 currently*) · ⭕ Run the test 14 days. **Being on the email list is NOT opting in.**
-  Google sends the testers nothing. Pierre must send the link himself and each tester must open it
-  and press *Become a tester*. **Day 1 is the day the 12th accepts.**
+  ~14:10 and **PUBLISHED the same day**. Track `Closed testing - Alpha` is Active, latest release
+  **3 (2.15.1)**, 177 countries/regions, email list `SpotSet Alpha Testers` ticked.
+  *(Tester-list size and opted-in count are readings — see §0a, and probe before quoting.)*
+- 🔴 **THE BLOCKER IS THE OPT-INS, NOT GOOGLE.** Dashboard production checklist: ✅ Publish a closed
+  testing release · ⭕ Have at least 12 testers opted-in · ⭕ Run the test 14 days.
+  **Being on the email list is NOT opting in.** Google sends the testers nothing. Pierre sends the
+  link himself and each tester presses *Become a tester*. **Day 1 is the day the 12th accepts.**
 - **The opt-in links (verified in the console, 2026-08-21):**
   - Web (the one to send — it carries the *Become a tester* button):
     `https://play.google.com/apps/testing/com.spotset.app`
@@ -82,7 +116,6 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 - ⚠️ **A session claimed on 2026-08-21 that the release was still "in review". It was not.** The
   console is the record; this file was stale for a day. Re-read the console before asserting store
   state.
-- **14 testers on the list** (`SpotSet Alpha Testers`) — above the 12 minimum, list closed.
 - 🔴 **The 14-day clock has NOT started.** It starts when the release is rolled out AND 12 testers
   have **opted in**; opting out resets it.
 - 🔴 **Google emails testers nothing.** The opt-in link appears in the console after publishing and
@@ -110,6 +143,25 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 - **Not done, deliberately deferred by Pierre (2026-08-20): the website/domain.** Do not raise it.
 - **Offered, not built:** Google Play Developer API (service account) for headless uploads, tracks,
   testers and rollouts. Policy declarations would still need the console.
+
+---
+
+## 0a. Readings — TRUE ONLY AT THE STAMP, re-probe before quoting
+
+- **2026-08-21 ~07:0x Beirut** — Play Console → SpotSet → Dashboard: **"5 testers currently
+  opted-in"** (was 1 at ~06:0x the same morning; four arrived while Pierre worked, after he
+  messaged Elie). **7 more needed.**
+- **2026-08-21 ~07:0x Beirut** — email list `SpotSet Alpha Testers`: **16 users**. Two added this
+  session at Pierre's dictation: `atmehdunia@gmail.com`, then `Alibdor.1996alibdor@gmail.com`.
+  *(Second one was dictated by voice and looks doubled — confirm the spelling with Pierre if a
+  tester reports the link not working.)*
+- **2026-08-21 ~06:5x Beirut** — `curl -sI https://spotset.calnorm.com/` → `HTTP/1.1 302 Found`,
+  `Location: https://pih-dev.github.io/PTApp/`.
+
+**Probe commands:** opt-ins → the Dashboard line above · redirect → the `curl` above ·
+tester list → Test and release → Testing → Closed testing → Alpha → Testers.
+
+---
 
 **Raw dump of the submission session (uncontaminated, written before this handoff):**
 `C:/projects/_archive/PTApp/claude-incidents/2026-08-20-spotset-v2151-demo-credential-submission-FULL-SESSION.txt`
