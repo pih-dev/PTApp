@@ -241,3 +241,163 @@ can control it, it's not set up [hardcoded]."*
 
 **Not affected:** `DATA_VERSION` stays 6, the merge kernel is untouched, and the Google closed test
 keeps running — the tester clock counts testers, not builds.
+
+---
+
+## 11. Scoping and administration — decided (Pierre, 2026-08-21 ~12:00)
+
+Three questions were open after §10. All three are now answered, and the answers **supersede §4's
+`orgs` / `memberships` shape wherever they conflict** — §4 was written before the hierarchy
+requirement existed and still carries a three-value role enum (`owner`/`coach`/`client`).
+
+### 11.1 No admin role. Administration happens outside the app.
+
+Pierre asked whether the prime PT should also be an admin, or whether administration can be external.
+**External.** The decision:
+
+- The role enum stays exactly **`pt` | `client`**, as §10 fixed it.
+- The only genuinely administrative operations are **re-parenting a PT**, **recovering an orphaned
+  account**, and **hard-deleting a tree**. All three are rare, irreversible, and cross-tenant.
+- They are performed in the **Supabase SQL console with the `service_role` key**, from Pierre's
+  laptop. That key already exists, already bypasses RLS by design, and — per §4 — **never ships in
+  the bundle**.
+
+**Why not an in-app admin:** an admin role is a login that must exist on a phone, be authenticated,
+be recoverable, and be RLS-modelled — and its whole reason for existing is to bypass the isolation
+the rest of the design is built to guarantee. It would be the second all-powerful credential in a
+project whose stated defect (§2) is *"the only credential in the system is all-powerful."* The cost
+of not having it is that Pierre runs three SQL statements a handful of times a year.
+
+🔴 **Consequence to hold onto:** there is no in-app path to fix a mis-parented PT. Getting
+`parent_pt_id` right at invite time matters, and the invite flow must show the parent it is about to
+stamp, in words, before it sends.
+
+### 11.2 Peer PTs are fully isolated — and that is the default, not a setting
+
+Elie, after migration, is a PT with `parent_pt_id IS NULL` (prime) with his existing clients under
+him. When he adds another PT he chooses one of two placements, and the placement is the entire
+authorization story:
+
+| Placement | `parent_pt_id` | What each sees |
+|---|---|---|
+| **Peer** (another prime) | `NULL` | **Nothing shared, in either direction.** Two disjoint trees in one database. Elie cannot see their clients; they cannot see his. |
+| **Subordinate** | Elie's user id | Elie sees that PT, that PT's clients, and anything further down. The sub-PT sees **only its own subtree** — not Elie's clients, and not a peer sub-PT's. |
+
+Both directions fall out of one predicate — *"is the requesting user an ancestor of this row's
+owner?"* — so peer isolation costs nothing extra to implement. Pierre expects the peer case to be
+rare but requires it to be available.
+
+### 11.3 "Mine" is the default scope everywhere. The downline is a drill-in.
+
+🔴 **This is a product rule, not a permissions rule, and it is the one most likely to be lost.**
+
+Elie's daily routine is his own schedule and his own clients. A parent PT's normal screens —
+Dashboard, Schedule, Clients, renewals, counts, everything — show **only rows whose owner is the
+signed-in PT**. Descendants' clients and sessions are *never* merged into those lists, not sorted
+in, not badged, not counted in totals.
+
+Reaching the downline is a **deliberate, separate act**: pick a sub-PT, and the app switches into
+that PT's view — clearly marked as someone else's data — where the parent can look and, when needed,
+intervene. Leaving returns to his own workflow.
+
+Two consequences that must survive into implementation:
+
+- **RLS grants access; the query decides the default.** Every list query filters on
+  `owner_id = auth.uid()` unless the user has explicitly drilled in. A policy that *permits* reading
+  the subtree must never be mistaken for a screen that *should* show it.
+- **`getClientCountedSessions`, `getRenewalDueMap` and every other kernel keep operating on one
+  coach's dataset at a time.** Drill-in swaps which dataset is loaded; it does not widen it. Nothing
+  in the counting or renewal logic becomes hierarchy-aware.
+
+**Still deferred** (unchanged from §10): whether the parent may *write* in a descendant's view or
+only read, and whether a client can be shared between two PTs. §11.3 assumes read-plus-intervene,
+which is what Pierre described; the write policy is priced in §12.
+
+---
+
+## 12. Pricing the recursive RLS — the §10 blocker, resolved
+
+§10 named one real new cost: *"a parent PT reading down the tree… a recursive RLS predicate
+(`WITH RECURSIVE` ancestry check) — price it before committing."* Priced below. **It is cheap, on one
+condition: do not actually recurse at query time.**
+
+### 12.1 Why the naive version is the expensive one
+
+A policy of the form `using ( exists (with recursive ancestors as (...) select 1 ...) )` is evaluated
+**per candidate row**, and Postgres has no way to hoist it — the CTE depends on the row's owner. On a
+tenant table that is one graph walk per row scanned. Supabase's own RLS-performance guidance names
+this class of policy as the main cause of slow RLS, and prescribes three fixes: index the columns the
+policy filters, wrap function calls in `select` so the optimizer runs them once as an `initPlan`, and
+name the role in the policy. Only the second is available to a genuinely row-dependent predicate.
+
+### 12.2 The design that avoids it — materialized path
+
+Store the ancestry **on the row**, maintained on write, so the read-side test is a string prefix
+match instead of a graph walk.
+
+```sql
+-- app_users: one row per human. Two roles, per §10. Prime = parent_pt_id is null.
+create table public.app_users (
+  id            uuid primary key references auth.users(id) on delete cascade,
+  role          text not null check (role in ('pt','client')),
+  parent_pt_id  uuid references public.app_users(id),
+  -- Materialized ancestry: '<root>.<child>.<self>', dots as separators, ids
+  -- de-hyphenated because ltree labels allow only [A-Za-z0-9_].
+  path          ltree not null,
+  created_at    timestamptz not null default now()
+);
+create index app_users_path_gist on public.app_users using gist (path);
+create index app_users_parent_idx on public.app_users (parent_pt_id);
+
+-- Ancestry test, one row lookup, no recursion.
+create function private.can_reach(target uuid)
+returns boolean language sql stable security definer set search_path = '' as $$
+  select exists (
+    select 1
+    from public.app_users me, public.app_users them
+    where me.id = auth.uid() and them.id = target and them.path <@ me.path
+  );
+$$;
+```
+
+`them.path <@ me.path` is *"them is at or below me"* — a GiST-indexed containment test. Peer
+isolation (§11.2) needs no separate rule: two primes have disjoint roots, so neither path contains
+the other. Self-access is the degenerate case where the paths are equal, so **one predicate covers
+own-data, downline and peer-isolation together.**
+
+Applied to the tenant table, wrapped in `select` per the guidance above:
+
+```sql
+alter table public.tenants enable row level security;
+alter table public.tenants force row level security;
+
+create policy tenants_read on public.tenants for select to authenticated
+  using ( (select private.can_reach(coach_id)) );
+
+-- Write: own tenant always; a descendant's only if §11.3's deferred write question
+-- lands on "yes". Start with own-only — widening a policy later is safe, narrowing
+-- one after Elie has relied on it is not.
+create policy tenants_write on public.tenants for update to authenticated
+  using ( coach_id = (select auth.uid()) )
+  with check ( coach_id = (select auth.uid()) );
+```
+
+### 12.3 The cost, itemised
+
+| Cost | Verdict |
+|---|---|
+| Read-path performance | **Effectively zero.** One GiST containment test per row, and `can_reach` is `stable` + `select`-wrapped, so the optimizer caches it per statement rather than per row. Elie's tree will hold single-digit PTs and tens of clients for years. |
+| Recursion at query time | **None.** It moved to write time. |
+| `path` maintenance | A `before insert` trigger stamping `parent.path \|\| self`, plus **one** `WITH RECURSIVE` update to restamp a subtree on re-parent — an operation that per §11.1 happens from the SQL console a few times a year. |
+| Extra table | One (`app_users`). It also replaces §4's `memberships`, since the parent link and the role now live in the same row. |
+| `ltree` extension | `create extension ltree` — ships with Supabase Postgres, no cost. |
+| Correctness risk | The real one. A wrong `path` silently grants cross-tree reads and looks like nothing. Mitigation: `sanity-rls-matrix.mjs` (§4) grows a **peer-isolation pair** — prime A must read A's tenant and must be refused B's — and that assertion runs in the deploy gate. |
+
+**Verdict: the §10 requirement is not a reason to change the architecture.** Build it. The line that
+matters is the last one — the negative assertion, not the positive one, is what proves isolation.
+
+### 12.4 Open, and deliberately not decided here
+
+- **Parent write access** to a descendant's tenant (§11.3). Starting closed.
+- **A client shared between two PTs** — breaks the single-path assumption and would need a second
+  grant table. Not needed for Elie; do not build it speculatively.
