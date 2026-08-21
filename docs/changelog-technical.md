@@ -4,6 +4,27 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.20.1 — the line down the right edge (2026-08-22)
+
+Pierre, on a real phone: *"there is a line around with the missing left side."*
+Three things reading as one box — the header's bottom shaft, the nav's top
+shaft, and a **styled webkit scrollbar** (`--bar`, 4px, full height of a long
+list). The first two are the design; the third was a bug.
+
+🔴 **NEW TRAP, now in CLAUDE.md: never style a scrollbar in a touch app.**
+Styling it opts the element out of the platform's auto-hiding overlay
+scrollbar, so it becomes a permanent bright rule down the screen. Invisible in
+a desktop browser, where a visible scrollbar is expected — this class of bug
+only appears on the device.
+
+Also: `.load-seg` 9px→7px and the stack gap 3px→2px. Nine sessions in one day
+was building a ~200px tower that dominated the first screen; a full 8-segment
+day is ~70px now. Same cap, same information.
+
+Full write-up: `docs/instructions-v2.20.1.md`. DATA_VERSION 6.
+
+---
+
 ## v2.20.0 — the screens under the client card, A5 (2026-08-22)
 
 Stage 4, picked by Pierre from `docs/design/2026-08-22-what-is-left.md`. Full

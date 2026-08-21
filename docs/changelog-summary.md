@@ -4,6 +4,19 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.20.1 — that odd line on the right (August 22, 2026)
+
+You spotted a line boxing the screen with no left side. Two of its three edges
+are meant to be there (under the header, above the tabs); the third was the
+scrollbar, which I had coloured in the last release. On a phone a coloured
+scrollbar never fades out, so it sat there permanently looking like a border.
+The phone's own scrollbar is back.
+
+The week column is also shorter now — nine sessions in one day was building a
+tower that took over the top of the screen.
+
+---
+
 ## v2.20.0 — the last screens catch up (August 22, 2026)
 
 **What you see:** the evaluation and program screens under a client — and the

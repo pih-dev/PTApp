@@ -43,8 +43,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.20.0
-**Every screen in the plate and the bar — stages 3–4 (08-22).** No screen is still in the old idiom. Presentation only; `DATA_VERSION` stays 6. Detail: `docs/instructions-v2.20.md` (and `-v2.19.md`, `-v2.19.1.md`). Palette/type rules: CONVENTIONS → *Colour, type & badges*.
+## Current Version: v2.20.1
+**Every screen in the plate and the bar — stages 3–4 (08-22).** No screen is still in the old idiom. Presentation only; `DATA_VERSION` stays 6. Detail: `docs/instructions-v2.20.md`, `-v2.20.1.md`. Palette/type rules: CONVENTIONS → *Colour, type & badges*.
 - **Sub-section scale: `.subbar` (the bar inside a card/modal) · `.lrow` (the row it divides) · `.num` (mono digits inside a sentence).** A bold body heading is not a bar; a 1px `--sep` hairline is the retired trait.
 - 🔴 **`.card` IS A ROW** — transparent, no border/shadow, a 2px `--bar` shaft under it; ten components render it. **A real container is `.panel`**; `.srow`/`.bar`/`.plates` are the Dashboard's richer idiom.
 - 🔴 **SELECTION IS CHALK · LOAD IS THE ACCENT · RED IS DESTRUCTIVE ONLY.** Chips, slots, filters and the active tab fill with `--bar` and brighten; the accent marks load, urgency and the live session; `#EF4444` is cancel/delete and nothing else.
@@ -66,8 +66,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 ## Version History
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules in force live in TRAPS / CONVENTIONS, never here.
 
-- **v2.18.0** (08-21) — the Dashboard rebuilt in the plate and the bar; bundled type; measured contrast ramps. → `v2.18.md`
-- **v2.17.0** (08-21) — skins replace the dark/light pair; `.theme-light` → `[data-skin="steel"]`. → `v2.17.md`
+- **v2.17–v2.18** (08-21) — skins replace dark/light; the Dashboard rebuilt in the plate and the bar; bundled type. → `v2.17.md`, `v2.18.md`
 - **v2.19.0–.1** (08-22) — the shell and shared primitives on tokens; 70 steel overrides retired; fill means press. → `v2.19*`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
@@ -98,6 +97,8 @@ Full write-ups in **`docs/traps.md`** — read the relevant one first. Index:
 **Refactoring** — a string only reachable BEFORE login is invisible to a rename sweep (the v2.15.0 token screen) — grep all of `src/`, not the screens you can open · **reusing a control class inherits the size its ORIGINAL content needed** (`.lang-toggle`'s 36px cells overlapped the skin names for two releases) — new content shape ⇒ modifier class, and OPEN the screen · grep EVERY read and write when moving a storage location · a renamed catalog key silently kills `|| CATALOG.oldKey` fallbacks (property refs don't match string greps) · re-read a helper's fallback contract before guarding its return; "did the world change" checks read LIVE state and compare stable IDs · `parseSessionCountOverride` returns `{ type, value }`, not `.mode` · legacy `periodLength` was the billing master switch, not `periodStart`.
 
 **Correctness across screens** — a pre-action badge and a post-action badge in one flow must use the same helper (the "(0) → #1" confusion) · synthetic fixtures model what you designed, live data holds what shipped: diff counting/date-resolution/migration changes against the archived snapshot first, and re-read the OLD code exactly when writing a migration.
+
+**Device-only bugs** — 🔴 **never style a scrollbar in a touch app**: a styled webkit scrollbar opts out of the platform's auto-hide, so it becomes a permanent bright rule down the screen (v2.20.1, invisible in a desktop browser).
 
 **Tooling** — 🔴 the Android build needs **JDK 21** (`JAVA_HOME='/c/Program Files/Microsoft/jdk-21.0.12.8-hotspot'`); PATH java here is Temurin 8, and **`gradlew` exits 0 on a FAILED build**, leaving the previous AAB in `outputs/` — a stale bundle then uploads and Play rejects it as "version code already used". Verify the versionName INSIDE the .aab, never the exit code · `fixForFileProtocol` must use *function* replacement (a string breaks React's minified `$&`) · **PS 5.1 `Get-Content`/`Set-Content` mangles UTF-8** (ANSI default corrupts em-dashes, emoji and all Arabic) — use the **Edit tool**, never round-trip source through a PowerShell pipeline.
 

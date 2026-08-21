@@ -80,8 +80,14 @@ button:active { transform: scale(0.97); }
 .btn-secondary:active, .btn-ghost:active, .btn-danger-sm:active, .btn-icon:active {
   background: var(--raised);
 }
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-thumb { background: var(--bar); border-radius: 4px; }
+/* 🔴 NO CUSTOM SCROLLBAR. Pierre, 2026-08-22, on a real phone: "there is a line
+   around with the missing left side. Something weird." That line was three
+   different things reading as one box — the header's bottom shaft, the nav's top
+   shaft, and THIS: a styled 4px thumb in --bar running the full height of the
+   content. A styled webkit scrollbar does not auto-hide the way the platform's
+   overlay one does, so on a touch device it is a permanent bright border down
+   the right edge. Width 0 gives the platform its own overlay back. */
+::-webkit-scrollbar { width: 0; height: 0; }
 
 @keyframes slideUp {
   from { transform: translateY(100%); opacity: 0; }
@@ -1135,9 +1141,9 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 .load-cols { flex: 1; display: flex; align-items: flex-end; gap: 6px; }
 .load-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 /* column-reverse: the stack loads from the bar upward, the way plates go on */
-.load-stack { display: flex; flex-direction: column-reverse; gap: 3px; min-height: 9px; width: 100%; }
+.load-stack { display: flex; flex-direction: column-reverse; gap: 2px; min-height: 7px; width: 100%; }
 .load-seg {
-  width: 100%; height: 9px; border-radius: 1px;
+  width: 100%; height: 7px; border-radius: 1px;
   background: var(--chalk-faint);
   transform-origin: bottom;
   animation: plateOn 0.22s ease-out both;
