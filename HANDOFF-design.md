@@ -1,6 +1,6 @@
 # SpotSet — The Design Pass (Task B) HANDOFF
 
-**Last updated:** 2026-08-22 ~01:4x, Beirut.
+**Last updated:** 2026-08-22 ~03:0x, Beirut.
 **To resume:** Pierre types `continue` or `design`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -16,13 +16,17 @@ the safety net, never the trigger.
 
 ## 0. Status — read this out
 
-- ✅ **v2.18.0 IS LIVE** (Pages build verified `built`, `v2.18.0` served). **Stage 2 of the design
-  pass: the Dashboard rebuilt in the plate and the bar.** The card is deleted, the week is seven
-  loaded columns, a package is plates, type is Saira Condensed / Saira / IBM Plex Mono (bundled).
-  `DATA_VERSION` stays 6, presentation only. Detail: `docs/instructions-v2.18.md`.
-- **NEXT ACTION: pick the next screen and give it its own pass** — Schedule is the natural one
-  (it shares the session row and still renders `.card`). 🔴 **Never a big-bang restyle**, and
-  `[data-skin="steel"]`'s per-element overrides retire as each screen is rebuilt.
+- ✅ **v2.19.0 IS LIVE** (Pages `built`, `v2.19.0` served). **Stage 3: the shell and the shared
+  primitives joined the language** — Pierre's read on v2.18 was *"the landing page is very designed,
+  but the rest are still the same."* `.card` is a row everywhere, the chrome is on tokens, the
+  active tab is chalk, emoji left the interface, and **70 steel per-element overrides retired**.
+  Detail: `docs/instructions-v2.19.md`.
+- **NEXT ACTION: the screens that were never opened in this pass** — the program viewer/setup and
+  the evaluation screens. They inherit the primitives but their own layouts have not been judged.
+  After that, the three specs still queued: **the movement library, the exercise figures, the logo**.
+- **The distinction that made stage 3 legal, and it must survive:** *one screen per pass* forbids
+  rebuilding five screens' MARKUP at once. Moving VALUES and TYPE onto classes that already exist is
+  a different, verifiable-in-a-browser thing. Do not read stage 3 as permission for the first.
 - 🔴 **Contrast is measured against BOTH ends of the ground gradient, never eyeballed.** The first
   stage-2 pass shipped a steel ramp at 1.4–2.7:1 — invisible, and only for the users who picked
   steel. The steel ground was lightened to a daylight value and both ramps re-derived.
