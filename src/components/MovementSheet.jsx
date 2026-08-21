@@ -3,6 +3,7 @@ import Modal from './Modal';
 import { EXERCISES, MUSCLE_GROUPS } from '../exerciseBank';
 import { exNameAr } from '../exerciseNamesAr';
 import { t, muscleLabel } from '../i18n';
+import Figure from './Figure';
 
 // ─── The movement sheet (v2.21, feature B1) ──────────────────────────────────
 //
@@ -19,10 +20,13 @@ import { t, muscleLabel } from '../i18n';
 //    and a review process, and none of those exist. Elie is the source of
 //    coaching content, not this component.
 //
-// 🔴 THE FIGURE GOES HERE LATER (spec §10 item 2, and Pierre's chosen route:
-//    generate, "without stiffness"). Deliberately NOT stubbed with an empty box
-//    — a placeholder that looks broken is worse than a sheet that is complete
-//    for what it currently knows.
+// 🔴 THE FIGURE ARRIVED IN v2.22 (B2) and it is the ONE exception to the rule
+//    above — because it is not invented. `<Figure>` renders only for the six
+//    movements in src/figures/poses.js and returns null for the other 334, so a
+//    sheet without one is exactly the sheet that shipped in v2.21. The cues it
+//    carries come from src/figureText.js, which is versioned, per-movement and
+//    flagged `reviewed: false` until Elie has read it — an owner and a review
+//    process, which is precisely what the rule above was waiting for.
 
 // The bank stores the raw English name; Arabic is a lookup that can miss (a new
 // bank version may ship before its translations). Show BOTH when they differ,
@@ -53,6 +57,10 @@ export default function MovementSheet({ name, lang, onClose }) {
         </div>
       ) : (
         <>
+          {/* The figure leads: a lifter reading a movement mid-session wants
+              to see the shape before they read its classification. */}
+          <Figure name={ex.name} lang={lang} />
+
           <div className="subbar">{t(lang, 'muscles')}</div>
           <div className="mv-muscles">
             {/* The primary muscle leads and is marked — it is what the movement

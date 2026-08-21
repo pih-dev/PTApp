@@ -4,6 +4,57 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.22.0 — the exercise figures, route A proven on six movements (2026-08-22)
+
+**B2 step 1** of `HANDOFF-figures.md`: one movement per bucket, both figures, both
+skins, judged at full size and at 16px before anything scales.
+
+**Route A chosen and built — parametric SVG authored in code.** `src/figures/`:
+`canon.js` owns the 7.5-head canon and the ONLY forward-kinematics function;
+`render.js` sweeps variable-width ribbons along centripetal Catmull-Rom splines
+through each joint chain (bones subdivided at their midpoint so the curvature
+concentrates at the joint instead of bowing the whole limb into a noodle);
+`svg.js` is the single serialiser, shared by the app and by the judging harness
+so we can never review a drawing we do not ship; `poses.js` holds the six pairs.
+
+🔴 **A pose can supply ANGLES ONLY.** That is what enforces brief §7.13's rule —
+the wrong figure reuses the same bone lengths — by construction rather than by
+discipline at 340 future call sites. `fs` (projection scale) is the one escape
+hatch and `sanity-figures.mjs` asserts it is identical across a pair.
+
+**Three findings from the pilot, all of them geometric:**
+1. **A front view foreshortens the femur, which re-creates the infant ratio.**
+   The squat at `fs.thigh 0.53` read as a toddler. Front-view poses are now drawn
+   at the shallowest depth that still shows the fault.
+2. **The moment matters more than expected.** A deadlift drawn at the floor puts
+   the torso and the femur at nearly the same angle and folds into an unreadable
+   wedge; drawn as the bar passes the knee the hinge is unmistakable — and that
+   is also where a back actually rounds.
+3. **The lateral offset must rotate ONLY in a front view.** In a side view it is
+   a depth cue pointing out of the page; rotating it with the spine swung the far
+   arm backwards along the lean and hung a stray flipper off every hinge.
+
+**The bench press is deferred, and the reason is recorded** (`poses.js` §3,
+HANDOFF-figures §11): elbow flare is out-of-plane for a profile camera, and the
+honest fix — per-pose out-of-plane foreshortening — would differ between the two
+halves of one pair and therefore break §7.13. `Chest Press Machine` carries the
+horizontal-press bucket meanwhile.
+
+**Clinical text: `src/figureText.js`**, per-movement, EN+AR, `reviewed: false`,
+`FIGURE_TEXT_VERSION` 1. Read through `figureText()` and NOT through `t()` — `t()`
+returns the key on a miss and would print `flawBackSquat` to a member mid-set.
+
+**Integration:** `components/Figure.jsx` renders the pair plus the three
+sentences and returns null for the 334 movements without one, so `MovementSheet`
+is unchanged for them — no placeholder, per HANDOFF §8. Styles are `.fig-*` in
+`styles.css`, painting from `currentColor` with `--anatomy` for the fault marker;
+`sanity-figures.mjs` fails the build on any colour literal inside a figure.
+
+**Cost:** bundle 614 → 646 KB for the engine, six pairs and the bilingual text.
+`DATA_VERSION` unchanged at 6 — figures read nothing and write nothing.
+
+---
+
 ## v2.21.1 — the purple line, and General reordered (2026-08-22)
 
 Pierre, with a screenshot of the Schedule tab. `Schedule.jsx` still painted

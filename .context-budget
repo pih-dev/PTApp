@@ -18,5 +18,10 @@
 # and routing them would mean a session repaints a screen without ever reading
 # them. ~1 KB of genuinely new law, bought deliberately.
 
-CLAUDE.md=24000
+# 26 KB from 2026-08-22 (v2.22): the figures are a new SUBSYSTEM, not a screen —
+# a pose file, a canon, a serialiser and four geometric traps that a session will
+# hit the first time it draws a movement. Routing them would mean drawing 334
+# figures without ever reading them (hygiene rule 4). ~1.2 KB, bought deliberately.
+
+CLAUDE.md=26000
 MEMORY.md=12000

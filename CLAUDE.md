@@ -24,7 +24,7 @@ on these keywords — don't open them yourself, and never answer from recollecti
 | colour, color, palette, theme, skin, skins, typography, look and feel | `docs/design-system.md`, `docs/design/2026-08-21-design-differentiation-brief.md` |
 | data size, ceiling, pruning, overhead, performance budget, how big | `docs/app-health.md` |
 | sync, syncing, offline, service worker, localStorage, stale device | `docs/sync-and-offline-review.md`, `docs/superpowers/specs/2026-04-13-sync-fix-design.md`, `docs/instructions-v2.6.md` |
-| figures, silhouette, drawing, anatomy, movement figure | `HANDOFF-figures.md` — B2: the brief, Pierre's prompt template, the clinical-text decision |
+| figures, silhouette, drawing, anatomy, movement figure, pose, canon | `HANDOFF-figures.md` (state + what is deferred), `docs/instructions-v2.22.md` (how the engine works). Code: `src/figures/` — **the pose files are the record; a figure is angles, never coordinates** |
 | Elie, the PT, next visit, standing authority, governance, snapshot | `docs/elie-next-visit.md` |
 | health check, sanity suite, live diff, spent gate, MEMORY.md size | `docs/health-check-2026-08-03.md` |
 | deploy, gh-pages, pages build, release hygiene, review discipline | `docs/release-hygiene.md` — the 7-step pipeline, the Jun 11 Pages race, the spent gates |
@@ -44,10 +44,12 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.21.1
-**The movement library (B1) — the first new capability since v2.14 (08-22).** A movement name is no longer a dead end: tappable in the program viewer, plus a searchable library in General. `DATA_VERSION` stays 6 (reads the frozen bank, writes nothing). Detail: `docs/instructions-v2.21.md`, `-v2.21.1.md`. General's order is **toggles → reference → housekeeping** (Pierre, 08-22). Palette/type rules: CONVENTIONS → *Colour, type & badges*.
-- 🔴 **THE MOVEMENT SHEET SHOWS ONLY WHAT THE BANK KNOWS** — name/muscles/type/slot/advanced. **No cues, no rep advice, no tips**: coaching content needs an owner and a review process, and that is Elie, not a component. The figure lands here later.
-- **Bilingual search folds through `normaliseSearch` (`utils.js`) on BOTH sides** — typed Arabic differs from written Arabic (harakat, tatweel, alef/ya/ta-marbuta) invisibly, and `includes()` fails on it. `muscleLabel`/`MUSCLE_AR` in `i18n.js` own muscle names; `t()` returns the KEY on a miss, so never use it for data labels.
+## Current Version: v2.22.0
+**The exercise figures (B2) — the pilot six (08-22).** Six movements open with a FORM panel: the pair (correct + the same body with one fault, ringed on the joint that takes it) and three sentences. `DATA_VERSION` stays 6. Detail: `docs/instructions-v2.22.md`; thread: `HANDOFF-figures.md`.
+- 🔴 **A FIGURE IS ANGLES, NEVER COORDINATES** — `src/figures/canon.js` owns every bone length and the only FK function, so brief §7.13 (*the wrong figure reuses the same bone lengths*) holds **by construction**. `fs` (projection) is the one escape hatch and must be IDENTICAL across a pair; `sanity-figures.mjs` asserts it, plus no colour literal, no NaN path, hip at half standing height.
+- 🔴 **THE MOVEMENT SHEET STILL SHOWS ONLY WHAT HAS AN OWNER.** The v2.21 ban on invented cues stands; `src/figureText.js` satisfies it — per-movement, EN+AR, `reviewed: false` until Elie reads it, movement-level mechanism only (never about a person, never a prescription). Read it via `figureText()`, **never `t()`** (returns the KEY on a miss).
+- **`--anatomy` is now in use and still UI-forbidden.** Figures paint from `currentColor`; the fault marker is the only `--anatomy`. **The bench press is deferred on purpose** — elbow flare is out-of-plane for a profile camera (`poses.js` §3).
+- **Bilingual search folds through `normaliseSearch` (`utils.js`) on BOTH sides** — typed Arabic differs from written Arabic (harakat, tatweel, alef/ya/ta-marbuta) invisibly, and `includes()` fails on it. `muscleLabel`/`MUSCLE_AR` in `i18n.js` own muscle names.
 - **Sub-section scale: `.subbar` (the bar inside a card/modal) · `.lrow` (the row it divides) · `.num` (mono digits inside a sentence).** A bold body heading is not a bar; a 1px `--sep` hairline is the retired trait.
 - 🔴 **`.card` IS A ROW** — transparent, no border/shadow, a 2px `--bar` shaft under it. **A real container is `.panel`**; `.srow`/`.bar`/`.plates` are the Dashboard's richer idiom.
 - 🔴 **SELECTION IS CHALK · LOAD IS THE ACCENT · RED IS DESTRUCTIVE ONLY** · 🔴 **NO EMOJI IN THE INTERFACE** (WhatsApp templates keep theirs — the client reads those).
@@ -68,6 +70,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules in force live in TRAPS / CONVENTIONS, never here.
 
 - **v2.17–v2.20.1** (08-21/22) — THE DESIGN PASS, five stages: skins, the Dashboard, the shell and shared primitives, the deep screens, press affordance. Rules in force live in CONVENTIONS/TRAPS. → `v2.17`…`v2.20.1`
+- **v2.21–v2.21.1** (08-22) — the movement library: a movement name is tappable, plus a searchable library in General; General's order is toggles → reference → housekeeping. → `v2.21`, `v2.21.1`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
@@ -99,6 +102,8 @@ Full write-ups in **`docs/traps.md`** — read the relevant one first. Index:
 **Refactoring** — a string only reachable BEFORE login is invisible to a rename sweep (the v2.15.0 token screen) — grep all of `src/`, not the screens you can open · **reusing a control class inherits the size its ORIGINAL content needed** (`.lang-toggle`'s 36px cells overlapped the skin names for two releases) — new content shape ⇒ modifier class, and OPEN the screen · grep EVERY read and write when moving a storage location · a renamed catalog key silently kills `|| CATALOG.oldKey` fallbacks (property refs don't match string greps) · re-read a helper's fallback contract before guarding its return; "did the world change" checks read LIVE state and compare stable IDs · `parseSessionCountOverride` returns `{ type, value }`, not `.mode` · legacy `periodLength` was the billing master switch, not `periodStart`.
 
 **Correctness across screens** — a pre-action badge and a post-action badge in one flow must use the same helper (the "(0) → #1" confusion) · synthetic fixtures model what you designed, live data holds what shipped: diff counting/date-resolution/migration changes against the archived snapshot first, and re-read the OLD code exactly when writing a migration.
+
+**Figures (`src/figures/`)** — a front view foreshortens the femur, which re-creates the **infant ratio** §7.13 bans: draw a front pose at the shallowest depth that still shows the fault · **choose the moment or the pose is unreadable** — a deadlift at the floor puts torso and femur at the same angle and folds into a wedge; past the knee the hinge is obvious · the lateral offset rotates with the spine **only in a front view** (in profile it is depth, out of the page — rotating it hangs a stray arm off every hinge) · subdivide each bone at its midpoint before splining, or the limb bows into a noodle.
 
 **Device-only bugs** — 🔴 **never style a scrollbar in a touch app**: a styled webkit scrollbar opts out of the platform's auto-hide, so it becomes a permanent bright rule down the screen (v2.20.1, invisible in a desktop browser).
 

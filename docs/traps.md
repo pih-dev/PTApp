@@ -525,3 +525,46 @@ as the v2.15.0 pre-login trap: the bug lives on a surface the sweep never opened
 
 **Generalises to:** any shared chip/segment/button class taking new labels, and every translated
 string — the Arabic label for the same control is rarely the same width as the English one.
+
+---
+
+## Figures — the four geometric traps (v2.22, `src/figures/`)
+
+**1. A front view foreshortens the femur, and that re-creates the infant ratio.**
+The pilot squat was first drawn at `fs.thigh 0.53` (a deep, honest projection of the
+femur pointing at the camera). The result read as a toddler — a long torso on stub
+legs, which is *exactly* the failure brief §7.13 was written against, arriving through
+a door nobody was watching. **A front-view pose is drawn at the shallowest depth that
+still shows the fault**, never at the deepest depth the lift reaches. Foreshortening is
+honest perspective and the ratio is a hard rule; when they conflict, the ratio wins and
+the moment moves.
+
+**2. Choose the moment or the pose is unreadable.** A deadlift drawn at the floor puts
+the torso and the femur at nearly the same angle; the figure folds into a wedge and a
+reader cannot tell a hinge from a crouch. Drawn as the bar passes the knee, the torso is
+~51° and the femur ~25°, the hinge is unmistakable — and it is also the moment where a
+back actually rounds under load. §7.13's "draw the moment where the error lives" is not
+just about teaching; **it is often the only readable pose**.
+
+**3. The lateral offset rotates with the spine ONLY in a front view.** In a front view
+the left-right axis lies in the picture and must turn with the body — that is what makes
+a supine figure seen from above work at all. In a *side* view that axis points out of the
+page: the small near/far offset is a depth cue, not anatomy. Rotating it there swung the
+far shoulder backwards along the lean and hung a stray flipper off the hip of every hinge
+in the pilot. One `view === 'front'` test in `canon.js`; both halves are load-bearing.
+
+**4. Subdivide each bone before splining, or the limb becomes a noodle.** A Catmull-Rom
+run straight through hip → knee → ankle bows away from both bones and spreads curvature
+along the whole leg. Inserting a control point at the midpoint of each bone pins the curve
+to the bone line and concentrates the bend at the joint. That one trick is the difference
+between "anatomical" and "inflatable" — and it is what makes *curves not hinges* (§7.9)
+produce a body rather than a balloon animal.
+
+**And the one that is not geometry: elbow flare cannot be drawn in profile.** Flare is
+abduction, which happens in the plane a side-on camera is looking down; a 45° tuck and a
+90° flare project to nearly the same picture. Drawn from above they are unmistakable but
+the legs run away from the camera and the figure stops belonging to the set. Both were
+built and both rejected, which is why the flat barbell bench press is **deferred** and the
+horizontal-press bucket is carried by `Chest Press Machine`. The honest fix — per-pose
+out-of-plane foreshortening — would differ between the two halves of one pair and so
+breaks the rule in trap 1's family. That decision is open: `HANDOFF-figures.md` §11.

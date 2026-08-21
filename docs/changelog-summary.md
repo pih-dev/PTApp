@@ -4,6 +4,30 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.22.0 — the exercise figures arrive (August 22, 2026)
+
+Six movements now show you the form, not just the facts. Open Back Squat,
+Deadlift, Chest Press Machine, Pull-Up, Barbell Curl or Leg Press and the sheet
+opens with two drawings side by side: the lift done right, and the same body
+doing the same lift with one specific thing wrong, with an orange ring on the
+joint that pays for it. Under them, three sentences — what the fault is, what it
+is known to risk, and the one cue that fixes it. In Arabic too.
+
+The drawings are not pictures. Every figure is a list of joint angles against one
+shared skeleton, so all 340 movements will end up with the same proportions and
+the same weight of line — and the whole thing costs about 32 KB. They also take
+their colour from whichever theme you are on, so they will work on themes that
+do not exist yet.
+
+The flat barbell bench press is deliberately missing: its main fault is the
+elbows flaring, which a side-on drawing physically cannot show. The machine
+chest press carries that slot until that is solved.
+
+Nothing else changed, and the other 334 movements look exactly as they did —
+these six are a pilot to be judged before the rest are drawn.
+
+---
+
 ## v2.21.1 — the purple line, and General reordered (August 22, 2026)
 
 The line you saw down the left of the schedule was the session-type colour still

@@ -1361,6 +1361,41 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 .mv-key { font-size: 13px; color: var(--chalk-dim); }
 .mv-val { font-size: 13px; color: var(--chalk); font-weight: 600; }
 
+/* ─── The form panel (v2.22, B2 — the exercise figures) ───
+   🔴 THE FIGURE PAINTS FROM `color`, NOT FROM A FILL. Every path inside the SVG
+      is currentColor, so the whole system inherits the skin by doing nothing —
+      which is why there is not one colour literal in src/figures/. The single
+      named token is --anatomy, and the figures are the only place it is legal.
+   🔴 The pair is side by side at EQUAL width on every screen size. Stacking
+      them or shrinking one would let a reader take the wrong figure for the
+      reference, which is the one failure this panel cannot have. */
+.fig-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 2px 0 8px; }
+.fig-cell { margin: 0; }
+.fig-art { color: var(--chalk); }
+.fig-art svg { width: 100%; height: auto; display: block; }
+.fig-cap {
+  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--chalk-dim); text-align: center; margin-top: 2px;
+}
+/* The fault caption is the one place --anatomy touches type, and it is still
+   inside the figure block rather than in the chrome. */
+.fig-cap-fault { color: var(--anatomy); }
+/* Arabic has no case and letter-spacing breaks its joins — the same rule as
+   every other display label in the app. */
+[dir="rtl"] .fig-cap { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
+
+.fig-text { margin: 2px 0 6px; }
+.fig-text p { margin: 0 0 6px; font-size: 13px; line-height: 1.5; color: var(--chalk-dim); }
+.fig-text p:last-child { margin-bottom: 0; }
+.fig-lead {
+  font-family: var(--font-display); font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--chalk);
+}
+[dir="rtl"] .fig-lead { letter-spacing: 0; text-transform: none; font-family: var(--font-body); font-weight: 700; }
+/* The cue is what a lifter acts on between sets, so it reads at full strength
+   while the explanation behind it stays secondary. */
+.fig-cue { color: var(--chalk) !important; }
+
 /* ─── Renewal rows: the same row, with every plate on the accent ─── */
 .rrow {
   display: flex; align-items: center; gap: 12px;

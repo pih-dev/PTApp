@@ -14,33 +14,25 @@ at each milestone. A restart could end the session at any moment.
 
 ## 0. Status — read this out
 
-- **Nothing is built yet — this is the brief; the next session builds.** The app is at **v2.21.1** and the movement
-  sheet (`src/components/MovementSheet.jsx`) is the place a figure will land — deliberately not
-  stubbed, so nothing looks broken while this is pending.
-- 🔴 **BUILD IT. Pierre cleared the way on 2026-08-22:** *"regarding start explicitly drawing, those
-  are… don't worry about that. We are on the same page you and I… Let's go ahead with this."*
-  **The next session starts the figures** — no further permission needed. His ideas will arrive as
-  he has them; they refine the work, they do not gate it.
-- **Route chosen: GENERATE**, with his caveat — *"we don't want stiffness."* That caveat is the
-  entire technical problem (§3).
-- **Line drawings are OUT.** *"The line draw is probably out. Those silhouettes are amazing."*
-  The reference read (§2) already pointed the same way: solid silhouettes hold up at small size,
-  outlines do not.
-- **He supplied a prompt template** (§4, verbatim) as **a suggestion, not a spec** — his framing:
-  *"that prompt is a suggestion I told you."* Use it as input alongside §1–§3.
-- 🔴 **THE INJURY TEXT IS IN — RULING 2026-08-22, and my earlier caution is SUPERSEDED.** Pierre:
-  *"I think you got freaked out by the medical term… you can check the potential clinical injury
-  documented for those specific moves. Those are known moves… so we should build this library. Of
-  course, later on I go through them."* **These are documented facts about well-known lifts, not
-  invented diagnoses.** Draw them from established knowledge, keep them plain, and Elie/Pierre
-  review the set afterwards. See §5 for the shape that keeps that review possible.
-- ✅ **He endorsed the colour call** — the asset stays skin-agnostic (§6).
-- **One open question left** (§7): all 340 get a wrong-figure pair, or only the movements where a
-  fault is common. It is the cost driver — decide it early, but it does not block starting.
-- **Model:** Opus 5 at **xhigh** for the biomechanics — which fault, which joint, which moment.
-  See §9 for what that does and does not cover, and the honest answer on external services.
-
----
+- 🟢 **BUILT AND SHIPPED — v2.22.0, the pilot six.** Back Squat · Deadlift · Chest Press Machine ·
+  Pull-Up · Barbell Curl · Leg Press. Each has the pair (correct + one fault, ringed on the joint
+  that takes it) and three sentences — the fault, the risk, the cue — in English and Arabic.
+  Live on gh-pages. The other 334 movements are untouched: no figure, no placeholder.
+- **Route A won and is proven.** A figure is a list of joint ANGLES against one skeleton
+  (`src/figures/`), so the canon and the pair rule hold by construction rather than by discipline.
+  **Cost: ~32 KB for the engine, six pairs and all the bilingual text** — the size argument for
+  route A turned out to be even stronger than the handoff estimated.
+- 🔴 **THE NEXT MOVE IS PIERRE'S JUDGEMENT, NOT MORE DRAWING.** §9 step 1 said: build six, then
+  judge. They are built. **Nothing scales until he has looked.** `node scripts/figures-preview.mjs`
+  → `tmp/figures-preview.html` shows all six pairs on both skins at full size and at 16/24/48px.
+- **The flat barbell bench press is DEFERRED, deliberately, and §11 records why** — elbow flare is
+  out-of-plane for a profile camera. It is the one open design question the pilot produced.
+- **The 16px mark renders but nothing uses it yet.** It goes in with the Schedule layout pass, where
+  list rows are already being touched (that pass also owns review finding P3).
+- **The clinical text is IN and every entry is `reviewed: false`.** `src/figureText.js`, keyed by
+  movement. Elie and Pierre go through them; a correction is a one-line edit. §5 is unchanged.
+- **The traps this pilot produced are written up** — `docs/traps.md` → *Figures — the four geometric
+  traps*, and indexed in CLAUDE.md's TRAPS block. Read them before drawing movement seven.
 
 ## 1. What is already decided, and where it is written
 
@@ -242,3 +234,42 @@ single-joint arm movement, a machine movement). For each: the blueprint at xhigh
 moment, muscles, cue, EN+AR) and both figures rendered in the movement sheet, on both skins, at full
 size and at 16px. **Then judge.** If those six do not look like they belong to one library and to
 this app, nothing is scaled — the route changes instead.
+
+---
+
+## 11. The bench press, and the one open design question
+
+**The problem, stated exactly.** The flat barbell bench press's defining fault is elbow FLARE.
+Flare is abduction: it happens in the frontal plane, which a profile camera is looking down. Drawn
+from the side, a 45° tuck and a 90° flare project to nearly the same picture — so the pair would
+teach nothing, which is the only thing a pair exists to do.
+
+**Both alternatives were built and both were rejected:**
+
+| Attempt | Why it failed |
+|---|---|
+| **Side view, arm angles adjusted** | The fault is invisible. Worse, reaching a bar that sits *above* the shoulder at the bottom of the press is geometrically impossible in-plane with a 2.6-head arm — the elbow has to leave the page, which is the same problem wearing a different hat |
+| **View from above** (a front-view skeleton rotated a quarter turn — the rig handles it) | The flare reads perfectly. But the legs run away from the camera and need heavy foreshortening, the bench becomes a slab across the middle of the cell, and the figure stops belonging to a set of five upright ones. Coherence is the library's hardest constraint and this spends it |
+
+**The honest fix, and why it is a DECISION and not a task:** give the pose per-bone out-of-plane
+foreshortening — the humerus at 45° of abduction projects to ~0.75 of its length, at 90° to ~0.3.
+That draws both figures correctly in profile. **But it means the two halves of one pair have
+different `fs`, which is exactly what §7.13 forbids and what `sanity-figures.mjs` currently fails
+the build on.** The rule as written protects against a bone-length change smuggled in as art
+direction; this would be a bone-length change smuggled in as honest perspective. The two are
+indistinguishable to the sanity check and, more importantly, possibly indistinguishable to a reader.
+
+**Three ways out, in the order I would try them:**
+1. **Allow it, narrowly.** Permit differing `fs` only when the pose declares `outOfPlane: true` with
+   the abduction angle it is modelling, and have the sanity script assert the 3D length instead of
+   the 2D one. Honest, checkable, ~30 lines. The risk is that "the fault changed the projection" is
+   a door that will be pushed open for faults that did not.
+2. **Draw the bench press from above and accept it as its own family.** Every supine press would use
+   the top view — bench, incline, dumbbell, machine — so it reads as a deliberate convention rather
+   than one odd figure. Costs the most drawing.
+3. **Leave it deferred.** `Chest Press Machine` covers the bucket; the barbell bench press keeps a
+   sheet with no figure, exactly like the other 334. Costs nothing and loses the gym's most-used
+   movement from the library.
+
+**No decision is needed to keep going** — every other pressing movement with a sagittal fault can be
+drawn today. This blocks the bench press and nothing else.
