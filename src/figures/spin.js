@@ -132,15 +132,19 @@ export function spinEquip(pose, theta, gear, anchor) {
     const grip = {
       x: (sk.wristN.x + sk.handN.x) / 2, y: (sk.wristN.y + sk.handN.y) / 2, z: 0,
     };
-    const HALF = 230, PLATE_R = 90, plateIn = 36;
+    // Pierre's model of the object (voice note, 08-22): "it's a bar — an axis,
+    // and there are bells at the ends, like SPHERES." A sphere projects to a
+    // circle from every angle, which solves two judged defects at once: the
+    // 90° bar no longer loses its ends, and the 0° view stops pretending to
+    // be a flat plate. r stays constant through the whole turn.
+    const HALF = 230, BELL_R = 62;
     const a = pr({ ...grip, z: -HALF }), b = pr({ ...grip, z: +HALF });
-    if (Math.hypot(b.x - a.x, b.y - a.y) > 8) out.push({ k: 'bar', a, b, w: 10 });
-    // A plate's face points along the bar: face-on at 0° (the authored disc),
-    // a sliver at 90°. Projected as a circle whose radius carries the cosine.
-    const r = Math.max(12, PLATE_R * Math.abs(Math.cos(t)));
-    for (const zz of [-(HALF - plateIn), HALF - plateIn]) {
+    if (Math.hypot(b.x - a.x, b.y - a.y) > 8) out.push({ k: 'bar', a, b, w: 10, z: (a.z + b.z) / 2 });
+    for (const zz of [-(HALF - 30), HALF - 30]) {
       const c = pr({ ...grip, z: zz });
-      out.push({ k: 'circle', x: c.x, y: c.y, r });
+      // Each bell carries its own depth so the renderer can paint the near one
+      // OVER the hand — judged defect: "it looks like the sphere is transparent".
+      out.push({ k: 'circle', x: c.x, y: c.y, r: BELL_R, z: c.z });
     }
   }
 

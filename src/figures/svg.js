@@ -58,7 +58,15 @@ let uid = 0;
 //            never separately — that is what keeps 340 movements one family).
 export function figureSvg(pose, { detail = 'full', title = '', className = '', mix = 0, sk, equip } = {}) {
   const f = buildFigure(pose, mix, sk);
-  if (equip) f.equip = equip;   // round-4 prototype: pre-rotated 3D equipment
+  // Round-4 prototype: pre-rotated 3D equipment, depth-split. An item whose z
+  // says it is nearer the camera than the body paints OVER the body — at 0°
+  // the near bell of a barbell covers the hand gripping it, which is what
+  // stops it reading as transparent. Items without z keep today's behaviour.
+  let equipFront = null;
+  if (equip) {
+    equipFront = equip.filter(e => (e.z || 0) > 30);
+    f.equip = equip.filter(e => (e.z || 0) <= 30);
+  }
   const mark = detail === 'mark';
   const id = `fg${++uid}`;
   // Held versus lost, and the hue carries it. v2.24, Pierre's ruling: the
@@ -111,6 +119,11 @@ export function figureSvg(pose, { detail = 'full', title = '', className = '', m
       f.fault.length
         ? `<g clip-path="url(#${id})" fill="var(--anatomy)" opacity="0.8">${f.fault.map(m => `<circle cx="${r(m.x)}" cy="${r(m.y)}" r="${r(m.r)}"/>`).join('')}</g>`
           + `<g fill="none" stroke="var(--anatomy)" stroke-width="7" opacity="0.85">${f.fault.map(m => `<circle cx="${r(m.x)}" cy="${r(m.y)}" r="${r(m.r + 12)}"/>`).join('')}</g>`
+        : '',
+      // The near-camera equipment, over everything: the hand goes BEHIND the
+      // bell that is in front of it.
+      equipFront && equipFront.length
+        ? `<g fill="var(--equipment)" opacity="0.95">${equipMarkup(equipFront)}</g>`
         : '',
     ].join('');
 
