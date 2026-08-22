@@ -39,7 +39,12 @@ at each milestone. A restart could end the session at any moment.
      on the figure block — it is its own non-scrolling surface; the sheet scrolls from the text
      below. Also fixed from mobile-UX review: cancelled pointers no longer count as taps, and pan
      is clamped so the art can never leave the box. **Needs his thumb on a real phone.**
-  3. **The equipment should ROTATE with the figure, not swap** at the halfway point.
+  3. **The equipment should ROTATE with the figure, not swap** at the halfway point. *(Re-confirmed
+     live by Pierre on v2.24 day — still round-4 territory, same as free 360° rotation.)*
+  3b. 🔴 **COLOUR RULING (Pierre, live, 2026-08-22 evening): GREEN = correct posture line (--ok),
+     BLUE = equipment only, ORANGE = stress/fault.** Shipped in v2.24. Orange on the fault half
+     means "wrong AND loads the joint"; different muscles alone mean "different movement, not
+     necessarily dangerous". Keep the three roles distinct in every future change.
   4. ✅ **DONE 2026-08-22 (CCHealth session)** — `--equipment` token added to both skins
      (midnight `#6E9BD8`, steel `#33598F`), equipment paints from it at 0.6 opacity, token
      added to `sanity-skins.mjs`. Marks (list-size) stay currentColor silhouettes.
