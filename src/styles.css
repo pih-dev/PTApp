@@ -1710,6 +1710,85 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
    (see src/skins.js). These per-element overrides are inherited debt from the
    dark/light era and they are retired screen by screen as each one is rebuilt
    on the tokens, starting with the Dashboard. Do NOT add more of them. */
+/* ─── NEEDLE (v2.34) — two skins from one direction ──────────────────────────
+   Pierre's gym, photographed 2026-08-22: black tile, charcoal ceiling, bright
+   white LED strips, and Precor machines in grey/silver WITH CYAN ACCENTS.
+   🔴 That is the finding. Midnight-and-arc is the same palette as the equipment
+   it sits next to, so the app disappears into the machine. Needle is derived
+   from the split-second stopwatch instead — warm soot face, aged-lume numerals,
+   one signal-orange needle — a class of object built to be read fast under
+   pressure, which travels to any gym. The rejected direction ("take the colour
+   from this room", plate yellow) died on Pierre's own observation: there is no
+   ONE room. Hundreds of users, hundreds of setups.
+   Full reasoning: docs/instructions-v2.34.md. */
+[data-skin="lume"] {
+  color: var(--chalk);
+  --t1: rgba(237,228,206,0.92);
+  --t2: rgba(237,228,206,0.74);
+  --t3: rgba(237,228,206,0.64);
+  --t4: rgba(237,228,206,0.54);
+  --t5: rgba(237,228,206,0.44);
+  --sep: rgba(237,228,206,0.08);
+  --card-bg: rgba(237,228,206,0.05);
+
+  /* Warm soot, not blue-black: the blue cast is what reads as "generated dark
+     mode", and a real dial face was never blue. */
+  --ground: #171511;
+  --ground-lit: #24211A;
+  --raised: #2E2A22;
+  --chalk: #EDE4CE;      /* aged lume, ~14.2:1 on --ground */
+  --chalk-dim: #B4AB93;  /* ~7.9:1 — every small label lives here */
+  --chalk-faint: #5C5647;
+  --bar: #3A3529;
+  /* The needle. On every real instrument the moving, urgent element is orange,
+     which is exactly what --accent means here: load and urgency, never chrome. */
+  --accent: #E07B39;
+  --ok: #74B36A;
+  --warn: #E2B93B;       /* aviation amber */
+  /* 🔴 THE FIGURE SET MOVED, AND IT IS THE ONE PART AWAITING ELIE (2026-08-23).
+     With an orange accent, an orange fault marker is unreadable as "fault", so
+     the fault takes crimson (the redline) and the muscles take teal — major and
+     minor tick of the same hue, which is how a dial separates prime from
+     supporting. The cost is real and it is his call, not ours: every anatomy
+     chart he has ever taught from paints working muscle RED. Reverting is one
+     commit and these four values. */
+  --anatomy: #D2434B;
+  --muscle: #4DB8A8;
+  --muscle-2: #2F7A70;
+  --equipment: #8493A9;  /* steel, and the gear genuinely is steel */
+}
+
+/* The daylight half. His gym is BRIGHT — glass on three sides, white LED —
+   so this is not an afterthought skin. The white-faced dial indicator:
+   grey-leaning enamel, never cream, or it lands in the warm-craft palette
+   that every generated "premium" design already uses. */
+[data-skin="enamel"] {
+  color: var(--chalk);
+  --t1: rgba(38,35,29,0.94);
+  --t2: rgba(38,35,29,0.76);
+  --t3: rgba(38,35,29,0.66);
+  --t4: rgba(38,35,29,0.56);
+  --t5: rgba(38,35,29,0.46);
+  --sep: rgba(38,35,29,0.11);
+  --card-bg: rgba(255,255,255,0.46);
+
+  --ground: #E8E6E1;
+  --ground-lit: #F1EFEA;
+  --raised: #DBD8D1;
+  --chalk: #26231D;      /* ink, not black — ~12.2:1 */
+  --chalk-dim: #5B564B;  /* ~5.9:1 */
+  --chalk-faint: #A9A498;
+  --bar: #C6C2B8;
+  --accent: #BD5E1E;     /* the same needle, darkened to hold on a pale face */
+  --ok: #3E7A34;
+  --warn: #8F6B00;
+  /* Same reasoning as lume, deepened for a light ground. Same Elie caveat. */
+  --anatomy: #B02E37;
+  --muscle: #176158;
+  --muscle-2: #45877E;
+  --equipment: #5A6B85;
+}
+
 [data-skin="steel"] {
   /* v2.18: the canvas is no longer declared here — :root paints the same lit
      ground in every skin from --ground / --ground-lit, which is the whole point

@@ -23,12 +23,22 @@
 
 // The shipped list, in picker order. Adding a skin = one entry here + one token
 // block in styles.css. There is no third place to update, on purpose.
+// v2.34: Lume and Enamel are the NEEDLE direction (see the block in styles.css).
+// Order is the picker's order, and it is deliberate: the two dark skins first,
+// because the gym is the dark case. Midnight and Steel stay — nothing is taken
+// away from anyone who already picked one, and reverting is choosing again.
 export const SKINS = [
+  { id: 'lume', labelKey: 'skinLume' },
   { id: 'midnight', labelKey: 'skinMidnight' },
+  { id: 'enamel', labelKey: 'skinEnamel' },
   { id: 'steel', labelKey: 'skinSteel' },
 ];
 
-export const DEFAULT_SKIN = 'midnight';
+// v2.34: new installs open on Lume. 🔴 An existing phone keeps whatever it saved
+// — loadSkin() returns the stored value — so Pierre and Elie must pick it once
+// in General. That is deliberate: a skin is a preference, and silently
+// repainting someone's app is not a design decision, it is a surprise.
+export const DEFAULT_SKIN = 'lume';
 const SKIN_KEY = 'ptapp-skin';
 const LEGACY_THEME_KEY = 'ptapp-theme';
 

@@ -4,6 +4,34 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.34 - NEEDLE: two skins (lume, enamel); the accent leaves cyan (2026-08-22)
+
+Two `[data-skin]` token blocks added to `styles.css`, both registered in `skins.js`
+with `skinLume` / `skinEnamel` in `i18n.js` (EN+AR). **Values only, no new rules** -
+`sanity-skins` green on all 20 tokens per skin, no escapes, accent still off chrome,
+legacy migration intact. `DEFAULT_SKIN` is now `lume`; existing phones keep their
+stored value, so nothing repaints without the user choosing.
+
+**Why Needle over The Platform.** Two directions briefed separately with the full
+anti-slop ban list. The Platform derived its accent from the 15 kg plate and hazard
+tape; it died on Pierre's own observation that the app runs in hundreds of different
+gyms, which makes "take the colour from the room" unbuildable. Needle derives from a
+CLASS OF OBJECT (instruments read fast under pressure), which travels. The gym photos
+supplied the second argument: black tile, charcoal, white LED, and Precor in
+grey/silver/CYAN - midnight-and-arc is the palette of the equipment it sits beside.
+
+🔴 **The figure set moved and it is UNRATIFIED.** With `--accent: #E07B39`, an orange
+`--anatomy` cannot read as a fault, so anatomy takes crimson `#D2434B` and the muscles
+take teal (`#4DB8A8` / `#2F7A70`, major and minor tick of one hue). Every anatomy chart
+Elie teaches from paints working muscle RED. **Ask him 2026-08-23 before this is
+called done**; if he refuses, move the accent off orange rather than fight the
+convention. Revert = four hex values per skin, one commit.
+
+Two self-flagged values to verify on a real screen: enamel `--muscle-2` may be ~3.0:1
+against `--ground-lit`, and `--warn` ~4.0:1 passes graphics but fails text.
+
+---
+
 ## v2.33.1 - the compact view is removed; the toggle was never persisted (2026-08-22)
 
 `Dashboard.jsx` loses the `expanded` state, the toggle button and the whole compact

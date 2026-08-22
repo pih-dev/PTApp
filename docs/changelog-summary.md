@@ -4,6 +4,25 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.34 - two new looks: Lume and Enamel (August 22, 2026)
+
+General - skin picker - Lume. Or Enamel for daylight. Midnight and Steel are
+still there and your phone keeps whatever it had; nothing repainted itself.
+
+Two design directions were developed separately. The other one took its colour
+from the gym itself - the yellow of a competition plate and hazard tape. It lost
+on Pierre's own point: hundreds of users in hundreds of different gyms, so there
+is no one room to take colour from. Lume takes it from a stopwatch instead: warm
+soot face, aged-cream numerals, one orange needle. The photos also showed why it
+was worth changing at all - the current blue-black and cyan is the same palette
+as the Precor machines standing next to it, so the app vanishes into the room.
+
+One thing needs Elie: the figures move from red muscle to teal, because an
+orange accent and an orange injury marker cannot both mean something. Full
+detail: instructions-v2.34.md.
+
+---
+
 ## v2.33.1 - one view on Home (August 22, 2026)
 
 The switch between the short and the full list of upcoming sessions is gone.
