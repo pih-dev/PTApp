@@ -7,8 +7,9 @@
 //
 // 🔴 NOT ONE COLOUR IS BAKED IN. The body paints in `currentColor`, so a figure
 //    takes the colour of whatever text it sits in and works on every skin
-//    including ones not yet designed. The single named token is `--anatomy`,
-//    which exists for exactly this and is forbidden in the UI. A hardcoded
+//    including ones not yet designed. The named tokens are figure-internal
+//    (`--anatomy`, `--muscle`, `--muscle-2`, `--equipment`), each of which
+//    exists for exactly this and is forbidden in the UI. A hardcoded
 //    literal here would belong to one skin and break the other — the rule the
 //    entire design pass is built on.
 
@@ -74,7 +75,10 @@ export function figureSvg(pose, { detail = 'full', title = '', className = '', m
   const inner = mark
     ? `<g fill="currentColor">${bodyPaths}${equipMarkup(f.equip.filter(e => e.k !== 'quad'))}</g>`
     : [
-      `<g fill="currentColor" opacity="0.42">${equipMarkup(f.equip)}</g>`,
+      // v2.24: equipment paints from its OWN token (Pierre: "colour them in
+      // blue") — currentColor at 0.42 made a bench read as part of the body.
+      // Still translucent so a limb crossing the bar keeps its depth cue.
+      `<g fill="var(--equipment)" opacity="0.6">${equipMarkup(f.equip)}</g>`,
       // 🔴 NO <g> INSIDE A clipPath. Only shapes, text and <use> are legal
       //    children; a group is silently ignored, the clip resolves to EMPTY,
       //    and everything clipped by it — the whole muscle code and the filled

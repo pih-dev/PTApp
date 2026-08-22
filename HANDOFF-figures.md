@@ -30,14 +30,17 @@ at each milestone. A restart could end the session at any moment.
 - 🔴 **THE NEXT ROUND IS SPECIFIED AND NOT STARTED — READ
   `docs/2026-08-22-figures-next-round-brief.md` FIRST.** Six figure items and two others, captured
   in Pierre's own words on 2026-08-22 before he cleared. In his priority order as he said them:
-  1. **Zoom anchors on the wrong point** — it scales about the cell's centre; for a shoulder movement
-     the teaching is in the top third and falls out of frame. Anchor it on the fault joint.
+  1. ✅ **DONE 2026-08-22 (CCHealth session)** — zoom now anchors on the fault joint
+     (`zoomAnchor()` in `render.js`, shared origin for both halves; falls back to the posture
+     line's midpoint). Sanity + build clean, all 340 anchors finite.
   2. 🔴 **THE GESTURES ARE INVERTED AND HE HAS OVERRULED MY OBJECTION.** He wants drag-to-turn
      immediately, pinch-to-zoom continuously, and turning to keep working while zoomed. My argument
      was that pinch needs `touch-action: none` and the sheet must scroll. **His ruling: the movement
      card does not need to scroll — make it fit.** Do not re-argue it.
   3. **The equipment should ROTATE with the figure, not swap** at the halfway point.
-  4. **Colour the equipment blue** — as a new per-skin token, never a literal, never `--accent`.
+  4. ✅ **DONE 2026-08-22 (CCHealth session)** — `--equipment` token added to both skins
+     (midnight `#6E9BD8`, steel `#33598F`), equipment paints from it at 0.6 opacity, token
+     added to `sanity-skins.mjs`. Marks (list-size) stay currentColor silhouettes.
   5. 🔴 **THE FAULT FIGURE SHOULD HIGHLIGHT DIFFERENT MUSCLES.** A different posture recruits
      different muscles — an inclined overhead press works the chest; a rounded deadlift tires the
      arms. Today both halves show the same wash, which is a lie on the fault figure. **This is the

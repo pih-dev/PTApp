@@ -50,6 +50,12 @@ html, body, #root { height: 100%; overflow: hidden; }
      so an engaged muscle can never be misread as the injured joint. */
   --muscle: #D8436A;
   --muscle-2: #9A7BC8;
+  /* v2.24: the equipment. Pierre, 2026-08-22: "colour the equipment blue" — it
+     was currentColor at 0.42 and read as part of the body. 🔴 FIGURE-INTERNAL
+     like --anatomy/--muscle: never in the UI. A steel blue kept deliberately
+     duller than --accent's cyan (load/urgency) so a bench can never be misread
+     as an arc, and it is NOT #2563EB — that is the retired generated blue. */
+  --equipment: #6E9BD8;
 
   /* Type roles (spec §4). Saira Condensed uppercase reads as an instrument
      label and is the fastest exit from the generated look; IBM Plex Mono with
@@ -1563,6 +1569,9 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   --chalk-faint: #46546F;
   --muscle: #A81F45;
   --muscle-2: #5A4C9E;
+  /* Daylight equipment: deeper than midnight's so it holds ≥3:1 on the pale
+     ground; same rule — duller than the accent, never the generated blue. */
+  --equipment: #33598F;
   --accent: #06465F;
   --bar: #475A80;
   --ok: #0E5238;
