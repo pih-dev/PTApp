@@ -568,3 +568,17 @@ built and both rejected, which is why the flat barbell bench press is **deferred
 horizontal-press bucket is carried by `Chest Press Machine`. The honest fix — per-pose
 out-of-plane foreshortening — would differ between the two halves of one pair and so
 breaks the rule in trap 1's family. That decision is open: `HANDOFF-figures.md` §11.
+
+**Two more, from v2.22.1, and both fail SILENTLY.**
+
+**`<g>` is not a legal `clipPath` child.** Only shapes, `text` and `<use>` are. A group inside a
+clipPath is ignored, the clip resolves to **empty**, and every layer clipped by it disappears —
+the whole muscle code and the filled half of the fault marker. Nothing errors. It looks exactly
+like a feature that was never implemented, which is how it survived a full render-and-look pass.
+
+**In a quarter-turned front view the mirror is (180 − a), not (−a).** Mirroring reflects across the
+BODY's long axis. Upright, that axis is vertical and reflecting negates the angle — which is what
+every ordinary front-view pose does. Lying down (a supine figure seen from above), the axis is
+horizontal, and negation maps 180° to 180°: both arms end up on the SAME side of the body, the bar
+floats above the figure instead of lying across it, and the result reads as a rendering bug rather
+than the one-character typo it is.

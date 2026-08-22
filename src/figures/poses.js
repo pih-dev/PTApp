@@ -146,6 +146,91 @@ const chestPressBase = {
   },
 };
 
+// ── 3b. FLAT BARBELL PRESS — THREE figures, because two cannot do it ─────────
+//
+// 🔴 THIS IS THE MOVEMENT THAT PROVED TWO FIGURES IS NOT ALWAYS ENOUGH, and
+//    Pierre approved the fix on 2026-08-22: "instead of two pictures, you want
+//    to insert three pictures? If that's all, yeah, sure."
+//
+//    The bench press has TWO faults worth teaching and they live in different
+//    planes. The profile pair carries the one profile can show — the hips
+//    coming off the bench as the arch is pushed past control, which loads the
+//    lumbar spine. The third figure is a second camera, from ABOVE, carrying
+//    the one profile physically cannot: elbow flare, which is abduction and
+//    therefore invisible to a side-on view.
+//
+//    🔴 AND NOTE WHAT WAS *NOT* DONE. The tempting fix was to fake the flare in
+//    profile by foreshortening the humerus differently in the two figures. That
+//    is a bone-length change wearing perspective as a disguise, it breaks §7.13,
+//    and `sanity-figures.mjs` fails the build on it. A second camera is honest;
+//    a fudged bone is not.
+const benchBase = {
+  view: 'side',
+  root: { x: 140, y: 516 },
+  head: 8,
+  fs: { upperArm: 0.72 },
+  // The arms are the SAME in both profile figures on purpose: this pair is
+  // about the trunk, and a second thing changing would make the reader guess
+  // which difference is the fault.
+  arms: { near: [66, 133, 0], far: [62, 137, 0] },
+  muscles: { primary: ['chest'], secondary: ['delts', 'triceps'] },
+  guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
+  equip: (sk) => {
+    const g = midpoint(sk.wristN, sk.handN);
+    return [
+      // The bench: a pad under the body and a post to the floor, so "lying on a
+      // bench" is not left to the reader's imagination.
+      // The pad sits just under the body's back, not at a plausible-looking
+      // height: a bench a lifter is floating above is the fastest way to make a
+      // careful drawing look careless.
+      pad({ x: -230, y: 556 }, { x: 250, y: 556 }, 34, 0),
+      bar({ x: 60, y: 590 }, { x: 60, y: FLOOR }, 16),
+      ...barbellEndOn(g),
+    ];
+  },
+};
+
+// The view from above. Same skeleton, quarter-turned — the rig already supports
+// it, so this is a camera move and not a second canon.
+const benchAbove = {
+  view: 'front',
+  root: { x: 210, y: 415 },
+  spine: [-90, 2, -2],
+  head: 0,
+  // The forearm is vertical at the bottom of the press — straight up out of the
+  // page — so from above it is almost entirely foreshortened. The legs run away
+  // from the camera to the floor.
+  fs: { forearm: 0.45, hand: 0.4, thigh: 0.6, shin: 0.55, foot: 0.4 },
+  // 🔴 IN A QUARTER-TURNED FRONT VIEW THE MIRROR IS (180 − a), NOT (−a).
+  //    Mirroring reflects across the BODY's long axis. Upright, that axis is
+  //    vertical and reflecting negates the angle — which is what every other
+  //    pose in this file does. Lying down, the axis is horizontal, and negation
+  //    maps 180° to 180°: both arms end up on the SAME side of the body, the
+  //    bar floats above the figure instead of across it, and the drawing is
+  //    nonsense in a way that looks like a rendering bug rather than a typo.
+  legs: { near: [50, 58, 60], far: [130, -58, -60] },
+  arms: { near: [180, 12, 0], far: [0, -12, 0] },
+  muscles: { primary: ['chest'], secondary: ['delts'] },
+  guide: { joints: ['shoulderN', 'elbowN', 'wristN'], mirror: true },
+  fault: { joints: ['shoulderN', 'shoulderF'], r: 38 },
+  equip: (sk) => {
+    const g = midpoint(sk.wristN, sk.handN);
+    const gF = midpoint(sk.wristF, sk.handF);
+    const mid = (g.y + gF.y) / 2;
+    // The bar is shorter here than a real one: seen end-on down its length the
+    // plates would run off the cell, and a figure cropped by its own equipment
+    // reads as a mistake. The MOVEMENT has to fit the cell — that is what a
+    // fixed cell means.
+    const span = Math.abs(g.y - gF.y) / 2 + 95;
+    return [
+      pad({ x: -270, y: mid - 62 }, { x: 230, y: mid - 62 }, 124, 0),
+      bar({ x: g.x, y: mid - span }, { x: g.x, y: mid + span }, 10),
+      disc(g.x, mid - span + 30, 68),
+      disc(g.x, mid + span - 30, 68),
+    ];
+  },
+};
+
 // ── 4. PULL-UP — front view, the top of the rep ──────────────────────────────
 //
 // 🔴 GROUNDED TO THE BAR, not to the floor. For a pull-up the fixed object in
@@ -270,6 +355,28 @@ export const FIGURES = {
       arms: { near: [-110, 180, -12], far: [-106, 176, -12] },
       fault: { joints: ['shoulderN'], r: 40 },
     },
+  },
+
+  'Flat Barbell Press': {
+    correct: {
+      ...benchBase,
+      // A controlled arch: the glutes stay on the pad and the chest is lifted by
+      // the upper back, not by the lower one.
+      spine: [-86, 10, -22],
+      legs: { near: [76, -84, 98], far: [72, -80, 98] },
+    },
+    fault: {
+      ...benchBase,
+      // The arch pushed past control — the hips leave the bench and the lumbar
+      // spine, not the upper back, is holding the position.
+      root: { x: 140, y: 470 },
+      spine: [-78, 20, -30],
+      legs: { near: [84, -92, 98], far: [80, -88, 98] },
+      fault: { joints: ['lumbar'], r: 46, offset: { x: 10, y: 40 } },
+    },
+    // 🔴 The third camera. Its own fault marker, because it teaches its own
+    //    fault — this is not a decorative second angle.
+    extra: { pose: benchAbove, labelKey: 'figureFromAbove', caption: 'fault' },
   },
 
   'Pull-Up': {

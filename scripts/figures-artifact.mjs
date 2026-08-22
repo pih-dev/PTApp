@@ -28,26 +28,43 @@ const BUCKET = {
   'Leg Press': 'machine · profile · knee',
 };
 
-const skinVars = (s) =>
-  `--ground:${s.ground};--ground-lit:${s.lit};--chalk:${s.chalk};--chalk-dim:${s.dim};--bar:${s.bar};--anatomy:${ANATOMY}`;
+const EXTRA = {
+  midnight: { accent: '#35B7E8', warn: '#E0A32B', muscle: '#D8436A', muscle2: '#9A7BC8' },
+  steel: { accent: '#06465F', warn: '#8A5A00', muscle: '#A81F45', muscle2: '#5A4C9E' },
+};
+const skinVars = (id) => {
+  const s = SKINS[id], e = EXTRA[id];
+  return `--ground:${s.ground};--ground-lit:${s.lit};--chalk:${s.chalk};--chalk-dim:${s.dim};--bar:${s.bar};`
+    + `--anatomy:${ANATOMY};--accent:${e.accent};--warn:${e.warn};--muscle:${e.muscle};--muscle-2:${e.muscle2}`;
+};
+
+// The key. Four colours now carry meaning inside a figure, so the page has to
+// say what they mean before it shows the first one — a reader inventing a
+// meaning is worse than no colour at all.
+const KEY = [
+  ['accent', 'the posture line, held'],
+  ['warn', 'the posture line, lost'],
+  ['muscle', 'prime movers'],
+  ['muscle-2', 'supporting muscles'],
+  ['anatomy', 'the joint that takes the stress'],
+];
 
 const pairBlock = (name, skinId) => {
-  const s = SKINS[skinId];
   const p = FIGURES[name];
-  return `<div class="skin" style="${skinVars(s)}">
+  return `<div class="skin" style="${skinVars(skinId)}">
     <div class="skin-tag">${skinId}</div>
     <div class="pair">
       <figure><div class="art">${figureSvg(p.correct)}</div><figcaption>correct</figcaption></figure>
       <figure><div class="art">${figureSvg(p.fault)}</div><figcaption class="bad">this is the injury</figcaption></figure>
     </div>
+    ${p.extra ? `<figure class="wide"><div class="art">${figureSvg(p.extra.pose)}</div><figcaption>from above — where the elbows go</figcaption></figure>` : ''}
   </div>`;
 };
 
 const markRow = (name) => {
   const p = FIGURES[name];
-  const s = SKINS.midnight;
   const one = (pose, px) => `<span class="mk" style="width:${px}px;height:${px}px">${figureSvg(pose, { detail: 'mark' })}</span>`;
-  return `<div class="marks" style="${skinVars(s)}">
+  return `<div class="marks" style="${skinVars('midnight')}">
     <span class="mk-label">the mark, drawn from the same pose</span>
     <span class="mk-row">${[16, 24, 32, 48].map(px => one(p.correct, px)).join('')}</span>
     <span class="mk-row">${[16, 24, 32, 48].map(px => one(p.fault, px)).join('')}</span>
@@ -143,6 +160,14 @@ const html = `<title>The Pilot Six</title>
   .mk { display: inline-block; }
   .mk svg { width: 100%; height: 100%; display: block; }
 
+  .key { display: flex; flex-wrap: wrap; gap: 6px 16px; background: var(--ground);
+         border-radius: 10px; padding: 10px 12px; margin: 14px 0 0; }
+  .k { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--chalk-dim); }
+  .k i { width: 10px; height: 10px; border-radius: 2px; display: block; }
+  .wide { margin: 10px 0 0; }
+  .wide figcaption { font-family: var(--display); font-size: 10px; letter-spacing: 0.14em;
+                     text-transform: uppercase; text-align: center; color: var(--chalk-dim); }
+
   .txt p { margin: 0 0 6px; max-width: 64ch; color: var(--ink-dim); }
   .txt b { font-family: var(--display); text-transform: uppercase; letter-spacing: 0.08em;
            font-size: 12px; color: var(--ink); margin-inline-end: 6px; }
@@ -167,7 +192,10 @@ const html = `<title>The Pilot Six</title>
     <p>Nothing here is an image file. A figure is a list of joint angles against one shared skeleton,
       so every movement in the eventual 340 will carry the same proportions and the same weight of
       line whether anyone is watching or not.</p>
-    <div class="meta">SpotSet v2.22.0 · live on gh-pages · General → Movement library</div>
+    <div class="key" style="${skinVars('midnight')}">
+      ${KEY.map(([tok, label]) => `<span class="k"><i style="background:var(--${tok})"></i>${label}</span>`).join('')}
+    </div>
+    <div class="meta">SpotSet v2.22.1 · live on gh-pages · General → Movement library</div>
   </div>
 
   ${Object.keys(FIGURES).map(movement).join('')}

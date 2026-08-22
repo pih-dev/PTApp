@@ -29,6 +29,10 @@ for (const n of names) {
   const p = FIGURES[n];
   if (!p.correct || !p.fault) bad(`"${n}" is missing half of its pair`);
   if (p.correct.fault) bad(`"${n}" marks an injury on the CORRECT figure`);
+  // A third figure is an EXTRA CAMERA ON A SECOND FAULT, not a decorative
+  // angle: if it marks nothing it is teaching nothing and should not exist.
+  if (p.extra && !p.extra.pose?.fault?.joints?.length) bad(`"${n}" has an extra figure that marks no joint`);
+  if (p.extra && !p.extra.labelKey) bad(`"${n}" has an extra figure with no caption key`);
   if (!p.fault.fault || !p.fault.fault.joints?.length) bad(`"${n}" has a fault figure with nothing marked — the pair teaches nothing`);
 }
 
@@ -48,14 +52,16 @@ for (const n of names) {
 // 4. Every joint resolves and no coordinate is NaN. A NaN slips into the path
 //    string, the browser drops the whole path, and the figure silently vanishes.
 for (const n of names) {
-  for (const kind of ['correct', 'fault']) {
-    const sk = skeleton(FIGURES[n][kind]);
+  for (const kind of ['correct', 'fault', 'extra']) {
+    if (kind === 'extra' && !FIGURES[n].extra) continue;
+    const pose = kind === 'extra' ? FIGURES[n].extra.pose : FIGURES[n][kind];
+    const sk = skeleton(pose);
     for (const [k, v] of Object.entries(sk)) {
       if (v && typeof v === 'object' && typeof v.x === 'number' && (!isFinite(v.x) || !isFinite(v.y))) {
         bad(`"${n}" ${kind}: joint ${k} is not a finite point`);
       }
     }
-    const svg = figureSvg(FIGURES[n][kind]);
+    const svg = figureSvg(pose);
     if (/NaN|Infinity|undefined/.test(svg)) bad(`"${n}" ${kind}: the SVG contains NaN/undefined`);
     if (svg.length < 800) bad(`"${n}" ${kind}: the SVG is suspiciously short (${svg.length} bytes) — a limb probably failed to build`);
 

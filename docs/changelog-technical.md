@@ -4,6 +4,45 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.22.1 - the posture line, the muscle code, and the bench press (2026-08-22)
+
+Pierre on seeing the pilot six. Three asks, applied to every figure.
+
+**The posture line.** brief 7.9 already specified it - "the spine is the hero
+line, drawn in the accent when held and in the warn hue when lost" - and this
+generalises it past the spine: `pose.guide.joints` names any 3-5 joint chain and
+`mirror` draws it on both sides for a bilateral fault. Built from the SAME joints
+as the silhouette, so it cannot disagree with the figure it annotates; the hue is
+DERIVED from whether the pose marks a fault, so the two cannot be set
+inconsistently. A --ground halo under it, because an accent stroke laid on a
+silhouette of similar value disappears at list size.
+
+**The muscle code.** `--muscle` / `--muscle-2`, figure-internal like --anatomy
+and asserted per skin by sanity-skins (TOKENS is now 20). `pose.muscles` takes
+`{ primary, secondary }`; an array still means primary-only. MUSCLE_ANCHORS now
+returns a BAND along a bone rather than a point, and takes a side letter, because
+`MUSCLE_SIDES('front')` paints limb muscles on both sides.
+
+**The bench press: `extra`.** A movement may declare a third figure with its own
+pose, caption key and fault marker. It exists for faults outside the pair's
+plane, and sanity-figures fails the build on an extra that marks nothing - it is
+a second camera on a second fault, not a decorative angle.
+The rejected alternative is the important part: faking flare in profile by
+foreshortening the humerus differently between the two figures would be a
+bone-length change disguised as perspective. It breaks 7.13 and the gate already
+rejects it.
+
+**Two silent failures, both now in traps.md:**
+1. `<g>` is not a legal clipPath child - the clip resolves to EMPTY and every
+   clipped layer vanishes, looking exactly like "not implemented yet".
+2. In a quarter-turned front view the mirror is (180 - a), not (-a): reflection
+   is across the body's long axis, and negation maps 180 to 180, so both arms
+   landed on the same side of the body.
+
+Bundle 646 -> 649 KB. DATA_VERSION unchanged at 6.
+
+---
+
 ## v2.22.0 — the exercise figures, route A proven on six movements (2026-08-22)
 
 **B2 step 1** of `HANDOFF-figures.md`: one movement per bucket, both figures, both

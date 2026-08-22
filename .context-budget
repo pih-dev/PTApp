@@ -21,7 +21,11 @@
 # 26 KB from 2026-08-22 (v2.22): the figures are a new SUBSYSTEM, not a screen —
 # a pose file, a canon, a serialiser and four geometric traps that a session will
 # hit the first time it draws a movement. Routing them would mean drawing 334
-# figures without ever reading them (hygiene rule 4). ~1.2 KB, bought deliberately.
+# figures without ever reading them (hygiene rule 4). Raised again the same day
+# for v2.22.1, which added three more figure-internal tokens with derived
+# meanings and a third-camera rule: ~2 KB of new law in total, bought
+# deliberately. Next release that touches this file COLLAPSES the v2.21 history
+# line rather than raising again.
 
-CLAUDE.md=26000
+CLAUDE.md=27000
 MEMORY.md=12000

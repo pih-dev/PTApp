@@ -4,6 +4,26 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.22.1 - the lines, the colours, and a third camera (August 22, 2026)
+
+Every figure now carries the posture line you asked for: the one chain of joints
+that decides whether the rep is safe, drawn in blue when the shape is held and
+amber when it is lost. It is not always the spine - on a squat it is the leg,
+because the leg is what caves.
+
+The muscles are colour-coded too: crimson for the prime movers, violet for what
+else is working, drawn as bands along the bone rather than blobs. And because
+four colours now mean four different things, there is a small key under each
+pair.
+
+The bench press has three pictures instead of two. Its two real faults live in
+different planes: the profile pair shows the hips coming off the bench, and a
+third figure seen from above shows the elbows flaring square - which a side-on
+drawing physically cannot show. That third figure carries its own marker and its
+own sentence.
+
+---
+
 ## v2.22.0 — the exercise figures arrive (August 22, 2026)
 
 Six movements now show you the form, not just the facts. Open Back Squat,

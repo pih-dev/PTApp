@@ -63,8 +63,24 @@ export default function Figure({ name, lang }) {
           pictures? yeah, sure"). It is NOT a default — a movement that can be
           taught in one view gets one view. */}
       {pair.extra && (
-        <Fig pose={pair.extra.pose} label={t(lang, pair.extra.labelKey)} caption={pair.extra.caption} wide />
+        <>
+          <Fig pose={pair.extra.pose} label={t(lang, pair.extra.labelKey)} caption={pair.extra.caption} wide />
+          {txt && txt.extra && <p className="fig-extra-note">{txt.extra}</p>}
+        </>
       )}
+
+      {/* 🔴 THE KEY IS NOT OPTIONAL NOW THAT THERE ARE FOUR COLOURS. A figure
+          carrying an accent line, a warn line, two muscle hues and an --anatomy
+          marker is a chart, and an unlabelled chart is a guessing game. Five
+          short chips, one wrapped row — this is the cheapest possible legend
+          and it still costs less than a reader inventing a meaning. */}
+      <div className="fig-key">
+        <span className="fk"><i style={{ background: 'var(--accent)' }} />{t(lang, 'figKeyHeld')}</span>
+        <span className="fk"><i style={{ background: 'var(--warn)' }} />{t(lang, 'figKeyLost')}</span>
+        <span className="fk"><i style={{ background: 'var(--muscle)' }} />{t(lang, 'figKeyPrimary')}</span>
+        <span className="fk"><i style={{ background: 'var(--muscle-2)' }} />{t(lang, 'figKeySecondary')}</span>
+        <span className="fk"><i style={{ background: 'var(--anatomy)' }} />{t(lang, 'figKeyFault')}</span>
+      </div>
 
       {/* The text is DATA (src/figureText.js), not UI copy — a movement can have
           a figure and no text yet, and the panel has to survive that. */}

@@ -77,6 +77,29 @@ const TEXT = {
     },
   },
 
+  'Flat Barbell Press': {
+    reviewed: false,
+    flaw: {
+      en: 'The arch is pushed past control and the hips come off the bench, so the lower back holds the position instead of the upper back.',
+      ar: 'التقوّس بيزيد عن حدّو والورك بيرفع عن البنش، فأسفل الظهر بيصير هو يلّي ماسك الوضعية بدل أعلى الظهر.',
+    },
+    injury: {
+      en: 'Pressing from a hips-off, hyperextended lumbar position is a documented source of lower-back joint stress, and it removes the leg drive the lift depends on.',
+      ar: 'الدفع والورك مرفوع وأسفل الظهر متقوّس لآخرو معروف إنّو بيجهد مفاصل أسفل الضهر، وبيلغي دفع الرجلين يلّي بتعتمد عليه الحركة.',
+    },
+    cue: {
+      en: 'Keep the glutes on the bench and lift the chest with the upper back, not the lower.',
+      ar: 'خلّي مؤخرتك على البنش وارفع صدرك من أعلى ظهرك، مش من أسفلو.',
+    },
+    // The SECOND fault, in the second camera. It gets its own line because it
+    // is a different error in a different plane — and the third figure would be
+    // decoration without a sentence saying what it is for.
+    extra: {
+      en: 'From above: the elbows have flared to square with the shoulders. Bring them to about 45° from the body — square elbows narrow the space the rotator-cuff tendon runs through.',
+      ar: 'من فوق: الكوعين مفتوحين عمودي على الجسم. رجّعهن حوالي ٤٥ درجة — الكوع المفتوح بيضيّق المساحة يلّي بيمرق فيها وتر الروتيتور كاف.',
+    },
+  },
+
   'Pull-Up': {
     reviewed: false,
     flaw: {
@@ -134,7 +157,11 @@ export function figureText(name, lang) {
   const e = TEXT[name];
   if (!e) return null;
   const L = lang === 'ar' ? 'ar' : 'en';
-  return { flaw: e.flaw[L], injury: e.injury[L], cue: e.cue[L], reviewed: e.reviewed };
+  return {
+    flaw: e.flaw[L], injury: e.injury[L], cue: e.cue[L],
+    extra: e.extra ? e.extra[L] : null,
+    reviewed: e.reviewed,
+  };
 }
 
 export const FIGURE_TEXT_NAMES = Object.keys(TEXT);

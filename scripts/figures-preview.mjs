@@ -40,6 +40,7 @@ const board = (s) => `
     <div class="pair">
       ${cell(name, 'correct', pair.correct)}
       ${cell(name, 'fault', pair.fault)}
+      ${pair.extra ? cell(name, 'from above', pair.extra.pose) : ''}
     </div>`).join('')}
 </section>`;
 
