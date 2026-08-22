@@ -47,7 +47,7 @@ only the evidence routes.
 ## Current Version: v2.25
 **The design refinement round + the mark (B3).** Every tab opens with the `.bar` head; the session row is ONE shared `SessionCard` (P3 scope B built); week strip de-boxed; Home puts upcoming above renewals and its week columns deep-link to a Schedule day; Repeat sits beside the config it unlocks; interface emojis are gone (drawn marks; type-dot swatches keep the picker legend). 🔴 **The logo is the library's own hinge mark, FROZEN in `src/spotsetMark.js`** — regenerate ONLY via `scripts/logo-candidates.mjs --freeze <id>`, never render it live (a logo must not move when a pose is tuned). Detail: `docs/instructions-v2.25.md`.
 
-## The figures — law (B2, shipped v2.22–v2.24.1; thread: `HANDOFF-figures.md`)
+## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel: the pair, the posture line, colour-coded muscles, a key, three sentences EN+AR. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
 - 🔴 **A MOVEMENT IS NOT THE UNIT OF DRAWING — A PATTERN IS.** 44 archetypes (`figures/archetypes.js`) own the pose and the fault; the movement contributes its **muscles from the bank** and its **equipment from its NAME**. `classify.js` maps all 340, first-match-wins, **and 100% coverage is a build gate** — an unclassified movement silently shows nothing. 🔴 Its ORDER is the logic: "external rotation" must beat "rotation".
 - 🔴 **A FIGURE IS ANGLES, NEVER COORDINATES** — `canon.js` owns every bone length and the only FK function, so §7.13 (*the wrong figure reuses the same bone lengths*) holds **by construction across all 340**. `fs` (projection) is the one escape hatch and must be IDENTICAL across a pair; `sanity-figures` asserts it, plus no colour literal, no NaN path, hip at half standing height.
@@ -74,7 +74,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules in force live in TRAPS / CONVENTIONS, never here.
 
 - **v2.17–v2.20.1** (08-21/22) — THE DESIGN PASS, five stages: skins, Dashboard, shell, deep screens, press affordance. → `v2.17`…`v2.20.1`
-- **v2.21–v2.24.1** (08-22) — the movement library, then the figures: the pilot pair → all 340 from 44 patterns, rotation, zoom, direct gestures, colour roles, fault muscles on 8. → `v2.21`…`v2.24.md`
+- **v2.21–v2.24.1** (08-22) — the movement library, then the figures: pilot → all 340 from 44 patterns, gestures, colour roles, fault muscles. → `v2.21`…`v2.24.md`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
