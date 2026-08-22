@@ -6,7 +6,7 @@ import Schedule from './components/Schedule';
 import Sessions from './components/Sessions';
 import TokenSetup from './components/TokenSetup';
 import TokenUpdateModal from './components/TokenUpdateModal';
-import { SpotSetMark } from './components/Icons';
+import { SpotSetMark, SpotSetBackdrop } from './components/Icons';
 import General from './components/General';
 import { reducer, loadData, saveData, today, timeToMinutes, haptic, initElasticScroll, mergeData, dataEquals } from './utils';
 import { getToken, fetchRemoteData, pushRemoteData, isDemo, resetConcurrencyTokens } from './sync';
@@ -267,6 +267,8 @@ export default function App() {
 
   return (
     <div className="app-container" data-skin={skin} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      {/* First child on purpose: every later sibling paints over it. */}
+      <SpotSetBackdrop />
       <div className="header">
         <div className="logo">
           <button
@@ -347,7 +349,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.25.3</div>
+          <div><strong>Version:</strong> v2.26</div>
           <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { SPOTSET_MARK_SVG } from '../spotsetMark';
+import { SPOTSET_MARK_SVG, SPOTSET_MARK_RATIO, SPOTSET_BG_SVG } from '../spotsetMark';
 
 // Reusable SVG icons — eliminates duplication across components.
 // All icons accept `size` prop and inherit color from parent via currentColor.
@@ -49,15 +49,24 @@ export const CloseIcon = ({ size = 20 }) => (
   </svg>
 );
 
-// The SpotSet mark (B3, v2.25): the figure library's own deadlift-hinge
-// silhouette, frozen (src/spotsetMark.js — regeneration is deliberate, via
-// scripts/logo-candidates.mjs --freeze). It replaces the placeholder dumbbell:
-// the mark now IS a figure from the system it fronts, carrying currentColor so
-// every skin owns it. The markup is a build-time constant, so the injection
-// here is static string, not user data.
+// The SpotSet mark (B3; v2.26 = Pierre's round-2 pick): the facing pair from
+// the figure library — correct mirrored left, fault right, the "> <" read —
+// in the figures' own colour code. Frozen (src/spotsetMark.js — regeneration
+// is deliberate, via scripts/logo-candidates.mjs --freeze). The markup is a
+// build-time constant, so the injection here is static string, not user data.
+// `size` is the WIDTH; height follows the frozen aspect.
 export const SpotSetMark = ({ size = 24 }) => (
-  <span style={{ width: size, height: size, display: 'inline-flex' }} aria-hidden="true"
+  <span style={{ width: size, height: Math.round(size * SPOTSET_MARK_RATIO), display: 'inline-flex' }} aria-hidden="true"
     dangerouslySetInnerHTML={{ __html: SPOTSET_MARK_SVG }} />
+);
+
+// The backdrop (v2.26, Pierre's ask): the mark's MONO counterpart, huge and
+// faint behind every screen. Positioning and opacity live in `.app-bg` —
+// decoration only, pointer-events none, quiet enough that rows stay legible
+// (§7.6: a picture is a ground, never a surface — honoured by opacity).
+export const SpotSetBackdrop = () => (
+  <div className="app-bg" aria-hidden="true"
+    dangerouslySetInnerHTML={{ __html: SPOTSET_BG_SVG }} />
 );
 
 // A drawn check in a ring — the success sheet's mark. It replaces the ✅ emoji

@@ -44,8 +44,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.25
-**The design refinement round + the mark (B3).** Every tab opens with the `.bar` head; the session row is ONE shared `SessionCard` (P3 scope B built); week strip de-boxed; Home puts upcoming above renewals and its week columns deep-link to a Schedule day; Repeat sits beside the config it unlocks; interface emojis are gone (drawn marks; type-dot swatches keep the picker legend). 🔴 **The logo is the library's own hinge mark, FROZEN in `src/spotsetMark.js`** — regenerate ONLY via `scripts/logo-candidates.mjs --freeze <id>`, never render it live (a logo must not move when a pose is tuned). Detail: `docs/instructions-v2.25.md`.
+## Current Version: v2.26
+**The logo is THE FACING PAIR (Pierre's pick) + the backdrop.** 🔴 **Mark and backdrop are FROZEN in `src/spotsetMark.js`** (`--freeze pair-off-colour --freeze-bg pair-off-lines`) — never render them live (a logo must not move when a pose is tuned). The mono pair sits faint behind every screen (`.app-bg`). 🔴 **The figure-token-in-UI rule has ONE sanctioned exception: this mark — it IS a figure.** Detail: `docs/instructions-v2.26.md`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel: the pair, the posture line, colour-coded muscles, a key, three sentences EN+AR. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
@@ -75,6 +75,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 
 - **v2.17–v2.20.1** (08-21/22) — THE DESIGN PASS, five stages: skins, Dashboard, shell, deep screens, press affordance. → `v2.17`…`v2.20.1`
 - **v2.21–v2.24.1** (08-22) — the movement library, then the figures: pilot → all 340 from 44 patterns, gestures, colour roles, fault muscles. → `v2.21`…`v2.24.md`
+- **v2.25–v2.25.3** (08-22) — the design refinement round: bar heads everywhere, shared SessionCard (P3), week strip de-boxed, emojis out, fresh-eyes review; then the equipment-blue passes. → `v2.25`…`v2.25.3`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---

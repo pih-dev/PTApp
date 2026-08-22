@@ -325,7 +325,28 @@ button:active { transform: scale(0.97); }
   padding: 0 16px 24px;
   padding-bottom: calc(80px + env(safe-area-inset-bottom));
   -webkit-overflow-scrolling: touch;
+  /* Above the backdrop; the backdrop is z 0. */
+  position: relative;
+  z-index: 1;
 }
+
+/* ─── The backdrop (v2.26, Pierre's round-2 pick) ───
+   The mark's MONO counterpart, huge and faint on the ground behind every
+   screen. §7.6 said a picture never sits behind a list — that rule is about
+   LEGIBILITY, and it is honoured here by opacity: at 0.05 chalk this is
+   texture, not a surface. Decoration only: no pointer events, aria-hidden,
+   and it costs nothing (one static SVG, no animation). */
+.app-bg {
+  position: absolute;
+  left: 50%; top: 54%;
+  width: 130%;
+  transform: translate(-50%, -50%);
+  color: var(--chalk);
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+.app-bg svg { width: 100%; height: auto; display: block; }
 
 /* ─── Bottom Nav ─── */
 .nav {

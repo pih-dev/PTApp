@@ -4,6 +4,17 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.26 - the logo is the pair, and the app got its backdrop (August 22, 2026)
+
+Pierre's pick from the mark sheet: the facing pair — correct deadlift mirrored
+against the faulty one, green line vs orange ring, his "greater-than,
+less-than" composition — is now the logo, in the header and on sign-in. Its
+mono counterpart sits huge and faint (5%) behind every screen as the app's
+backdrop. Next, agreed: the animated mark + the THX/Atmos-style opening sound,
+at the native stage. Full detail: instructions-v2.26.md.
+
+---
+
 ## v2.25.3 - the equipment blue settled (August 22, 2026)
 
 Pierre picked it from a three-way preview: a deeper vivid blue, deliberately

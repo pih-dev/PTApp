@@ -254,27 +254,45 @@ mkdirSync('tmp', { recursive: true });
 writeFileSync('tmp/logo-candidates.html', html);
 console.log('wrote tmp/logo-candidates.html');
 
-// --freeze <id>: write the chosen mark into src/spotsetMark.js as a FROZEN
-// string. The logo must not move when a pose is later tuned, so the app never
-// renders it live from the library — regeneration is an explicit act, here.
+// --freeze <id> [--freeze-bg <id>]: write the chosen mark (and optionally the
+// backdrop counterpart) into src/spotsetMark.js as FROZEN strings. The logo
+// must not move when a pose is later tuned, so the app never renders it live
+// from the library — regeneration is an explicit act, here.
+const clean = (svg) => svg
+  .replace(' class="fig "', '')
+  .replace(' role="img" aria-hidden="true"', ' aria-hidden="true"')
+  .replace('<svg ', '<svg width="100%" height="100%" ');
+// height/width from the viewBox, so a component can keep the aspect without
+// parsing SVG at runtime.
+const ratioOf = (svg) => {
+  const [, , w, h] = svg.match(/viewBox="([^"]*)"/)[1].split(' ').map(Number);
+  return Math.round((h / w) * 1000) / 1000;
+};
 const freezeArg = process.argv.indexOf('--freeze');
 if (freezeArg !== -1) {
   const id = process.argv[freezeArg + 1] || 'hinge';
-  const m = marks[id];
-  const clean = m.svg
-    .replace(' class="fig "', '')
-    .replace(' role="img" aria-hidden="true"', ' aria-hidden="true"')
-    .replace('<svg ', '<svg width="100%" height="100%" ');
+  const bgArg = process.argv.indexOf('--freeze-bg');
+  const bgId = bgArg !== -1 ? process.argv[bgArg + 1] : null;
+  const m = clean(marks[id].svg);
+  const bg = bgId ? clean(marks[bgId].svg) : null;
   const out = `// ─── The SpotSet mark (B3) — GENERATED, then FROZEN ──────────────────────────
 //
-// Drawn FROM the figure library (Pierre's brief, 2026-08-22): this is the
-// library's own '${id}' mark (${m.movement}, detail 'mark'), cropped tight.
+// Drawn FROM the figure library (Pierre's brief, 2026-08-22; his pick from the
+// round-2 sheet, 2026-08-22): the mark is '${id}', the backdrop is
+// ${bgId ? `'${bgId}' — the mono counterpart he asked to sit huge and faint behind the app` : 'not frozen'}.
 // 🔴 FROZEN ON PURPOSE. The app does not render the logo live from the
 //    library, because a logo must not move when a pose is tuned. Regenerate
-//    only deliberately: node scripts/logo-candidates.mjs --freeze ${id}
-// It paints from currentColor, so it belongs to every skin by doing nothing.
-export const SPOTSET_MARK_SVG = ${JSON.stringify(clean)};
+//    only deliberately:
+//    node scripts/logo-candidates.mjs --freeze ${id}${bgId ? ` --freeze-bg ${bgId}` : ''}
+// Colours are TOKENS (--ok/--warn/--muscle/--equipment/--anatomy + currentColor),
+// so both belong to every skin by doing nothing. The figure-token-in-UI rule
+// has exactly one sanctioned exception: this mark, because it IS a figure and
+// its colours mean here what they mean on every movement sheet.
+export const SPOTSET_MARK_SVG = ${JSON.stringify(m)};
+export const SPOTSET_MARK_RATIO = ${ratioOf(m)}; // height / width
+${bgId ? `export const SPOTSET_BG_SVG = ${JSON.stringify(bg)};
+export const SPOTSET_BG_RATIO = ${ratioOf(bg)};` : ''}
 `;
   writeFileSync('src/spotsetMark.js', out);
-  console.log(`froze '${id}' into src/spotsetMark.js (${clean.length} bytes)`);
+  console.log(`froze mark '${id}'${bgId ? ` + backdrop '${bgId}'` : ''} into src/spotsetMark.js (${m.length}${bg ? ` + ${bg.length}` : ''} bytes)`);
 }

@@ -4,6 +4,28 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.26 - the mark is the facing pair + the backdrop (2026-08-22)
+
+Pierre picked `pair-off-colour` from the round-2 sheet (his own compile made
+canonical: correct mirrored left, fault right, offset "> <"). Frozen via
+`--freeze pair-off-colour --freeze-bg pair-off-lines` into src/spotsetMark.js
+(now exports MARK/BG svg + RATIO); SpotSetMark keeps aspect from the frozen
+ratio; new SpotSetBackdrop renders the mono pair at 130% width / 0.05 opacity
+behind every screen (`.app-bg`, first child of app-container; .content gets
+z-index 1). All colours are tokens — the figure-token-in-UI rule's ONE
+sanctioned exception is this mark, because it IS a figure. +59 KB bundle
+(+8 KB gzip). Queued next: animated mark + Atmos-style opening sound (native).
+
+---
+
+## v2.25.2 / v2.25.3 - equipment blue passes (2026-08-22)
+
+Figures-session colour iterations on `--equipment` (brighter, then settled on
+Pierre's pick — deliberately not the brightest). Values only; see
+changelog-summary + instructions-v2.25.2/.3.
+
+---
+
 ## v2.25.1 - brighter muscle red and equipment blue (2026-08-22)
 
 Figures-session patch from Pierre's live phone review (df3a10e): `--muscle`
