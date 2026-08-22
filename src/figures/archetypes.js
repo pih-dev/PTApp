@@ -1,4 +1,4 @@
-// ─── The 42 archetypes ───────────────────────────────────────────────────────
+// ─── The 44 archetypes ───────────────────────────────────────────────────────
 //
 // One entry per movement PATTERN. `classify.js` maps all 340 bank movements
 // onto these; `poses.js` assembles a figure from an archetype plus the

@@ -355,7 +355,7 @@ export const ALL_FIGURES = () => {
 };
 
 // One representative movement per pattern, for the preview sheet: 340 figures
-// on one page cannot be judged, and 42 patterns is the thing being judged.
+// on one page cannot be judged, and 44 patterns is the thing being judged.
 export const PATTERN_SAMPLES = () => {
   const seen = new Set(), out = {};
   for (const e of EXERCISES) {

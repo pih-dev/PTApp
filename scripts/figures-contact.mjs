@@ -1,4 +1,4 @@
-// A contact sheet of all 42 patterns — the fast judging surface while the
+// A contact sheet of all 44 patterns — the fast judging surface while the
 // archetypes are being authored. Correct beside fault, one ground, no prose.
 //
 //   node scripts/figures-contact.mjs [tmp/contact.html]
@@ -24,7 +24,7 @@ const cell = (name, p) => `<div class="c">
 </div>`;
 
 fs.mkdirSync('tmp', { recursive: true });
-fs.writeFileSync(out, `<meta charset="utf-8"><title>42 patterns</title>
+fs.writeFileSync(out, `<meta charset="utf-8"><title>44 patterns</title>
 <style>
   body{margin:0;background:#0A1524;font:12px/1.3 system-ui,sans-serif;${vars}}
   .g{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
