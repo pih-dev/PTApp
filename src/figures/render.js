@@ -168,17 +168,49 @@ export function ribbon(joints, widths, keepSide = false) {
   //    prototype quality; the authored 680 keep the smooth bezier outline and
   //    their exact shipped bytes.
   if (keepSide) {
-    const shoelace = (q) => (q[1].x - q[0].x) * (q[1].y + q[0].y) + (q[2].x - q[1].x) * (q[2].y + q[1].y)
-      + (q[3].x - q[2].x) * (q[3].y + q[2].y) + (q[0].x - q[3].x) * (q[0].y + q[3].y);
+    // Triangles, not quads: at a sharp bend the four corners can order into a
+    // bowtie — a self-crossing quad fills as two pinched triangles and leaves
+    // a dark notch at the knee (found judging the shading preview). A
+    // triangle cannot self-cross, so each step is two of them, each wound
+    // positive.
+    const shoelace = (q) => {
+      let a = 0;
+      for (let k = 0; k < q.length; k++) {
+        const p1 = q[k], p2 = q[(k + 1) % q.length];
+        a += (p2.x - p1.x) * (p2.y + p1.y);
+      }
+      return a;
+    };
+    const tri = (a, b, c) => {
+      const q = [a, b, c];
+      if (shoelace(q) < 0) q.reverse();
+      return `M${r(q[0].x)} ${r(q[0].y)}L${r(q[1].x)} ${r(q[1].y)}L${r(q[2].x)} ${r(q[2].y)}Z`;
+    };
     let d = '';
     for (let i = 0; i < s.length - 1; i++) {
-      const q = [left[i], left[i + 1], right[i + 1], right[i]];
-      if (shoelace(q) < 0) q.reverse();
-      d += `M${r(q[0].x)} ${r(q[0].y)}L${r(q[1].x)} ${r(q[1].y)}L${r(q[2].x)} ${r(q[2].y)}L${r(q[3].x)} ${r(q[3].y)}Z`;
+      d += tri(left[i], left[i + 1], right[i + 1]) + tri(left[i], right[i + 1], right[i]);
     }
+    // 🔴 SWEEP 0, NOT 1 — found by colouring every part: sweep 1 winds the
+    //    cap the OPPOSITE way to the shoelace-positive triangles, and under
+    //    the nonzero rule the overlap cancels — every cap rendered as a
+    //    half-dark bite. That one flag was the "black marks on the joints"
+    //    Pierre kept seeing survive fix after fix.
     const circle = (c, w) =>
-      `M${r(c.x - w)} ${r(c.y)}A${r(w)} ${r(w)} 0 1 1 ${r(c.x + w)} ${r(c.y)}A${r(w)} ${r(w)} 0 1 1 ${r(c.x - w)} ${r(c.y)}Z`;
+      `M${r(c.x - w)} ${r(c.y)}A${r(w)} ${r(w)} 0 1 0 ${r(c.x + w)} ${r(c.y)}A${r(w)} ${r(w)} 0 1 0 ${r(c.x - w)} ${r(c.y)}Z`;
+    // A stamp at the BENDS: adjacent quads pivot where the chain turns and
+    // leave a wedge-shaped gap on the bend's outside — dark notches at a
+    // turned figure's knees once the preview got big enough to judge. A stamp
+    // at every sample fixed that but scalloped the whole outline (the
+    // caterpillar look), so only samples where the direction actually changes
+    // get one. Winding stays uniform — still no cancellation anywhere.
     d += circle(start, start.w) + circle(end, end.w);
+    for (let i = 1; i < s.length - 1; i++) {
+      const ax = s[i].x - s[i - 1].x, ay = s[i].y - s[i - 1].y;
+      const bx = s[i + 1].x - s[i].x, by = s[i + 1].y - s[i].y;
+      const dot = ax * bx + ay * by;
+      const mag = (Math.hypot(ax, ay) * Math.hypot(bx, by)) || 1;
+      if (dot / mag < 0.985) d += circle(s[i], s[i].w);   // > ~10° of turn
+    }
     return d;
   }
 
@@ -284,7 +316,14 @@ export function buildFigure(pose, mix, skIn) {
     { d: arm('N'), z: zOf(['shoulderN', 'elbowN', 'wristN']) },
   ];
   if (spun) parts.sort((a, b) => a.z - b.z);
-  const body = parts.map(p => p.d);
+  // Filter BEFORE splitting into parallel arrays, or an empty ribbon would
+  // shift `body` against `bodyZ` and shade the wrong limb.
+  const kept = parts.filter(p => p.d);
+  const body = kept.map(p => p.d);
+  // The depths ride along (same order as `body`) so a renderer can shade a
+  // part by how near the camera it is — the "3D look" round. Harmless extra
+  // array for every other consumer.
+  const bodyZ = kept.map(p => p.z);
 
   // Deltoid caps: the shoulder is a ball, and a torso ribbon alone ends in a
   // slab. These are what give the figure its 2-head-wide shoulder line.
@@ -345,7 +384,7 @@ export function buildFigure(pose, mix, skIn) {
   const equipPose = (pose.alt && mix > 0.5) ? pose.alt : pose;
   const equip = typeof equipPose.equip === 'function' ? equipPose.equip(sk).filter(Boolean) : [];
 
-  return { sk, body: body.filter(Boolean), deltoids, head: headPath(sk), muscles, guide, fault, equip, view: sk.view };
+  return { sk, body, bodyZ, deltoids, head: headPath(sk), muscles, guide, fault, equip, view: sk.view };
 }
 
 // A bilateral fault (both knees, both shoulders) needs the line on both sides,

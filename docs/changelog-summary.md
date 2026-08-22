@@ -13,11 +13,30 @@ Full detail: instructions-v2.29.1.md.
 
 ---
 
+## v2.31 - the showcase suite: five pieces and the wall (August 22, 2026)
+
+Five composed 25-second continuations of the opening (anthem, engine, arena,
+pulse, orbit) shuffle behind the mark-tap show, and after the opening the mark
+hands off to a 6x4 wall of the library - rotating movements turning, the rest
+crossfading through all 340. Launch stays the 3-second opening untouched.
+Full detail: instructions-v2.31.md.
+
+---
+
 ## v2.30.1 - tap the mark, replay the show (August 22, 2026)
 
 The header split: the word opens the library, the mark replays the opening -
 looping, with Replay and Close - and because that tap is a user gesture, the
 sound now plays on the web version too. Full detail: instructions-v2.30.1.md.
+
+---
+
+## v2.30.3 - the black marks on the joints are gone (August 22, 2026)
+
+One arc-direction flag: the round caps on a turned figure's limbs wound
+against the rest of the body geometry and cancelled to half-dark bites at
+knees, hips and feet. Found by colouring every body part separately. The
+turned figures are solid everywhere now.
 
 ---
 
