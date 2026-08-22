@@ -4,6 +4,21 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.36 - dumbbells join the 3D vocabulary (August 23, 2026)
+
+The 360° spin could only draw a barbell or nothing, so every dumbbell
+movement in the judged patterns kept a fixed camera. A dumbbell is now a
+3D object - one bell-bar per hand, riding that hand's true depth - and
+eight more movements turn: both dumbbell curls, three dumbbell deadlifts,
+and the three dumbbell presses (which upgrade from the old two-picture
+drag to the true spin). The library's 360° count goes 24 to 29 - and note
+v2.35.1's "24 to 30" line was wrong: the bench fix changed how those
+movements turn, not how many turn. Cable, machine and landmine movements
+still keep their fixed camera on purpose - that gear hangs off the world,
+not the hands, and gets its own round.
+
+---
+
 ## v2.35.2 - the prone stability ball stays under the client (August 23, 2026)
 
 The v2.35.1 split-grip rule was too broad: on the two prone stability-ball

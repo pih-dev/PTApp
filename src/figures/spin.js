@@ -170,6 +170,35 @@ export function spinEquip(pose, theta, gear, anchor, pitchDeg = 0) {
     out.push(...(endOn ? [bells.reduce((m, x) => (x.z > m.z ? x : m))] : bells));
   }
 
+  if (gear === 'dumbbell') {
+    // v2.36: one bell-bar per HAND — the barbell model at quarter scale.
+    // Each dumbbell's axis runs along the body's z through ITS hand's true
+    // 3D grip (the hands carry real depth in skeleton3), so a curl shows
+    // two bells stacked in depth at 0°, separating as the figure turns.
+    // Same sphere rules as the barbell: constant r through the turn, and
+    // end-on only the near bell paints — the far one showing through the
+    // translucent body was the 180° artifact.
+    // Compact on purpose — first cut used HALF 62 and the two dumbbells
+    // strung into a bead-chain at oblique yaw; ±40 matches the 2D closure's
+    // proportions and keeps each bell pair reading as ONE object per hand.
+    const HALF = 40, BELL = 24;
+    for (const S of ['N', 'F']) {
+      const grip = {
+        x: (sk['wrist' + S].x + sk['hand' + S].x) / 2,
+        y: (sk['wrist' + S].y + sk['hand' + S].y) / 2,
+        z: ((sk['wrist' + S].z || 0) + (sk['hand' + S].z || 0)) / 2,
+      };
+      const a = pr({ ...grip, z: grip.z - HALF }), b = pr({ ...grip, z: grip.z + HALF });
+      const endOn = Math.hypot(b.x - a.x, b.y - a.y) <= 6;
+      if (!endOn) out.push({ k: 'bar', a, b, w: 6, z: (a.z + b.z) / 2 });
+      const bells = [-(HALF - 8), HALF - 8].map(zz => {
+        const c = pr({ ...grip, z: grip.z + zz });
+        return { k: 'circle', x: c.x, y: c.y, r: BELL, z: c.z };
+      });
+      out.push(...(endOn ? [bells.reduce((m, x) => (x.z > m.z ? x : m))] : bells));
+    }
+  }
+
   if (anchor === 'bench') {
     // The slab rides under the trunk, body-fixed, and turns with it.
     const u = unit(sk.neckBase, sk.pelvis);          // down the trunk, in-picture

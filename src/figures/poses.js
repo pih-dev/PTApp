@@ -373,7 +373,12 @@ const SPINS = new Set(['curl', 'hinge', 'bench-press']);
 //    and SPINS membership already means a human judged the pattern through
 //    the whole turn. Front-authored poses stay out by not being in SPINS
 //    until they are re-authored as side + depth (OPEN item 4).
-const spinsFor = (id, gear) => SPINS.has(id) && (gear === 'barbell' || gear === 'none');
+// v2.36: `dumbbell` joins the 3D vocabulary (one bell-bar per hand in
+// spinEquip) — 8 more movements turn. Cable/machine/landmine stay out:
+// their gear anchors to WORLD objects (a stack, a frame, a floor pivot),
+// which is its own modelling round, not a gear-at-the-hand variant.
+const SPIN_GEAR = new Set(['barbell', 'dumbbell', 'none']);
+const spinsFor = (id, gear) => SPINS.has(id) && SPIN_GEAR.has(gear);
 
 // v2.30: what the LIBRARY needs to badge a row without composing two full
 // poses per movement — does it turn (360° drag), and does it carry more

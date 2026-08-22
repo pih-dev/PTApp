@@ -59,7 +59,8 @@ at each milestone. A restart could end the session at any moment.
   the family fell back to the tween with the end-on dead bar — while this §0 recorded the spin as
   shipped. Gate is now `spinsFor()` (no fs test — skeleton3 never reads fs); `bench press` added to
   implicit-barbell gear (Close/Wide Grip resolved to `none` = pressing nothing). **Six barbell bench
-  movements spin; 360° library count is now 30, not 24.** Bench frames judged by eye (bar end-on →
+  movements spin** (stamp count unchanged — they were already stamped via the tween; the fix
+  changed HOW they turn, and the "now 30" first written here was wrong). Bench frames judged (bar end-on →
   full width, slab rides the turn, flare pair teaches at yaw 90). Fixes `d1692e9` (in v2.35's
   deploy) + gear rule in `53aaff9`.
   **(2) "2 heads per posture"** (photo, Side Rotary Medicine Ball Throw): the ball drew at the grip
@@ -74,10 +75,15 @@ at each milestone. A restart could end the session at any moment.
   imperfect · rollout fault ball overflows the cell's right edge by 20 units (pre-existing) ·
   **Offset Barbell Press spins as a symmetric bar**, contradicting its asymmetric-load teaching
   point (so the 360° set is 7 bench movements, not 6 — decide spin-exclude vs. offset plates).
+- 🟢 **2026-08-23 (v2.36): OPEN item 2 half-done — DUMBBELLS ARE IN THE 3D VOCABULARY.** One
+  bell-bar per hand riding its true depth; 8 movements gained the turn (both DB curls, three DB
+  deadlifts, three DB presses — those upgrade tween → spin). **360° stamp count measured 24 → 29.**
+  Judged on the grid before shipping (bead-chain artifact at HALF=62 caught and compacted to ±40).
+  Cable/machine/landmine stay out — world-anchored gear is its own round; kettlebell until judged.
 - 🔴 **OPEN, in rough priority for the next figures session:**
   1. **Fault muscles content: 36/44 archetypes still share the bank's wash** — judging work with
-     Pierre, not guessing. 2. **spinEquip vocabulary** stops at barbell + bench — dumbbell, cable,
-     machine needed before more patterns spin. 3. **More spin patterns** — each needs judging
+     Pierre, not guessing. 2. **spinEquip vocabulary** — cable, machine, landmine, kettlebell
+     remain (world-anchored gear). 3. **More spin patterns** — each needs judging
      through the turn before the gate opens (`SPINS` in `figures/poses.js`). 4. **Front-authored
      poses (squat family) carry baked `fs`** — re-author as side + depth before they can spin.
   5. **Sequences (brief item 6)** — his three open questions still unanswered. 6. **The 3D LOOK:
