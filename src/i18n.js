@@ -24,12 +24,9 @@ const T = {
     todaySessions: "Today's Sessions",
     upcomingSessions: 'Upcoming Sessions',
     today: 'Today',
-    compact: 'Compact',
-    expanded: 'Expanded',
     noSessionsToday: 'No sessions today',
     noUpcoming: 'No upcoming sessions',
     bookSession: '+ Book Session',
-    bookFirst: '+ Book First Session',
 
     // Common actions
     complete: 'Complete',
@@ -400,12 +397,9 @@ const T = {
     todaySessions: 'جلسات اليوم',
     upcomingSessions: 'الجلسات القادمة',
     today: 'اليوم',
-    compact: 'مختصر',
-    expanded: 'مفصّل',
     noSessionsToday: 'لا جلسات اليوم',
     noUpcoming: 'لا جلسات قادمة',
     bookSession: '+ حجز جلسة',
-    bookFirst: '+ حجز أول جلسة',
 
     // Common actions
     complete: 'إتمام',

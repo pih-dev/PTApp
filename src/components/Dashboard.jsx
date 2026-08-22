@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
-import { WhatsAppIcon, EditIcon, TrashIcon, ChevronIcon, BarMark } from './Icons';
+import { WhatsAppIcon, EditIcon, TrashIcon, BarMark } from './Icons';
 import { today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, sendReminderWhatsApp, getEffectiveSessionCount, localDateStr, getStatus, haptic, getRenewalDueMap, isSessionNow } from '../utils';
-import SessionCountPair from './SessionCountPair';
 import RenewalModal from './RenewalModal';
 import Bar from './Bar';
 import Plates from './Plates';
@@ -65,7 +64,6 @@ export default function Dashboard({ state, dispatch, setTab, lang, onOpenDay }) 
   const [activeSession, setActiveSession] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
   const [cancelPrompt, setCancelPrompt] = useState(null);
-  const [expanded, setExpanded] = useState(true); // true = full rows, false = compact list
   const [form, setForm] = useState({ clientId: '', type: 'Strength', date: today(), time: '09:00', duration: 45 }); // defaults are dead: openEdit always overwrites before the (edit-only) modal shows — see 2026-07-17 spec correction
   const [renewClient, setRenewClient] = useState(null);
 
@@ -180,22 +178,19 @@ export default function Dashboard({ state, dispatch, setTab, lang, onOpenDay }) 
       <Bar label={t(lang, 'overview')} count={`${state.clients.length} ${t(lang, 'statClients')}`} />
       <LoadWeek days={week.days} total={week.total} lang={lang} onOpenDay={onOpenDay} />
 
-      <Bar label={t(lang, 'upcomingSessions')} count={upcoming.length}>
-        {/* Tapped often, and it sits at the top of the screen — the padding is the
-            minimum decency for a thumb, not a style choice. */}
-        <button className="btn-secondary" style={{ fontSize: 12, padding: '11px 14px' }}
-          onClick={() => { haptic(); setExpanded(e => !e); }}>
-          {expanded ? t(lang, 'compact') : t(lang, 'expanded')}
-        </button>
-      </Bar>
+      {/* v2.33.1: the compact/expanded toggle is GONE. Elie uses one view only
+          (asked directly, 2026-08-22), and it was never persisted — plain
+          `useState(true)`, so it reset to full on every mount. A switch whose
+          state is thrown away on every visit is not a preference, it is a tax
+          on whoever wanted the other one. His answer: keep the detailed view. */}
+      <Bar label={t(lang, 'upcomingSessions')} count={upcoming.length} />
 
-      {/* Expanded view: upcoming sessions with full inline functionality.
-          v2.25: the row is the shared SessionCard (review P3, scope B) —
-          Schedule renders the SAME component, so the two lists cannot drift. */}
-      {expanded ? (
-        upcoming.length === 0 ? emptyState('noUpcoming', 'bookSession') : (
-          <div className="srows">
-            {upcoming.map((session, idx) => {
+      {/* The upcoming list. v2.25: the row is the shared SessionCard (review P3,
+          scope B) — Schedule renders the SAME component, so the two lists cannot
+          drift. It is the only view now; see the note above. */}
+      {upcoming.length === 0 ? emptyState('noUpcoming', 'bookSession') : (
+        <div className="srows">
+          {upcoming.map((session, idx) => {
               const client = state.clients.find(c => c.id === session.clientId);
               return (
                 <SessionCard key={session.id}
@@ -213,47 +208,7 @@ export default function Dashboard({ state, dispatch, setTab, lang, onOpenDay }) 
             })}
           </div>
         )
-      ) : (
-        /* Compact view: all upcoming, tap for the action sheet */
-        upcoming.length === 0 ? emptyState('noUpcoming', 'bookFirst') : (
-          <div className="srows">
-            {upcoming.map((session, idx) => {
-              const status = getStatus(session.status, lang, t);
-              const client = state.clients.find(c => c.id === session.clientId);
-              // v2.8: effective count honours the PT's manual override for this period
-              const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
-              const pkg = client ? renewalDue.get(client.id) : undefined;
-              const isNext = isSessionNow(session);
-              return (
-                <div key={session.id} className={`srow srow-tap${isNext ? ' is-now' : ''}`}
-                  style={{ '--i': Math.min(idx, 8) }}
-                  onClick={() => { haptic(); setActiveSession(session); }}>
-                  <div className="srow-head">
-                    <span className="srow-name">
-                      {getClientName(session.clientId)}
-                      <SessionCountPair auto={monthAuto} effective={monthCount} override={monthOverride} />
-                    </span>
-                    <span className="srow-time">{session.time}</span>
-                  </div>
-                  <div className="srow-meta">
-                    <span className="srow-mark">{session.type}</span>
-                    <span className="srow-date">{formatDate(session.date, lang)}</span>
-                    <span className={`badge badge-${session.status}`}>{status.label}</span>
-                    <span className="srow-chevron" style={{ marginInlineStart: 'auto', display: 'flex' }}>
-                      <ChevronIcon size={16} />
-                    </span>
-                  </div>
-                  {pkg && (
-                    <div className="srow-load">
-                      <Plates used={pkg.effective} size={pkg.contractSize} due={pkg.due} />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )
-      )}
+      }
 
       {/* Due for renewal — BELOW the upcoming list since v2.25 (fresh-eyes
           review #1): the thumb's question between sets is "who is next, right

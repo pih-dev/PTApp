@@ -44,8 +44,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.33
-**The library takes slot four.** Home · Clients · Schedule · **Library**; the flat all-sessions ledger is DEMOTED, not deleted (behind "All" on the Schedule day bar). 🔴 **`MovementLibrary` is ONE component with an `embedded` prop** — never fork it. 🔴 **EVERY MODAL PORTALS TO `<body>`** (`createPortal`, because `.content`'s bounce transform re-anchors `position:fixed` and its `z-index:1` puts overlays under the nav) **and `dir` is stamped on `<html>`**, or Arabic sheets render LTR. Detail: `docs/instructions-v2.33.md`.
+## Current Version: v2.33.1
+**The library takes slot four; Home has ONE view.** Home · Clients · Schedule · **Library**; the ledger is DEMOTED behind "All" on the Schedule bar. 🔴 **ELIE'S RULINGS, DO NOT RE-PROPOSE: the compact view is gone (detailed only) and the session-count edit STAYS at booking.** 🔴 **An unpersisted toggle is a tax, not a preference** — only whoever wanted the other option ever finds it. 🔴 **`MovementLibrary` is ONE component with an `embedded` prop** — never fork it. 🔴 **EVERY MODAL PORTALS TO `<body>`** (`.content`'s bounce transform re-anchors `position:fixed`; its `z-index:1` puts overlays under the nav) **and `dir` is stamped on `<html>`**, or Arabic sheets render LTR. → `v2.33`, `v2.33.1`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
@@ -56,11 +56,11 @@ All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-
 - 🔴 **A PATTERN MAY ROTATE (`ROTATES` in `poses.js`) — A TWEEN BETWEEN TWO AUTHORED CAMERAS, NOT A 3D RIG.** Every frame is bounded by two hand-judged shapes, so it cannot turn into a blob. **Both halves turn together** (turning one compares two cameras and teaches the wrong difference); **equipment SWAPS at 0.5**, never tweens; a rotatable pattern DROPS its static third figure. 🔴 True 3D was tried and reverted — a world-fixed lateral axis breaks every supine pose; it needs a BODY-FIXED frame per segment. Gesture: pointer events + `touch-action: pan-y` in CSS, **never a non-passive preventDefault**.
 - **A THIRD FIGURE (`extraId`) IS FOR A FAULT OUTSIDE THE PAIR'S PLANE** — a second camera with its own marker and sentence. 🔴 **NEVER fake it with per-figure foreshortening**: that is a bone-length change disguised as perspective.
 - **Bilingual search folds through `normaliseSearch` (`utils.js`) on BOTH sides** — typed Arabic differs from written Arabic invisibly and `includes()` fails on it. `muscleLabel`/`MUSCLE_AR` own muscle names; **`t()` returns the KEY on a miss, so never use it for data**.
-- **Sub-section scale: `.subbar` · `.lrow` · `.num`.** 🔴 **`.card` IS A ROW** — transparent, a 2px `--bar` shaft under it; **a real container is `.panel`**.
+- **Sub-section scale: `.subbar` · `.lrow` · `.num`.** 🔴 **`.card` IS A ROW** — transparent, 2px `--bar` shaft under it; **a real container is `.panel`**.
 - 🔴 **SELECTION IS CHALK · LOAD IS THE ACCENT · RED IS DESTRUCTIVE ONLY** · 🔴 **NO EMOJI IN THE INTERFACE** (WhatsApp templates keep theirs).
 - 🔴 **A SKIN IS VALUES, NOTHING ELSE** — ONLY in `src/skins.js` + the token block; **never a per-element override**.
 - **`TOKEN_KEY`/`DEMO_TOKEN`/`isDemo` in `utils.js`** (import cycle). 🔴 **`DEMO` is a review credential** — seeded local data, sync off, **seeds ONLY onto an empty store**.
-- **Sign-in is DARK**; **`sync.js` is `src/backend/`**. State: `HANDOFF-multi-user-build.md`, `HANDOFF-spotset-publishing.md`.
+- **Sign-in is DARK**; **`sync.js` is `src/backend/`**. State: `HANDOFF-multi-user-build.md`, `-spotset-publishing.md`.
 
 ## Governance — Elie's Standing Authority (granted 2026-07-18)
 Elie may drive app changes in-session on Pierre's conditions (*"since we're using github we can roll back, make sure data backups are done at every juncture"*). Routes on `Elie`.
@@ -133,8 +133,8 @@ One function owns the computation, and **both the live preview and the save path
 | `buildSession(clientId, date, time)` | The only constructor for a new session from the booking form | `Schedule.jsx` |
 
 Also single-source, from v2.10.1 — **never re-inline what they own:** `applyOverride`, `formatOverrideDraft`, `getFocusTags`, `getSessionType`, `openWhatsApp`, `friendly`, `makeTemplateSender`.
-- **`normCharts.js` owns ALL chart data + scoring.** Never inline a threshold. **Bump `CHARTS_VERSION` on any table change** — old records keep frozen scores, new evaluations use the new table, no migration. Currently **3** (Elie's age-banded 1RM numbers, v2.13.2).
-- **`EvalTimer.jsx` is retained but unrendered** — 1RM attempts aren't timed. **Do not delete it**; a rep-based battery could reuse it.
+- **`normCharts.js` owns ALL chart data + scoring**; never inline a threshold. **Bump `CHARTS_VERSION` on any table change** — old records keep frozen scores, new evaluations use the new table, no migration. Currently **3** (Elie's age-banded 1RM numbers, v2.13.2).
+- **`EvalTimer.jsx` is retained but unrendered** (1RM attempts aren't timed). **Do not delete it** — a rep-based battery reuses it.
 
 ### Program generation
 - **Frozen at generation.** `PROGRAM_RULES_VERSION` (`programRules.js`) + `EXERCISE_BANK_VERSION` (`exerciseBank.js`) are stamped per record; later changes never rewrite stored programs. **Bump either on ANY change** to volume tiers, method catalog, fat-loss thresholds, or the bank. **`exerciseBank.js` is GENERATED** — rebuild via `scripts/build_exercise_bank.py`, never hand-edit.
@@ -142,7 +142,7 @@ Also single-source, from v2.10.1 — **never re-inline what they own:** `applyOv
 - **The Deadlift anchor counts toward Back, not its bank primary (Quads).** Spec §6 maps Deadlift to the Pull day, so `fillBucket` force-overrides the anchor's `bucket` to the day's major — without it, Back runs an exercise short every block.
 
 ### Arabic / i18n
-- **Transliteration rule (Elie, standing):** when a literal Arabic translation wouldn't be understood in the gym, use the **English term in Arabic letters** (Block → بلوك, not مرحلة). Every future Arabic entry; also in `src/exerciseNamesAr.js`'s header.
+- **Transliteration rule (Elie, standing):** when literal Arabic wouldn't be understood in the gym, use the **English term in Arabic letters** (Block → بلوك, not مرحلة). Every future entry; also in `src/exerciseNamesAr.js`'s header.
 - Use `getStatus(status, lang, t)` for translated status labels.
 
 ### Colour, type & badges — everything paints from tokens
@@ -165,23 +165,23 @@ Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` r
 ---
 
 ## KNOWN ISSUES / OBLIGATIONS
-- 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev. Replace via General → Backup → "Update sync token".
-- **Program pruning (v2.15)** — before `data.json` nears 1 MB. 🔴 **Snapshot first**, cloud deletes are irreversible.
-- **Review finding P3 — BUILT in v2.25** (SessionCard scope B). Follow-up: Dashboard-compact + `Sessions.jsx`, once the API shape proves itself.
-- **App name = SpotSet**; `com.spotset.app` is PERMANENT.
-- 🔴 **THE SUPABASE SOAK IS PHASE 1, SO THE DAILY JOB IS `node scripts/soak-day.mjs` — MIRROR THEN VERIFY.** `mirror-to-supabase.mjs` is a MANUAL one-way script; the app does NOT dual-write, so Postgres is stale the moment anyone touches the phone and `sanity-live-supabase-diff` alone can never be clean (0/7 across 34 runs). That gate is unchanged and becomes the REAL soak the day dual-write lands. Detail: `HANDOFF-multi-user-build.md` §0.
-- 🔴 **THE DESTINATION IS 3D THAT ROTATES AND ZOOMS, REACHED A ROUND AT A TIME** (Pierre, 08-22). Stages and state: `docs/2026-08-22-figures-3d-options.md`. **Zoom is DOUBLE-TAP, not pinch** — pinch needs `touch-action: none` and the sheet must keep its vertical scroll; pinch comes with the 3D rig. **One gesture, two jobs, decided by `zoom`**: zoomed out it turns, zoomed in it pans.
+- 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev; replace via General → Backup.
+- **Program pruning (v2.15)** before `data.json` nears 1 MB. 🔴 **Snapshot first** — cloud deletes are final.
+- **Review finding P3 — BUILT in v2.25** (SessionCard scope B). 🔴 Its Dashboard-compact follow-up is MOOT: v2.33.1 deleted the compact view.
+- **App name = SpotSet**; `com.spotset.app` PERMANENT.
+- 🔴 **THE SUPABASE SOAK IS PHASE 1, SO THE DAILY JOB IS `node scripts/soak-day.mjs` — MIRROR THEN VERIFY.** `mirror-to-supabase.mjs` is MANUAL and one-way; the app does NOT dual-write, so `sanity-live-supabase-diff` alone can never be clean. It becomes the REAL soak the day dual-write lands. Detail: `HANDOFF-multi-user-build.md` §0.
+- 🔴 **THE DESTINATION IS 3D THAT ROTATES AND ZOOMS, A ROUND AT A TIME** (Pierre, 08-22); stages in `docs/2026-08-22-figures-3d-options.md`. **Zoom is DOUBLE-TAP** — pinch needs `touch-action: none` and the sheet must keep vertical scroll, so it comes with the 3D rig. **One gesture, two jobs by `zoom`**: out it turns, in it pans.
 - **NEXT ROTATION CANDIDATES:** the squat (valgus is frontal, so it gains the profile), then rows, then the rotation patterns — costs in the 3d-options doc above.
-- **The 2026-08-22 brief — rulings that are LAW:** 🔴 **the movement card FITS, never scrolls** · 🔴 **the fault figure highlights DIFFERENT muscles**. Shipped: the design round, mark, animation, icons, sound + suite. Open: the "S" idea (the pair as SpotSet's S). Figures thread: `HANDOFF-figures.md`; store uploads: `_archive/PTApp/branding/`.
-- 🔴 **TWO SESSIONS SHARE THIS TREE: stage EXPLICIT paths only (never `git add -A`); never `git checkout gh-pages` here — deploy via a separate `git worktree`.**
-- 🔴 **FRESH EYES, STRIPPED-STRUCTURE (standing rule):** before a design is called done, a subagent that has never seen it — Fable 5, max effort, ALL formatting stripped — argues the opposite: what is missing, what earns nothing, is the order wrong. First run (v2.25): `docs/design/2026-08-22-fresh-eyes-structure-review.md` — money tracking DEFERRED (no in-app payments); the rest await Pierre.
+- **Brief rulings that are LAW:** 🔴 **the movement card FITS, never scrolls** · 🔴 **the fault figure highlights DIFFERENT muscles**. Open: the "S" idea. Threads: `HANDOFF-figures.md`; uploads `_archive/PTApp/branding/`.
+- 🔴 **TWO SESSIONS SHARE THIS TREE: stage EXPLICIT paths (never `git add -A`); never `git checkout gh-pages` — deploy via the worktree.**
+- 🔴 **FRESH EYES, STRIPPED-STRUCTURE (standing rule):** before a design is called done, a subagent that has never seen it — Fable 5, max effort, ALL formatting stripped — argues the opposite. 🔴 **BUILD THE BRIEF FROM OPENED FILES, NEVER FILENAMES** — the reviewer is blind by design, so a guess in the brief becomes a confident finding with nothing downstream to catch it (`traps.md`, the plate calculator that never existed). Runs: `docs/design/2026-08-22-fresh-eyes-structure-review.md` (whole app) · `…-navigation-review.md` (the bar).
 
 ---
 
 ## REVIEW DISCIPLINE
 After **3+ feature changes** or ~2 h of coding, pause: did the fix land everywhere the pattern exists? · every read AND write migrated on a storage refactor? · callbacks shadowing `t`/`d`? · inline `marginLeft`/`borderLeft` or hardcoded colours? · strings missing from `i18n.js`? · anything that deletes/overwrites/fails to migrate? · new `.catch(() => {})` or loop dispatches? (`docs/release-hygiene.md` §3.)
 
-After every commit: **bug fix** → root cause + pattern into `docs/traps.md`, then grep elsewhere · **feature** → `docs/instructions-v{X}.md` + both changelogs · **design decision** → CONVENTIONS · **incident** → memory.
+After every commit: **bug fix** → root cause + pattern into `docs/traps.md`, then grep elsewhere · **feature** → `docs/instructions-v{X}.md` + both changelogs · **design decision** → CONVENTIONS · **incident** → memory. **A user's ruling → the rule sections, marked do-not-re-propose.**
 
 ---
 
@@ -197,7 +197,7 @@ node scripts/verify-bundle.mjs
 # 3. Bump the version in the App.jsx debug panel; rebuild if changed. Feature
 #    releases: also bump DOCS.instructions in General.jsx.
 
-# 4. Release hygiene gate — the five rules below. Run BEFORE committing.
+# 4. Release hygiene gate below. Run BEFORE committing.
 
 # 5. Commit and push source to master
 git add <files> && git commit -m "message" && git push origin master
@@ -216,7 +216,7 @@ git -C C:/projects/PTApp-ghpages add -A && git -C C:/projects/PTApp-ghpages comm
 - **A schema change needs a live-data byte-diff gate, and all three existing ones are SPENT by design** (`live-v6-diff`, `live-v5-diff`, `live-migration` — each asserts a snapshot the archive has moved past, so each prints "DO NOT DEPLOY"). **A v6→v7 change needs a NEW `sanity-live-v7-diff.mjs`, copied from the v6 one.**
 - Run the whole suite before every deploy — **check exit codes, don't eyeball output**: `for f in scripts/sanity/*.mjs; do node "$f" || echo "FAIL $f"; done`. The 3 live-diff gates above are SPENT by design; `sanity-rls-matrix` exits **2** = live RLS pass skipped. **Exit 2 is not a pass.** 🔴 **`sanity-live-supabase-diff` run BARE is EXPECTED to fail in Phase 1** — the app does not dual-write, so it compares GitHub against a mirror that is stale the moment anyone touches a phone. The daily job is **`node scripts/soak-day.mjs`** (mirror, then verify); only runs it drives count toward the streak. Do not 'fix' the bare failure.
 
-### 🔒 Release hygiene — the five rules (added 2026-08-03)
+### 🔒 Release hygiene — the rules (added 2026-08-03)
 CLAUDE.md was slimmed to 19.5 KB at v2.9.2 and back to 42 KB in five months: every release appended, none collapsed. **Never skip these "just this once" — that is how it regrew.** Why: `docs/release-hygiene.md` §1.
 
 ```bash
@@ -225,7 +225,7 @@ git log --all --oneline | grep -i "Deploy v" # RULE 3: each resolves to a change
 ls docs/instructions-v*.md
 ```
 
-1. **Under 30 KB** (`.context-budget` is the authority — 20→22 the Topic Router, 22→24 the v2.18 design law, 24→30 the figures subsystem). Over budget ⇒ collapse the oldest version section before committing. ⚠️ `memory/MEMORY.md` loads every session too — keep it under ~12 KB.
+1. **Under 30 KB** — `.context-budget` is the authority (raises funded the Topic Router, the v2.18 design law, the figures subsystem). Over ⇒ collapse the oldest version section before committing. ⚠️ `memory/MEMORY.md` loads every session too — keep it under ~12 KB.
 2. **Only ONE full version section — `## Current Version`.** The outgoing one collapses to a `## Version History` line **in the same commit** that promotes the new one; History is capped at 8, the 9th drops to `docs/changelog-summary.md`.
 3. **No version ships without a changelog line AND an instructions file.** `.0` → `instructions-vX.Y.md`, patch → `instructions-vX.Y.Z.md` (`v2.10.0.md` is a legacy exception).
 4. **A durable rule NEVER lives only in a version/changelog entry** — a kernel claim, a "never do Y at call sites", a platform trap goes into `TRAPS` / `docs/traps.md` / CONVENTIONS **when written**. Version sections record what shipped; rule sections record what is true.

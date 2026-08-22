@@ -4,6 +4,18 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.33.1 - one view on Home (August 22, 2026)
+
+The switch between the short and the full list of upcoming sessions is gone.
+The full one stays. Elie was asked directly and said he only ever uses one, and
+that it is the detailed one.
+
+Worth knowing: the switch never remembered which view you picked. It reset to
+the full list every single time you left the screen, so if you preferred the
+short one you were re-tapping it all day. Full detail: instructions-v2.33.1.md.
+
+---
+
 ## v2.33 - the library takes the fourth tab (August 22, 2026)
 
 The bottom bar's fourth tab was "Sessions", a flat list of all 514 sessions

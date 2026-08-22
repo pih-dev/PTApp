@@ -4,6 +4,30 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.33.1 - the compact view is removed; the toggle was never persisted (2026-08-22)
+
+`Dashboard.jsx` loses the `expanded` state, the toggle button and the whole compact
+branch; the shared `SessionCard` list renders unconditionally. `ChevronIcon` and
+`SessionCountPair` were compact-only and their imports are pruned; `compact`,
+`expanded` and `bookFirst` are deleted from `i18n.js` in BOTH languages.
+
+Driver: the fresh-eyes review ranked this LAST at low confidence and explicitly said
+verify with the user before killing it. He was asked with a picture card and chose the
+detailed view.
+
+🔴 **The finding underneath it.** The toggle was `useState(true)` - persisted nowhere,
+and the Dashboard remounts on every tab entry, so it reset to expanded on every visit.
+**An unpersisted toggle is only ever discovered by the person it inconveniences**; the
+default user never notices, so silence is not evidence the toggle works. Either persist
+a preference or do not offer one.
+
+Also settled with no code change: the session-count edit STAYS in the booking screen
+(Elie overruled the review's finding #4 - do not re-propose), and the "plate calculator"
+finding is void because no such feature exists (`Plates.jsx` is the package disc row;
+see the nav review §8c and traps.md).
+
+---
+
 ## v2.33 - Library replaces Sessions in slot four; all modals portalled (2026-08-22)
 
 **Navigation.** `tabs[3]` is `library`, not `sessions`. `MovementLibrary` gained an
