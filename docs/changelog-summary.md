@@ -4,6 +4,15 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.29.1 - the opening hits harder, and takes its time (August 22, 2026)
+
+Phone review of the first sound: "like a wish". Rebuilt on impact: two bass
+hits (each figure lands on its own), a wide low chord under the line draw, and
+the opening stretched to ~3 seconds so it can be noticed. Tap still skips.
+Full detail: instructions-v2.29.1.md.
+
+---
+
 ## v2.29 - three movements turn in your hand (August 22, 2026)
 
 Round 4 reaches the app: on curls, deadlifts and the barbell bench press,

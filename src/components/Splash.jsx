@@ -15,8 +15,9 @@ import { SPOTSET_MARK_SVG } from '../spotsetMark';
 //    where MainActivity lifts the WebView's gesture requirement. The asset
 //    (public/opening.wav, synthesised by scripts/make-opening-sound.mjs) rides
 //    into the APK via webDir but is never copied to gh-pages, so the web build
-//    could not fetch it even without the gate. Its impact lands at 450ms — the
-//    same instant the posture lines start to draw (styles.css .pm-line).
+//    could not fetch it even without the gate. v2.28.1: two bass hits at
+//    0.35s/0.85s — each figure LANDS on its hit — and the chord bloom carries
+//    the line draw (styles.css .pm-* delays are coupled to these numbers).
 export default function Splash({ onDone }) {
   const [leaving, setLeaving] = useState(false);
   useEffect(() => {
@@ -28,8 +29,11 @@ export default function Splash({ onDone }) {
         audio.play().catch(() => {});
       }
     } catch { /* audio is a garnish — the splash never waits on it */ }
-    const t1 = setTimeout(() => setLeaving(true), 1080);
-    const t2 = setTimeout(onDone, 1400);
+    // v2.28.1: stretched to ~3s on Pierre's phone review ("too short to
+    // notice") so the two-hit sound has room. Shorten here + the .pm-* delays
+    // + the wav TOGETHER when he wants it tightened.
+    const t1 = setTimeout(() => setLeaving(true), 2550);
+    const t2 = setTimeout(onDone, 2950);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [onDone]);
   return (

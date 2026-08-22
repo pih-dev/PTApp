@@ -4,6 +4,27 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.29.1 - the two-hit opening (2026-08-22)
+
+Sound cut 2 (Pierre: "more impactful, like Netflix/THX"): make-opening-sound
+rebuilt around ta-DUM - pitch-dropping percussive hits at 0.35s/0.85s with
+2nd/3rd harmonics (missing-fundamental so phone speakers still land the hit),
+A1 chord blooming from hit 2 with detuned-partial width, riser replaces the
+old wash. Splash stretched to ~2.95s; the figures land ON the hits, lines draw
+under the chord (all .pm-* delays retimed; the coupling comment names every
+file). Android vc5 / 2.29.1 - ready as the next Play upload (vc4 still in
+review). v2.29's instructions file backfilled.
+
+---
+
+## v2.29 - three movements turn (2026-08-22)
+
+Figures round 4 in-app (figures session): continuous 180-degree turn on curl,
+hinge and barbell bench; equipment rotates with the body. Three judged
+patterns only. Entry backfilled; see instructions-v2.29.md.
+
+---
+
 ## v2.28 - the opening sound + Play versionCode 4 (2026-08-22)
 
 scripts/make-opening-sound.mjs synthesises public/opening.wav (233 KB,

@@ -369,25 +369,28 @@ button:active { transform: scale(0.97); }
   width: min(64vw, 300px); color: var(--chalk);
   animation: splashIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+/* v2.28.1 timings — coupled to the SOUND (make-opening-sound.mjs): each figure
+   lands ON its bass hit (0.35s / 0.85s), the lines draw under the chord bloom
+   (1.0–1.9s), the ring and the name ride the decay. ~3s total, tap skips. */
 .splash-mark svg { width: 100%; height: auto; display: block; overflow: visible; }
 @keyframes splashIn {
   from { transform: scale(0.94); opacity: 0; }
   to   { transform: scale(1); opacity: 1; }
 }
 /* The halves stagger in — opacity only on the inner viewports (Safari). */
-.splash-mark .pm-ok    { animation: pmFade 0.4s ease-out both 0.05s; }
-.splash-mark .pm-fault { animation: pmFade 0.4s ease-out both 0.2s; }
+.splash-mark .pm-ok    { animation: pmFade 0.3s ease-out both 0.1s; }
+.splash-mark .pm-fault { animation: pmFade 0.3s ease-out both 0.6s; }
 @keyframes pmFade { from { opacity: 0; } to { opacity: 1; } }
 /* The lines draw — the green and the orange are the story. */
 .splash-mark .pm-line {
   stroke-dasharray: 100;
-  animation: pmDraw 0.55s ease-in-out both 0.45s;
+  animation: pmDraw 0.9s ease-in-out both 1s;
 }
 @keyframes pmDraw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
 /* The fault ring lands last. */
 .splash-mark .pm-ring {
   transform-box: fill-box; transform-origin: center;
-  animation: pmRing 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both 0.92s;
+  animation: pmRing 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both 1.95s;
 }
 @keyframes pmRing {
   from { transform: scale(0.4); opacity: 0; }
@@ -397,7 +400,7 @@ button:active { transform: scale(0.97); }
   font-family: var(--font-display);
   font-size: 26px; font-weight: 700; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--chalk);
-  animation: wordUp 0.4s ease-out both 0.8s;
+  animation: wordUp 0.45s ease-out both 2.15s;
 }
 @keyframes wordUp {
   from { transform: translateY(8px); opacity: 0; }
