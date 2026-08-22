@@ -168,7 +168,7 @@ Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` r
 - 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026`, makdissi-dev; General → Backup.
 - **Program pruning** before `data.json` nears 1 MB. 🔴 **Snapshot first** — cloud deletes are final.
 - **Review finding P3 — BUILT in v2.25.** 🔴 Its Dashboard-compact follow-up is MOOT: v2.33.1 deleted the compact view.
-- **SpotSet**; `com.spotset.app` PERMANENT.
+- `com.spotset.app` is PERMANENT.
 - 🔴 **SUPABASE IS PHASE 1: THE DAILY JOB IS `node scripts/soak-day.mjs` — MIRROR THEN VERIFY.** `mirror-to-supabase.mjs` is MANUAL and one-way; the app does NOT dual-write, so `sanity-live-supabase-diff` alone can never be clean. It becomes the REAL soak when dual-write lands. Detail: `HANDOFF-multi-user-build.md` §0.
 - 🔴 **THE DESTINATION IS 3D THAT ROTATES AND ZOOMS, A ROUND AT A TIME**; stages and rotation candidates in `docs/2026-08-22-figures-3d-options.md`. **Zoom is DOUBLE-TAP** — pinch needs `touch-action: none` and the sheet must keep vertical scroll, so it comes with the 3D rig. **One gesture, two jobs by `zoom`**: out it turns, in it pans.
 - **LAW:** 🔴 **the movement card FITS, never scrolls** · 🔴 **the fault figure highlights DIFFERENT muscles**. Open: the "S" idea. `HANDOFF-figures.md`; uploads `_archive/PTApp/branding/`.
