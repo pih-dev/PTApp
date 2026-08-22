@@ -45,6 +45,19 @@ at each milestone. A restart could end the session at any moment.
   is drawn into a system that exists. It exists now.
 - **He is switching to Opus 5 at xhigh effort for that work.** Session dump for this whole thread:
   `_archive/PTApp/claude-sessions/2026-08-22-figures-b2-FULL-SESSION.txt`.
+- 🔴 **MODEL POLICY (CCHealth ruling, 2026-08-22 — enforce, don't re-derive):**
+  - **Rounds 1–3 + the six queued items (UI/2D work): Opus 5 (1M) at xhigh.** This is the session
+    you are probably in. Do NOT burn Fable on gestures, tokens, zoom anchoring or equipment colour.
+  - **Round 4 (real depth / body-fixed frames — the "spatial" work) MUST run on Fable 5, high or
+    xhigh, session-only.** Before starting ANY round-4 work: run `/model`, confirm Fable 5 is
+    active; if not, STOP and tell Pierre to switch (`/model` → Fable → press `s` for session-only).
+    True 3D already failed once on Opus-era work (world-fixed axis broke supine poses) — do not
+    attempt it on a lesser model.
+  - **Ultracode/workflows:** reserve for judged fan-out sweeps — e.g. reviewing all 44 archetype
+    poses in parallel, or the anatomy audit of every fault pose. Pierre triggers it by putting
+    "ultracode" in the prompt. Never for sequential design/build rounds.
+  - Mechanical subtasks (renames, reruns, JSON edits) → Sonnet/Haiku subagents, per global rule.
+  - Full audit behind this: `CCHealth/docs/sessions/2026-08-22-ptapp-figures-audit.md`.
 - **Weakest three patterns, unchanged:** `leg-raise`, `wrist-curl`, `rotation`.
   `node scripts/figures-contact.mjs` builds the judging sheet.
 
