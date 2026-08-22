@@ -52,19 +52,22 @@ at each milestone. A restart could end the session at any moment.
   ledger closed: pan-updater crash (live white-screen), guide hairpin, bowtie quads → triangles,
   cap sweep-flag winding (the recurring "black marks on the joints"), shoulder girdle (arms
   floated detached at mid-turn — the authored views never needed a clavicle, real depth does).
-- 🔴 **2026-08-22 (late, CCHealth session): PIERRE'S REPEATED "BENCH BAR DOESN'T MOVE" REPORT WAS
-  A REAL SHIPPED BUG, NOW FIXED IN CODE (uncommitted-to-a-release; on master).** The §0 claim above
-  that round 4 shipped "bench-press with barbell-or-none gear" was FALSE in-app: the spin gate's
-  `!fsBaked` clause (written against the squat family's fs tables) silently disqualified bench-press,
-  which carries the §11 hack `fs:{upperArm:0.72}` — so every bench movement fell back to the old
-  two-camera tween whose bar sits end-on and never moves. Fix in `src/figures/poses.js`: gate is now
-  `spinsFor()` (SPINS membership + gear vocabulary, no fs test — skeleton3 never reads fs); plus
-  `bench press` added to the implicit-barbell gear rules (Close/Wide Grip resolved to gear `none` =
-  would have pressed NOTHING). 6 bench movements now spin. Sanity gate PASSES (340/44, canon intact,
-  same 24 warn-only ROM warnings). **STILL OWED before release: (a) judge the bench-family spin
-  frames by eye — harness `tmp/spin-frames.mjs` (bar verified end-on→full-width, bench slab present
-  in markup but not yet visually confirmed at oblique yaw; screenshot tool flaked); (b) version
-  bump + suite per CLAUDE.md law; (c) 360° stamp count changes 24 → ~30 — update library claim.**
+- 🟢 **2026-08-23 — BOTH OF PIERRE'S DEFECT REPORTS ARE FIXED AND LIVE (v2.35.1 deployed, Pages
+  `built`; APK vc12 verified inside the manifest, archived + sent).**
+  **(1) "Bench bar doesn't move"** was a real shipped bug, not a queue item: the spin gate's
+  `!fsBaked` clause silently disqualified bench-press over its §11 hack (`fs:{upperArm:0.72}`), so
+  the family fell back to the tween with the end-on dead bar — while this §0 recorded the spin as
+  shipped. Gate is now `spinsFor()` (no fs test — skeleton3 never reads fs); `bench press` added to
+  implicit-barbell gear (Close/Wide Grip resolved to `none` = pressing nothing). **Six barbell bench
+  movements spin; 360° library count is now 30, not 24.** Bench frames judged by eye (bar end-on →
+  full width, slab rides the turn, flare pair teaches at yaw 90). Fixes `d1692e9` (in v2.35's
+  deploy) + gear rule in `53aaff9`.
+  **(2) "2 heads per posture"** (photo, Side Rotary Medicine Ball Throw): the ball drew at the grip
+  MIDPOINT, and the rotation family's split-arm poses (gap ~620) put that beside the head on all 13
+  ball movements. Ball now rides the grip FARTHER from the head when grips are >120 apart (near-hand
+  was tried and clipped at the frame top); hands-together holds unchanged. `53aaff9` + v2.35.1.
+  ⚠️ Noticed, not touched: **Ball Squat draws a BARBELL** (its name never matches the ball rule) —
+  judging call for a future round, listed here so it is not re-found.
 - 🔴 **OPEN, in rough priority for the next figures session:**
   1. **Fault muscles content: 36/44 archetypes still share the bank's wash** — judging work with
      Pierre, not guessing. 2. **spinEquip vocabulary** stops at barbell + bench — dumbbell, cable,
