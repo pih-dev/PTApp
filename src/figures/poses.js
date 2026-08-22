@@ -91,7 +91,11 @@ const GEAR = [
   // word ("Kettlebell Sumo Deadlift") wins first, exactly as documented above.
   // A movement that is genuinely equipment-free (push-up, plank, bodyweight
   // squat, stretch) still falls through to 'none', which is correct.
-  [/deadlift|rack pull|good morning|push press|power rack|box squat|front squat|back squat|power shrug|upright row|preacher curl|bent[- ]?over row|pendlay|clean|snatch|hip thrust/i, 'barbell'],
+  // `bench press` added 2026-08-22: "Close/Wide Grip Bench Press" carry no
+  // explicit gear word, fell to 'none', and once the bench family spun that
+  // meant a lifter pressing NOTHING. An explicit word (dumbbell, machine,
+  // smith) still wins first, so only the barbell benches match here.
+  [/deadlift|rack pull|good morning|push press|power rack|box squat|front squat|back squat|power shrug|upright row|preacher curl|bent[- ]?over row|pendlay|clean|snatch|hip thrust|bench press/i, 'barbell'],
   [/pushdown|pull[- ]?down|pallof|pulley|face pull|triceps extension/i, 'cable'],
   [/hammer curl|kickback|lateral raise|front raise|rear delt|shrug|concentration curl|zottman|arnold|renegade|farmer/i, 'dumbbell'],
 ];
@@ -328,12 +332,25 @@ const ROTATES = {
 
 // Round 4 (v2.29): the JUDGED patterns turn continuously — Pierre approved
 // curl, hinge and the bench on the prototype sheet, frame by frame. The
-// gate is deliberate and narrow: side-authored pose (no baked `fs`), a
-// gear the 3D equipment vocabulary can draw (barbell, or nothing), and a
-// pattern a human has judged through the turn. Everything else keeps its
-// authored view until its own judging round — a control that renders an
-// unjudged angle is worse than no control.
+// gate is deliberate and narrow: a gear the 3D equipment vocabulary can
+// draw (barbell, or nothing), and a pattern a human has judged through the
+// turn. Everything else keeps its authored view until its own judging
+// round — a control that renders an unjudged angle is worse than no control.
 const SPINS = new Set(['curl', 'hinge', 'bench-press']);
+
+// 🔴 THE GATE NO LONGER TESTS FOR BAKED `fs`, and that removal IS the
+//    2026-08-22 fix for "the bench-press bar never moves". The old
+//    `!fsBaked` clause was written against the squat family's front-authored
+//    fs TABLES — but bench-press carries the §11 projection hack
+//    (`fs:{upperArm:0.72}`, authored for the 2D profile camera), so the
+//    clause silently disqualified the one pattern round 4 was built for:
+//    every bench movement fell back to the old two-camera tween, whose bar
+//    is drawn end-on and never turns. The 3D rig never reads `fs` at all
+//    (skeleton3 computes true depth, which REPLACES the projection hack),
+//    and SPINS membership already means a human judged the pattern through
+//    the whole turn. Front-authored poses stay out by not being in SPINS
+//    until they are re-authored as side + depth (OPEN item 4).
+const spinsFor = (id, gear) => SPINS.has(id) && (gear === 'barbell' || gear === 'none');
 
 // v2.30: what the LIBRARY needs to badge a row without composing two full
 // poses per movement — does it turn (360° drag), and does it carry more
@@ -343,8 +360,7 @@ export function figureMeta(name) {
   const a = ARCHETYPES[id];
   if (!a) return { turns: false, extra: false };
   const gear = gearFor(name);
-  const fsBaked = !!(a.base.fs || a.correct.fs || a.fault.fs);
-  const spins = SPINS.has(id) && !fsBaked && (gear === 'barbell' || gear === 'none');
+  const spins = spinsFor(id, gear);
   const turns = spins || !!ROTATES[id];
   return { turns, extra: !turns && a.extraId === 'bench-above' };
 }
@@ -363,8 +379,7 @@ export function figureFor(name) {
   // renderer tweens between them and the sheet grows a drag handle. When a
   // pattern rotates, the standing third figure is redundant — the same view is
   // now a finger-drag away — so it is dropped rather than shown twice.
-  const fsBaked = !!(a.base.fs || a.correct.fs || a.fault.fs);
-  if (SPINS.has(id) && !fsBaked && (gear === 'barbell' || gear === 'none')) {
+  if (spinsFor(id, gear)) {
     pair.spin = { gear, anchor: a.anchor };
     pair.rotatable = true;
     return pair;   // spin supersedes the two-camera tween AND the extra view
