@@ -124,9 +124,34 @@ Nothing deleted. Two demoted, one promoted, one made ubiquitous, one de-duplicat
 - **The four-tab bar.** *"The structure's sins are two tenants and one buried treasure, not the
   architecture."*
 
+## 8b. Elie's answers — 2026-08-22 evening, via WhatsApp
+
+Asked with three picture cards (`_archive/PTApp/elie-questions/`), two labelled options each.
+
+- **Q2, the session count at booking → he chose 1: KEEP EDITING IT THERE. Finding #4 is OVERRULED
+  and CLOSED. No code change.** 🔴 Do not re-propose this. The reviewer called it a defect because
+  package accounting belongs to the client and its presence in Schedule is "an accident of when the
+  conversation happens". Elie's answer says the accident *is* the workflow: the "how many left?"
+  conversation happens at booking, with the client in front of him, and that is where he fixes the
+  number. **This is the whole reason the question was asked rather than acted on** — the review was
+  reasoning from structure, and the user was reasoning from his actual day. The user wins.
+- **Q3, the two views on Home → he chose 2: "I only ever use one."** He did not say which, and the
+  card asked him to. **Still open**, and it cannot be guessed: dropping the wrong view makes the
+  screen worse for the only person using it.
+  - 🔴 **A fact found while chasing it, worth its own line:** the toggle is
+    `useState(true)` in `Dashboard.jsx:68` — **not persisted anywhere**, not in state, not in
+    localStorage. It resets to *expanded* on every mount. So there is no stored preference to read,
+    and more importantly: **if he uses compact, he has been re-tapping it every single visit for
+    months.** Whichever view survives, the fix is the same shape — make it the default and remove
+    the switch.
+- **Q1, the plate calculator — no answer yet.**
+
 ## 9. Open — Pierre's calls
 
-1. 🔴 **Slot four: Sessions out, Library in?** The structural call; everything else is refinement.
-2. 🔴 **The plate calculator: header tool, or off Home entirely?** Pick one; the middle is the finding.
-3. **Items 4 and 5 change habits ELIE has, not habits we guessed at.** He has standing authority and
-   he is the one booking at the gym — ask him before either moves.
+1. ✅ **Slot four: Sessions out, Library in — DONE.** Approved by Pierre 2026-08-22 and shipped as
+   v2.33 the same evening. The ledger lives behind "All" on the Schedule day bar.
+2. 🔴 **The plate calculator: header tool, or off Home entirely?** Pick one; the middle is the
+   finding. Elie has the card and has not answered this one.
+3. ✅ **Finding #4 (the override edit) — CLOSED by Elie, no change.** See §8b.
+4. 🔴 **Finding #5 (the two views) — Elie uses only one but did not say which.** One word from him
+   finishes it; the toggle is unpersisted either way (§8b).
