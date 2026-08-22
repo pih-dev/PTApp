@@ -102,9 +102,12 @@ at each milestone. A restart could end the session at any moment.
   angle, near-bell-over-hand depth split, bench swivels WITH the lifter, depth-sorted ribbons,
   girth blending, both-sides muscle wash past a quarter turn. Still prototype-only — no screen
   imports spin.js.
-- 🟡 **ROUND 4 OPEN ITEMS:** (1) at mirror angles the far arm ducks behind the torso and the
-  enclosed background reads as a dark ball — honest occlusion, needs a visual answer (fill the
-  arm-torso gap? dim far limbs?); (2) wire the drag to θ in Figure.jsx (replaces the two-camera
+- 🟡 **ROUND 4 OPEN ITEMS:** (1) 🔴 REVISED with Pierre's photo evidence (his phone, debug180):
+  the dark marks are perfectly CIRCULAR HOLES punched in the body fill — hip-cap-sized at the
+  waist, toe-cap-sized at the foot — plus the head DETACHES from the neck at 180°. That is not
+  occlusion: it smells like ribbon cap winding cancelling the outline under the nonzero fill rule
+  when the geometry mirrors (spun past 90°). Reproduce with `scratchpad/debug180.html`, inspect
+  the ribbon path data for reversed cap winding. Pierre's ruling: fix later, majors or easy; (2) wire the drag to θ in Figure.jsx (replaces the two-camera
   tween; ROTATES and BENCH/PUSHUP_ABOVE then delete themselves); (3) extend spinEquip past
   barbell+bench (dumbbell, cable, machine); (4) front-authored poses (squat family) carry a baked
   `fs` and need re-authoring as side+depth before they can spin; (5) sanity gate: pair rule
