@@ -45,14 +45,17 @@ at each milestone. A restart could end the session at any moment.
   is drawn into a system that exists. It exists now.
 - **He is switching to Opus 5 at xhigh effort for that work.** Session dump for this whole thread:
   `_archive/PTApp/claude-sessions/2026-08-22-figures-b2-FULL-SESSION.txt`.
-- 🔴 **MODEL POLICY (CCHealth ruling, 2026-08-22 — enforce, don't re-derive):**
-  - **Rounds 1–3 + the six queued items (UI/2D work): Opus 5 (1M) at xhigh.** This is the session
-    you are probably in. Do NOT burn Fable on gestures, tokens, zoom anchoring or equipment colour.
-  - **Round 4 (real depth / body-fixed frames — the "spatial" work) MUST run on Fable 5, high or
-    xhigh, session-only.** Before starting ANY round-4 work: run `/model`, confirm Fable 5 is
-    active; if not, STOP and tell Pierre to switch (`/model` → Fable → press `s` for session-only).
-    True 3D already failed once on Opus-era work (world-fixed axis broke supine poses) — do not
-    attempt it on a lesser model.
+- 🔴 **MODEL POLICY (Pierre's ruling, 2026-08-22 — best result FIRST, quota second, enforce):**
+  - **The three flagship tasks — the UI redesign, the logo/name (B3), and the figures thread
+    (including spatial/3D/rotate/zoom) — run on Fable 5 at xhigh.** Pierre explicitly accepts
+    exceeding the 50% weekly Fable allowance; do not economise him back to Opus.
+  - **Gate at session start AND before any of those tasks:** run `/model`; if Fable 5 is not
+    active, STOP and tell Pierre to switch (`/model` → Fable → press `s`), then continue.
+    True 3D already failed once on a lesser model (world-fixed axis broke supine poses).
+  - **Session boundaries, his procedure (high-stakes rule):** no `/wrap` — the session does a
+    detailed RAW DUMP first, then updates this handoff, then tells him and waits; HE runs the
+    clear/continue and switches models between them. The session's job is to SAY when the next
+    round needs Fable before he clears.
   - **Ultracode/workflows:** reserve for judged fan-out sweeps — e.g. reviewing all 44 archetype
     poses in parallel, or the anatomy audit of every fault pose. Pierre triggers it by putting
     "ultracode" in the prompt. Never for sequential design/build rounds.
