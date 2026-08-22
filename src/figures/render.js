@@ -181,12 +181,14 @@ function lerpSkeleton(a, b, t) {
   return out;
 }
 
-export function buildFigure(pose, mix) {
+export function buildFigure(pose, mix, skIn) {
   // `pose.alt` is the same movement from a second camera. `mix` 0 = the authored
   // pose, 1 = the alternate, anything between is the turn.
-  const sk = (pose.alt && mix > 0)
+  // `skIn` (round-4 prototype, spin.js): a pre-computed skeleton — the caller
+  // has already rotated the joints and everything downstream just draws them.
+  const sk = skIn || ((pose.alt && mix > 0)
     ? lerpSkeleton(skeleton(pose), skeleton(pose.alt), Math.min(1, mix))
-    : skeleton(pose);
+    : skeleton(pose));
   const g = GIRTH[sk.view];
   const body = [];
 
