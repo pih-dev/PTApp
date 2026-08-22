@@ -56,7 +56,7 @@ html, body, #root { height: 100%; overflow: hidden; }
      review — the first steel blue read as "grayed out" next to the vivid green
      and orange; this one sits in the same saturated family. Still bluer than
      --accent's cyan (load/urgency) and NOT #2563EB (the retired generated blue). */
-  --equipment: #4D8DE8;
+  --equipment: #4AA0F0;  /* matched to Pierre's reference photo — the artifact-era azure */
 
   /* Type roles (spec §4). Saira Condensed uppercase reads as an instrument
      label and is the fastest exit from the generated look; IBM Plex Mono with
@@ -1160,11 +1160,16 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 }
 .load-cols { flex: 1; display: flex; align-items: flex-end; gap: 6px; }
 /* A column is a BUTTON since v2.25 (it opens its day in Schedule) — the resets
-   keep it drawing exactly as the div it replaced. */
+   keep it drawing exactly as the div it replaced. An empty day draws ~33×30px,
+   far under the 44px tap rule, so an invisible ::before grows the hit area
+   without moving a pixel: -3px a side exactly fills the 6px column gap (no
+   overlap), and the vertical reach covers the headline row above the stacks. */
 .load-col {
+  position: relative;
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 0; background: none; border: none; font-family: inherit; cursor: pointer;
 }
+.load-col::before { content: ''; position: absolute; inset: -14px -3px -6px; }
 /* column-reverse: the stack loads from the bar upward, the way plates go on */
 .load-stack { display: flex; flex-direction: column-reverse; gap: 2px; min-height: 7px; width: 100%; }
 .load-seg {
