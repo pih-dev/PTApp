@@ -44,6 +44,15 @@ moved; six barbell bench movements now turn, raising the 360° count 24 → 30.
 
 ---
 
+## v2.35.1 - the one chip that was missed (August 23, 2026)
+
+The session type on each row ("Strength") was the last string still in tracked
+capitals after the legibility pass. Now it matches everything else. Spotted by
+Pierre in a before/after screenshot; no automated check would have caught it,
+because the app was consistent apart from that one chip.
+
+---
+
 ## v2.35 - the text is readable now (August 22, 2026)
 
 Every button, badge, tag, status, name and label was set in UPPERCASE, with

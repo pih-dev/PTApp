@@ -2038,3 +2038,19 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 .btn-whatsapp-lg { font-size: 15px; }
 /* Names are the thing he scans for. They were 'JANANE MALLAT' in tracked caps. */
 .srow-name, .client-name, .rrow-name, .success-name { font-size: 17px; font-weight: 600; }
+
+/* 🔴 THE ONE STRAGGLER, AND WHY IT SURVIVED — worth keeping as the lesson.
+   Pierre's before/after screenshots showed every string fixed except the session
+   type chip ("STRENGTH"). Its rule is a DESCENDANT selector at (0,2,0), so it
+   outranks the (0,1,0) block above; and it escaped the harvest because its
+   Arabic counterpart is `[dir="rtl"] .srow .inline-type-select`, from which the
+   harvester captured the ancestor `.srow`, not the target.
+   Lesson: harvesting selectors from an existing rule set catches the simple
+   ones and silently misses every compound one. It was the only compound
+   uppercase rule in the file — checked, not assumed. */
+.srow .inline-type-select, .srow-meta .inline-type-select {
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+}

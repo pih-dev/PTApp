@@ -4,6 +4,22 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.35.1 - the straggler: `.srow .inline-type-select` (2026-08-23)
+
+The one string the v2.35 pass missed, and it missed for two compounding reasons.
+(1) The rule is a DESCENDANT selector at (0,2,0), so the legibility block at (0,1,0)
+never applied however late in the file it sat. (2) It escaped the harvest: the v2.35
+list was pulled from the `[dir="rtl"]` rules, and this one's counterpart is
+`[dir="rtl"] .srow .inline-type-select`, from which the regex captured the ANCESTOR
+`.srow` - later dropped as a container.
+
+🔴 **Harvesting selectors from an existing rule set catches every simple selector and
+silently misses every compound one.** Harvesting was still right (36 classes found
+that hand-writing would have missed), but it needs a second sweep for compound rules.
+That sweep was run: this was the ONLY compound uppercase rule in the file.
+
+---
+
 ## v2.35 - the legibility pass; green stops being a button (2026-08-22)
 
 🔴 **Three legibility taxes were being charged at once** on every string: uppercase

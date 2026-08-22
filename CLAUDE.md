@@ -44,8 +44,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.35
-🔴 **UPPERCASE + LETTER-SPACING + A CONDENSED FACE ARE THREE LEGIBILITY TAXES — NEVER RE-ADD THEM TO CONTENT.** They survive on `.logo-text`, `.splash-word`, `.bar-label` ONLY. The block is last in `styles.css` at (0,1,0); the Arabic rules are (0,2,0) and still win, so RTL is unchanged. 🔴 **A CONDITIONALLY-PRESENT MARKER IS A LAYOUT BUG** — reserve the room, hide the ink (`.week-day-dot.is-empty`). → `v2.35`.
+## Current Version: v2.35.1
+🔴 **UPPERCASE + LETTER-SPACING + A CONDENSED FACE ARE THREE LEGIBILITY TAXES — NEVER RE-ADD THEM TO CONTENT.** They survive on `.logo-text`, `.splash-word`, `.bar-label` ONLY. The block is last in `styles.css` at (0,1,0); the Arabic rules are (0,2,0) and still win. 🔴 **A CONDITIONALLY-PRESENT MARKER IS A LAYOUT BUG** — reserve the room, hide the ink (`.week-day-dot.is-empty`). 🔴 **Harvesting selectors from an existing rule set misses every COMPOUND one** (`.srow .inline-type-select` outranked the block at (0,2,0)) — sweep for those separately. → `v2.35`, `v2.35.1`.
 Skins **Lume · Midnight · Enamel · Steel**, `DEFAULT_SKIN='lume'` (a stored pick still wins). Bar: Home · Clients · Schedule · **Library**. 🔴 **`MovementLibrary` is ONE component with an `embedded` prop** — never fork it. 🔴 **ELIE'S RULINGS, DO NOT RE-PROPOSE: compact view gone, session-count edit STAYS at booking.** 🔴 **THE FIGURE SET IS UNRATIFIED — anatomy crimson, muscles TEAL, and every chart Elie teaches from paints muscle RED. ASK HIM; if he refuses, move the ACCENT, not the convention.**
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
@@ -64,10 +64,10 @@ All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-
 - **Sign-in is DARK**; **`sync.js` is `src/backend/`**. State: `HANDOFF-multi-user-build.md`, `-spotset-publishing.md`.
 
 ## Governance — Elie's Standing Authority (granted 2026-07-18)
-Elie may drive app changes in-session on Pierre's conditions (*"since we're using github we can roll back, make sure data backups are done at every juncture"*). Routes on `Elie`.
-- **Everything goes through git** — commit + push every change, so anything Elie drives can be rolled back.
+Elie may drive app changes in-session on Pierre's conditions (*"since we're using github we can roll back, make sure data backups are done at every juncture"*).
+- **Everything goes through git** — commit + push every change, so anything Elie drives rolls back.
 - **Live-data snapshot at every juncture (MANDATORY):** before any deploy, schema change, migration or data-touching operation, run `node scripts/snapshot-live.mjs <desc>` — it archives `data.json` and byte-verifies it against the API.
-- **Provenance discipline** — specs, commits and changelogs record who asked for what, so Pierre can audit post-hoc. He can revoke or re-scope by editing this section.
+- **Provenance discipline** — specs, commits and changelogs record who asked for what. He can revoke by editing this section.
 
 ---
 
@@ -106,7 +106,7 @@ Full write-ups in **`docs/traps.md`** — read the relevant one first. Index:
 
 **Refactoring** — a string reachable only BEFORE login is invisible to a rename sweep (the v2.15.0 token screen): grep all of `src/`, not the screens you can open · **reusing a control class inherits the size its ORIGINAL content needed** (`.lang-toggle`'s 36px cells overlapped the skin names for two releases) — new content shape ⇒ modifier class, and OPEN the screen · grep EVERY read and write when moving a storage location · a renamed catalog key silently kills `|| CATALOG.oldKey` fallbacks (property refs don't match string greps) · re-read a helper's fallback contract before guarding its return; "did the world change" checks read LIVE state and compare stable IDs · `parseSessionCountOverride` returns `{ type, value }`, not `.mode` · legacy `periodLength` was the billing master switch, not `periodStart`.
 
-**Correctness across screens** — a pre-action and a post-action badge in one flow must use the same helper (the "(0) → #1" confusion) · synthetic fixtures model what you designed, live data holds what shipped: diff counting/date/migration changes against the archived snapshot first, and re-read the OLD code when writing a migration.
+**Correctness across screens** — a pre-action and a post-action badge in one flow must use the same helper (the "(0) → #1" confusion) · synthetic fixtures model what you designed, live data holds what shipped: diff counting/date/migration changes against the archived snapshot first, and re-read the OLD code when writing one.
 
 **Figures (`src/figures/`)** — a front view foreshortens the femur, which re-creates the **infant ratio** §7.13 bans: draw a front pose at the shallowest depth that still shows the fault · **choose the moment or the pose is unreadable** — a deadlift at the floor puts torso and femur at the same angle and folds into a wedge; past the knee the hinge is obvious · the lateral offset rotates with the spine **only in a front view** (in profile it is depth, out of the page — rotating it hangs a stray arm off every hinge) · subdivide each bone at its midpoint before splining, or the limb bows into a noodle.
 
@@ -167,11 +167,11 @@ Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` r
 ## KNOWN ISSUES / OBLIGATIONS
 - 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026`, makdissi-dev; General → Backup.
 - **Program pruning** before `data.json` nears 1 MB. 🔴 **Snapshot first** — cloud deletes are final.
-- **Review finding P3 — BUILT in v2.25** (SessionCard scope B). 🔴 Its Dashboard-compact follow-up is MOOT: v2.33.1 deleted the compact view.
+- **Review finding P3 — BUILT in v2.25.** 🔴 Its Dashboard-compact follow-up is MOOT: v2.33.1 deleted the compact view.
 - **SpotSet**; `com.spotset.app` PERMANENT.
 - 🔴 **SUPABASE IS PHASE 1: THE DAILY JOB IS `node scripts/soak-day.mjs` — MIRROR THEN VERIFY.** `mirror-to-supabase.mjs` is MANUAL and one-way; the app does NOT dual-write, so `sanity-live-supabase-diff` alone can never be clean. It becomes the REAL soak when dual-write lands. Detail: `HANDOFF-multi-user-build.md` §0.
-- 🔴 **THE DESTINATION IS 3D THAT ROTATES AND ZOOMS, A ROUND AT A TIME** (Pierre, 08-22); stages, and the rotation candidates in order, in `docs/2026-08-22-figures-3d-options.md`. **Zoom is DOUBLE-TAP** — pinch needs `touch-action: none` and the sheet must keep vertical scroll, so it comes with the 3D rig. **One gesture, two jobs by `zoom`**: out it turns, in it pans.
-- **Brief rulings that are LAW:** 🔴 **the movement card FITS, never scrolls** · 🔴 **the fault figure highlights DIFFERENT muscles**. Open: the "S" idea. Threads: `HANDOFF-figures.md`; uploads `_archive/PTApp/branding/`.
+- 🔴 **THE DESTINATION IS 3D THAT ROTATES AND ZOOMS, A ROUND AT A TIME**; stages and rotation candidates in `docs/2026-08-22-figures-3d-options.md`. **Zoom is DOUBLE-TAP** — pinch needs `touch-action: none` and the sheet must keep vertical scroll, so it comes with the 3D rig. **One gesture, two jobs by `zoom`**: out it turns, in it pans.
+- **LAW:** 🔴 **the movement card FITS, never scrolls** · 🔴 **the fault figure highlights DIFFERENT muscles**. Open: the "S" idea. `HANDOFF-figures.md`; uploads `_archive/PTApp/branding/`.
 - 🔴 **TWO SESSIONS SHARE THIS TREE: stage EXPLICIT paths (never `git add -A`); never `git checkout gh-pages` — deploy via the worktree.**
 - 🔴 **FRESH EYES, STRIPPED-STRUCTURE (standing rule):** before a design is called done, a subagent that has never seen it — Fable 5, max effort, ALL formatting stripped — argues the opposite. 🔴 **BUILD THE BRIEF FROM OPENED FILES, NEVER FILENAMES** — the reviewer is blind by design, so a guess in the brief becomes a confident finding with nothing downstream to catch it (`traps.md`, the plate calculator that never existed). Runs: `docs/design/2026-08-22-fresh-eyes-structure-review.md` (whole app) · `…-navigation-review.md` (the bar).
 

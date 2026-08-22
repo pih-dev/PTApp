@@ -1,13 +1,38 @@
-# SpotSet v2.35.1 — the medicine ball leaves the head
+# v2.35.1 — The one string the legibility pass missed
 
-**Date:** 2026-08-23 · Figures session (CCHealth/Fable). Pierre's phone report: *"2 heads per
-posture"* on Side Rotary Medicine Ball Throw. The `ball` gear drew at the midpoint of the two
-grips; the rotation family's split-arm throw poses (grip gap ~620 canon units) put that midpoint
-beside the head on all 13 rotation ball movements. Rule now: grips apart (>120) ⇒ the ball rides
-the grip **farther from the head** (the outstretched throwing arm — the near hand clipped at the
-frame top); hands together keeps the centre, so rollout/plank/twist holds are untouched.
+**Released:** 2026-08-23 · one CSS rule · no schema change.
 
-Also visible from this train: the bench-press 360° spin (gate fix `d1692e9`, shipped inside
-v2.35's deploy) — six barbell bench movements now truly spin (stamp count unchanged at 24; the
-"24 → 30" first written here was wrong — they were already stamped via the tween), and
-Close/Wide Grip Bench Press now resolve to barbell gear instead of pressing nothing.
+## What changed
+
+The **session type chip** ("Strength", "Cardio"…) on every session row now matches the rest of the
+app: body face, sentence case, no tracking, 13px. In v2.35 it was the only string left in condensed
+tracked caps, sitting between a fixed "45min" and a fixed "Cancelled".
+
+## Why it survived, which is the useful part
+
+Two independent reasons, and both are worth knowing before the next sweep of this kind:
+
+1. **It is a descendant selector.** `.srow .inline-type-select` is specificity `(0,2,0)`; the v2.35
+   legibility block is `(0,1,0)`. Later-in-file does not beat higher specificity, so the block never
+   applied to it.
+2. **It escaped the harvest.** The v2.35 selector list was harvested from the `[dir="rtl"]` rules
+   rather than hand-written — which is exactly why it was otherwise complete. But this one's Arabic
+   counterpart is `[dir="rtl"] .srow .inline-type-select`, and the harvester's regex captured the
+   **ancestor** (`.srow`), not the target. `.srow` was then dropped as "a container".
+
+🔴 **The lesson: harvesting selectors from an existing rule set catches every simple selector and
+silently misses every compound one.** Harvesting was still the right call — it found 36 classes that
+hand-writing would have missed — but it needs a second sweep for compound rules. That sweep was run
+this time: this was **the only** compound uppercase rule in the file, checked rather than assumed.
+
+Found by Pierre's before/after screenshots, not by a gate. Nothing automated would have caught it —
+the app was self-consistent apart from one chip.
+
+## Files
+
+`src/styles.css` — one rule at matching specificity, in the legibility block, with the reason kept
+next to it.
+
+## Testing
+
+Build + `verify-bundle.mjs` clean, `sanity-skins` green.
