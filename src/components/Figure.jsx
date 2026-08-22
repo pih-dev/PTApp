@@ -154,8 +154,12 @@ export default function Figure({ name, lang }) {
         // Continuous, clamped: 1× is the floor (the pair layout IS the zoomed-out
         // view) and 3× is past any teaching need.
         const z = Math.max(1, Math.min(3, pinch.current.zoom * (d / pinch.current.dist)));
+        // Same capture rule as the hotfix below: currentTarget is nulled after
+        // dispatch, and this updater runs later. clampPan tolerates null, but
+        // a silent fallback box is a wrong clamp, not a safe one.
+        const el = e.currentTarget;
         setZoom(z);
-        setPan((p) => (z <= 1.01 ? { x: 0, y: 0 } : clampPan(p, z, e.currentTarget)));
+        setPan((p) => (z <= 1.01 ? { x: 0, y: 0 } : clampPan(p, z, el)));
       }
       return;
     }
@@ -169,7 +173,14 @@ export default function Figure({ name, lang }) {
     }
     if (zoom > 1.01) {
       // Zoomed AND rotatable: the drag still turns (below); vertical pans.
-      setPan((p) => clampPan({ x: p.x, y: drag.current.pan.y + dyPx }, zoom, e.currentTarget));
+      // 🔴 CAPTURE BEFORE DISPATCH (v2.30 hotfix, live white-screen): the
+      //    updater runs when React flushes, which can be AFTER onUp nulled
+      //    drag.current (finger lifts mid-move) and after React nulled the
+      //    pooled event's currentTarget. Deref either inside the updater and
+      //    the ErrorBoundary is the next thing the PT sees.
+      const baseY = drag.current.pan.y;
+      const el = e.currentTarget;
+      setPan((p) => clampPan({ x: p.x, y: baseY + dyPx }, zoom, el));
     }
     // 🔴 SCALED BY THE ELEMENT'S OWN WIDTH, not a magic pixel count: the same
     //    swipe has to travel the same amount of turn on a 360px phone and a

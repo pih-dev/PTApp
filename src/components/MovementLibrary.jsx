@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import Modal from './Modal';
 import MovementSheet from './MovementSheet';
 import { EXERCISES } from '../exerciseBank';
+import { figureMeta } from '../figures/poses';
 import { exNameAr } from '../exerciseNamesAr';
 import { haptic, normaliseSearch } from '../utils';
 import { t, muscleLabel } from '../i18n';
@@ -33,11 +34,16 @@ const INDEX = EXERCISES.map(e => {
   return {
     ex: e,
     ar,
+    // v2.30 (Pierre): badge the movements that TURN — "stamp it 360°" — and
+    // the ones carrying more pictures than the pair ("2+"). Cheap flags, not
+    // composed poses, so 340 rows still index instantly at module load.
+    meta: figureMeta(e.name),
     hay: normalise([e.name, ar, e.primary, ...e.muscles].filter(Boolean).join(' ')),
   };
 });
 
-const SLOTS = ['all', 'push', 'pull', 'legs'];
+// 'turns' is the 360° filter — the movements whose pair rotates under a drag.
+const SLOTS = ['all', 'push', 'pull', 'legs', 'turns'];
 
 export default function MovementLibrary({ lang, onClose }) {
   const [q, setQ] = useState('');
@@ -48,7 +54,7 @@ export default function MovementLibrary({ lang, onClose }) {
   const rows = useMemo(() => {
     const nq = normalise(q);
     return INDEX.filter(r =>
-      (slot === 'all' || r.ex.slot === slot) &&
+      (slot === 'all' || (slot === 'turns' ? r.meta.turns : r.ex.slot === slot)) &&
       (!nq || r.hay.includes(nq)));
   }, [q, slot]);
 
@@ -61,7 +67,9 @@ export default function MovementLibrary({ lang, onClose }) {
         {SLOTS.map(s => (
           <button key={s} className={`filter-btn${slot === s ? ' active' : ''}`}
             onClick={() => { haptic(); setSlot(s); }}>
-            {s === 'all' ? t(lang, 'filterAll') : t(lang, 'slot' + s.charAt(0).toUpperCase() + s.slice(1))}
+            {s === 'all' ? t(lang, 'filterAll')
+              : s === 'turns' ? t(lang, 'filter360')
+              : t(lang, 'slot' + s.charAt(0).toUpperCase() + s.slice(1))}
           </button>
         ))}
       </div>
@@ -75,10 +83,14 @@ export default function MovementLibrary({ lang, onClose }) {
         <div className="empty" style={{ padding: '32px 8px' }}>
           <div className="empty-line">{t(lang, 'noMovementsFound')}</div>
         </div>
-      ) : rows.map(({ ex, ar }) => (
+      ) : rows.map(({ ex, ar, meta }) => (
         <button key={ex.name} className="mv-row" onClick={() => { haptic(); setOpen(ex.name); }}>
           <span className="mv-row-name">
             {isAr && ar ? ar : ex.name}
+            {/* v2.30: the stamps. 360° = the pair turns under a drag; 2+ = more
+                pictures than the pair. Number-first so they read in both scripts. */}
+            {meta.turns && <span className="mv-badge">{t(lang, 'badge360')}</span>}
+            {meta.extra && <span className="mv-badge">{t(lang, 'badge2plus')}</span>}
             {/* The other script, small — the same treatment the program viewer
                 uses, and the reason Elie can spot a translation to correct. */}
             {(isAr ? ex.name : ar) && (

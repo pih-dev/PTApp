@@ -326,6 +326,29 @@ const ROTATES = {
   'bench-press': { correct: () => BENCH_ABOVE_OK, fault: () => BENCH_ABOVE },
 };
 
+// Round 4 (v2.29): the JUDGED patterns turn continuously — Pierre approved
+// curl, hinge and the bench on the prototype sheet, frame by frame. The
+// gate is deliberate and narrow: side-authored pose (no baked `fs`), a
+// gear the 3D equipment vocabulary can draw (barbell, or nothing), and a
+// pattern a human has judged through the turn. Everything else keeps its
+// authored view until its own judging round — a control that renders an
+// unjudged angle is worse than no control.
+const SPINS = new Set(['curl', 'hinge', 'bench-press']);
+
+// v2.30: what the LIBRARY needs to badge a row without composing two full
+// poses per movement — does it turn (360° drag), and does it carry more
+// pictures than the pair (a third camera today, sequences later)?
+export function figureMeta(name) {
+  const id = archetypeFor(name);
+  const a = ARCHETYPES[id];
+  if (!a) return { turns: false, extra: false };
+  const gear = gearFor(name);
+  const fsBaked = !!(a.base.fs || a.correct.fs || a.fault.fs);
+  const spins = SPINS.has(id) && !fsBaked && (gear === 'barbell' || gear === 'none');
+  const turns = spins || !!ROTATES[id];
+  return { turns, extra: !turns && a.extraId === 'bench-above' };
+}
+
 // 🔴 `figureFor(name)` IS THE ONLY WAY A SCREEN GETS A FIGURE. It returns null
 //    for a name no archetype covers, so a frozen program naming a dropped
 //    exercise degrades to the v2.21 sheet instead of crashing.
@@ -340,14 +363,6 @@ export function figureFor(name) {
   // renderer tweens between them and the sheet grows a drag handle. When a
   // pattern rotates, the standing third figure is redundant — the same view is
   // now a finger-drag away — so it is dropped rather than shown twice.
-  // Round 4 (v2.29): the JUDGED patterns turn continuously — Pierre approved
-  // curl, hinge and the bench on the prototype sheet, frame by frame. The
-  // gate is deliberate and narrow: side-authored pose (no baked `fs`), a
-  // gear the 3D equipment vocabulary can draw (barbell, or nothing), and a
-  // pattern a human has judged through the turn. Everything else keeps its
-  // authored view until its own judging round — a control that renders an
-  // unjudged angle is worse than no control.
-  const SPINS = new Set(['curl', 'hinge', 'bench-press']);
   const fsBaked = !!(a.base.fs || a.correct.fs || a.fault.fs);
   if (SPINS.has(id) && !fsBaked && (gear === 'barbell' || gear === 'none')) {
     pair.spin = { gear, anchor: a.anchor };

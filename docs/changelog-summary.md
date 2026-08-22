@@ -13,6 +13,15 @@ Full detail: instructions-v2.29.1.md.
 
 ---
 
+## v2.30 - the library says which movements turn (August 22, 2026)
+
+A 360° stamp on every movement whose pair rotates under a drag (24 today),
+a 360° filter chip beside Push/Pull/Legs to browse just those, and a 2+
+stamp ready for movements that grow more pictures than the pair. Both
+scripts, one look.
+
+---
+
 ## v2.29 - three movements turn in your hand (August 22, 2026)
 
 Round 4 reaches the app: on curls, deadlifts and the barbell bench press,

@@ -1464,6 +1464,14 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 .mv-row:active { background: var(--raised); }
 .mv-row-name { font-size: 14px; font-weight: 600; color: var(--chalk); min-width: 0; }
 .mv-row-alt { font-size: 10px; color: var(--chalk-faint); margin-inline: 6px; }
+/* v2.30: the 360° / 2+ stamps. Informational chips, so they paint from the
+   neutral ramp — the accent stays load-and-urgency and the figure tokens stay
+   inside the figures. Digits + degree mark, readable in both scripts. */
+.mv-badge {
+  font-size: 9px; font-weight: 700; color: var(--chalk-dim);
+  border: 1px solid var(--bar); border-radius: 7px; padding: 1px 5px;
+  margin-inline-start: 6px; vertical-align: 2px; white-space: nowrap;
+}
 .mv-row-muscle {
   flex: 0 0 auto;
   font-family: var(--font-display);

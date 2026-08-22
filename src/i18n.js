@@ -371,6 +371,10 @@ const T = {
     slotPush: 'Push',
     slotPull: 'Pull',
     slotLegs: 'Legs',
+    // v2.30: the library stamps — which movements turn, which carry extras.
+    filter360: '360°',
+    badge360: '360°',
+    badge2plus: '2+',
   },
   ar: {
     // App
@@ -739,6 +743,11 @@ const T = {
     slotPush: 'Push',
     slotPull: 'Pull',
     slotLegs: 'Legs',
+    // v2.30: digits stay Western like the rest of the app's numerals; the
+    // degree mark reads the same in both scripts.
+    filter360: '360°',
+    badge360: '360°',
+    badge2plus: '+2',
   },
 };
 
