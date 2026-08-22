@@ -136,6 +136,10 @@ export const ARCHETYPES = {
     fault: { spine: [46, 10, 10], head: -12, arms: arms([0, 4, 8], [-2, 6, 8]) },
     guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 48, offset: { x: -30, y: 18 } },
+    // Pierre's own case (brief §5): "when I'm doing deadlift, if I don't have
+    // the right posture, my arms would tire" — the round back hangs the load on
+    // the erectors and the grip, not the glutes the movement was meant to train.
+    faultMuscles: { primary: ['erectors'], secondary: ['forearms'] },
     anchor: 'hands',
   },
 
@@ -225,6 +229,9 @@ export const ARCHETYPES = {
     fault: { spine: [34, -14, -10], head: -12, legs: { near: [-52, 16, 84], far: [10, -8, 88] } },
     guide: { joints: ['neckBase', 'thorax', 'pelvis', 'kneeN'] },
     faultJoint: { joints: ['lumbar'], r: 44, offset: { x: -24, y: 6 } },
+    // The extra height came from the arch, so the lower back is doing the
+    // lifting the glutes were supposed to do.
+    faultMuscles: { primary: ['erectors'], secondary: ['hamstrings'] },
     anchor: 'feet',
   },
 
@@ -251,6 +258,9 @@ export const ARCHETYPES = {
     fault: { root: { x: 140, y: 470 }, spine: [-78, 20, -30], legs: { near: [84, -92, 98], far: [80, -88, 98] } },
     guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 46, offset: { x: 10, y: 40 } },
+    // Hips off the pad: the "extra strength" is a lumbar arch and leg drive,
+    // and the chest's range is what got cut.
+    faultMuscles: { primary: ['erectors'], secondary: ['chest'] },
     anchor: 'bench',
     // The second camera: elbow flare is abduction and a profile view cannot show
     // it. See HANDOFF-figures §11 and poses.js.
@@ -273,6 +283,9 @@ export const ARCHETYPES = {
     fault: { root: { x: 170, y: 648 }, spine: [-58, -16, -6], head: 10, arms: arms([-16, -58, -10], [-19, -55, -10]) },
     guide: { joints: ['ankleN', 'kneeN', 'pelvis', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 44, offset: { x: 0, y: 30 } },
+    // A sagging push-up hangs on the lumbar spine — the core that should carry
+    // the line has let go, and the chest is no longer doing the pressing work.
+    faultMuscles: { primary: ['erectors'], secondary: ['chest'] },
     anchor: 'none',
   },
 
@@ -303,6 +316,10 @@ export const ARCHETYPES = {
     fault: { spine: [-22, 6, 8], head: 10, arms: arms([158, 16, 6], [154, 18, 6]) },
     guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 46, offset: { x: -26, y: 6 } },
+    // Pierre's other case (brief §5): leaned back, the press is an incline —
+    // "I could be moving more of my chest muscles rather than my shoulders",
+    // and the arch hangs the rest on the lower back.
+    faultMuscles: { primary: ['chest'], secondary: ['erectors'] },
     anchor: 'hands',
   },
 
@@ -313,6 +330,9 @@ export const ARCHETYPES = {
     fault: { spine: [24, -8, -6], arms: arms([32, -20, 10], [30, -18, 10]) },
     guide: { joints: ['shoulderN', 'elbowN', 'wristN'] },
     faultJoint: { joints: ['elbowN'], r: 34 },
+    // Elbows forward + body leaning on the cable: the weight moves from
+    // bodyweight and shoulders, and the triceps' isolation is gone.
+    faultMuscles: { primary: ['delts'], secondary: ['triceps'] },
     anchor: 'cable-high',
   },
 
@@ -323,6 +343,9 @@ export const ARCHETYPES = {
     fault: { spine: [-20, 6, 8], head: 8, arms: arms([164, -70, -10], [160, -66, -10]) },
     guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 44, offset: { x: -26, y: 6 } },
+    // The arch that gets the elbow overhead is held by the lower back, not the
+    // triceps the movement is for.
+    faultMuscles: { primary: ['erectors'], secondary: ['triceps'] },
     anchor: 'hands',
   },
 
@@ -501,6 +524,9 @@ export const ARCHETYPES = {
     fault: { root: { x: 150, y: 686 }, spine: [-78, -12, 4], head: 8, legs: { near: [128, 6, 88], far: [125, 8, 88] } },
     guide: { joints: ['neckBase', 'thorax', 'pelvis', 'kneeN'] },
     faultJoint: { joints: ['lumbar'], r: 42, offset: { x: 10, y: 32 } },
+    // The back peeling off the floor means the abs have let go and the lumbar
+    // spine plus the hip flexors are holding the legs.
+    faultMuscles: { primary: ['erectors'], secondary: ['quads'] },
     anchor: 'none',
   },
 

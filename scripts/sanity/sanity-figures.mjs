@@ -107,6 +107,30 @@ for (const p of FIGURE_TEXT_PATTERNS) {
   }
 }
 
+// 5b. 🔴 FAULT MUSCLES (brief §5): an archetype that declares them must name
+//     only anchors the renderer knows — a typo paints NOTHING, silently, and
+//     the fault half falls back to looking exactly like the bug this feature
+//     fixes. And a declaration identical to nothing (empty) is a lie of its own.
+import { MUSCLE_ANCHORS } from '../../src/figures/canon.js';
+for (const id of ids) {
+  const fm = ARCHETYPES[id].faultMuscles;
+  if (!fm) continue;
+  const keys = [...(fm.primary || []), ...(fm.secondary || [])];
+  if (!keys.length) bad(`"${id}" declares empty faultMuscles — drop the field instead`);
+  for (const k of keys) {
+    if (!MUSCLE_ANCHORS[k]) bad(`"${id}" faultMuscles names "${k}", which is not a muscle anchor`);
+  }
+  // The declaration must actually CHANGE the fault half for at least one
+  // movement of the pattern, or it is dead weight.
+  const ex = EXERCISES.find(e => archetypeFor(e.name) === id);
+  if (ex) {
+    const pair = figureFor(ex.name);
+    if (pair && figureSvg(pair.correct).replace(/fg\d+/g, 'fg') === figureSvg(pair.fault).replace(/fg\d+/g, 'fg')) {
+      bad(`"${id}" declares faultMuscles but its halves still render identically`);
+    }
+  }
+}
+
 // 6. The canon is the canon: the hip at half standing height is the ratio that
 //    was wrong first time round and the one a careless edit would break again.
 const stand = skeleton({ view: 'side', spine: [0, 0, 0], legs: { near: [0, 0, 90], far: [0, 0, 90] } });

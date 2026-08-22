@@ -251,10 +251,21 @@ function build(name, kind) {
   const variant = kind === 'fault' ? a.fault : a.correct;
   const view = variant.view || a.base.view;
 
+  // 🔴 THE FAULT FIGURE MAY LOAD DIFFERENT MUSCLES (brief §5 — Pierre: "if it's
+  //    a different posture, it's probably a different muscle"). A rounded
+  //    deadlift tires the erectors and forearms, not the glutes it was meant to
+  //    train — washing the bank's muscles over the fault half is a lie. An
+  //    archetype OPTS IN with `faultMuscles`; without it both halves keep the
+  //    bank's list, because a wrong claim is worse than a shared one. This
+  //    reframes the pair: this-trains-X versus that-loads-Y, not right-vs-wrong.
+  const muscles = (kind === 'fault' && a.faultMuscles)
+    ? a.faultMuscles
+    : (ex ? musclesFor(ex) : { primary: [], secondary: [] });
+
   return {
     ...a.base,
     ...variant,
-    muscles: ex ? musclesFor(ex) : { primary: [], secondary: [] },
+    muscles,
     guide: a.guide,
     fault: kind === 'fault' ? a.faultJoint : undefined,
     equip: (sk) => equipment(sk, a.anchor, gear, view),

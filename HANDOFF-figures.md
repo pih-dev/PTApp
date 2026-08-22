@@ -43,11 +43,13 @@ at each milestone. A restart could end the session at any moment.
   4. ✅ **DONE 2026-08-22 (CCHealth session)** — `--equipment` token added to both skins
      (midnight `#6E9BD8`, steel `#33598F`), equipment paints from it at 0.6 opacity, token
      added to `sanity-skins.mjs`. Marks (list-size) stay currentColor silhouettes.
-  5. 🔴 **THE FAULT FIGURE SHOULD HIGHLIGHT DIFFERENT MUSCLES.** A different posture recruits
-     different muscles — an inclined overhead press works the chest; a rounded deadlift tires the
-     arms. Today both halves show the same wash, which is a lie on the fault figure. **This is the
-     strongest teaching idea in the feature** and it reframes the pair from right-vs-wrong to
-     this-trains-X vs that-trains-Y.
+  5. 🟡 **MECHANISM DONE 2026-08-22 (CCHealth session), CONTENT PARTIAL** — an archetype opts in
+     with `faultMuscles: {primary, secondary}` (poses.js `build()`); the sanity gate validates the
+     anchors and that the halves actually differ. **8 of 44 declared** (hinge, overhead-press,
+     triceps-pushdown, triceps-overhead, push-up, bench-press, hip-extension, leg-raise), each
+     justified against its fault pose's own comment. **The other 36 are a judging job for Pierre**
+     — declaring a wrong muscle is worse than sharing the bank's, so they stayed opt-out. Captions
+     unchanged (figureText is Elie's review pipeline).
   6. **Some movements need a SEQUENCE of positions, not a pair** — his example is the military press:
      start, lift, flip the bar, before the drive, lockout. Three open questions in the brief.
 - 🔴 **TWO NON-FIGURE ITEMS QUEUED IN THE SAME BREATH**, both in the brief and in CLAUDE.md's
