@@ -56,8 +56,9 @@ let uid = 0;
 //   'mark' — the 16–24px reduction for list rows and tabs. THE SAME POSE with
 //            fewer parts (the reference read: the mark is drawn FROM the figure,
 //            never separately — that is what keeps 340 movements one family).
-export function figureSvg(pose, { detail = 'full', title = '', className = '', mix = 0, sk } = {}) {
+export function figureSvg(pose, { detail = 'full', title = '', className = '', mix = 0, sk, equip } = {}) {
   const f = buildFigure(pose, mix, sk);
+  if (equip) f.equip = equip;   // round-4 prototype: pre-rotated 3D equipment
   const mark = detail === 'mark';
   const id = `fg${++uid}`;
   // Held versus lost, and the hue carries it. v2.24, Pierre's ruling: the

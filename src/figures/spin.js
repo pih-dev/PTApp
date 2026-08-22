@@ -81,29 +81,86 @@ export function skeleton3(pose) {
   return out;
 }
 
-// Rotate every joint about the figure's own trunk axis by theta degrees, then
-// project (drop z, keep it for depth sorting). The axis runs through the
-// pelvis along the lumbar direction — the body's long axis, wherever the pose
-// has put it. This is the line the first 3D attempt got wrong by using the
-// world's.
+// Rotate the whole SCENE about the world VERTICAL through the pelvis — a
+// turntable — then project (drop z, keep it for depth sorting).
+//
+// 🔴 TWO AXES, TWO LESSONS, BOTH EARNED:
+//   · The LATERAL axis (which way the limbs separate) must be BODY-fixed —
+//     skeleton3 does that, and it is what the reverted first attempt got wrong.
+//   · The VIEWING axis must be the WORLD's vertical — a turntable. The first
+//     cut of THIS file rotated about the trunk line instead, and Pierre's
+//     preview showed why that is wrong: a hinged deadlift's trunk leans 55°,
+//     so spinning about it hoisted the legs off the floor and the figure came
+//     apart. A viewer walks AROUND a lifter; the lifter does not cartwheel.
+//   Pierre's bench ruling fits the same model: the bench is on the turntable
+//   too — "he's not turning around in his bed while the bed is fixed."
 export function spin(sk3, theta) {
   const t = theta * RAD;
-  const [aLum = 0] = (sk3.pose && sk3.pose.spine) || [];
-  const a = up(aLum);                          // trunk axis, unit, in-picture
-  const e1 = { x: -a.y, y: a.x };              // in-picture perpendicular
   const P = sk3.pelvis;
   const out = { headAngle: sk3.headAngle, view: sk3.view, pose: sk3.pose };
   for (const [k, v] of Object.entries(sk3)) {
     if (!v || typeof v !== 'object' || typeof v.x !== 'number') { if (!(k in out)) out[k] = v; continue; }
-    const vx = v.x - P.x, vy = v.y - P.y, vz = v.z || 0;
-    const par = vx * a.x + vy * a.y;           // along the axis — unchanged
-    const c1 = vx * e1.x + vy * e1.y;          // perpendicular, in picture
-    const c1r = c1 * Math.cos(t) - vz * Math.sin(t);
-    const zr = c1 * Math.sin(t) + vz * Math.cos(t);
-    out[k] = { x: P.x + a.x * par + e1.x * c1r, y: P.y + a.y * par + e1.y * c1r, z: zr };
+    out[k] = rot3(v, P, t);
   }
   return out;
 }
+
+// Turntable-rotate one 3D point about the vertical line through P.
+const rot3 = (v, P, t) => {
+  const vx = v.x - P.x, vz = v.z || 0;
+  return { x: P.x + vx * Math.cos(t) - vz * Math.sin(t), y: v.y, z: vx * Math.sin(t) + vz * Math.cos(t) };
+};
+
+// ── Equipment on the turntable ───────────────────────────────────────────────
+//
+// The 2D equipment closures pick a shape per authored view (a bar seen end-on
+// IS a disc), which is exactly what cannot survive a continuous turn — the
+// disc Pierre called "a ball" just sat there at every angle. Here the barbell
+// and the bench are 3D objects rotated by the SAME transform as the joints:
+// the bar runs along the body's z through the grip, the plates ride its ends
+// and flatten as they turn edge-on, the bench is a slab under the trunk.
+// Prototype vocabulary: barbell + bench only — the rest keep their 2D shapes
+// until this is approved.
+export function spinEquip(pose, theta, gear, anchor) {
+  const t = theta * RAD;
+  const sk = skeleton3(pose);
+  const P = sk.pelvis;
+  const out = [];
+  const pr = (p) => rot3(p, P, t);
+
+  if (gear === 'barbell') {
+    const grip = {
+      x: (sk.wristN.x + sk.handN.x) / 2, y: (sk.wristN.y + sk.handN.y) / 2, z: 0,
+    };
+    const HALF = 230, PLATE_R = 90, plateIn = 36;
+    const a = pr({ ...grip, z: -HALF }), b = pr({ ...grip, z: +HALF });
+    if (Math.hypot(b.x - a.x, b.y - a.y) > 8) out.push({ k: 'bar', a, b, w: 10 });
+    // A plate's face points along the bar: face-on at 0° (the authored disc),
+    // a sliver at 90°. Projected as a circle whose radius carries the cosine.
+    const r = Math.max(12, PLATE_R * Math.abs(Math.cos(t)));
+    for (const zz of [-(HALF - plateIn), HALF - plateIn]) {
+      const c = pr({ ...grip, z: zz });
+      out.push({ k: 'circle', x: c.x, y: c.y, r });
+    }
+  }
+
+  if (anchor === 'bench') {
+    // The slab rides under the trunk, body-fixed, and turns with it.
+    const u = unit(sk.neckBase, sk.pelvis);          // down the trunk, in-picture
+    const n = u.x >= 0 ? { x: -u.y, y: u.x } : { x: u.y, y: -u.x }; // toward the floor
+    const seat = (along, side) => pr({
+      x: P.x + u.x * along + n.x * 46, y: P.y + u.y * along + n.y * 46, z: side,
+    });
+    const c = [seat(-80, -64), seat(-80, 64), seat(300, 64), seat(300, -64)];
+    out.push({ k: 'quad', pts: c });
+  }
+  return out;
+}
+
+const unit = (a, b) => {
+  const dx = a.x - b.x, dy = a.y - b.y, L = Math.hypot(dx, dy) || 1;
+  return { x: dx / L, y: dy / L };
+};
 
 // Ground re-anchor after the spin — the same contract skeleton() honours: the
 // pose names the joint that stands on the floor and the figure translates to
