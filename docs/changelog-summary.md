@@ -4,6 +4,14 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.25.3 - the equipment blue settled (August 22, 2026)
+
+Pierre picked it from a three-way preview: a deeper vivid blue, deliberately
+not the highlight — the posture lines and muscles stay the loudest things in
+the frame. Colour values only.
+
+---
+
 ## v2.25.2 - the equipment blue, brighter still (August 22, 2026)
 
 Second phone pass: the red landed, the blue could go further. Equipment now

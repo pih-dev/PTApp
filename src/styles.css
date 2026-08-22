@@ -56,7 +56,11 @@ html, body, #root { height: 100%; overflow: hidden; }
      review — the first steel blue read as "grayed out" next to the vivid green
      and orange; this one sits in the same saturated family. Still bluer than
      --accent's cyan (load/urgency) and NOT #2563EB (the retired generated blue). */
-  --equipment: #5CB4FF;  /* v2.25.2: brighter still, per Pierre — red stays */
+  /* v2.25.3, Pierre's pick from the three-blue preview ("B definitely"):
+     deeper than the brighter candidates ON PURPOSE — "we don't want the
+     equipment to be the highlight". The gear reads clearly but sits behind
+     the green/orange posture lines and the muscle wash in visual priority. */
+  --equipment: #2E6BF2;
 
   /* Type roles (spec §4). Saira Condensed uppercase reads as an instrument
      label and is the fastest exit from the generated look; IBM Plex Mono with
@@ -1595,7 +1599,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   --muscle-2: #5A4C9E;
   /* Daylight equipment: deeper than midnight's so it holds ≥3:1 on the pale
      ground; same vivid family as the green/orange, never the generated blue. */
-  --equipment: #2E7CE6;  /* v2.25.2: brighter with the midnight bump */
+  --equipment: #2456C8;  /* v2.25.3: daylight counterpart of Pierre's pick */
   --accent: #06465F;
   --bar: #475A80;
   --ok: #0E5238;
