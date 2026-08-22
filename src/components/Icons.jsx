@@ -48,6 +48,17 @@ export const CloseIcon = ({ size = 20 }) => (
   </svg>
 );
 
+// A drawn check in a ring — the success sheet's mark. It replaces the ✅ emoji
+// (v2.25): the interface draws its marks, and colour comes from the parent via
+// currentColor so the same icon reads --ok on success and --warn on a cancel.
+export const OkIcon = ({ size = 44 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="10"/>
+    <polyline points="8 12.5 10.8 15.2 16 9.5"/>
+  </svg>
+);
+
 // A loaded bar, drawn — the empty state's mark and the first appearance of the
 // design language's anchor as a picture. It replaces the 🏋️ emoji: an emoji
 // strip is one of the six traits the differentiation brief identified as the

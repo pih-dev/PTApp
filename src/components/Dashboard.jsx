@@ -2,9 +2,12 @@ import React, { useState, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
 import { WhatsAppIcon, EditIcon, TrashIcon, ChevronIcon, BarMark } from './Icons';
-import { today, formatDate, formatDateLong, SESSION_TYPES, getSessionType, TIMES, DURATIONS, getFocusTags, sendReminderWhatsApp, getEffectiveSessionCount, timeToMinutes, localDateStr, getStatus, haptic, getRenewalDueMap } from '../utils';
+import { today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, sendReminderWhatsApp, getEffectiveSessionCount, localDateStr, getStatus, haptic, getRenewalDueMap, isSessionNow } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import RenewalModal from './RenewalModal';
+import Bar from './Bar';
+import Plates from './Plates';
+import SessionCard from './SessionCard';
 import { t } from '../i18n';
 
 // ─── The plate and the bar (v2.18, design pass stage 2) ──────────────────────
@@ -26,50 +29,13 @@ import { t } from '../i18n';
 //
 // Design record: docs/superpowers/specs/2026-08-21-visual-language-dashboard-design.md
 
-// A bar: collar, label, shaft, count. Replaces every `.section-title` on this
-// screen, and with it the emoji that used to lead each one.
-function Bar({ label, count, children }) {
-  return (
-    <div className="bar">
-      <span className="bar-collar" />
-      <span className="bar-label">{label}</span>
-      <span className="bar-shaft" />
-      {count !== undefined && <span className="bar-count">{count}</span>}
-      {children}
-    </div>
-  );
-}
-
-// Above this many sessions a disc row stops being countable at a glance, so the
-// package is drawn as a loaded shaft instead. Same meaning, still never a bare
-// number — 24- and 36-session contracts exist and a 36-disc row is noise.
-const PLATE_MAX = 16;
-
-// used = sessions consumed in the current period · size = the contract
-// due = the package is spent or expired, and the whole row goes to the accent.
-function Plates({ used, size, due }) {
-  const u = Math.max(0, Math.min(used, size)); // an override can push the count past the contract
-  if (size > PLATE_MAX) {
-    return (
-      <div className={`plate-shaft${due ? ' is-due' : ''}`}>
-        <div className="plate-shaft-fill" style={{ width: `${Math.round((u / size) * 100)}%` }} />
-      </div>
-    );
-  }
-  return (
-    <div className="plates">
-      {Array.from({ length: size }, (_, i) => (
-        <span key={i} className={`plate${due ? ' is-due' : i < u ? ' is-used' : ''}`} />
-      ))}
-    </div>
-  );
-}
-
 // The week as load on a rack: one column per day, one segment per session,
 // today's column on the accent. Eight segments is the visual cap — the headline
 // number carries the exact total, so a ten-session day does not stretch the row.
+// v2.25 (fresh-eyes review #9): each column is a BUTTON through to that day in
+// Schedule — the figure showed seven days and navigated nowhere.
 const SEG_CAP = 8;
-function LoadWeek({ days, total, lang }) {
+function LoadWeek({ days, total, lang, onOpenDay }) {
   return (
     <div className="load">
       <div className="load-figure">
@@ -78,7 +44,9 @@ function LoadWeek({ days, total, lang }) {
       </div>
       <div className="load-cols">
         {days.map(d => (
-          <div key={d.date} className={`load-col${d.isToday ? ' is-today' : ''}`}>
+          <button key={d.date} type="button" className={`load-col${d.isToday ? ' is-today' : ''}`}
+            aria-label={d.date}
+            onClick={() => { haptic(); onOpenDay(d.date); }}>
             <div className="load-stack">
               {Array.from({ length: Math.min(d.count, SEG_CAP) }, (_, i) => (
                 <span key={i} className="load-seg" style={{ animationDelay: `${i * 35}ms` }} />
@@ -86,14 +54,14 @@ function LoadWeek({ days, total, lang }) {
             </div>
             <div className="load-base" />
             <div className="load-day">{d.letter}</div>
-          </div>
+          </button>
         ))}
       </div>
     </div>
   );
 }
 
-export default function Dashboard({ state, dispatch, setTab, lang }) {
+export default function Dashboard({ state, dispatch, setTab, lang, onOpenDay }) {
   const [activeSession, setActiveSession] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
   const [cancelPrompt, setCancelPrompt] = useState(null);
@@ -108,17 +76,6 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
   // time, which is fine because every data change re-renders via a dispatch anyway
   // and none of these are precise deadlines.
   const todayStr = today();
-
-  // Highlight sessions currently in progress (started but not yet ended).
-  // v2.10.1: must be TODAY's session — `upcoming` contains future dates since v2.7,
-  // and without the date check every future row at the current time-of-day glowed
-  // (e.g. all of a recurring Mon/Wed/Fri 18:00 series during today's 18:00).
-  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
-  const isNowSession = (s) => {
-    if (s.date !== todayStr) return false;
-    const start = timeToMinutes(s.time);
-    return nowMinutes >= start && nowMinutes < start + (s.duration || 45);
-  };
 
   // Upcoming Sessions: future + today's sessions that aren't cancelled.
   // Extra rule (v2.9.1, 2026-04-21): once a session is `completed` AND its
@@ -221,32 +178,7 @@ export default function Dashboard({ state, dispatch, setTab, lang }) {
   return (
     <div>
       <Bar label={t(lang, 'overview')} count={`${state.clients.length} ${t(lang, 'statClients')}`} />
-      <LoadWeek days={week.days} total={week.total} lang={lang} />
-
-      {renewalDueClients.length > 0 && (
-        <div className="dashboard-renewal-section">
-          <Bar label={t(lang, 'dueForRenewal')} count={renewalDueClients.length} />
-          {renewalDueClients.map(c => {
-            const { effective, contractSize } = renewalDue.get(c.id);
-            return (
-              <div key={c.id} className="rrow">
-                <div className="rrow-main">
-                  <div className="rrow-name">{c.name}</div>
-                  {/* 🔴 Every plate on the accent: this package is spent. The accent
-                      means load and urgency and nothing else — never chrome. */}
-                  <div className="rrow-load">
-                    <Plates used={effective} size={contractSize} due />
-                    <span className="plate-count">{effective}/{contractSize}</span>
-                  </div>
-                </div>
-                <button className="btn-renew" onClick={() => { haptic(); setRenewClient(c); }}>
-                  {t(lang, 'renewContract')}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <LoadWeek days={week.days} total={week.total} lang={lang} onOpenDay={onOpenDay} />
 
       <Bar label={t(lang, 'upcomingSessions')} count={upcoming.length}>
         {/* Tapped often, and it sits at the top of the screen — the padding is the

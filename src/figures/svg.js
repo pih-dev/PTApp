@@ -77,9 +77,10 @@ export function figureSvg(pose, { detail = 'full', title = '', className = '', m
     ? `<g fill="currentColor">${bodyPaths}${equipMarkup(f.equip.filter(e => e.k !== 'quad'))}</g>`
     : [
       // v2.24: equipment paints from its OWN token (Pierre: "colour them in
-      // blue") — currentColor at 0.42 made a bench read as part of the body.
-      // Still translucent so a limb crossing the bar keeps its depth cue.
-      `<g fill="var(--equipment)" opacity="0.6">${equipMarkup(f.equip)}</g>`,
+      // blue"). v2.24.1: opacity 0.6 → 0.85 — on his phone the translucent
+      // blue read as "grayed out" beside the full-strength green and orange
+      // lines. Enough transparency survives for the limb-over-bar depth cue.
+      `<g fill="var(--equipment)" opacity="0.85">${equipMarkup(f.equip)}</g>`,
       // 🔴 NO <g> INSIDE A clipPath. Only shapes, text and <use> are legal
       //    children; a group is silently ignored, the clip resolves to EMPTY,
       //    and everything clipped by it — the whole muscle code and the filled

@@ -686,6 +686,20 @@ export const localDateStr = (d) =>
 export const localMonthStr = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 
+// The session happening right now — today's date AND the clock inside its
+// window. This is the ONLY thing allowed to wear the accent inline-start bar
+// on a row (v2.18 rule). Shared by Dashboard and Schedule (v2.25) so "now"
+// cannot quietly mean two different windows on two tabs. The date check
+// matters: without it every future row at the current time-of-day glows
+// (e.g. a whole recurring Mon/Wed/Fri 18:00 series during today's 18:00).
+export const isSessionNow = (s) => {
+  if (s.date !== today()) return false;
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const start = timeToMinutes(s.time);
+  return nowMin >= start && nowMin < start + (s.duration || 45);
+};
+
 export const formatDate = (dateStr, lang = 'en') => {
   const d = new Date(dateStr + 'T00:00:00');
   const locale = lang === 'ar' ? 'ar-LB' : 'en-US';
