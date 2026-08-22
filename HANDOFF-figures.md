@@ -31,7 +31,10 @@ at each milestone. A restart could end the session at any moment.
 
 ## 0. Status — read this out
 
-- 🟢 **LIVE ON THE PWA: v2.31.1** (gh-pages). All 340 movements have figures; 24 of them are
+- 🟢 **LIVE ON THE PWA: v2.32 at wrap time** (gh-pages; the PTApp session's v2.32 — final suite +
+  randomized showcase wall — landed on top of the figures work minutes after this §0 was first
+  written. Verify the live version yourself before quoting one; the figures state below is all IN
+  v2.32). All 340 movements have figures; 24 of them are
   **360°**: drag turns the pair continuously (yaw 0–180°, vertical drag tilts ±75°), body, bar,
   bells and bench rotating as ONE object. The library stamps 360° movements and filters for them;
   a `2+` stamp is wired for future multi-picture movements. Body paints **full white** (his
