@@ -365,6 +365,23 @@ button:active { transform: scale(0.97); }
   transition: opacity 0.32s ease;
 }
 .splash-leave { opacity: 0; pointer-events: none; }
+.splash-inner {
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
+/* Showcase controls (v2.30.1): quiet display-type text buttons, real thumb
+   targets, pinned low for reachability. Chrome, so never the accent. */
+.splash-actions {
+  position: absolute; bottom: calc(34px + env(safe-area-inset-bottom));
+  display: flex; gap: 14px;
+}
+.splash-actions button {
+  padding: 12px 18px; min-height: 44px;
+  background: var(--raised); border: 1px solid transparent; border-radius: 6px;
+  color: var(--chalk-dim);
+  font-family: var(--font-display); font-size: 12px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+[dir="rtl"] .splash-actions button { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 .splash-mark {
   width: min(64vw, 300px); color: var(--chalk);
   animation: splashIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -407,8 +424,9 @@ button:active { transform: scale(0.97); }
   to   { transform: none; opacity: 1; }
 }
 [dir="rtl"] .splash-word { letter-spacing: 0.1em; } /* brand name stays Latin */
-/* Belt to App's matchMedia guard: reduced motion never sees the splash. */
-@media (prefers-reduced-motion: reduce) { .splash { display: none; } }
+/* Belt to App's matchMedia guard — LAUNCH only: the showcase is user-invoked
+   (tapping the mark asked for motion), so it stays available to everyone. */
+@media (prefers-reduced-motion: reduce) { .splash-launch { display: none; } }
 
 /* ─── Bottom Nav ─── */
 .nav {
@@ -1529,6 +1547,8 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
 .logo-btn:active { background: var(--raised); }
+/* The mark's own button (v2.30.1 split): fixed-size, beside the word button. */
+.logo-btn-mark { flex: none; }
 
 .fig-wide { margin: 4px 0 8px; }
 

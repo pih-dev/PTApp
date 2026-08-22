@@ -4,6 +4,17 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.30.1 - the showcase (2026-08-22)
+
+Splash gains mode='showcase' (header-mark tap): loops via key={cycle} remount
++ LOOP_MS timer, Replay/Close actions, backdrop tap closes, no auto-dismiss.
+Sound policy by mode: launch native-only (autoplay), showcase everywhere (the
+tap IS the gesture) - opening.wav joins the gh-pages deploy list (6 files).
+Reduced-motion belt rescoped to .splash-launch. Header logo-btn split in two;
+i18n +replay/+close. Android vc7/2.30.1.
+
+---
+
 ## v2.30 - library turn-stamps + pan-updater hotfix (2026-08-22)
 
 Figures session: 360-stamps + filter in the library. Hotfix per this

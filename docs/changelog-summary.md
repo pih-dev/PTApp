@@ -13,6 +13,23 @@ Full detail: instructions-v2.29.1.md.
 
 ---
 
+## v2.30.1 - tap the mark, replay the show (August 22, 2026)
+
+The header split: the word opens the library, the mark replays the opening -
+looping, with Replay and Close - and because that tap is a user gesture, the
+sound now plays on the web version too. Full detail: instructions-v2.30.1.md.
+
+---
+
+## v2.30.2 - the turn gets its second axis (August 22, 2026)
+
+Pierre: "turning a 3D object in any direction you move." On the 360
+movements, dragging up or down now tilts the scene toward the view from
+above or below (capped so a figure never hangs upside down); any diagonal
+drag turns and tilts together. Bar, bells and bench ride the tilt.
+
+---
+
 ## v2.30 - the library says which movements turn (August 22, 2026)
 
 A 360° stamp on every movement whose pair rotates under a drag (24 today),

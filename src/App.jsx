@@ -49,12 +49,13 @@ export default function App() {
     try { return !window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
     catch { return true; }
   });
+  // v2.30.1: the on-demand showcase, opened from the header mark.
+  const [showShowcase, setShowShowcase] = useState(false);
   const [showGeneral, setShowGeneral] = useState(false);
-  // 🔴 THE LOGO OPENS THE LIBRARY (Pierre, 2026-08-22). It is the one thing on
-  //    the header that did nothing, and the movement library is the screen a PT
-  //    reaches for most between sets — three taps through General was three too
-  //    many. The General entry stays: this is a shortcut, not a move, and
-  //    removing the documented path would strand anyone who learned it.
+  // 🔴 THE WORD OPENS THE LIBRARY (v2.30.1 split; the mark replays the show).
+  //    The library shortcut lives in the header because it is the screen a PT
+  //    reaches for most between sets. The General entry stays — a shortcut,
+  //    not a move.
   const [showLibrary, setShowLibrary] = useState(false);
   // 🔴 THE GATE IS IDENTITY OR LOCAL DATA — NEVER TOKEN VALIDITY (§4).
   //    An expired session still gets in and sees a banner; it must never be a
@@ -276,24 +277,36 @@ export default function App() {
     <div className="app-container" data-skin={skin} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       {/* First child on purpose: every later sibling paints over it. */}
       <SpotSetBackdrop />
-      {showSplash && <Splash onDone={() => setShowSplash(false)} />}
+      {showSplash && <Splash lang={lang} onDone={() => setShowSplash(false)} />}
+      {/* v2.30.1: the header MARK replays the opening on demand — looping, with
+          Replay/Close — while the WORD keeps opening the library (Pierre's
+          split). The tap is a user gesture, so the sound plays on web too. */}
+      {showShowcase && <Splash lang={lang} mode="showcase" onDone={() => setShowShowcase(false)} />}
       <div className="header">
         <div className="logo">
+          {/* v2.30.1, Pierre's split: the MARK replays the opening (showcase),
+              the WORD opens the movement library. Two targets, two jobs —
+              before this, both were one button to the library. */}
+          <button
+            type="button"
+            className="logo-btn logo-btn-mark"
+            onClick={() => setShowShowcase(true)}
+            aria-label={t(lang, 'replay')}
+          >
+            <div className="logo-icon">
+              <SpotSetMark size={26} />
+            </div>
+          </button>
           <button
             type="button"
             className="logo-btn"
             onClick={() => setShowLibrary(true)}
             aria-label={t(lang, 'movementLibrary')}
           >
-          {/* The SpotSet mark (B3, v2.25): the library's own hinge silhouette,
-              frozen — see src/spotsetMark.js. The dumbbell placeholder is retired. */}
-          <div className="logo-icon">
-            <SpotSetMark size={26} />
-          </div>
-          <div>
-            <div className="logo-text">SpotSet</div>
-            <div className="logo-sub">{t(lang, 'personalTrainer')}</div>
-          </div>
+            <div>
+              <div className="logo-text">SpotSet</div>
+              <div className="logo-sub">{t(lang, 'personalTrainer')}</div>
+            </div>
           </button>
           {/* Right side: sync dot + menu button. Version removed from header (lives in debug panel + General). */}
           <div className="header-right">
@@ -357,7 +370,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.30</div>
+          <div><strong>Version:</strong> v2.30.2</div>
           <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>

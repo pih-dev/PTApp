@@ -44,8 +44,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.28
-**The opening SOUND + the Play release.** `scripts/make-opening-sound.mjs` synthesises `public/opening.wav` (deterministic; impact at 450ms = the `.pm-line` draw delay — change one, change both). 🔴 **NATIVE-ONLY playback**: Splash gates on `Capacitor.isNativePlatform()`, MainActivity lifts the WebView gesture rule, and the wav is NOT in the gh-pages deploy list. Android `versionCode 4` / `2.28` — 🔴 verify the versionName INSIDE the .aab, never the exit code (JDK 21; `gradlew` exits 0 on failure). Detail: `docs/instructions-v2.27.md`, `-v2.28.md`.
+## Current Version: v2.30.1
+**The header split + the showcase.** The MARK replays the opening (looping, Replay/Close); the WORD opens the library. 🔴 **Showcase sound plays on WEB too** — the tap IS the autoplay gesture, so `opening.wav` is IN the gh-pages deploy list (launch stays native-only). Reduced-motion belt is scoped `.splash-launch` — tapping the mark asked for motion. Detail: `docs/instructions-v2.30.1.md`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
@@ -77,6 +77,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 - **v2.21–v2.24.1** (08-22) — the movement library, then the figures: pilot → all 340 from 44 patterns, gestures, colour roles, fault muscles. → `v2.21`…`v2.24.md`
 - **v2.25–v2.25.3** (08-22) — the design refinement round (bar heads, shared SessionCard/P3, emojis out, fresh-eyes) + the equipment-blue passes. → `v2.25`…`v2.25.3`
 - **v2.26–v2.27** (08-22) — the FACING-PAIR logo + backdrop; then the opening animation and the PWA/store icon set. → `v2.26`, `v2.27`
+- **v2.28–v2.30** (08-22) — the opening SOUND + Play vc4 submitted; continuous turn + 360 stamps; the pan-updater hotfix. → `v2.28`…`v2.30`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
@@ -205,8 +206,8 @@ node scripts/verify-bundle.mjs
 git add <files> && git commit -m "message" && git push origin master
 
 # 6. Deploy to gh-pages (THIS MAKES IT LIVE) — via the STANDING WORKTREE,
-#    never `git checkout gh-pages`. Five files since v2.27.
-for f in index.html sw.js manifest.json icon-512.png apple-touch-icon.png; do cp "dist/$f" "C:/projects/PTApp-ghpages/$f"; done
+#    never `git checkout gh-pages`. SIX files since v2.30.1.
+for f in index.html sw.js manifest.json icon-512.png apple-touch-icon.png opening.wav; do cp "dist/$f" "C:/projects/PTApp-ghpages/$f"; done
 git -C C:/projects/PTApp-ghpages add -A && git -C C:/projects/PTApp-ghpages commit -m "Deploy vX.Y: description" && git -C C:/projects/PTApp-ghpages push origin gh-pages
 
 # 7. Tell Pierre the version number so he can verify on his phone
