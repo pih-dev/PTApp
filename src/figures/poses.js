@@ -85,6 +85,15 @@ const GEAR = [
   [/\bsled\b/i, 'sled'],
   [/machine|hack/i, 'machine'],
   [/broomstick|valslide|slide board|proprioception|roman chair|ab wheel|\bwheel\b|\bdisk\b/i, 'simple'],
+  // v2.25 (Pierre, phone review: "the equipment do not show"): 145 of 340 drew
+  // nothing because the movement's name implies its equipment without saying
+  // it. These are the IMPLICIT rules and they must stay LAST — an explicit
+  // word ("Kettlebell Sumo Deadlift") wins first, exactly as documented above.
+  // A movement that is genuinely equipment-free (push-up, plank, bodyweight
+  // squat, stretch) still falls through to 'none', which is correct.
+  [/deadlift|rack pull|good morning|push press|power rack|box squat|front squat|back squat|power shrug|upright row|preacher curl|bent[- ]?over row|pendlay|clean|snatch|hip thrust/i, 'barbell'],
+  [/pushdown|pull[- ]?down|pallof|pulley|face pull|triceps extension/i, 'cable'],
+  [/hammer curl|kickback|lateral raise|front raise|rear delt|shrug|concentration curl|zottman|arnold|renegade|farmer/i, 'dumbbell'],
 ];
 const gearFor = (name) => {
   for (const [re, k] of GEAR) if (re.test(name)) return k;
