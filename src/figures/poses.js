@@ -80,7 +80,7 @@ const squatBase = {
   arms: { near: [42, 135, 6], far: [-42, -135, -6] },
   // No glutes in a FRONT view — they are behind the figure, and washing the
   // pelvis crimson from the front marks a muscle the viewer cannot see.
-  muscles: { primary: ['quads'], secondary: ['erectors'] },
+  muscles: { primary: ['quads'], secondary: ['erectors', 'calves'] },
   guide: { joints: ['hipN', 'kneeN', 'ankleN'], mirror: true },
   equip: (sk) => barbellAcross({ x: sk.neckBase.x, y: sk.neckBase.y + 26 }, 330, PLATE),
 };
@@ -105,7 +105,10 @@ const deadliftBase = {
   root: { x: -171, y: 430 },
   ground: { joint: 'ankleN', y: FLOOR - 43 },
   legs: { near: [25, -10, 75], far: [22, -7, 75] },
-  muscles: { primary: ['erectors', 'glutes'], secondary: ['lats'] },
+  // The hip extensors are the prime movers of a deadlift; the erectors hold a
+  // shape rather than create the movement, so they are supporting. (Blueprint
+  // review, 2026-08-22 — the first split had it the other way round.)
+  muscles: { primary: ['glutes', 'hamstrings'], secondary: ['erectors', 'lats'] },
   guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
   equip: (sk) => barbellEndOn(midpoint(sk.wristN, sk.handN)),
 };
@@ -132,7 +135,9 @@ const chestPressBase = {
   head: 4,
   legs: { near: [78, -86, 96], far: [74, -82, 96] },
   muscles: { primary: ['chest'], secondary: ['delts', 'triceps'] },
-  guide: { joints: ['shoulderN', 'elbowN', 'wristN'] },
+  // The chain starts in the TRUNK, not at the shoulder: whether the elbow is
+  // riding high is only readable against the line of the torso it is attached to.
+  guide: { joints: ['lumbar', 'thorax', 'shoulderN', 'elbowN', 'wristN'] },
   equip: (sk) => {
     const h = midpoint(sk.wristN, sk.handN);
     return [
@@ -244,7 +249,9 @@ const pullupBase = {
   ground: { joint: 'wristN', x: 118, y: 62 },
   legs: { near: [-30, -70, 100], far: [-26, -74, 100] },
   muscles: { primary: ['lats'], secondary: ['biceps', 'forearms'] },
-  guide: { joints: ['shoulderN', 'elbowN', 'wristN'], mirror: true },
+  // Read from the BAR down into the body — the hand is the fixed end and the
+  // flare is the angle the chain makes on its way to the trunk.
+  guide: { joints: ['wristN', 'elbowN', 'shoulderN', 'thorax'], mirror: true },
   equip: (sk) => {
     const y = (sk.wristN.y + sk.wristF.y) / 2;
     return [
@@ -283,8 +290,10 @@ const legPressBase = {
   spine: [-50, 4, -6],
   head: 8,
   arms: { near: [-38, 62, 10], far: [-34, 58, 10] },
-  muscles: { primary: ['quads'], secondary: ['glutes', 'calves'] },
-  guide: { joints: ['hipN', 'kneeN', 'ankleN'] },
+  muscles: { primary: ['quads', 'glutes'], secondary: ['erectors'] },
+  // Foot to trunk: on a leg press the knee's position only means something
+  // against the seat the hips are sitting in.
+  guide: { joints: ['ankleN', 'kneeN', 'pelvis', 'lumbar', 'thorax'] },
   equip: (sk) => {
     const foot = midpoint(sk.ankleN, sk.toeN);
     // The platform is perpendicular to the press axis, and the press axis is

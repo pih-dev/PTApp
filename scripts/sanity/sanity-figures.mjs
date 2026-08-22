@@ -72,6 +72,27 @@ for (const n of names) {
   }
 }
 
+// 5b. 🔴 THE INJURY LINE SAYS WHAT THE POSITION DOES, NEVER WHAT IT CAUSES.
+//     Added 2026-08-22 after an adversarial review found eight different
+//     strength-of-evidence phrasings across seven entries, none checkable and
+//     several wrong. A named pathology invites a member to self-diagnose; an
+//     evidence-grade adverb makes a claim about a population that this file has
+//     no source for. Both are now build failures, so the next 333 entries
+//     cannot quietly reintroduce them.
+const BANNED_GRADE = /\b(documented|classic|long-established|well-established|proven|clinically)\b/i;
+const BANNED_PATHOLOGY = /\b(ACL|MCL|labrum|labral|meniscus|meniscal|impingement|herniat\w*|tendinopathy|tendinitis|bursitis|spondylo\w*)\b/i;
+for (const n of FIGURE_TEXT_NAMES) {
+  const t = figureText(n, 'en');
+  for (const field of ['flaw', 'injury', 'cue', 'extra']) {
+    const v = t[field];
+    if (!v) continue;
+    const g = v.match(BANNED_GRADE);
+    if (g) bad(`figureText "${n}" ${field}: "${g[0]}" asserts an evidence grade this file cannot source`);
+    const path = v.match(BANNED_PATHOLOGY);
+    if (path) bad(`figureText "${n}" ${field}: names the pathology "${path[0]}" — say what the position DOES, not what it causes`);
+  }
+}
+
 // 6. The clinical text is keyed to figures that exist, carries both languages,
 //    and stays one sentence. Long text is not a style problem: nobody reads a
 //    paragraph between sets, so a cue that needs one is a cue that failed.

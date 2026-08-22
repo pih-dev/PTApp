@@ -4,6 +4,55 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.22.2 - claims discipline, the review flag on screen, blueprint refinements (2026-08-22)
+
+Three adversarial passes over v2.22.1, run as a workflow: six xhigh biomechanics
+blueprints (one per movement), a skeptical sports-medicine reviewer briefed to
+REFUTE, a native-Levantine Arabic reviewer, and a Fable 5 fresh-eyes design pass
+on the review page with all formatting stripped.
+
+**THE CLAIMS REWRITE (the important one).** v2.22 named a diagnosis per movement
+and attached an evidence grade to each: eight different phrasings across seven
+entries, none sourceable and several wrong. Leg Press had meniscal loading
+BACKWARDS (it peaks in deep flexion under compression, not at terminal
+extension); Chest Press and the bench extra both leaned on the subacromial
+impingement model the field has largely abandoned; Back Squat imported an ACL
+claim from the landing/cutting literature into a slow bilateral closed-chain
+lift; Pull-Up named the labrum. The Arabic escalated the English by translating
+"mechanism" as sabab (cause).
+
+New rule, and it is now a BUILD GATE: say what the position DOES, not what it
+causes. sanity-figures fails on an evidence-grade word (documented, classic,
+long-established, well-established, proven, clinically) or a named pathology
+(ACL, MCL, labrum, meniscus, impingement, herniat*, tendinopathy, ...) in any of
+flaw / injury / cue / extra. FIGURE_TEXT_VERSION -> 2.
+
+**THE REVIEW FLAG IS NOW RENDERED.** `reviewed: false` shipped on every entry
+since v2.22 and no caller branched on it - a safeguard that existed only in a
+comment. Figure.jsx prints it under the cue in both languages.
+
+**BLUEPRINT REFINEMENTS.** Chest press guide chain now starts at the lumbar (an
+elbow riding high is only readable against the torso it hangs from); pull-up
+reads wrist -> elbow -> shoulder -> thorax (the hand is the fixed end); leg press
+runs ankle -> knee -> pelvis -> lumbar -> thorax. Deadlift muscle split corrected:
+glutes + hamstrings are the prime movers, erectors and lats support. Squat picks
+up calves as secondary. Anchor-collision finding worth keeping: quads and
+hamstrings share the hip->knee anchor, so the two hues would paint over each
+other on one thigh - never list both.
+
+**OPEN, NOT ACTIONED:** the review argues Leg Press should draw going too deep
+(pelvis off the pad, lumbar flexion under the sled) rather than lockout. One
+pose; it is Pierre's and Elie's call, and it is in HANDOFF-figures.
+
+**THE REVIEW PAGE was rebuilt verdict-first** on the fresh-eyes finding: its job
+is a same-or-different judgement and it was serving it as a serial scroll, where
+figure four is compared against a memory of figure one. Contact sheet of all
+seven on one ground leads, then mocked Movement-library rows at true mark size,
+then a four-line checklist and where to send the verdict. Advocacy paragraphs
+addressed to the person who is supposed to rule on the figures were cut.
+
+---
+
 ## v2.22.1 - the posture line, the muscle code, and the bench press (2026-08-22)
 
 Pierre on seeing the pilot six. Three asks, applied to every figure.

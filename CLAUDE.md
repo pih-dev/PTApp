@@ -44,9 +44,11 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.22.1
-**The exercise figures (B2) — the pilot seven (08-22).** A FORM panel: the pair (correct + the same body with one fault, ringed on the joint that takes it), the posture line, the colour-coded muscles, a key, and three sentences. `DATA_VERSION` stays 6. Detail: `docs/instructions-v2.22.md`, `-v2.22.1.md`; thread: `HANDOFF-figures.md`.
+## Current Version: v2.22.2
+**The exercise figures (B2) — the pilot seven (08-22).** A FORM panel: the pair (correct + the same body with one fault, ringed on the joint that takes it), the posture line, the colour-coded muscles, a key, and three sentences. `DATA_VERSION` stays 6. Detail: `docs/instructions-v2.22.md`, `-v2.22.1.md`, `-v2.22.2.md`; thread: `HANDOFF-figures.md`.
 - 🔴 **A FIGURE IS ANGLES, NEVER COORDINATES** — `src/figures/canon.js` owns every bone length and the only FK function, so brief §7.13 (*the wrong figure reuses the same bone lengths*) holds **by construction**. `fs` (projection) is the one escape hatch and must be IDENTICAL across a pair; `sanity-figures.mjs` asserts it, plus no colour literal, no NaN path, hip at half standing height.
+- 🔴 **SAY WHAT THE POSITION DOES, NEVER WHAT IT CAUSES.** Figure text states mechanics — where the load goes, which tissue is at end of range, what stops working. **No named pathology, no evidence-grade adverb**; `sanity-figures` FAILS THE BUILD on either. v2.22 named a diagnosis per movement and one (Leg Press / meniscus) was backwards. **The Arabic may never be stronger than the English** — it translated "mechanism" as سبب and upgraded every hedge for half the audience.
+- 🔴 **A REVIEW FLAG NOTHING RENDERS IS NOT A REVIEW PROCESS.** Every entry ships `reviewed: false` and the panel PRINTS it until Elie signs off.
 - 🔴 **THE MOVEMENT SHEET STILL SHOWS ONLY WHAT HAS AN OWNER.** The v2.21 ban on invented cues stands; `src/figureText.js` satisfies it — per-movement, EN+AR, `reviewed: false` until Elie reads it, movement-level mechanism only (never about a person, never a prescription). Read it via `figureText()`, **never `t()`** (returns the KEY on a miss).
 - 🔴 **THE FIGURE HAS FOUR MEANINGS AND ALL FOUR ARE DERIVED.** The posture line takes `--accent` when the pose marks no fault and `--warn` when it does; the muscle bands take `--muscle` (prime movers) / `--muscle-2` (supporting). **`--anatomy` is the fault marker and nothing else.** All three are figure-internal and UI-forbidden; `sanity-skins` asserts all 20 tokens per skin. A figure carrying four meanings **must ship its key** (`.fig-key`).
 - **A THIRD FIGURE (`extra`) IS FOR A FAULT OUTSIDE THE PAIR'S PLANE** — a second camera on a second fault, with its own marker and its own sentence (`sanity-figures` rejects one that marks nothing). Approved by Pierre 08-22 for the bench press, where flare is abduction and profile cannot show it. 🔴 **NEVER fake it with per-figure foreshortening** — that is a bone-length change disguised as perspective.
@@ -70,8 +72,8 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 ## Version History
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules in force live in TRAPS / CONVENTIONS, never here.
 
-- **v2.17–v2.20.1** (08-21/22) — THE DESIGN PASS, five stages: skins, the Dashboard, the shell and shared primitives, the deep screens, press affordance. Rules in force live in CONVENTIONS/TRAPS. → `v2.17`…`v2.20.1`
-- **v2.21–v2.21.1** (08-22) — the movement library: a movement name is tappable, plus a searchable library in General; General's order is toggles → reference → housekeeping. → `v2.21`, `v2.21.1`
+- **v2.17–v2.20.1** (08-21/22) — THE DESIGN PASS, five stages: skins, Dashboard, shell, deep screens, press affordance. → `v2.17`…`v2.20.1`
+- **v2.21–v2.21.1** (08-22) — the movement library, and General reordered. → `v2.21`, `v2.21.1`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---

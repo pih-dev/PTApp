@@ -4,6 +4,29 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.22.2 - the coaching text stops naming injuries (August 22, 2026)
+
+An adversarial review of the figure text found several claims that were too
+strong, and one - the Leg Press - that was simply backwards. The text no longer
+names an injury or a body part that can tear. It says what the position DOES:
+where the load goes, which tissue is at the end of its range, what stops doing
+the work. That is observable and nobody argues about it; the rest needed a
+source the app cannot carry, and naming a structure invites a member to decide
+he has damaged it.
+
+The build now refuses any figure text that names a pathology or claims an
+evidence grade, so this cannot creep back over the next 333 movements.
+
+Every entry also now says on screen that Elie has not reviewed it yet. That flag
+existed since the first release and nothing showed it - which made it a safety
+process that lived only in a code comment.
+
+The Arabic got a native review too: a wrong verb, two spellings of "back", the
+Egyptian word for foot, an MSA imperative no Beirut coach would say, and a 45
+degree cue that said "back by 45" instead of "to 45".
+
+---
+
 ## v2.22.1 - the lines, the colours, and a third camera (August 22, 2026)
 
 Every figure now carries the posture line you asked for: the one chain of joints

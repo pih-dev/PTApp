@@ -89,6 +89,12 @@ export default function Figure({ name, lang }) {
           <p><span className="fig-lead">{t(lang, 'theFault')}</span> {txt.flaw}</p>
           <p><span className="fig-lead">{t(lang, 'theRisk')}</span> {txt.injury}</p>
           <p className="fig-cue"><span className="fig-lead">{t(lang, 'theCue')}</span> {txt.cue}</p>
+          {/* 🔴 A REVIEW FLAG THAT NOTHING SURFACES IS NOT A REVIEW PROCESS.
+              Every entry ships `reviewed: false` until Elie has read it, and
+              until then the panel says so — it is the difference between a
+              safeguard and a comment in a source file nobody opens. It also
+              gives Elie a visible to-do the moment he opens any movement. */}
+          {!txt.reviewed && <p className="fig-unreviewed">{t(lang, 'figureUnreviewed')}</p>}
         </div>
       )}
     </>

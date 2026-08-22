@@ -1402,6 +1402,11 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
    view from above, and a supine figure from above is wide and short — squeezing
    it into a third column would throw away the only reason it exists. */
 .fig-wide { margin: 4px 0 8px; }
+.fig-unreviewed {
+  margin: 6px 0 0; font-size: 11px; color: var(--chalk-faint);
+  font-family: var(--font-display); letter-spacing: 0.08em; text-transform: uppercase;
+}
+[dir="rtl"] .fig-unreviewed { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 .fig-extra-note { margin: -4px 0 10px; font-size: 13px; line-height: 1.5; color: var(--chalk-dim); }
 
 /* The key. Deliberately quiet — it is a lookup, not content, and it must never
