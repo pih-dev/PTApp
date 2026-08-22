@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { SPOTSET_MARK_SVG } from '../spotsetMark';
-import { buildShowcaseCells, pingpong } from '../showcaseFigures';
+import { createWall, pingpong } from '../showcaseFigures';
 import { t } from '../i18n';
 
 // ─── The opening (v2.27) and the showcase suite (v2.31) ──────────────────────
@@ -18,13 +18,15 @@ import { t } from '../i18n';
 //    pure CSS animation-delay keyed off the cycle remount; LOOP_MS matches the
 //    suite length. Change one, change all.
 const LOOP_MS = { launch: 0, showcase: 25400 };
-const PIECES = ['anthem', 'engine', 'arena', 'pulse', 'orbit'];
+// v2.32, Pierre's final picks: arena/droplet/maqam retired from the shuffle.
+const PIECES = ['anthem', 'engine', 'pulse', 'orbit', 'cascade'];
 
 export default function Splash({ onDone, lang = 'en', mode = 'launch' }) {
   const [leaving, setLeaving] = useState(false);
   const [cycle, setCycle] = useState(0);
   const [cells, setCells] = useState(null);
   const [tick, setTick] = useState(0);
+  const wallRef = useRef(null);
   const audioRef = useRef(null);
   const srcRef = useRef(null);
   // Shuffle once per showcase open; cycles walk the order. Math.random is fine
@@ -63,21 +65,45 @@ export default function Splash({ onDone, lang = 'en', mode = 'launch' }) {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [onDone, playSound, showcase, cycle]);
 
-  // The wall's art builds AFTER first paint, behind the hero phase — ~180
+  // The wall's art builds AFTER first paint, behind the hero phase — ~100
   // small svg builds would otherwise stutter the very tap that opened this.
+  // Keyed on cycle: every loop deals a FRESH random 24, no duplicates
+  // (v2.32 — the Set inside createWall is the guarantee).
   useEffect(() => {
     if (!showcase) return;
-    const id = setTimeout(() => { try { setCells(buildShowcaseCells()); } catch { setCells([]); } }, 120);
+    const id = setTimeout(() => {
+      try { wallRef.current = createWall(); setTick(0); setCells(wallRef.current.cells); }
+      catch { setCells([]); }
+    }, 120);
     return () => clearTimeout(id);
-  }, [showcase]);
+  }, [showcase, cycle]);
 
   // One 100ms ticker drives every turning cell (~10fps — smooth at cell size,
-  // nowhere near the frame budget) and the slow static crossfades.
+  // nowhere near the frame budget) and schedules the static crossfades: each
+  // static cell swaps to an unused movement every ~4s, staggered, one svg
+  // build per swap — never per frame.
   useEffect(() => {
     if (!showcase || !cells) return;
-    const id = setInterval(() => setTick((v) => v + 1), 100);
+    const id = setInterval(() => setTick((v) => {
+      const next = v + 1;
+      const wall = wallRef.current;
+      if (wall) {
+        setCells((cur) => {
+          if (!cur) return cur;
+          let changed = null;
+          cur.forEach((cell, i) => {
+            if (cell.kind === 'static' && (next + i * 7) % 40 === 0) {
+              const swap = wall.swapStatic(cell);
+              if (swap) { changed = changed || [...cur]; changed[i] = { ...swap, arrived: true }; }
+            }
+          });
+          return changed || cur;
+        });
+      }
+      return next;
+    }), 100);
     return () => clearInterval(id);
-  }, [showcase, cells]);
+  }, [showcase, cells === null]);
 
   useEffect(() => () => { if (audioRef.current) audioRef.current.pause(); }, []);
 
@@ -93,12 +119,12 @@ export default function Splash({ onDone, lang = 'en', mode = 'launch' }) {
         {showcase && cells && (
           <div className="splash-grid" aria-hidden="true">
             {cells.map((cell, i) => {
-              const html = cell.kind === 'rot'
-                ? cell.frames[pingpong(tick + i * 3)]
-                // a slow, per-cell staggered walk through its pool
-                : cell.pool[Math.floor((tick / 35) + i * 0.7) % cell.pool.length];
+              const html = cell.kind === 'rot' ? cell.frames[pingpong(tick + i * 3)] : cell.svg;
               return (
-                <div key={i} className="splash-cell" style={{ animationDelay: `${3.1 + i * 0.45}s` }}
+                // key by movement so a crossfade swap remounts the cell and
+                // replays its fade-in — the swap IS the transition.
+                <div key={`${i}-${cell.name}`} className="splash-cell"
+                  style={{ animationDelay: cell.arrived ? '0s' : `${3.1 + i * 0.45}s` }}
                   dangerouslySetInnerHTML={{ __html: html }} />
               );
             })}

@@ -17,6 +17,16 @@ Full detail: instructions-v2.29.1.md.
 
 
 
+## v2.32 - the final suite, and the wall goes random (August 22, 2026)
+
+Pierre's picks: anthem, engine (fixed), pulse (fixed), orbit, cascade - arena,
+droplet and maqam retired. The showcase wall now deals a fresh random 24 from
+all 340 movements every loop, never showing the same movement twice at once.
+Logo re-frozen against the figures fixes: byte-identical (they touch the spun
+path, not the mark). Full detail: instructions-v2.32.md.
+
+---
+
 ## v2.31 - the showcase suite: five pieces and the wall (August 22, 2026)
 
 Five composed 25-second continuations of the opening (anthem, engine, arena,

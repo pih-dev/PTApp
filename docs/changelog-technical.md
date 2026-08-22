@@ -4,6 +4,19 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.32 - final suite + randomized wall (2026-08-22)
+
+PIECES -> [anthem, engine, pulse, orbit, cascade]; retired m4a pruned from
+public/ and gh-pages. showcaseFigures rebuilt: createWall() deals 24 distinct
+movements per cycle from the whole bank (global used-Set = the no-duplicates
+guarantee, held across crossfade swaps; swaps release the old name and claim
+an unused one, one svg build per swap). Stagger delays now per-cell 'arrived'
+flags; tick resets per cycle. 5.1 script kept in step (disc/riserTones bus
+forms, cascade added; default render = the final five, ALL_51=1 for arena).
+Suite script gained WAV_ONLY audition mode. Android vc9/2.32.
+
+---
+
 ## v2.31 - the suite + the wall (2026-08-22)
 
 make-opening-suite.mjs composes five deterministic ~25.2s pieces sharing the

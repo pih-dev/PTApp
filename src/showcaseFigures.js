@@ -1,66 +1,81 @@
-// ─── The wall for the showcase (v2.31) ───────────────────────────────────────
+// ─── The wall for the showcase (v2.31; randomized v2.32) ─────────────────────
 //
-// Pierre: "there are a lot of 360° frames in the movements… populate the
-// screen." 24 cells (6 across × 4 rows): the ten most distinct ROTATABLE
-// movements turn continuously (precomputed mark frames — generating svg per
-// animation frame at runtime would eat the frame budget), and the rest
-// crossfade through the wider library, so the wall IS the library showing off.
+// Pierre, v2.32: "randomize from all moves, just try not to have duplicates on
+// the screen at any point." So the wall is drawn fresh per cycle from the
+// WHOLE bank: 24 distinct movements every time, a global Set guaranteeing no
+// movement appears twice on screen — including across the slow crossfades,
+// which release their old name and claim an unused one.
 //
-// READ-ONLY consumer of src/figures/ — same import surface every screen uses;
-// the figures-session ownership rule bans EDITING those files, not using them.
+// Rotatable picks get precomputed frame sets (capped — generating figure svg
+// per animation frame would eat the frame budget; the cap keeps the mount
+// build ~100 small marks). READ-ONLY consumer of src/figures/.
 import { EXERCISES } from './exerciseBank.js';
 import { figureFor } from './figures/poses.js';
 import { figureSvg } from './figures/svg.js';
 
-// Ten rotatable picks, chosen for silhouette variety (the 24 rotatable
-// movements cluster into curl/bench/hinge families — ten distinct reads).
-const ROT_PICKS = [
-  'Barbell Curl', 'Arnold Dumbbell Press', 'Flat Barbell Press', 'Deadlift',
-  'Good Morning', 'Sumo Deadlift', 'Incline Barbell Press', 'Rack Pull',
-  'Single Leg Romanian Deadlift', 'Decline Barbell Press',
-];
-export const ROT_FRAMES = 12;        // per half-turn; cells ping-pong 0..11..0
-export const CELL_COUNT = 24;        // 6 across × 4 rows — his numbers
+export const ROT_FRAMES = 12;   // per half-turn; cells ping-pong 0..11..0
+export const CELL_COUNT = 24;   // 6 across × 4 rows — his numbers
+const MAX_ROT = 8;              // frame-precompute cap per wall
 
-// Build every cell's art. ~180 mark-mode svg builds — run it once, AFTER first
-// paint (the caller defers it behind the hero phase), never per frame.
-export function buildShowcaseCells() {
-  const cells = [];
-  for (const name of ROT_PICKS) {
+let POOL = null;
+function pool() {
+  if (POOL) return POOL;
+  const rot = [], stat = [];
+  for (const e of EXERCISES) {
     try {
-      const fig = figureFor(name);
-      if (!fig || !fig.rotatable) continue;
-      const frames = [];
-      for (let k = 0; k < ROT_FRAMES; k++) {
-        frames.push(figureSvg(fig.correct, { detail: 'mark', mix: k / (ROT_FRAMES - 1) }));
-      }
-      cells.push({ kind: 'rot', frames });
+      const f = figureFor(e.name);
+      if (!f) continue;
+      (f.rotatable ? rot : stat).push(e.name);
     } catch { /* a broken pose never breaks the show */ }
   }
-  // Static pool: a deterministic spread across the whole bank, 4 marks per
-  // remaining cell so each crossfades through its own little set.
-  const statics = [];
-  for (let i = 0; i < EXERCISES.length && statics.length < (CELL_COUNT - cells.length) * 4; i += 7) {
+  POOL = { rot, stat };
+  return POOL;
+}
+
+const markOf = (name, mix) =>
+  figureSvg(figureFor(name).correct, mix == null ? { detail: 'mark' } : { detail: 'mark', mix });
+
+// Build one wall. Returns { cells, swapStatic } — swapStatic(cell) hands back
+// a replacement movement no other cell is currently showing.
+export function createWall(rand = Math.random) {
+  const { rot, stat } = pool();
+  const used = new Set();
+  const pick = (list) => {
+    for (let tries = 0; tries < 60; tries++) {
+      const n = list[Math.floor(rand() * list.length)];
+      if (!used.has(n)) { used.add(n); return n; }
+    }
+    return null;
+  };
+  const rotC = [], statC = [];
+  for (let i = 0; i < Math.min(MAX_ROT, rot.length); i++) {
+    const name = pick(rot);
+    if (!name) break;
     try {
-      const fig = figureFor(EXERCISES[i].name);
-      if (!fig || fig.rotatable) continue;
-      statics.push(figureSvg(fig.correct, { detail: 'mark' }));
-    } catch { /* skip */ }
+      const frames = [];
+      for (let k = 0; k < ROT_FRAMES; k++) frames.push(markOf(name, k / (ROT_FRAMES - 1)));
+      rotC.push({ kind: 'rot', name, frames });
+    } catch { used.delete(name); }
   }
-  let s = 0;
-  while (cells.length < CELL_COUNT && statics.length) {
-    const pool = [];
-    for (let k = 0; k < 4 && statics.length; k++) pool.push(statics[s++ % statics.length]);
-    cells.push({ kind: 'static', pool });
+  while (rotC.length + statC.length < CELL_COUNT) {
+    const name = pick(stat);
+    if (!name) break;
+    try { statC.push({ kind: 'static', name, svg: markOf(name) }); } catch { used.delete(name); }
   }
-  // Interleave so the turning cells spread across the wall instead of
-  // clustering in the first two rows.
-  const rot = cells.filter(c => c.kind === 'rot'), st = cells.filter(c => c.kind === 'static');
-  const out = [];
-  for (let i = 0; i < CELL_COUNT; i++) {
-    out.push((i % 2 === 0 && rot.length) ? rot.shift() : (st.shift() || rot.shift()));
+  // Spread the turning cells across the wall instead of clustering them.
+  const cells = [];
+  for (let i = 0; rotC.length || statC.length; i++) {
+    cells.push((i % 3 === 1 && rotC.length) ? rotC.shift() : (statC.shift() || rotC.shift()));
   }
-  return out.filter(Boolean);
+  return {
+    cells,
+    swapStatic(cell) {
+      const name = pick(stat);
+      if (!name) return null;
+      used.delete(cell.name);
+      try { return { kind: 'static', name, svg: markOf(name) }; } catch { used.delete(name); return null; }
+    },
+  };
 }
 
 // Ping-pong a tick into a frame index: 0..11..1 and around again.

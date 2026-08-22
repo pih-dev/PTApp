@@ -98,6 +98,39 @@ function bell([L, R], t0, f, amp, pan) {
     }
   }
 }
+function disc([L, R], t0, amp, pan, hi = true) {
+  const start = Math.floor(t0 * SR);
+  const parts = hi ? [[6200, 1], [6870, 0.7], [9300, 0.4]] : [[2800, 1], [3730, 0.7], [520, 0.5]];
+  const dec = hi ? 30 : 16;
+  for (const [f, a] of parts) {
+    let ph = 0;
+    for (let i = start; i < N; i++) {
+      const t = (i - start) / SR;
+      const e = Math.exp(-t * dec) * amp * a;
+      if (e < 0.0004) break;
+      ph += (TAU * f) / SR;
+      const sgn = Math.sin(ph) * e;
+      L[i] += sgn * (1 - pan * 0.5); R[i] += sgn * (1 + pan * 0.5);
+    }
+  }
+}
+function riserTones([L, R], t0, t1, fLo, fHi, amp) {
+  for (let v = 0; v < 4; v++) {
+    const vt0 = t0 + v * 0.35, dur = t1 - vt0;
+    if (dur <= 0.2) continue;
+    const start = Math.floor(vt0 * SR), end = clampT(Math.floor(t1 * SR));
+    let ph = 0;
+    for (let i = start; i < end; i++) {
+      const t = (i - start) / SR, u = t / dur;
+      const f = fLo * Math.pow(fHi / fLo, u) * (1 + v * 0.002);
+      ph += (TAU * f) / SR;
+      const e = Math.pow(u, 1.6) * amp * (1 - v * 0.18);
+      const sgn = (Math.sin(ph) + 0.3 * Math.sin(2 * ph)) * e;
+      L[i] += sgn * (v % 2 ? 1.15 : 0.85); R[i] += sgn * (v % 2 ? 0.85 : 1.15);
+    }
+  }
+}
+const SQ = [1, 0, 0.33, 0, 0.2, 0, 0.14];
 function noiseSwell([L, R], t0, t1, amp, rng, rise = true) {
   const start = Math.floor(t0 * SR), end = clampT(Math.floor(t1 * SR));
   let lpL = 0, lpR = 0;
@@ -169,8 +202,8 @@ const PIECES = {
     for (let t = T0; t < 21.6; t += Bt) {
       const beat = Math.round((t - T0) / Bt);
       if (!(t > 16.4 && t < 19.6)) kick(B.F, t, 130, 45, 8, 0.5, null);
-      if (beat % 2 === 1) noiseSwell(B.S, t + Bt * 0.48, t + Bt * 0.62, 0.05, rng, false);
-      if (beat % 4 === 2 && t > T0 + 2 * bar) noiseSwell(B.S, t, t + 0.12, 0.16, rng, false);
+      if (beat % 2 === 1) disc(B.S, t + Bt * 0.5, 0.06, beat % 4 === 1 ? 0.6 : -0.6, true);
+      if (beat % 4 === 2 && t > T0 + 2 * bar) disc(B.F, t, 0.2, 0, false);
     }
     for (let rep = 0; rep < 3; rep++) {
       for (const [e8, f] of riff) {
@@ -228,7 +261,7 @@ const PIECES = {
         (tt < 0.6 ? tt / 0.6 : tt < 2.4 ? 1 : Math.max(0, 1 - (tt - 2.4) / 1.2)) * (1 + Math.min(0.06, tt * 0.1)), SAW);
     }
     tone(B.C, 3.4, 18, 55, 0.04, 0.04, -0.3, 0.3, adsr(2, 14, 2), [1, 0.3]);
-    noiseSwell(B.S, 18.0, 22.2, 0.1, rng, true);
+    riserTones(B.S, 18.0, 22.2, 110, 880, 0.09);
     for (const [bus, f] of [[B.F, 55], [B.S, 82.4], [B.F, 110]]) {
       tone(bus, 22.3, 2.6, f, 0.2, 0.2, -1.3, 1.3, adsr(0.4, 1.2, 1.0), SAW);
     }
@@ -275,7 +308,48 @@ const PIECES = {
     hook.forEach((f, k) => pluck(B.F, 22.35 + k * 0.14, f, 0.16, k % 2 ? 0.7 : -0.7));
     finale(B, 23.1, rng);
   },
+  cascade(B) {
+    const rng = makeRng(0xCA5);
+    opening(B, rng);
+    const Bt = 60 / 140, T0 = 3.0;
+    const semi = (n) => 220 * Math.pow(2, n / 12);
+    const riffA = [0, 3, 7, 5, 3, 2, 0, 2], riffB = [0, 3, 7, 10, 8, 7, 5, 7];
+    for (let bar = 0; ; bar++) {
+      const t0 = T0 + bar * 8 * (Bt / 2);
+      if (t0 >= 21.2) break;
+      (bar % 2 ? riffB : riffA).forEach((n, k) => {
+        const t = t0 + k * (Bt / 2);
+        if (t >= 21.2) return;
+        const up = t >= 18.2 ? 2 : 0;
+        tone(B.F, t, 0.16, semi(n + up), 0.16, 0.16, 0, 0, adsr(0.01, 0.07, 0.08), SQ);
+        tone(B.S, t + Bt / 4, 0.09, semi(n + up) * 2, 0.05, 0.05, k % 2 ? 1 : -1, k % 2 ? -1 : 1, adsr(0.005, 0.04, 0.045), SQ);
+      });
+    }
+    const bassWalk = [0, 0, -5, -5, -4, -4, -2, -2];
+    for (let bar = 0; ; bar++) {
+      const t0 = T0 + bar * 8 * (Bt / 2);
+      if (t0 >= 21.2) break;
+      bassWalk.forEach((n, k) => {
+        const t = t0 + k * (Bt / 2);
+        if (t >= 21.2) return;
+        const up = t >= 18.2 ? 2 : 0;
+        tone(B.F, t, 0.2, 55 * Math.pow(2, (n + up) / 12), 0.22, 0.22, 0, 0, adsr(0.005, 0.12, 0.08), SQ);
+      });
+    }
+    for (let t = T0; t < 21.2; t += Bt) {
+      kick(B.F, t, 120, 48, 9, 0.34, null);
+      disc(B.S, t + Bt / 2, 0.05, (Math.round(t / Bt) % 2) ? 0.6 : -0.6, true);
+    }
+    riserTones(B.S, 20.2, 21.9, 220, 1760, 0.06);
+    finale(B, 22.1, rng);
+  },
 };
+
+// v2.32: only Pierre's final five render by default (arena stays in the code
+// as the private THX homage — run with ALL_51=1 to include it).
+const RENDER = process.env.ALL_51 ? Object.keys(PIECES)
+  : ['anthem', 'engine', 'pulse', 'orbit', 'cascade'];
+for (const k of Object.keys(PIECES)) if (!RENDER.includes(k)) delete PIECES[k];
 
 // ── master: 6-channel interleave (WAV order FL FR C LFE SL SR) ──────────────
 const FF = process.env.LOCALAPPDATA

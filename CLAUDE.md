@@ -44,8 +44,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.31
-**The showcase suite.** Five composed ~25s pieces (`make-opening-suite.mjs`, deterministic) SHUFFLE behind the mark-tap show; the hero hands off to a **6×4 wall** (`showcaseFigures.js` — 🔴 precomputed mark frames, NEVER svg per animation frame). Launch = the untouched 3s opening. 🔴 gh-pages carries the AUDIO SET (`opening.wav` + `opening-*.m4a`). Detail: `docs/instructions-v2.31.md`.
+## Current Version: v2.32
+**The final suite + the random wall.** Pieces: **anthem · engine · pulse · orbit · cascade** (Pierre's picks; the rest retired). The wall deals 24 DISTINCT random movements per cycle (`createWall()`'s used-Set — 🔴 still NEVER svg per animation frame). 🔴 Suite edits go to BOTH scripts (`make-opening-suite.mjs` + `-51.mjs`, in step by hand). Detail: `docs/instructions-v2.32.md`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
@@ -77,7 +77,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 - **v2.21–v2.24.1** (08-22) — the movement library, then the figures: pilot → all 340 from 44 patterns. → `v2.21`…`v2.24.md`
 - **v2.25–v2.25.3** (08-22) — the design refinement round (bar heads, shared SessionCard/P3, emojis out, fresh-eyes) + the equipment-blue passes. → `v2.25`…`v2.25.3`
 - **v2.26–v2.27** (08-22) — the FACING-PAIR logo + backdrop; then the opening animation and the PWA/store icon set. → `v2.26`, `v2.27`
-- **v2.28–v2.30.3** (08-22) — the opening SOUND + Play vc4; turns, 360 stamps, second axis; hotfixes; the header split + showcase. → `v2.28`…`v2.30.3`
+- **v2.28–v2.31** (08-22) — the opening SOUND + Play vc4; turns + 360 stamps + second axis; the header split, showcase, suite + wall. → `v2.28`…`v2.31`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
