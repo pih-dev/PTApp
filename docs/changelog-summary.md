@@ -4,6 +4,13 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.25.2 - the equipment blue, brighter still (August 22, 2026)
+
+Second phone pass: the red landed, the blue could go further. Equipment now
+fully opaque in a lighter azure, both skins. Colour values only.
+
+---
+
 ## v2.25.1 - brighter muscle red and equipment blue (August 22, 2026)
 
 Phone review straight after v2.25: the muscle wash and the equipment read too
