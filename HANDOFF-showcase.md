@@ -34,10 +34,10 @@ ask follow-up questions.
 - 🔴 **OPEN #1 — Pierre's "S" idea:** arrange the facing pair to read as the S of SpotSet ("there
   will be blanks on the corners — we'll sort it out"). Next logo round; candidates sheet artifact
   exists (`/artifacts` → "The SpotSet Mark").
-- 🔴 **OPEN #2 — Play upload of the current build** waits on the vc4 review (see
-  `HANDOFF-spotset-publishing.md` §0 — probe the console before quoting status). Latest archived
-  release: `_archive/PTApp/releases/2026-08-22-spotset-v2.32-vc9.apk`. Next numbers: v2.32.1+/vc10+
-  (agreed with the figures session).
+- ✅ **OPEN #2 IS CLOSED — vc9/v2.32 IS UPLOADED AND IN REVIEW** (2026-08-22 ~19:35). vc4 was
+  approved and went live first, which unblocked it. Detail, warnings and the archive paths:
+  `HANDOFF-spotset-publishing.md` §0 — 🔴 probe the console before quoting the result.
+  Next numbers: v2.32.1+/vc10+ (agreed with the figures session).
 - **5.1 TV files** (Pierre's soundbar demos): `_archive/PTApp/branding/2026-08-22-suite-5.1/` —
   final five; arena renders only with `ALL_51=1` (his private THX homage, never ships).
 - **Parked, his word:** money tracking DEFERRED (no in-app payments; Elie paid directly). Fresh-eyes

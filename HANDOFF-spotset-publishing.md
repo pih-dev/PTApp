@@ -28,17 +28,19 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   2026-08-22 ~14:45: production checklist shows ✅ closed release · ✅ 12 testers opted in ·
   ⭕ run the test 14 days). The opt-in link stays `https://play.google.com/apps/testing/com.spotset.app`
   for any late tester. The remaining production gate is TIME + the "apply for production" questions.
-- 🚀 **versionCode 4 (v2.28) SUBMITTED FOR REVIEW 2026-08-22 ~14:45** on Closed testing – Alpha,
-  full rollout on approval. AAB archived: `_archive/PTApp/releases/2026-08-22-spotset-v2.28-vc4.aab`,
-  versionName verified INSIDE the bundle. 🔴 **Probe the console/inbox for the review result before
-  quoting status** (console: Chrome profile **u/1**, account Calnorm).
-- 🔴 **THE NEXT PLAY UPLOAD IS ALREADY BUILT: vc9 / v2.32** —
-  `_archive/PTApp/releases/2026-08-22-spotset-v2.32-vc9.apk` (build the AAB fresh via
-  `bundleRelease` when uploading; same tree state = master `e7b75d6`+). It adds everything after
-  vc4: sound suite, showcase wall, launcher icons (vc4 still shows the OLD launcher icon — vc9's
-  AAB fixes that). Upload flow proven this session: console → SpotSet → Closed testing Alpha →
-  Create new release (the AAB upload + release notes + submit was driven via Chrome u/1).
-  Numbering agreed with the figures session: next patch v2.32.1+/vc10+.
+- ✅ **versionCode 4 (v2.28) WAS APPROVED AND IS LIVE** — console 2026-08-22 ~19:30: Closed
+  testing – Alpha, "Available to testers on Google Play", full rollout, released Aug 22 2:46 PM.
+  AAB archived: `_archive/PTApp/releases/2026-08-22-spotset-v2.28-vc4.aab`.
+- 🚀 **versionCode 9 (v2.32) SUBMITTED FOR REVIEW 2026-08-22 ~19:35** — uploaded to Closed
+  testing – Alpha (full rollout on approval), release notes: *"Opening animation and sound, the
+  movement showcase, a new app icon, and design refinements throughout."* Console shows
+  **Changes in review** (quick checks run first, then Google review; typically <7 days).
+  AAB built fresh via `bundleRelease` (JDK 21), **versionName `2.32` verified INSIDE the bundle**,
+  archived: `_archive/PTApp/releases/2026-08-22-spotset-v2.32-vc9.aab`. Live-data snapshot taken
+  first per governance: `_archive/PTApp/data-snapshots/2026-08-22-pre-play-vc9-upload.json`
+  (21 clients / 514 sessions, byte-matched). Two upload warnings are BENIGN and expected: larger
+  download (the audio suite) and no deobfuscation file (`minifyEnabled false`).
+  🔴 **Probe the console before quoting the result.** Next numbers: v2.32.1+/vc10+.
 - **Sideloads vc4→vc9 went to Pierre directly in-chat** (signature = upload key, so a Play-installed
   copy must be uninstalled before sideloading; his data re-syncs).
 - ⚠️ **"Item not found" on the store page right after opting in is normal** — a newly-published

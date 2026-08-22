@@ -11,10 +11,11 @@ not draft, do not ask follow-up questions.
 
 - 🔴 **EVERY SUBJECT HAS ITS OWN HANDOFF — route by trigger, newest first:**
   - **`showcase` / `logo` / `suite` / `sound` → `HANDOFF-showcase.md`** — the freshest thread
-    (this session): v2.32 shipped; OPEN: Pierre's "S" logo idea + the Play upload of vc9.
+    (this session): v2.32 shipped; vc9 now uploaded to Play; OPEN: Pierre's "S" logo idea.
     **`continue` right after this session's clear means THIS one.**
-  - **`spotset` / `publish` / `illume` → `HANDOFF-spotset-publishing.md`** — vc4 in Play review
-    (probe before quoting), vc9 ready as the next upload, Apple activation pending on Apple.
+  - **`spotset` / `publish` / `illume` → `HANDOFF-spotset-publishing.md`** — vc4 approved and
+    LIVE to testers; **vc9/v2.32 uploaded and in review 08-22 ~19:35** (probe before quoting),
+    Apple activation pending on Apple.
   - **`figures` → `HANDOFF-figures.md`** — the CCHealth session's thread, wrapped end-of-marathon;
     resumes there, not here. 🔴 Two-session git rules in CLAUDE.md KNOWN ISSUES if both run again.
   - **Supabase soak → `HANDOFF-multi-user-build.md`** — daily job `node scripts/soak-day.mjs`.
