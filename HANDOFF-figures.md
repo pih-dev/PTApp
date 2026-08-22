@@ -11,6 +11,11 @@
 > this stands — pull before editing anything, both sessions commit+push at every milestone.
 > **Known collision point: the skins/token files** — figures item 4 adds an equipment token there
 > while the redesign edits the same files. Whoever edits skins pulls first.
+> 🔴 **Learned the hard way (v2.24.1 deploy): while two sessions share this repo, NEVER `git add
+> -A` / `-.` (it commits the other session's WIP) and NEVER `git checkout gh-pages` in the main
+> tree (it aborts or strands files on master). Stage explicit paths only; deploy from a gh-pages
+> WORKTREE. And a node_modules junction inside a worktree must be `rmdir`-ed (link only) BEFORE
+> `git worktree remove --force`, which follows it and deletes the real packages.**
 
 🔴 **STANDING INSTRUCTION FOR THIS SUBJECT: keep this file current AS YOU GO.** Update §0 and commit
 at each milestone. A restart could end the session at any moment.
