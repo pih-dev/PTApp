@@ -4,6 +4,17 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.30 - library turn-stamps + pan-updater hotfix (2026-08-22)
+
+Figures session: 360-stamps + filter in the library. Hotfix per this
+session's diagnosis of Pierre's live white-screen: baseY + currentTarget
+captured BEFORE the deferred setPan updater in Figure.jsx (drag.current and
+e.currentTarget are both nulled by the time React runs the updater); same
+capture applied in the pinch updater. Entry backfilled with
+instructions-v2.30.md. Android vc6/2.30 = the sideload + next Play upload.
+
+---
+
 ## v2.29.1 - the two-hit opening (2026-08-22)
 
 Sound cut 2 (Pierre: "more impactful, like Netflix/THX"): make-opening-sound
