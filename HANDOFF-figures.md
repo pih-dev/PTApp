@@ -14,7 +14,17 @@ at each milestone. A restart could end the session at any moment.
 
 ## 0. Status — read this out
 
-- 🔴 **NEXT TASK, ASKED FOR BY PIERRE 2026-08-22: MORE THAN ONE ANGLE — OR 3D THE USER CAN DRAG.**
+- 🟢 **ROTATION SHIPPED ON ONE PATTERN — v2.23.1.** Flat Barbell Press has a DRAG TO TURN bar; both
+  halves of the pair turn together from profile to the view from above, and the elbows become
+  visible. **It is a TWEEN between two authored cameras, not a 3D rig** — true 3D was built and
+  reverted (a world-fixed lateral axis breaks every supine pose; it needs a body-fixed frame per
+  segment, i.e. a rewrite of all 44 patterns' numbers). Every tween frame is bounded by two
+  hand-judged shapes, so it cannot turn into a blob.
+- 🔴 **NEXT ROTATION CANDIDATES, in order:** the **squat** (knee valgus is frontal and the pair is
+  already drawn front-on, so it gains the profile), **rows** (scapular position), the **rotation**
+  patterns. Each is two more authored poses in `ROTATES` (`figures/poses.js`) — and a pattern whose
+  fault is fully visible from one camera must NOT get a drag handle that does nothing.
+- **Superseded — the original ask, kept for the wording:**
   His words: *"I need different angles where possible. Either that or 3D. They drag them… So there
   will be two pictures. For example, one is the posture — both regarding the correct and the most
   common mistake. Draggable by finger for 3D, for people to see."*

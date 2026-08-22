@@ -55,8 +55,8 @@ let uid = 0;
 //   'mark' — the 16–24px reduction for list rows and tabs. THE SAME POSE with
 //            fewer parts (the reference read: the mark is drawn FROM the figure,
 //            never separately — that is what keeps 340 movements one family).
-export function figureSvg(pose, { detail = 'full', title = '', className = '' } = {}) {
-  const f = buildFigure(pose);
+export function figureSvg(pose, { detail = 'full', title = '', className = '', mix = 0 } = {}) {
+  const f = buildFigure(pose, mix);
   const mark = detail === 'mark';
   const id = `fg${++uid}`;
   // Held versus lost, and the hue carries it: --accent is this app's "under

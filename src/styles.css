@@ -1402,6 +1402,25 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
    view from above, and a supine figure from above is wide and short — squeezing
    it into a third column would throw away the only reason it exists. */
 .fig-wide { margin: 4px 0 8px; }
+
+/* 🔴 `pan-y` AND NOTHING ELSE. The sheet still has to scroll vertically under
+   the finger, so the browser keeps the vertical axis and we take the
+   horizontal — declaratively, instead of a non-passive preventDefault, which
+   is what broke elastic overscroll the last time (docs/traps.md). */
+/* `user-select: none` because a horizontal drag over text selects it, and a
+   figure that highlights its own caption while you turn it looks broken. */
+.fig-rotatable { touch-action: pan-y; cursor: ew-resize; user-select: none; -webkit-user-select: none; }
+.fig-drag { display: flex; align-items: center; gap: 10px; margin: 2px 0 8px; }
+.fig-drag-hint {
+  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--chalk-dim); flex: none;
+}
+[dir="rtl"] .fig-drag-hint { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
+.fig-drag-bar { position: relative; flex: 1; height: 2px; background: var(--bar); border-radius: 1px; }
+.fig-drag-bar i {
+  position: absolute; top: -4px; width: 10px; height: 10px; margin-inline-start: -5px;
+  border-radius: 50%; background: var(--chalk); display: block;
+}
 .fig-unreviewed {
   margin: 6px 0 0; font-size: 11px; color: var(--chalk-faint);
   font-family: var(--font-display); letter-spacing: 0.08em; text-transform: uppercase;

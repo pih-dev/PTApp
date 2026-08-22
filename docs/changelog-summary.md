@@ -4,6 +4,27 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.23.1 - the bench press turns under your finger (August 22, 2026)
+
+Open Flat Barbell Press and the pair has a DRAG TO TURN bar under it. Slide a
+finger sideways and BOTH figures turn together, from the side view to the view
+from above, and the elbows become visible.
+
+That is what you asked for, and it is the fix for a real problem: elbow flare
+happens in the plane a side-on drawing looks straight down, so no amount of
+redrawing shows it from the side. Until now the answer was a third picture
+bolted underneath. Now it is a finger.
+
+Both halves turn together on purpose - turning one and not the other would
+compare two different cameras and teach the wrong difference.
+
+Only the bench press rotates so far. A second camera is two more drawings that
+have to be checked by eye, and it only earns its place where the fault is
+invisible from the first angle. Next in line: the squat, the rows, the rotation
+movements.
+
+---
+
 ## v2.23.0 - every movement has a figure (August 22, 2026)
 
 All 340 of them. Open any movement in the library or tap any name in a program

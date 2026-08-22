@@ -153,8 +153,40 @@ function headPath(sk) {
 // can be rendered into the app, into a test harness, or exported to a file
 // without dragging React along. `parts.body` is everything that paints in
 // currentColor; `parts.muscles` and `parts.fault` paint INSIDE it via a clip.
-export function buildFigure(pose) {
-  const sk = skeleton(pose);
+// 🔴 ROTATION IS A TWEEN BETWEEN TWO AUTHORED CAMERAS, NOT A 3D RIG — and that
+//    is a deliberate choice, not a shortcut. Pierre, 2026-08-22: "I need
+//    different angles… they drag them." A true 3D rig needs a body-fixed frame
+//    per segment (a supine figure's left-right axis is not the world's), which
+//    is a rewrite of every one of the 44 patterns' numbers. A tween needs two
+//    drawings that were each checked by eye, and every frame between them is
+//    bounded by two known-good shapes — so it can never rotate into an
+//    illegible blob, which is the failure mode the options doc flagged.
+//
+//    Bone lengths vary across the tween. That is CORRECT, not drift: a bone
+//    turning toward the camera really is drawn shorter, and the two endpoints
+//    are exactly its true length at each camera. The pair rule is unaffected —
+//    both halves of a pair tween between the same two cameras.
+function lerpSkeleton(a, b, t) {
+  const out = {};
+  for (const k of Object.keys(a)) {
+    const v = a[k], w = b[k];
+    if (v && typeof v === 'object' && typeof v.x === 'number' && w) {
+      out[k] = { x: v.x + (w.x - v.x) * t, y: v.y + (w.y - v.y) * t };
+    } else if (k === 'headAngle') {
+      out[k] = a[k] + (b[k] - a[k]) * t;
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
+export function buildFigure(pose, mix) {
+  // `pose.alt` is the same movement from a second camera. `mix` 0 = the authored
+  // pose, 1 = the alternate, anything between is the turn.
+  const sk = (pose.alt && mix > 0)
+    ? lerpSkeleton(skeleton(pose), skeleton(pose.alt), Math.min(1, mix))
+    : skeleton(pose);
   const g = GIRTH[sk.view];
   const body = [];
 
@@ -232,7 +264,14 @@ export function buildFigure(pose) {
       return { x: p.x + (off.x || 0), y: p.y + (off.y || 0), r: pose.fault.r || 46 };
     });
 
-  const equip = typeof pose.equip === 'function' ? pose.equip(sk).filter(Boolean) : [];
+  // 🔴 THE EQUIPMENT SWAPS AT THE HALFWAY POINT RATHER THAN TWEENING. A bench
+  //    seen from the side and the same bench seen from above are not the same
+  //    shape with different numbers — one is a slab and a post, the other is a
+  //    pad and a bar across it. Interpolating between them produces a third
+  //    object that exists in neither view. A swap is visible for one frame; a
+  //    morphing bench is wrong in every frame.
+  const equipPose = (pose.alt && mix > 0.5) ? pose.alt : pose;
+  const equip = typeof equipPose.equip === 'function' ? equipPose.equip(sk).filter(Boolean) : [];
 
   return { sk, body: body.filter(Boolean), deltoids, head: headPath(sk), muscles, guide, fault, equip, view: sk.view };
 }

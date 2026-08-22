@@ -286,6 +286,26 @@ const BENCH_ABOVE = {
   },
 };
 
+// The tucked half of the view from above. BENCH_ABOVE is the flared one; a pair
+// that rotates needs both, because the drag turns each half of the pair toward
+// the SAME camera and a correct figure must stay correct all the way round.
+const BENCH_ABOVE_OK = {
+  ...BENCH_ABOVE,
+  arms: { near: [145, 45, 0], far: [35, -45, 0] },
+  fault: undefined,
+};
+
+// 🔴 WHICH PATTERNS ROTATE, AND WHY IT IS NOT ALL OF THEM. A second camera is
+//    two more authored poses that have to be judged by eye, and it only earns
+//    its place where the fault is OUT OF THE PAIR'S PLANE. The bench press is
+//    the case that forced the feature: elbow flare is abduction and a profile
+//    camera looks straight down it. Patterns whose fault is fully visible in one
+//    view gain nothing from turning, and a drag handle that does nothing is
+//    worse than no drag handle.
+const ROTATES = {
+  'bench-press': { correct: () => BENCH_ABOVE_OK, fault: () => BENCH_ABOVE },
+};
+
 // 🔴 `figureFor(name)` IS THE ONLY WAY A SCREEN GETS A FIGURE. It returns null
 //    for a name no archetype covers, so a frozen program naming a dropped
 //    exercise degrades to the v2.21 sheet instead of crashing.
@@ -294,7 +314,17 @@ export function figureFor(name) {
   const a = ARCHETYPES[id];
   if (!a) return null;
   const pair = { correct: build(name, 'correct'), fault: build(name, 'fault'), archetype: id };
-  if (a.extraId === 'bench-above') {
+
+  // A rotatable pattern hangs its second camera off each half as `alt`; the
+  // renderer tweens between them and the sheet grows a drag handle. When a
+  // pattern rotates, the standing third figure is redundant — the same view is
+  // now a finger-drag away — so it is dropped rather than shown twice.
+  const rot = ROTATES[id];
+  if (rot) {
+    pair.correct.alt = rot.correct();
+    pair.fault.alt = rot.fault();
+    pair.rotatable = true;
+  } else if (a.extraId === 'bench-above') {
     pair.extra = { pose: BENCH_ABOVE, labelKey: 'figureFromAbove', caption: 'fault' };
   }
   return pair;

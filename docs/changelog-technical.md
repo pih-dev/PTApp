@@ -4,6 +4,47 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.23.1 - rotatable figures: a tween between two authored cameras (2026-08-22)
+
+Pierre: "I need different angles where possible. Either that or 3D. They drag
+them." Prototyped on ONE pattern, as docs/2026-08-22-figures-3d-options.md
+recommended.
+
+**TRUE 3D WAS TRIED FIRST AND REVERTED.** canon.js was refactored to carry a Z
+per joint with a camera angle and a one-line projection; `view: 'side'|'front'`
+mapped to azimuth 0/90 so no pose file needed rewriting. It failed on the
+quarter-turned poses: with a WORLD-fixed lateral axis, a supine figure's
+shoulders separate along its own length. A correct rig needs a BODY-FIXED frame
+per segment, which is a rewrite of all 44 patterns' numbers. 298 of 340 figures
+changed; reverted to a verified-identical baseline (hash per figure, kept in
+tmp/figure-baseline.json during the work).
+
+**WHAT SHIPPED INSTEAD: a tween between two authored cameras.** `pose.alt` is
+the same movement from a second camera; `buildFigure(pose, mix)` lerps the two
+skeletons and `figureSvg(pose, {mix})` passes it through. Every frame is bounded
+by two shapes that were each judged by eye, so it cannot rotate into an
+illegible blob - the exact risk the options doc flagged against 3D.
+
+- Bone lengths vary across the tween. That is CORRECT: a bone turning toward the
+  camera is drawn shorter, and both endpoints are its true length at that
+  camera. The pair rule is unaffected - both halves tween the same two cameras.
+- EQUIPMENT SWAPS AT 0.5 rather than tweening. A bench from the side and from
+  above are not one shape with different numbers; interpolating produces a third
+  object that exists in neither view.
+- `ROTATES` in poses.js is the opt-in list, currently bench-press only. A
+  rotatable pattern DROPS its static third figure - the same view is a drag
+  away, and showing it twice is noise.
+
+**THE GESTURE.** Pointer events (one path for finger/mouse/pen) with
+setPointerCapture so it survives the finger leaving the small SVG box.
+`touch-action: pan-y` in CSS claims the horizontal axis and leaves the sheet its
+vertical scroll - NOT a non-passive preventDefault, which is what broke elastic
+overscroll before. Travel is scaled to the element's own width, so half a width
+is a full turn on any screen. `user-select: none`, because a horizontal drag
+over text selects it.
+
+---
+
 ## v2.23.0 - all 340 movements, composed from 44 patterns (2026-08-22)
 
 Pierre after the pilot: "Very promising. Go ahead. Continue to do for all of
