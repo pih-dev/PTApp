@@ -139,9 +139,25 @@ function equipment(sk, anchor, gear, view) {
           out.push(bar({ x: p.x, y: p.y }, { x: p.x, y: p.y + 16 }, 8));
         }
         break;
-      case 'ball':
-        out.push(disc(centre.x, centre.y, 46));
+      case 'ball': {
+        // A two-hand hold only exists where the hands actually meet. The
+        // rotation family's split-arm throw poses carry a ~620-unit grip gap,
+        // so the midpoint landed beside the HEAD and every figure grew a
+        // second one (Pierre's 2026-08-23 report: "2 heads per posture").
+        // Grips apart ⇒ the ball rides ONE hand — the one FARTHER from the
+        // head. Two wrong anchors were tried first: the front-view exemption
+        // (the rotation pattern IS front-authored, with asymmetric arms —
+        // exactly the pose that had two heads), then the near hand (the
+        // rotation pose raises it to the frame's top edge, so the ball
+        // clipped or left the cell entirely). The outstretched throwing arm
+        // is both the honest hold and the one that stays in frame.
+        const apart = Math.hypot(g.x - gF.x, g.y - gF.y) > 120;
+        const at = !apart ? centre
+          : (Math.hypot(g.x - sk.head.x, g.y - sk.head.y)
+             >= Math.hypot(gF.x - sk.head.x, gF.y - sk.head.y) ? g : gF);
+        out.push(disc(at.x, at.y, 46));
         break;
+      }
       case 'cable': {
         // The stack is off to the side and a line runs to the hand: that LINE is
         // what says "cable" rather than "holding something".
