@@ -4,6 +4,20 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.31 - the suite + the wall (2026-08-22)
+
+make-opening-suite.mjs composes five deterministic ~25.2s pieces sharing the
+approved 0-3s opening (shared kernel: kick/tone/pluck/bell/noiseSwell/finale),
+encoded AAC 192k via winget ffmpeg -> public/opening-<name>.m4a (~610KB each).
+showcaseFigures.js precomputes the wall (10 rotatable movements x 12 mark
+frames + static pools from the bank, interleaved, built 120ms after mount);
+Splash showcase: one 100ms ticker drives ping-pong turns + slow crossfades,
+CSS delays off the cycle remount stagger 24 cells, heroAway hands the pair off
+to the wall, per-open shuffle walks the five pieces per cycle. LOOP_MS 25.4s.
+gh-pages deploy list grows to the audio set. Android vc8/2.31.
+
+---
+
 ## v2.30.1 - the showcase (2026-08-22)
 
 Splash gains mode='showcase' (header-mark tap): loops via key={cycle} remount

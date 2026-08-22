@@ -365,8 +365,32 @@ button:active { transform: scale(0.97); }
   transition: opacity 0.32s ease;
 }
 .splash-leave { opacity: 0; pointer-events: none; }
+.splash-stage {
+  position: relative; width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+}
 .splash-inner {
-  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  display: flex; flex-direction: column; align-items: center;
+  position: relative; z-index: 1;
+}
+/* ─── The wall (v2.31 showcase): 6 across x 4 rows, Pierre's numbers. Cells
+   stagger in behind the hero (pure CSS delays keyed off the cycle remount);
+   rotatable cells cycle precomputed frames, the rest crossfade the library. */
+.splash-grid {
+  position: absolute; z-index: 0;
+  inset: 4vh 4vw calc(16vh + env(safe-area-inset-bottom));
+  display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(4, 1fr);
+  gap: 1.4vh 1.4vw; align-items: center;
+}
+.splash-cell { opacity: 0; animation: fadeIn 0.7s ease forwards; color: var(--chalk); min-width: 0; }
+.splash-cell svg { width: 100%; height: 100%; display: block; }
+/* The hero hands off to the wall: shrinks toward the top-left and fades as
+   cell one arrives. A cut dressed as a move - cheap and it reads. */
+.splash-showcase .splash-inner {
+  animation: heroAway 0.9s cubic-bezier(0.4, 0, 0.7, 1) forwards 2.9s;
+}
+@keyframes heroAway {
+  to { transform: translate(-34vw, -30vh) scale(0.24); opacity: 0; }
 }
 /* Showcase controls (v2.30.1): quiet display-type text buttons, real thumb
    targets, pinned low for reachability. Chrome, so never the accent. */

@@ -44,8 +44,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.30.1
-**The header split + the showcase.** The MARK replays the opening (looping, Replay/Close); the WORD opens the library. 🔴 **Showcase sound plays on WEB too** — the tap IS the autoplay gesture, so `opening.wav` is IN the gh-pages deploy list (launch stays native-only). Reduced-motion belt is scoped `.splash-launch` — tapping the mark asked for motion. Detail: `docs/instructions-v2.30.1.md`.
+## Current Version: v2.31
+**The showcase suite.** Five composed ~25s pieces (`make-opening-suite.mjs`, deterministic) SHUFFLE behind the mark-tap show; the hero hands off to a **6×4 wall** (`showcaseFigures.js` — 🔴 precomputed mark frames, NEVER svg per animation frame). Launch = the untouched 3s opening. 🔴 gh-pages carries the AUDIO SET (`opening.wav` + `opening-*.m4a`). Detail: `docs/instructions-v2.31.md`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
@@ -74,10 +74,10 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules in force live in TRAPS / CONVENTIONS, never here.
 
 - **v2.17–v2.20.1** (08-21/22) — THE DESIGN PASS, five stages. → `v2.17`…`v2.20.1`
-- **v2.21–v2.24.1** (08-22) — the movement library, then the figures: pilot → all 340 from 44 patterns, gestures, colour roles, fault muscles. → `v2.21`…`v2.24.md`
+- **v2.21–v2.24.1** (08-22) — the movement library, then the figures: pilot → all 340 from 44 patterns. → `v2.21`…`v2.24.md`
 - **v2.25–v2.25.3** (08-22) — the design refinement round (bar heads, shared SessionCard/P3, emojis out, fresh-eyes) + the equipment-blue passes. → `v2.25`…`v2.25.3`
 - **v2.26–v2.27** (08-22) — the FACING-PAIR logo + backdrop; then the opening animation and the PWA/store icon set. → `v2.26`, `v2.27`
-- **v2.28–v2.30** (08-22) — the opening SOUND + Play vc4 submitted; continuous turn + 360 stamps; the pan-updater hotfix. → `v2.28`…`v2.30`
+- **v2.28–v2.30.3** (08-22) — the opening SOUND + Play vc4; turns, 360 stamps, second axis; hotfixes; the header split + showcase. → `v2.28`…`v2.30.3`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
@@ -175,7 +175,7 @@ Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` r
 - 🔴 **THE DESTINATION IS 3D THAT ROTATES AND ZOOMS, REACHED A ROUND AT A TIME** (Pierre, 08-22). Stages and state: `docs/2026-08-22-figures-3d-options.md`. **Zoom is DOUBLE-TAP, not pinch** — pinch needs `touch-action: none` and the sheet must keep its vertical scroll; pinch comes with the 3D rig. **One gesture, two jobs, decided by `zoom`**: zoomed out it turns, zoomed in it pans.
 - **The header logo opens the movement library** (`.logo-btn` in `App.jsx`). General's entry stays — a shortcut, not a move.
 - **NEXT ROTATION CANDIDATES, in order:** the squat (valgus is frontal; the pair is already front-on, so it would gain the profile), rows, the rotation patterns. Options and costs: `docs/2026-08-22-figures-3d-options.md`.
-- **The 2026-08-22 brief:** the **figures' next round runs in the CCHealth session** (`HANDOFF-figures.md` — this session must NOT touch `src/figures/*`, `Figure.jsx`, `MovementSheet.jsx`, `figureText.js`); the design round + logo shipped as v2.25. Brief rulings that are LAW: 🔴 **the movement card FITS, never scrolls** · 🔴 **the fault figure highlights DIFFERENT muscles**. B3: mark picked, animation + icons shipped (v2.27). Open: the SOUND (native) · the "S" idea — the pair arranged to read as SpotSet's S · store uploads: `_archive/PTApp/branding/`.
+- **The 2026-08-22 brief:** the **figures' next round runs in the CCHealth session** (`HANDOFF-figures.md` — this session must NOT touch `src/figures/*`, `Figure.jsx`, `MovementSheet.jsx`, `figureText.js`); the design round + logo shipped as v2.25. Brief rulings that are LAW: 🔴 **the movement card FITS, never scrolls** · 🔴 **the fault figure highlights DIFFERENT muscles**. B3: mark, animation, icons, sound + suite shipped. Open: the "S" idea — the pair as SpotSet's S · store uploads: `_archive/PTApp/branding/`.
 - 🔴 **TWO SESSIONS SHARE THIS TREE: stage EXPLICIT paths only (never `git add -A`); never `git checkout gh-pages` here — deploy via a separate `git worktree`.**
 - 🔴 **FRESH EYES, STRIPPED-STRUCTURE (standing rule):** before a design is called done, a subagent that has never seen it — Fable 5, max effort, ALL formatting stripped — argues the opposite: what is missing, what earns nothing, is the order wrong. First run (v2.25): `docs/design/2026-08-22-fresh-eyes-structure-review.md` — money tracking DEFERRED (no in-app payments); the rest await Pierre.
 
@@ -206,8 +206,9 @@ node scripts/verify-bundle.mjs
 git add <files> && git commit -m "message" && git push origin master
 
 # 6. Deploy to gh-pages (THIS MAKES IT LIVE) — via the STANDING WORKTREE,
-#    never `git checkout gh-pages`. SIX files since v2.30.1.
+#    never `git checkout gh-pages`. Core five + the audio set (v2.31).
 for f in index.html sw.js manifest.json icon-512.png apple-touch-icon.png opening.wav; do cp "dist/$f" "C:/projects/PTApp-ghpages/$f"; done
+for f in dist/opening-*.m4a; do cp "$f" "C:/projects/PTApp-ghpages/"; done
 git -C C:/projects/PTApp-ghpages add -A && git -C C:/projects/PTApp-ghpages commit -m "Deploy vX.Y: description" && git -C C:/projects/PTApp-ghpages push origin gh-pages
 
 # 7. Tell Pierre the version number so he can verify on his phone

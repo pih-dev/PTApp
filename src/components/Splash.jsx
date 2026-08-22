@@ -1,56 +1,61 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { SPOTSET_MARK_SVG } from '../spotsetMark';
+import { buildShowcaseCells, pingpong } from '../showcaseFigures';
 import { t } from '../i18n';
 
-// ─── The opening (v2.27; showcase mode v2.30.1) ──────────────────────────────
-// Two modes, one sequence:
-//   'launch'   — once per app open: plays, auto-dismisses at ~3s, tap skips,
-//                reduced-motion never sees it (App's matchMedia guard + a CSS
-//                belt scoped to .splash-launch).
-//   'showcase' — Pierre's ask: tapping the header MARK replays the show and it
-//                LOOPS until he closes it. Replay restarts mid-cycle; tapping
-//                anywhere else closes; there is no auto-dismiss.
+// ─── The opening (v2.27) and the showcase suite (v2.31) ──────────────────────
+//   'launch'   — once per app open, UNCHANGED since Pierre approved it: the
+//                3s piece, auto-dismiss, tap skips, reduced-motion never sees
+//                it, sound native-only (autoplay policy).
+//   'showcase' — the logo-tap title sequence, his spec: the hero opening, then
+//                the mark hands off to a 6×4 WALL of the library — rotatable
+//                movements turning, the rest crossfading — carried by one of
+//                FIVE composed ~25s pieces (shuffled; each cycle plays the
+//                next). Loops until Close; Replay restarts; backdrop closes.
 //
-// 🔴 SOUND POLICY DIFFERS BY MODE, and it is the autoplay rule, not taste:
-//    launch = native only (browsers refuse audio before a user gesture);
-//    showcase = everywhere, because the tap that opened it IS the gesture —
-//    which is what finally lets the PWA play the sound too. The wav joined the
-//    gh-pages deploy list for exactly this (v2.30.1); if it is missing or
-//    offline, play() rejects and the show simply runs silent.
-//
-// 🔴 TIMING IS COUPLED: hits at 0.35s/0.85s (make-opening-sound.mjs) = the two
-//    figures landing (.pm-* delays in styles.css); a cycle is ~2.95s + a hold,
-//    LOOP_MS restarts both. Change one, change all.
-const LOOP_MS = 3900;
+// 🔴 TIMING COUPLING: the 0–3s hits (make-opening-sound / the suite's shared
+//    opening) = the two figures landing (.pm-* delays). The wall's stagger is
+//    pure CSS animation-delay keyed off the cycle remount; LOOP_MS matches the
+//    suite length. Change one, change all.
+const LOOP_MS = { launch: 0, showcase: 25400 };
+const PIECES = ['anthem', 'engine', 'arena', 'pulse', 'orbit'];
 
 export default function Splash({ onDone, lang = 'en', mode = 'launch' }) {
   const [leaving, setLeaving] = useState(false);
   const [cycle, setCycle] = useState(0);
+  const [cells, setCells] = useState(null);
+  const [tick, setTick] = useState(0);
   const audioRef = useRef(null);
+  const srcRef = useRef(null);
+  // Shuffle once per showcase open; cycles walk the order. Math.random is fine
+  // here — the show may differ per open, only the ASSETS are deterministic.
+  const orderRef = useRef([...PIECES].sort(() => Math.random() - 0.5));
   const showcase = mode === 'showcase';
 
-  const playSound = useCallback(() => {
+  const playSound = useCallback((cycleN) => {
     try {
       const native = !!(window.Capacitor && window.Capacitor.isNativePlatform
         && window.Capacitor.isNativePlatform());
       if (!showcase && !native) return;
-      if (!audioRef.current) {
-        audioRef.current = new Audio('opening.wav');
+      const src = showcase
+        ? `opening-${orderRef.current[cycleN % orderRef.current.length]}.m4a`
+        : 'opening.wav';
+      if (!audioRef.current || srcRef.current !== src) {
+        if (audioRef.current) audioRef.current.pause();
+        audioRef.current = new Audio(src);
         audioRef.current.volume = 0.9;
+        srcRef.current = src;
       }
       audioRef.current.currentTime = 0;
-      // A failed play (policy, missing asset, offline) never breaks the show.
       audioRef.current.play().catch(() => {});
     } catch { /* audio is a garnish */ }
   }, [showcase]);
 
-  // One run per cycle: sound now, and either the loop (showcase) or the
-  // auto-dismiss pair (launch). `cycle` in the deps is what makes Replay and
-  // the loop re-fire the whole sequence.
+  // One run per cycle: sound now, loop (showcase) or auto-dismiss (launch).
   useEffect(() => {
-    playSound();
+    playSound(cycle);
     if (showcase) {
-      const loop = setTimeout(() => setCycle((c) => c + 1), LOOP_MS);
+      const loop = setTimeout(() => setCycle((c) => c + 1), LOOP_MS.showcase);
       return () => clearTimeout(loop);
     }
     const t1 = setTimeout(() => setLeaving(true), 2550);
@@ -58,16 +63,47 @@ export default function Splash({ onDone, lang = 'en', mode = 'launch' }) {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [onDone, playSound, showcase, cycle]);
 
-  // The show never outlives its overlay.
+  // The wall's art builds AFTER first paint, behind the hero phase — ~180
+  // small svg builds would otherwise stutter the very tap that opened this.
+  useEffect(() => {
+    if (!showcase) return;
+    const id = setTimeout(() => { try { setCells(buildShowcaseCells()); } catch { setCells([]); } }, 120);
+    return () => clearTimeout(id);
+  }, [showcase]);
+
+  // One 100ms ticker drives every turning cell (~10fps — smooth at cell size,
+  // nowhere near the frame budget) and the slow static crossfades.
+  useEffect(() => {
+    if (!showcase || !cells) return;
+    const id = setInterval(() => setTick((v) => v + 1), 100);
+    return () => clearInterval(id);
+  }, [showcase, cells]);
+
   useEffect(() => () => { if (audioRef.current) audioRef.current.pause(); }, []);
 
   return (
     <div className={`splash splash-${mode}${leaving ? ' splash-leave' : ''}`} role="presentation"
       onClick={onDone}>
-      {/* key={cycle} remounts the animated tree, restarting every CSS animation. */}
-      <div key={cycle} className="splash-inner">
-        <div className="splash-mark" aria-hidden="true"
-          dangerouslySetInnerHTML={{ __html: SPOTSET_MARK_SVG }} />
+      {/* key={cycle} remounts the animated tree — every CSS delay restarts. */}
+      <div key={cycle} className="splash-stage">
+        <div className="splash-inner">
+          <div className="splash-mark" aria-hidden="true"
+            dangerouslySetInnerHTML={{ __html: SPOTSET_MARK_SVG }} />
+        </div>
+        {showcase && cells && (
+          <div className="splash-grid" aria-hidden="true">
+            {cells.map((cell, i) => {
+              const html = cell.kind === 'rot'
+                ? cell.frames[pingpong(tick + i * 3)]
+                // a slow, per-cell staggered walk through its pool
+                : cell.pool[Math.floor((tick / 35) + i * 0.7) % cell.pool.length];
+              return (
+                <div key={i} className="splash-cell" style={{ animationDelay: `${3.1 + i * 0.45}s` }}
+                  dangerouslySetInnerHTML={{ __html: html }} />
+              );
+            })}
+          </div>
+        )}
         <div className="splash-word">SpotSet</div>
       </div>
       {showcase && (
