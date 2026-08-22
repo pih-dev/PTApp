@@ -3,7 +3,6 @@ import Dashboard from './components/Dashboard';
 import MovementLibrary from './components/MovementLibrary';
 import Clients from './components/Clients';
 import Schedule from './components/Schedule';
-import Sessions from './components/Sessions';
 import TokenSetup from './components/TokenSetup';
 import TokenUpdateModal from './components/TokenUpdateModal';
 import { SpotSetMark, SpotSetBackdrop } from './components/Icons';
@@ -52,11 +51,10 @@ export default function App() {
   // v2.30.1: the on-demand showcase, opened from the header mark.
   const [showShowcase, setShowShowcase] = useState(false);
   const [showGeneral, setShowGeneral] = useState(false);
-  // 🔴 THE WORD OPENS THE LIBRARY (v2.30.1 split; the mark replays the show).
-  //    The library shortcut lives in the header because it is the screen a PT
-  //    reaches for most between sets. The General entry stays — a shortcut,
-  //    not a move.
-  const [showLibrary, setShowLibrary] = useState(false);
+  // 🔴 THE WORD GOES TO THE LIBRARY (v2.30.1 split; the mark replays the show).
+  //    v2.33: the library is now a TAB, so the word SELECTS it rather than
+  //    opening a sheet, and the General entry is gone. One room, one door plus
+  //    the header shortcut — not three.
   // 🔴 THE GATE IS IDENTITY OR LOCAL DATA — NEVER TOKEN VALIDITY (§4).
   //    An expired session still gets in and sees a banner; it must never be a
   //    login wall. A lapsed token black-holing the PT's schedule in a gym with
@@ -80,6 +78,18 @@ export default function App() {
   // paint the SAME ground — otherwise a steel (daylight) user gets a near-black
   // strip wherever iOS collapses the URL bar. theme-color rides along so the
   // iOS status bar and the Android task switcher match the chosen skin.
+  // 🔴 `dir` GOES ON <html> TOO, NOT ONLY ON THE CONTAINER (v2.33).
+  //    Modal.jsx now portals every sheet to <body>, which is OUTSIDE
+  //    .app-container — so a dir written only on the container would leave
+  //    every modal rendering left-to-right for Arabic users while the screen
+  //    behind it stayed right-to-left. Every `[dir="rtl"]` rule in styles.css
+  //    matches on descent, so stamping <html> makes them apply to the portal
+  //    as well. The container keeps its own dir: same value, no behaviour
+  //    change in flow, and it stays correct if the portal target ever moves.
+  useEffect(() => {
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  }, [lang]);
+
   useEffect(() => {
     document.documentElement.setAttribute('data-skin', skin);
     const ground = getComputedStyle(document.documentElement).getPropertyValue('--ground').trim();
@@ -270,7 +280,17 @@ export default function App() {
     { id: 'home', label: t(lang, 'home'), icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
     { id: 'clients', label: t(lang, 'clients'), icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
     { id: 'schedule', label: t(lang, 'schedule'), icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> },
-    { id: 'sessions', label: t(lang, 'sessions'), icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> },
+    // v2.33 — slot four is the LIBRARY, not the flat session ledger. The
+    // fresh-eyes structural review (docs/design/2026-08-22-fresh-eyes-navigation-
+    // review.md, Pierre's call the same evening) found that "browse every session
+    // ever recorded" is not a moment in anyone's day: its real uses — restore a
+    // cancelled one, note a past one, audit a count — are always ABOUT A CLIENT
+    // or ABOUT A DAY, and both of those pivots already exist. Meanwhile 340
+    // movements with figures had no entrance at all beyond a tap on the logo
+    // word. 🔴 The ledger is DEMOTED, NOT DELETED: it lives behind "All" on the
+    // Schedule bar, so the audit view is two taps away instead of one.
+    // The icon is the figure itself — the only tab whose subject can be drawn.
+    { id: 'library', label: t(lang, 'library'), icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="4.2" r="2"/><path d="M12 6.2v6"/><path d="M12 7.4L8.6 10M12 7.4l3.4 2.6"/><path d="M12 12.2l-2.4 4M12 12.2l2.4 4"/><path d="M9.6 16.2l-.7 3.6M14.4 16.2l.7 3.6"/></svg> },
   ];
 
   return (
@@ -300,7 +320,12 @@ export default function App() {
           <button
             type="button"
             className="logo-btn"
-            onClick={() => setShowLibrary(true)}
+            /* v2.33: the gesture Pierre designed in v2.30.1 is unchanged — the
+               WORD still goes to the library. What changed is the destination:
+               it now SELECTS THE TAB instead of opening a second copy of the
+               same component in a sheet. One library, one place, and the
+               scroll position the tab holds is the one he comes back to. */
+            onClick={() => { haptic(); setTab('library'); }}
             aria-label={t(lang, 'movementLibrary')}
           >
             <div>
@@ -345,10 +370,10 @@ export default function App() {
         {tab === 'home' && <Dashboard state={state} dispatch={dispatch} setTab={setTab} lang={lang} onOpenDay={openScheduleDay} />}
         {tab === 'clients' && <Clients state={state} dispatch={dispatch} lang={lang} />}
         {tab === 'schedule' && <Schedule state={state} dispatch={dispatch} lang={lang} initialDate={scheduleDate} />}
-        {tab === 'sessions' && <Sessions state={state} dispatch={dispatch} lang={lang} />}
+        {/* Embedded, not the sheet: same component, Modal wrapper dropped. */}
+        {tab === 'library' && <MovementLibrary lang={lang} embedded />}
       </div>
 
-      {showLibrary && <MovementLibrary lang={lang} onClose={() => setShowLibrary(false)} />}
       {showGeneral && <General state={state} dispatch={dispatch} onClose={() => setShowGeneral(false)}
           lang={lang} setLang={setLang} skin={skin} setSkin={setSkin}
           onUpdateToken={() => setShowTokenUpdate(true)} />}
@@ -370,7 +395,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.32</div>
+          <div><strong>Version:</strong> v2.33</div>
           <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>

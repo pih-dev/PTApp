@@ -44,8 +44,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.32
-**The final suite + the random wall.** Pieces: **anthem · engine · pulse · orbit · cascade** (Pierre's picks; the rest retired). The wall deals 24 DISTINCT random movements per cycle (`createWall()`'s used-Set — 🔴 still NEVER svg per animation frame). 🔴 Suite edits go to BOTH scripts (`make-opening-suite.mjs` + `-51.mjs`, in step by hand). Detail: `docs/instructions-v2.32.md`.
+## Current Version: v2.33
+**The library takes slot four.** Home · Clients · Schedule · **Library**; the flat all-sessions ledger is DEMOTED, not deleted (behind "All" on the Schedule day bar). 🔴 **`MovementLibrary` is ONE component with an `embedded` prop** — never fork it. 🔴 **EVERY MODAL PORTALS TO `<body>`** (`createPortal`, because `.content`'s bounce transform re-anchors `position:fixed` and its `z-index:1` puts overlays under the nav) **and `dir` is stamped on `<html>`**, or Arabic sheets render LTR. Detail: `docs/instructions-v2.33.md`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
@@ -73,11 +73,9 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 ## Version History
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules in force live in TRAPS / CONVENTIONS, never here.
 
-- **v2.17–v2.20.1** (08-21/22) — THE DESIGN PASS, five stages. → `v2.17`…`v2.20.1`
-- **v2.21–v2.24.1** (08-22) — the movement library, then the figures: pilot → all 340 from 44 patterns. → `v2.21`…`v2.24.md`
+- **v2.17–v2.24.1** (08-21/22) — THE DESIGN PASS (five stages), then the movement library and the figures: pilot → all 340 from 44 patterns. → `v2.17`…`v2.24.md`
 - **v2.25–v2.25.3** (08-22) — the design refinement round (bar heads, shared SessionCard/P3, emojis out, fresh-eyes) + the equipment-blue passes. → `v2.25`…`v2.25.3`
-- **v2.26–v2.27** (08-22) — the FACING-PAIR logo + backdrop; then the opening animation and the PWA/store icon set. → `v2.26`, `v2.27`
-- **v2.28–v2.31** (08-22) — the opening SOUND + Play vc4; turns + 360 stamps + second axis; the header split, showcase, suite + wall. → `v2.28`…`v2.31`
+- **v2.26–v2.32** (08-22) — the FACING-PAIR logo, backdrop and icon set; the opening animation, then its SOUND; turns + 360 stamps; the header split, showcase, the final suite and the random wall. → `v2.26`…`v2.32`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
@@ -116,7 +114,7 @@ Full write-ups in **`docs/traps.md`** — read the relevant one first. Index:
 
 **Device-only bugs** — 🔴 **never style a scrollbar in a touch app**: a styled webkit scrollbar opts out of the platform's auto-hide, so it becomes a permanent bright rule down the screen (v2.20.1, invisible in a desktop browser).
 
-**Tooling** — 🔴 a python heredoc writing `\b` into a JS regex writes a **BACKSPACE (0x08)**, not a word boundary: the regex parses, runs, and silently stops matching (`cat -A` shows `^H`). Bit twice in one session — use `chr(92)+'b'`, a raw string, or the Edit tool · 🔴 the Android build needs **JDK 21** (`JAVA_HOME='/c/Program Files/Microsoft/jdk-21.0.12.8-hotspot'`); PATH java here is Temurin 8, and **`gradlew` exits 0 on a FAILED build**, leaving the previous AAB in `outputs/` — a stale bundle then uploads and Play rejects it as "version code already used". Verify the versionName INSIDE the .aab, never the exit code · `fixForFileProtocol` must use *function* replacement (a string breaks React's minified `$&`) · **PS 5.1 `Get-Content`/`Set-Content` mangles UTF-8** (ANSI default corrupts em-dashes, emoji and all Arabic) — use the **Edit tool**, never round-trip source through a PowerShell pipeline.
+**Tooling** — 🔴 the opening suite lives in TWO scripts (`make-opening-suite.mjs` + `-51.mjs`) kept in step BY HAND — edit both · 🔴 a python heredoc writing `\b` into a JS regex writes a **BACKSPACE (0x08)**, not a word boundary: the regex parses, runs, and silently stops matching (`cat -A` shows `^H`). Bit twice in one session — use `chr(92)+'b'`, a raw string, or the Edit tool · 🔴 the Android build needs **JDK 21** (`JAVA_HOME='/c/Program Files/Microsoft/jdk-21.0.12.8-hotspot'`); PATH java here is Temurin 8, and **`gradlew` exits 0 on a FAILED build**, leaving the previous AAB in `outputs/` — a stale bundle then uploads and Play rejects it as "version code already used". Verify the versionName INSIDE the .aab, never the exit code · `fixForFileProtocol` must use *function* replacement (a string breaks React's minified `$&`) · **PS 5.1 `Get-Content`/`Set-Content` mangles UTF-8** (ANSI default corrupts em-dashes, emoji and all Arabic) — use the **Edit tool**, never round-trip source through a PowerShell pipeline.
 
 ---
 
@@ -168,14 +166,13 @@ Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` r
 
 ## KNOWN ISSUES / OBLIGATIONS
 - 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev. Replace via General → Backup → "Update sync token".
-- **Program pruning (v2.15)** — before `data.json` nears 1 MB. 🔴 **Snapshot first** — cloud deletes are irreversible.
-- **Review finding P3 — BUILT in v2.25** (SessionCard scope B). The follow-up is Dashboard-compact + `Sessions.jsx`, taken once the API shape has proven itself — not upfront.
+- **Program pruning (v2.15)** — before `data.json` nears 1 MB. 🔴 **Snapshot first**, cloud deletes are irreversible.
+- **Review finding P3 — BUILT in v2.25** (SessionCard scope B). Follow-up: Dashboard-compact + `Sessions.jsx`, once the API shape proves itself.
 - **App name = SpotSet**; `com.spotset.app` is PERMANENT.
 - 🔴 **THE SUPABASE SOAK IS PHASE 1, SO THE DAILY JOB IS `node scripts/soak-day.mjs` — MIRROR THEN VERIFY.** `mirror-to-supabase.mjs` is a MANUAL one-way script; the app does NOT dual-write, so Postgres is stale the moment anyone touches the phone and `sanity-live-supabase-diff` alone can never be clean (0/7 across 34 runs). That gate is unchanged and becomes the REAL soak the day dual-write lands. Detail: `HANDOFF-multi-user-build.md` §0.
 - 🔴 **THE DESTINATION IS 3D THAT ROTATES AND ZOOMS, REACHED A ROUND AT A TIME** (Pierre, 08-22). Stages and state: `docs/2026-08-22-figures-3d-options.md`. **Zoom is DOUBLE-TAP, not pinch** — pinch needs `touch-action: none` and the sheet must keep its vertical scroll; pinch comes with the 3D rig. **One gesture, two jobs, decided by `zoom`**: zoomed out it turns, zoomed in it pans.
-- **The header logo opens the movement library** (`.logo-btn` in `App.jsx`). General's entry stays — a shortcut, not a move.
-- **NEXT ROTATION CANDIDATES, in order:** the squat (valgus is frontal; the pair is already front-on, so it would gain the profile), rows, the rotation patterns. Options and costs: `docs/2026-08-22-figures-3d-options.md`.
-- **The 2026-08-22 brief:** the **figures' next round runs in the CCHealth session** (`HANDOFF-figures.md` — this session must NOT touch `src/figures/*`, `Figure.jsx`, `MovementSheet.jsx`, `figureText.js`); the design round + logo shipped as v2.25. Brief rulings that are LAW: 🔴 **the movement card FITS, never scrolls** · 🔴 **the fault figure highlights DIFFERENT muscles**. B3: mark, animation, icons, sound + suite shipped. Open: the "S" idea — the pair as SpotSet's S · store uploads: `_archive/PTApp/branding/`.
+- **NEXT ROTATION CANDIDATES:** the squat (valgus is frontal, so it gains the profile), then rows, then the rotation patterns — costs in the 3d-options doc above.
+- **The 2026-08-22 brief — rulings that are LAW:** 🔴 **the movement card FITS, never scrolls** · 🔴 **the fault figure highlights DIFFERENT muscles**. Shipped: the design round, mark, animation, icons, sound + suite. Open: the "S" idea (the pair as SpotSet's S). Figures thread: `HANDOFF-figures.md`; store uploads: `_archive/PTApp/branding/`.
 - 🔴 **TWO SESSIONS SHARE THIS TREE: stage EXPLICIT paths only (never `git add -A`); never `git checkout gh-pages` here — deploy via a separate `git worktree`.**
 - 🔴 **FRESH EYES, STRIPPED-STRUCTURE (standing rule):** before a design is called done, a subagent that has never seen it — Fable 5, max effort, ALL formatting stripped — argues the opposite: what is missing, what earns nothing, is the order wrong. First run (v2.25): `docs/design/2026-08-22-fresh-eyes-structure-review.md` — money tracking DEFERRED (no in-app payments); the rest await Pierre.
 
@@ -223,12 +220,12 @@ git -C C:/projects/PTApp-ghpages add -A && git -C C:/projects/PTApp-ghpages comm
 CLAUDE.md was slimmed to 19.5 KB at v2.9.2 and back to 42 KB in five months: every release appended, none collapsed. **Never skip these "just this once" — that is how it regrew.** Why: `docs/release-hygiene.md` §1.
 
 ```bash
-wc -c CLAUDE.md                              # RULE 1: must be < 24000 before committing
+wc -c CLAUDE.md                              # RULE 1: must be < 30000 before committing
 git log --all --oneline | grep -i "Deploy v" # RULE 3: each resolves to a changelog line AND an instructions file
 ls docs/instructions-v*.md
 ```
 
-1. **Under 24 KB** (`.context-budget`; 20→22 funded the Topic Router, 22→24 the v2.18 design law). Over budget ⇒ collapse the oldest version section before committing. ⚠️ `memory/MEMORY.md` loads every session too — keep it under ~12 KB.
+1. **Under 30 KB** (`.context-budget` is the authority — 20→22 the Topic Router, 22→24 the v2.18 design law, 24→30 the figures subsystem). Over budget ⇒ collapse the oldest version section before committing. ⚠️ `memory/MEMORY.md` loads every session too — keep it under ~12 KB.
 2. **Only ONE full version section — `## Current Version`.** The outgoing one collapses to a `## Version History` line **in the same commit** that promotes the new one; History is capped at 8, the 9th drops to `docs/changelog-summary.md`.
 3. **No version ships without a changelog line AND an instructions file.** `.0` → `instructions-vX.Y.md`, patch → `instructions-vX.Y.Z.md` (`v2.10.0.md` is a legacy exception).
 4. **A durable rule NEVER lives only in a version/changelog entry** — a kernel claim, a "never do Y at call sites", a platform trap goes into `TRAPS` / `docs/traps.md` / CONVENTIONS **when written**. Version sections record what shipped; rule sections record what is true.

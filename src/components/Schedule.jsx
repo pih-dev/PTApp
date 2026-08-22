@@ -7,6 +7,7 @@ import SessionCountPair from './SessionCountPair';
 import OverrideHelpPopup from './OverrideHelpPopup';
 import Bar from './Bar';
 import SessionCard from './SessionCard';
+import Sessions from './Sessions';
 import { t, dateLocale } from '../i18n';
 
 // v2.10 recurring booking helpers (module-scope, no re-creation per render).
@@ -20,6 +21,8 @@ const weekdayLabel = (jsDay, lang) => {
 
 export default function Schedule({ state, dispatch, lang, initialDate }) {
   const [showForm, setShowForm] = useState(false);
+  // v2.33: the demoted all-sessions ledger, opened from "All" on the day bar.
+  const [showAll, setShowAll] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
   // v2.25: a Dashboard week column can open Schedule ON that day (fresh-eyes
   // review #9). The prop is an initial value only — the tab remounts on every
@@ -295,8 +298,20 @@ export default function Schedule({ state, dispatch, lang, initialDate }) {
       {/* Day Sessions — the head graduated from `.section-title` to the bar,
           and the rows are the shared SessionCard (v2.25, review P3 scope B). */}
       <Bar label={t(lang, 'sessionsCount')} count={daySessions.length}>
+        {/* v2.33: the flat all-sessions ledger lost its tab to the movement
+            library and landed HERE. 🔴 It is demoted, not deleted — restoring a
+            cancelled session and auditing a count are real jobs, they are just
+            not jobs anyone opens the app to do. The calendar is the right host
+            because every one of those jobs is already "about a day". */}
+        <button className="btn-ghost btn-sm" onClick={() => { haptic(); setShowAll(true); }}>{t(lang, 'all')}</button>
         <button className="btn-sm" onClick={openBooking} disabled={state.clients.length === 0}>{t(lang, 'book')}</button>
       </Bar>
+
+      {showAll && (
+        <Modal title={t(lang, 'allSessions')} onClose={() => setShowAll(false)}>
+          <Sessions state={state} dispatch={dispatch} lang={lang} />
+        </Modal>
+      )}
 
       {state.clients.length === 0 ? (
         <div className="empty">

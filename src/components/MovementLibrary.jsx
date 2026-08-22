@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import Modal from './Modal';
+import Bar from './Bar';
 import MovementSheet from './MovementSheet';
 import { EXERCISES } from '../exerciseBank';
 import { figureMeta } from '../figures/poses';
@@ -45,7 +46,14 @@ const INDEX = EXERCISES.map(e => {
 // 'turns' is the 360° filter — the movements whose pair rotates under a drag.
 const SLOTS = ['all', 'push', 'pull', 'legs', 'turns'];
 
-export default function MovementLibrary({ lang, onClose }) {
+// `embedded` (v2.33): the library is now a TAB, not only a sheet. The nav review
+// (docs/design/2026-08-22-fresh-eyes-navigation-review.md) called the logo tap
+// "not an entrance, an easter egg" — 340 movements with figures, the most-built
+// asset in the product, had no way in. Embedded drops the Modal wrapper and
+// nothing else: same search, same filters, same rows, same MovementSheet. Two
+// renderings of ONE component, so a change to the library cannot land in one
+// place and miss the other.
+export default function MovementLibrary({ lang, onClose, embedded = false }) {
   const [q, setQ] = useState('');
   const [slot, setSlot] = useState('all');
   const [open, setOpen] = useState(null);   // the movement name whose sheet is open
@@ -58,8 +66,8 @@ export default function MovementLibrary({ lang, onClose }) {
       (!nq || r.hay.includes(nq)));
   }, [q, slot]);
 
-  return (
-    <Modal title={t(lang, 'movementLibrary')} onClose={onClose}>
+  const body = (
+    <>
       <input className="input" value={q} onChange={e => setQ(e.target.value)}
         placeholder={t(lang, 'searchMovements')} />
 
@@ -104,6 +112,11 @@ export default function MovementLibrary({ lang, onClose }) {
       ))}
 
       {open && <MovementSheet name={open} lang={lang} onClose={() => setOpen(null)} />}
-    </Modal>
+    </>
   );
+
+  // A tab screen leads with a bar, exactly like Clients / Schedule / Sessions —
+  // the sheet did not need one because the Modal carried the title.
+  if (embedded) return <div><Bar label={t(lang, 'movementLibrary')} />{body}</div>;
+  return <Modal title={t(lang, 'movementLibrary')} onClose={onClose}>{body}</Modal>;
 }

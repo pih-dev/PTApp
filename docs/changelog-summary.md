@@ -4,6 +4,29 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.33 - the library takes the fourth tab (August 22, 2026)
+
+The bottom bar's fourth tab was "Sessions", a flat list of all 514 sessions
+ever recorded. It is now the movement library: 340 movements with their
+figures, searchable in Arabic and English. The old list is not gone - it moved
+to "All" on the Schedule day bar, next to Book.
+
+Why: a reviewer who had never seen the app, given the structure with every
+colour and name stripped out, found that browsing every session is not a moment
+in anyone's day - restoring a cancelled one or auditing a count is always about
+a client or about a day, and both already exist. Meanwhile the library, the
+most-built thing in the product, could only be reached by tapping a word in the
+logo. Its two spare doors closed with this: the General sheet's button is gone,
+and the logo word now selects the tab instead of opening a second copy.
+
+It also fixes a bug that was never about the library and had been there for
+months: every sheet in the app now renders at the top level of the page. Before,
+after the first overscroll bounce, an open sheet could get clipped or jump under
+your finger, and the bottom bar stayed tappable over it. Full detail:
+instructions-v2.33.md.
+
+---
+
 ## v2.29.1 - the opening hits harder, and takes its time (August 22, 2026)
 
 Phone review of the first sound: "like a wish". Rebuilt on impact: two bass

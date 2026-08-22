@@ -13,6 +13,8 @@ const T = {
     clients: 'Clients',
     schedule: 'Schedule',
     sessions: 'Sessions',
+    // v2.33: slot four's label. Short on purpose — a nav label has ~72px.
+    library: 'Library',
 
     // Dashboard
     overview: 'Overview',
@@ -388,6 +390,7 @@ const T = {
     clients: 'العملاء',
     schedule: 'الجدول',
     sessions: 'الجلسات',
+    library: 'المكتبة',
 
     // Dashboard
     overview: 'نظرة عامة',

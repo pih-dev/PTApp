@@ -4,6 +4,44 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.33 - Library replaces Sessions in slot four; all modals portalled (2026-08-22)
+
+**Navigation.** `tabs[3]` is `library`, not `sessions`. `MovementLibrary` gained an
+`embedded` prop that drops the `Modal` wrapper and adds a `<Bar>` head - ONE component,
+two renderings, so the library cannot be changed in one place and missed in the other.
+The flat ledger is demoted, not deleted: `Schedule.jsx` renders `<Sessions>` in a modal
+behind "All" on the day bar. `General.jsx` lost its duplicate library entry; the header
+logo WORD now calls `setTab('library')` instead of mounting a second `MovementLibrary`.
+Driver: `docs/design/2026-08-22-fresh-eyes-navigation-review.md`, approved by Pierre
+in-session. The review explicitly DEFENDED the four-tab bar, Home, and the client page
+as a person-hub - duplication across the moment pivot and the person pivot is structure.
+
+**🔴 Platform fix, app-wide, pre-existing.** `Modal.jsx` now returns
+`createPortal(..., document.body)`. Two independent breakages when a modal rendered
+inside `.content`: (1) `initElasticScroll` leaves an inline `transform` (it settles on
+`translateY(0)`, and the `transitionend` cleanup only clears `transition`), and a
+transformed ancestor becomes the containing block for `position: fixed` descendants -
+so after one overscroll bounce an open sheet re-anchored to `.content` and was clipped;
+mid-gesture, `.fig-interactive`'s `touch-action: none` still bubbles `touchmove` to
+`.content`, so the sheet jumped under the finger. (2) `.content` is
+`position: relative; z-index: 1`, a stacking context, so a `z-index: 200` overlay
+painted UNDER the `z-index: 100` nav - the bar stayed tappable over the sheet and a tab
+tap dismissed it with no close gesture. This already applied to the booking and client
+sheets; the library tab only exposed it.
+
+**🔴 The second half of that fix.** `dir` lived only on `.app-container`, and a portal
+lands on `<body>`, outside it - every sheet would have rendered LTR for Arabic users
+while the screen behind stayed RTL. `App.jsx` now stamps `dir` on `<html>` too, so every
+`[dir="rtl"]` rule reaches the portal by descent. The container keeps its own `dir`.
+
+**Also:** `.bar > button { min-height: 44px }` - the new "All" button resolved to ~33px
+next to another sub-44pt target. `i18n.js` gains `library` (EN/AR).
+
+Found by the mobile-UX review of this diff, not by a gate. No schema change,
+`DATA_VERSION` stays 6.
+
+---
+
 ## v2.32 - final suite + randomized wall (2026-08-22)
 
 PIECES -> [anthem, engine, pulse, orbit, cascade]; retired m4a pruned from

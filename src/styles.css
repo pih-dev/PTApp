@@ -1260,6 +1260,11 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   display: flex; align-items: center; gap: 10px;
   margin: 24px 0 12px;
 }
+/* v2.33: a bar head can carry TWO controls now (Schedule's All + Book), and
+   `.btn-ghost` resolved to ~33px tall — a sub-44pt target 10px from another
+   sub-44pt target, on a screen used with sweaty hands. Height only: padding
+   would change the bar's rhythm, and the bar is shared by every tab. */
+.bar > button { min-height: 44px; }
 .bar-collar {
   flex: 0 0 auto; width: 5px; height: 20px; border-radius: 1px;
   background: var(--chalk-faint);

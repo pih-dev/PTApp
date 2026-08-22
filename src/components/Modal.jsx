@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { CloseIcon } from './Icons';
 
 // Dead zone: below this many pixels of movement, don't translate the modal.
@@ -126,7 +127,31 @@ export default function Modal({ onClose, title, children, action }) {
     };
   }, [onClose]);
 
-  return (
+  // 🔴 EVERY MODAL IS PORTALLED TO <body>, NEVER RENDERED WHERE IT IS DECLARED.
+  //
+  // v2.33, found by the mobile review of the library-tab change. Two separate
+  // ways a modal breaks when it renders inside `.content`, and BOTH already
+  // applied to the booking and client sheets before this release — the library
+  // tab only made them reachable in a third place:
+  //
+  //  1. `initElasticScroll` (utils.js) writes an inline `transform` on
+  //     `.content` for the overscroll bounce, and it settles on
+  //     `translateY(0)` — still a transform. **A transformed ancestor becomes
+  //     the containing block for `position: fixed` descendants**, so after the
+  //     PT's first bounce an open sheet stops being viewport-fixed: it
+  //     re-anchors to `.content` and gets clipped by its overflow. Mid-gesture
+  //     it is worse — `.fig-interactive` is `touch-action: none`, so a figure
+  //     rotation drag still bubbles `touchmove` to `.content` and the sheet
+  //     jumps while the finger is on the figure.
+  //  2. `.content` is `position: relative; z-index: 1` — a stacking context —
+  //     so a `z-index: 200` overlay opened inside it still paints UNDER the
+  //     `z-index: 100` nav. The bottom bar stayed undimmed and tappable over
+  //     the sheet, and a tab tap unmounted the screen, dismissing the sheet
+  //     with no close gesture.
+  //
+  // Portalling to <body> escapes both by construction, and it is the fix for
+  // the whole app rather than for the one screen that exposed it.
+  return createPortal(
     <div className="modal-overlay">
       <div className="modal-bg" onClick={onClose} />
       <div className="modal-content" ref={contentRef}>
@@ -143,6 +168,7 @@ export default function Modal({ onClose, title, children, action }) {
         </div>
         {action && <div className="modal-footer">{action}</div>}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
