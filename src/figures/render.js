@@ -302,3 +302,34 @@ function jointAt(sk, name) {
   }
   return { x: p.x, y: p.y };
 }
+
+// ── The zoom anchor (next-round brief §1) ────────────────────────────────────
+//
+// Where the pair zooms ABOUT, in cell coordinates. Zooming about the cell's
+// centre put the hips in the middle and threw a shoulder movement's teaching
+// out of frame; the point that matters is the one the figure already marks:
+// the fault joint (that is by definition what is being taught), falling back
+// to the midpoint of the posture line for a pose with no marker.
+//
+// 🔴 Call this with the FAULT pose for both halves of the pair — the brief's
+//    rule: "both halves must zoom about the SAME anchor, or the pair stops
+//    being a comparison." The correct pose carries no fault marker, so it
+//    cannot answer the question itself.
+//
+// `mix` matters because a rotatable pair can be zoomed mid-turn, and the
+// joint has moved with the camera tween by then.
+export function zoomAnchor(pose, mix = 0) {
+  const sk = (pose.alt && mix > 0)
+    ? lerpSkeleton(skeleton(pose), skeleton(pose.alt), Math.min(1, mix))
+    : skeleton(pose);
+  const chain = (pose.fault && pose.fault.joints) || (pose.guide && pose.guide.joints);
+  if (!chain || !chain.length) return null;
+  const pts = chain.map(j => jointAt(sk, j));
+  // The marker's `offset` nudge is part of the teaching point (a lumbar disc
+  // is at the BACK of the trunk) — the anchor follows it for the same reason.
+  const off = (pose.fault && pose.fault.offset) || { x: 0, y: 0 };
+  return {
+    x: pts.reduce((s, p) => s + p.x, 0) / pts.length + (off.x || 0),
+    y: pts.reduce((s, p) => s + p.y, 0) / pts.length + (off.y || 0),
+  };
+}

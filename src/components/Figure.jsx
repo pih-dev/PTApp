@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react';
 import { figureFor } from '../figures/poses';
-import { figureSvg } from '../figures/svg';
+import { figureSvg, CELL } from '../figures/svg';
+import { zoomAnchor } from '../figures/render';
 import { figureText } from '../figureText';
 import { t } from '../i18n';
 
@@ -26,7 +27,7 @@ import { t } from '../i18n';
 
 export const hasFigure = (name) => !!figureFor(name);
 
-function Fig({ pose, label, caption, wide, mix = 0, zoom = 1, pan }) {
+function Fig({ pose, label, caption, wide, mix = 0, zoom = 1, pan, origin }) {
   // Memoised because `figureSvg` mints a fresh clipPath id per call: without
   // this the markup string differs on every render, so React tears down and
   // re-parses both SVGs whenever anything above them re-renders. `mix` is in
@@ -36,9 +37,13 @@ function Fig({ pose, label, caption, wide, mix = 0, zoom = 1, pan }) {
   //    already vector, so scaling costs nothing and stays sharp — and it leaves
   //    the geometry untouched, which means the canon, the posture line and the
   //    fault marker cannot drift because somebody zoomed.
+  // 🔴 ZOOM IS ANCHORED ON THE FAULT JOINT, not the cell centre (brief §1) —
+  //    centre-zoom put the hips in the middle and threw a shoulder movement's
+  //    teaching out of the top of the frame. `origin` arrives from the PAIR so
+  //    both halves scale about the same point and stay comparable.
   const style = zoom === 1 ? undefined : {
     transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-    transformOrigin: 'center center',
+    transformOrigin: origin || 'center center',
   };
   return (
     <figure className={`fig-cell${wide ? ' fig-wide' : ''}`}>
@@ -65,6 +70,15 @@ export default function Figure({ name, lang }) {
   //    the figure gets a surface of its own.
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  // The anchor comes from the FAULT pose (the correct one has no marker) and is
+  // shared by both halves — the same rule that makes the drag turn them
+  // together. Recomputed with `mix` because a rotatable pair can zoom mid-turn.
+  const origin = useMemo(() => {
+    const a = pair && zoomAnchor(pair.fault, mix);
+    if (!a) return undefined;
+    const px = (v, lo, span) => `${Math.max(0, Math.min(100, ((v - lo) / span) * 100)).toFixed(1)}%`;
+    return `${px(a.x, CELL.x, CELL.w)} ${px(a.y, CELL.y, CELL.h)}`;
+  }, [pair, mix]);
   const drag = useRef(null);
   const lastTap = useRef(0);
 
@@ -133,8 +147,8 @@ export default function Figure({ name, lang }) {
         onPointerUp={onUp}
         onPointerCancel={onUp}
       >
-        <Fig pose={pair.correct} label={t(lang, 'figureCorrect')} caption="correct" mix={mix} zoom={zoom} pan={pan} />
-        <Fig pose={pair.fault} label={t(lang, 'figureFault')} caption="fault" mix={mix} zoom={zoom} pan={pan} />
+        <Fig pose={pair.correct} label={t(lang, 'figureCorrect')} caption="correct" mix={mix} zoom={zoom} pan={pan} origin={origin} />
+        <Fig pose={pair.fault} label={t(lang, 'figureFault')} caption="fault" mix={mix} zoom={zoom} pan={pan} origin={origin} />
       </div>
       <div className="fig-drag">
         <span className="fig-drag-hint">
