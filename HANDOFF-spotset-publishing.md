@@ -24,13 +24,18 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 
 ## 0. Status — read this out
 
-- 🔴 **THE ONE THING THAT MATTERS: THE OPT-IN LINK.** `https://play.google.com/apps/testing/com.spotset.app`
-  **12 testers must opt in before the 14-day clock starts, and NOTHING else on this project moves
-  until then.** Being on the email list is NOT opting in — each person must open that link and press
-  *Become a tester*. Pierre messaged Elie on 2026-08-21 morning to push the rest.
-  🔴 **The opted-in count is a live reading — do NOT quote one from this file.** Probe it first:
-  Play Console → SpotSet → Dashboard, the production checklist line *"N testers currently
-  opted-in"*. Latest observation is in §0a below, with its timestamp. The WhatsApp-ready list is §5b.
+- 🟢 **THE 12 OPT-INS ARE DONE AND THE 14-DAY CLOCK IS RUNNING** (observed live in the console
+  2026-08-22 ~14:45: production checklist shows ✅ closed release · ✅ 12 testers opted in ·
+  ⭕ run the test 14 days). The opt-in link stays `https://play.google.com/apps/testing/com.spotset.app`
+  for any late tester. The remaining production gate is TIME + the "apply for production" questions.
+- 🚀 **versionCode 4 (v2.28) SUBMITTED FOR REVIEW 2026-08-22 ~14:45** on Closed testing – Alpha,
+  full rollout on approval ("changes in review"; quick checks were still running — they auto-send).
+  It carries everything since 2.15.1: the design pass, all 340 figures, the facing-pair logo +
+  backdrop + icons, the opening animation WITH SOUND (native-only; MainActivity lifts the WebView
+  gesture rule). AAB archived: `_archive/PTApp/releases/2026-08-22-spotset-v2.28-vc4.aab`,
+  versionName verified INSIDE the bundle, jarsigner-verified. Only console warning: the usual
+  no-deobfuscation-file note. 🔴 **Check the console/inbox for the review result before assuming
+  it is live** — closed-testing updates usually clear in hours, the dialog says "up to 7 days".
 - ⚠️ **"Item not found" on the store page right after opting in is normal** — a newly-published
   closed test takes a few hours to become installable. It does NOT affect the opt-in or the clock.
 - ✅ **Play developer name is now Calnorm.** Submitted and approved 2026-08-21; the console header
