@@ -14,7 +14,15 @@ at each milestone. A restart could end the session at any moment.
 
 ## 0. Status — read this out
 
-- 🟢 **ROTATION SHIPPED ON ONE PATTERN — v2.23.1.** Flat Barbell Press has a DRAG TO TURN bar; both
+- 🔴 **THE DESTINATION, IN PIERRE'S WORDS (08-22): "eventually 3D models that can be rotated and
+  zoomed in/out, after a few rounds."** That is an instruction about ORDER — each round ships
+  something usable on its own. The staged path and where it stands live in
+  `docs/2026-08-22-figures-3d-options.md`; read it before picking up the next round.
+- 🟢 **ROUND 2 SHIPPED — v2.23.2: zoom on every pair, and the logo opens the library.** Double-tap
+  scales both halves to 2.2× with drag-to-pan; works on all 340. **Double-tap, not pinch** — pinch
+  needs `touch-action: none` and the bottom sheet has to keep its vertical scroll. **One gesture,
+  two jobs:** zoomed out it turns, zoomed in it pans.
+- 🟢 **ROUND 1 SHIPPED — v2.23.1.** Flat Barbell Press has a DRAG TO TURN bar; both
   halves of the pair turn together from profile to the view from above, and the elbows become
   visible. **It is a TWEEN between two authored cameras, not a 3D rig** — true 3D was built and
   reverted (a world-fixed lateral axis breaks every supine pose; it needs a body-fixed frame per
