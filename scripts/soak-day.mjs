@@ -98,8 +98,13 @@ if (!email) {
 }
 
 const run = (label, file, extra = []) => {
-  console.log(`\n── ${label} ───────────────────────────────────────────`);
-  const r = spawnSync(process.execPath, [file, ...extra], { stdio: 'inherit' });
+  console.log(`\n\u2500\u2500 ${label} \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500`);
+  // 🔴 SOAK_DRIVER is what makes this run COUNT. The gate logs it, and
+  //    soak-status only counts runs it drove — see the note in soak-status.mjs.
+  const r = spawnSync(process.execPath, [file, ...extra], {
+    stdio: 'inherit',
+    env: { ...process.env, SOAK_DRIVER: 'soak-day' },
+  });
   return r.status === null ? 1 : r.status;
 };
 

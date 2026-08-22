@@ -202,6 +202,16 @@ try {
     date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
     time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
     ok: failures === 0,
+    // 🔴 WHAT DROVE THIS RUN, and the streak depends on it. In PHASE 1 the app
+    //    does not dual-write, so this gate run on its own compares GitHub
+    //    against a mirror that may be hours stale — it fails for a reason that
+    //    is not a divergence, and those runs must not poison a soak day. Only
+    //    runs driven by `scripts/soak-day.mjs` (mirror, then verify, as one
+    //    operation) count toward the streak. Ad-hoc runs are still logged,
+    //    because hiding them would be worse, and `soak-status.mjs` shows them
+    //    separately. The day dual-write lands, the driver becomes 'phase2' and
+    //    a bare run counts again.
+    driver: process.env.SOAK_DRIVER || 'adhoc',
     failures,
     ghBytes,
     ghSha: ghSha.slice(0, 8),
