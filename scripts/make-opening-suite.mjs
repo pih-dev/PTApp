@@ -94,6 +94,78 @@ function bell(L, R, t0, f, amp, pan) {
   }
 }
 
+// A metallic "disc" tick — Pierre's fix for the sandpaper hats: pitched
+// inharmonic partials, not noise. hi=true is the ride tick, false the mid hit.
+function disc(L, R, t0, amp, pan, hi = true) {
+  const start = Math.floor(t0 * SR);
+  const parts = hi ? [[6200, 1], [6870, 0.7], [9300, 0.4]] : [[2800, 1], [3730, 0.7], [520, 0.5]];
+  const dec = hi ? 30 : 16;
+  for (const [f, a] of parts) {
+    let ph = 0;
+    for (let i = start; i < N; i++) {
+      const t = (i - start) / SR;
+      const e = Math.exp(-t * dec) * amp * a;
+      if (e < 0.0004) break;
+      ph += (TAU * f) / SR;
+      const sgn = Math.sin(ph) * e;
+      L[i] += sgn * (1 - pan * 0.5); R[i] += sgn * (1 + pan * 0.5);
+    }
+  }
+}
+
+// A water drop: the fast upward chirp then the ring — the real plink shape.
+function drop(L, R, t0, f0, amp, pan) {
+  const start = Math.floor(t0 * SR);
+  let ph = 0;
+  for (let i = start; i < N; i++) {
+    const t = (i - start) / SR;
+    const f = f0 * (1 + 0.9 * Math.min(1, t / 0.02));   // chirp up over 20ms
+    ph += (TAU * f) / SR;
+    const e = Math.exp(-t * 9) * amp;
+    if (e < 0.0004) break;
+    const sgn = (Math.sin(ph) + 0.25 * Math.sin(2.01 * ph)) * e;
+    L[i] += sgn * (1 - pan * 0.5); R[i] += sgn * (1 + pan * 0.5);
+  }
+}
+
+// A singing melodic voice: vibrato + soft attack — for the maqam line.
+function voice(L, R, t0, dur, f, amp, pan, vib = 5.5) {
+  const start = Math.floor(t0 * SR), end = clampT(Math.floor((t0 + dur) * SR));
+  let ph = 0;
+  for (let i = start; i < end; i++) {
+    const t = (i - start) / SR;
+    const e = adsr(0.05, Math.max(0.01, dur - 0.25), 0.2)(t);
+    ph += (TAU * f * (1 + 0.007 * Math.sin(TAU * vib * t) * Math.min(1, t / 0.25))) / SR;
+    const sgn = (Math.sin(ph) + 0.3 * Math.sin(2 * ph) + 0.12 * Math.sin(3 * ph)) * e * amp;
+    L[i] += sgn * (1 - pan * 0.5); R[i] += sgn * (1 + pan * 0.5);
+  }
+}
+
+// Cents off a root — the quarter-tone kernel (350 = the neutral third).
+const cents = (root, c) => root * Math.pow(2, c / 1200);
+
+// A clean tonal riser (Pierre's fix for the sandpaper "wish"): staggered
+// octave glissandi, no noise.
+function riserTones(L, R, t0, t1, fLo, fHi, amp) {
+  for (let v = 0; v < 4; v++) {
+    const vt0 = t0 + v * 0.35, dur = t1 - vt0;
+    if (dur <= 0.2) continue;
+    const start = Math.floor(vt0 * SR), end = clampT(Math.floor(t1 * SR));
+    let ph = 0;
+    for (let i = start; i < end; i++) {
+      const t = (i - start) / SR, u = t / dur;
+      const f = fLo * Math.pow(fHi / fLo, u) * (1 + v * 0.002);
+      ph += (TAU * f) / SR;
+      const e = Math.pow(u, 1.6) * amp * (1 - v * 0.18);
+      const sgn = (Math.sin(ph) + 0.3 * Math.sin(2 * ph)) * e;
+      L[i] += sgn * (v % 2 ? 1.15 : 0.85); R[i] += sgn * (v % 2 ? 0.85 : 1.15);
+    }
+  }
+}
+
+// Square-ish chip voice for cascade: odd harmonics.
+const SQ = [1, 0, 0.33, 0, 0.2, 0, 0.14];
+
 // Filtered-noise swell between t0..t1 (shimmer / riser).
 function noiseSwell(L, R, t0, t1, amp, rng, rise = true) {
   const start = Math.floor(t0 * SR), end = clampT(Math.floor(t1 * SR));
@@ -173,8 +245,8 @@ const PIECES = {
     for (let t = T0; t < 21.6; t += B) {
       const beat = Math.round((t - T0) / B);
       if (!(t > 16.4 && t < 19.6)) kick(L, R, t, 130, 45, 8, 0.5, null); // half-time break
-      if (beat % 2 === 1) noiseSwell(L, R, t + B * 0.48, t + B * 0.62, 0.05, rng, false); // hat
-      if (beat % 4 === 2 && t > T0 + 2 * bar) noiseSwell(L, R, t, t + 0.12, 0.16, rng, false); // snare-ish
+      if (beat % 2 === 1) disc(L, R, t + B * 0.5, 0.06, beat % 4 === 1 ? 0.6 : -0.6, true); // ride tick
+      if (beat % 4 === 2 && t > T0 + 2 * bar) disc(L, R, t, 0.2, 0, false); // mid disc hit
     }
     for (let rep = 0; rep < 3; rep++) {
       for (const [e8, f] of riff) {
@@ -235,7 +307,7 @@ const PIECES = {
       }
     }
     tone(L, R, 3.4, 18, 55, 0.08, 0.08, -0.3, 0.3, adsr(2, 14, 2), [1, 0.3]);
-    noiseSwell(L, R, 18.0, 22.2, 0.1, rng, true);
+    riserTones(L, R, 18.0, 22.2, 110, 880, 0.09);
     for (const f of [55, 82.4, 110]) {
       tone(L, R, 22.3, 2.6, f, 0.2, 0.2, -1.3, 1.3, adsr(0.4, 1.2, 1.0), SAW);
     }
@@ -285,6 +357,129 @@ const PIECES = {
     hook.forEach((f, k) => pluck(L, R, 22.35 + k * 0.14, f, 0.16, k % 2 ? 0.7 : -0.7));
     finale(L, R, 23.1, rng);
   },
+
+  // 6 · DROPLET — Pierre's ask: water drops. Plinks over a deep still pool.
+  droplet(L, R) {
+    const rng = makeRng(0xD09);
+    opening(L, R, rng);
+    // the pool: a deep, slow pad that barely moves
+    tone(L, R, 3.0, 19.5, 55, 0.2, 0.2, -0.3, 0.3, adsr(1.5, 15.5, 2.4), [1, 0.3]);
+    tone(L, R, 3.0, 19.5, 164.8, 0.06, 0.06, -0.8, 0.8, adsr(2, 15, 2.4), [1, 0.25]);
+    // drops on a loose grid, density growing toward the build
+    let t = 3.6;
+    const scale = [660, 880, 990, 1320, 1480];
+    while (t < 21.2) {
+      const f = scale[Math.floor(Math.abs(rng()) * scale.length)] * (1 + rng() * 0.03);
+      drop(L, R, t, f, 0.16 + Math.abs(rng()) * 0.08, rng());
+      if (Math.abs(rng()) > 0.72) drop(L, R, t + 0.09, f * 0.75, 0.07, -rng()); // splash-back
+      const dens = t < 12 ? 0.9 : t < 18 ? 0.55 : 0.3; // it starts to rain
+      t += dens + Math.abs(rng()) * dens * 0.7;
+    }
+    // the deep bloop — the big drop into the pool, three times
+    for (const bt of [7.4, 13.8, 19.4]) {
+      let ph = 0;
+      const start = Math.floor(bt * SR);
+      for (let i = start; i < N; i++) {
+        const tt = (i - start) / SR;
+        const f = 180 - 95 * Math.min(1, tt / 0.12);
+        ph += (TAU * f) / SR;
+        const e = Math.exp(-tt * 6) * 0.4;
+        if (e < 0.0005) break;
+        const sgn = Math.sin(ph) * e;
+        L[i] += sgn; R[i] += sgn;
+      }
+    }
+    for (let k = 3.35; k < 21; k += 2) kick(L, R, k, 60, 44, 6.5, 0.16, null);
+    finale(L, R, 21.9, rng);
+    // three last drops answer the final chord, fading
+    drop(L, R, 23.4, 990, 0.12, -0.7); drop(L, R, 23.9, 880, 0.09, 0.7); drop(L, R, 24.4, 660, 0.06, 0);
+  },
+
+  // 7 · MAQAM — his ask: "the use of quarters" — a Rast-on-A line (the 350
+  // and 1050 cent degrees are the quarter-tones), electronic dress, not an
+  // Arabic-music pastiche: the same pads and kicks as the rest of the suite.
+  maqam(L, R) {
+    const rng = makeRng(0x3A9);
+    opening(L, R, rng);
+    const A3 = 220;
+    const deg = (c) => cents(A3, c); // Rast: 0 200 350 500 700 900 1050 1200
+    // drone: root + fifth, the floor the quarter-tones sing over
+    tone(L, R, 3.0, 19.8, 55, 0.2, 0.2, 0, 0, adsr(1, 16.5, 2.2), [1, 0.3]);
+    tone(L, R, 3.0, 19.8, 110, 0.1, 0.1, -0.4, 0.4, adsr(1.5, 16, 2.2), [1, 0.3]);
+    // dum-tak: kick is the dum, disc is the tak (masmoudi-lite, 100bpm)
+    const B = 0.6;
+    for (let bar = 0; bar * 4 * B + 3.4 < 21.2; bar++) {
+      const t0 = 3.4 + bar * 4 * B;
+      kick(L, R, t0, 90, 50, 8, 0.3, null);
+      kick(L, R, t0 + B, 90, 50, 8, 0.22, null);
+      disc(L, R, t0 + 1.5 * B, 0.1, 0.5, true);
+      disc(L, R, t0 + 2 * B, 0.12, -0.5, true);
+      kick(L, R, t0 + 2.5 * B, 90, 50, 8, 0.26, null);
+      disc(L, R, t0 + 3.5 * B, 0.1, 0.5, true);
+    }
+    // the line, two phrases + answer; ornaments are 60ms grace notes
+    const phrase = [
+      [4.2, 0, 0.55], [4.8, 200, 0.4], [5.3, 350, 0.9], [6.4, 500, 0.55],
+      [7.2, 700, 0.9], [8.3, 500, 0.4], [8.8, 350, 0.55], [9.5, 200, 0.7],
+      [10.6, 0, 0.9],
+      [12.0, 700, 0.55], [12.6, 900, 0.4], [13.1, 1050, 0.9], [14.2, 1200, 0.7],
+      [15.2, 1050, 0.4], [15.7, 900, 0.55], [16.4, 700, 0.9],
+      [17.8, 500, 0.4], [18.3, 350, 0.9], [19.4, 200, 0.4], [19.9, 0, 1.2],
+    ];
+    for (const [t, c, d] of phrase) {
+      voice(L, R, t, d, deg(c), 0.2, c > 600 ? 0.35 : -0.35);
+      if (d > 0.8) voice(L, R, t - 0.06, 0.07, deg(c + 100), 0.08, 0); // grace
+    }
+    // octave shadow of the long notes, wide
+    for (const [t, c, d] of phrase) if (d > 0.8) voice(L, R, t, d, deg(c) * 2, 0.05, c > 600 ? -0.8 : 0.8);
+    riserTones(L, R, 19.8, 22.0, 110, 660, 0.07);
+    finale(L, R, 22.2, rng);
+  },
+
+  // 8 · CASCADE — the falling-blocks ENERGY, none of the melody: original
+  // minor-key chip riff, square-ish voices, a +2 semitone lift near the end.
+  cascade(L, R) {
+    const rng = makeRng(0xCA5);
+    opening(L, R, rng);
+    const B = 60 / 140, T0 = 3.0;
+    const semi = (n) => 220 * Math.pow(2, n / 12); // A3 root
+    // the riff (two bars, eighths), then its answer — original line
+    const riffA = [0, 3, 7, 5, 3, 2, 0, 2];       // A C E D C B A B
+    const riffB = [0, 3, 7, 10, 8, 7, 5, 7];      // A C E G F E D E
+    const lift = 21.6; // everything after this is +2 semitones
+    for (let bar = 0; ; bar++) {
+      const t0 = T0 + bar * 8 * (B / 2);
+      if (t0 >= 21.2) break;
+      const riff = bar % 2 ? riffB : riffA;
+      riff.forEach((n, k) => {
+        const t = t0 + k * (B / 2);
+        if (t >= 21.2) return;
+        const up = t >= 18.2 ? 2 : 0; // the lift arrives with the last run
+        tone(L, R, t, 0.16, semi(n + up), 0.16, 0.16, 0, 0, adsr(0.01, 0.07, 0.08), SQ);
+        // the high echo arpeggio, 16ths, one octave up
+        tone(L, R, t + B / 4, 0.09, semi(n + up) * 2, 0.05, 0.05, k % 2 ? 1 : -1, k % 2 ? -1 : 1, adsr(0.005, 0.04, 0.045), SQ);
+      });
+    }
+    // bass: square roots on eighths, walking A A E E F F G G
+    const bassWalk = [0, 0, -5, -5, -4, -4, -2, -2];
+    for (let bar = 0; ; bar++) {
+      const t0 = T0 + bar * 8 * (B / 2);
+      if (t0 >= 21.2) break;
+      bassWalk.forEach((n, k) => {
+        const t = t0 + k * (B / 2);
+        if (t >= 21.2) return;
+        const up = t >= 18.2 ? 2 : 0;
+        tone(L, R, t, 0.2, 55 * Math.pow(2, (n + up) / 12), 0.22, 0.22, 0, 0, adsr(0.005, 0.12, 0.08), SQ);
+      });
+    }
+    for (let t = T0; t < 21.2; t += B) {
+      kick(L, R, t, 120, 48, 9, 0.34, null);
+      disc(L, R, t + B / 2, 0.05, (Math.round(t / B) % 2) ? 0.6 : -0.6, true);
+    }
+    // the stop: one silent half-beat, then the drop-in finale
+    riserTones(L, R, 20.2, 21.9, 220, 1760, 0.06);
+    finale(L, R, 22.1, rng);
+  },
 };
 
 // ── master + write ──────────────────────────────────────────────────────────
@@ -317,6 +512,7 @@ for (const [name, compose] of Object.entries(PIECES)) {
   hdr.write('data', 36); hdr.writeUInt32LE(data.length, 40);
   const wav = `tmp/suite/opening-${name}.wav`;
   writeFileSync(wav, Buffer.concat([hdr, data]));
+  if (process.env.WAV_ONLY) { console.log(`${name}: wav (audition mode)`); continue; }
   try {
     execFileSync(FF, ['-y', '-i', wav, '-c:a', 'aac', '-b:a', '192k', `public/opening-${name}.m4a`], { stdio: 'pipe' });
     console.log(`${name}: wav + public/opening-${name}.m4a`);
