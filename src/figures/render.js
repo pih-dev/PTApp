@@ -105,17 +105,33 @@ function closedPath(pts) {
 const r = (v) => Math.round(v);
 
 // One limb: a tapered, capped ribbon along the joint chain.
-export function ribbon(joints, widths) {
+// `keepSide` (round 4): enforce normal continuity — see the note at the flip.
+// 🔴 OPT-IN, NOT DEFAULT: byte-compared over all 680 authored figures, the
+//    flip also fires on 24 of them (the leg-curl family's folded knees) and
+//    changes judged art. Spun figures need it; authored ones keep their exact
+//    shipped bytes until those 24 are re-judged with it on.
+export function ribbon(joints, widths, keepSide = false) {
   const [P, W] = densify(joints, widths);
   const s = sampleSpline(P, W);
   if (s.length < 2) return '';
 
   const left = [], right = [];
+  let pnx = null, pny = null;
   for (let i = 0; i < s.length; i++) {
     const a = s[Math.max(0, i - 1)], b = s[Math.min(s.length - 1, i + 1)];
     const tx = b.x - a.x, ty = b.y - a.y;
     const L = Math.hypot(tx, ty) || 1;
-    const nx = -ty / L, ny = tx / L;
+    let nx = -ty / L, ny = tx / L;
+    // 🔴 NORMAL CONTINUITY (round 4, Pierre's frame-by-frame catalogue): when a
+    //    spun limb folds toward the camera its projected tangent REVERSES, the
+    //    normal swaps sides, the left and right edges cross, and the nonzero
+    //    fill rule punches a cap-sized HOLE in the body — the black circles he
+    //    logged at hips, crotch, feet and armpit across three exercises. Keep
+    //    each normal on the same side as the one before it and the outline can
+    //    no longer cross itself at a fold. Unspun figures never reverse a
+    //    tangent, so this is a no-op for the authored views by construction.
+    if (keepSide && pnx !== null && nx * pnx + ny * pny < 0) { nx = -nx; ny = -ny; }
+    pnx = nx; pny = ny;
     left.push({ x: s[i].x + nx * s[i].w, y: s[i].y + ny * s[i].w });
     right.push({ x: s[i].x - nx * s[i].w, y: s[i].y - ny * s[i].w });
   }
@@ -207,12 +223,12 @@ export function buildFigure(pose, mix, skIn) {
 
   const leg = (S) => ribbon(
     [sk['hip' + S], sk['knee' + S], sk['ankle' + S]],
-    [g.hip, g.knee, g.ankle],
+    [g.hip, g.knee, g.ankle], spun,
   );
-  const foot = (S) => ribbon([sk['ankle' + S], sk['toe' + S]], [g.ankle, g.toe]);
+  const foot = (S) => ribbon([sk['ankle' + S], sk['toe' + S]], [g.ankle, g.toe], spun);
   const arm = (S) => ribbon(
     [sk['shoulder' + S], sk['elbow' + S], sk['wrist' + S], sk['hand' + S]],
-    [g.shoulder, g.elbow, g.wrist, g.handEnd],
+    [g.shoulder, g.elbow, g.wrist, g.handEnd], spun,
   );
 
   // Far side first: it is behind the torso, so painting it first lets the torso
@@ -233,7 +249,7 @@ export function buildFigure(pose, mix, skIn) {
     // different numbers rather than two drawings.
     {
       d: ribbon([sk.pelvis, sk.lumbar, sk.thorax, sk.neckBase],
-        [g.pelvis, g.lumbar, g.thorax, g.neckBase]),
+        [g.pelvis, g.lumbar, g.thorax, g.neckBase], spun),
       z: zOf(['pelvis', 'lumbar', 'thorax', 'neckBase']),
     },
     { d: leg('N'), z: zOf(['hipN', 'kneeN', 'ankleN']) },
@@ -262,7 +278,7 @@ export function buildFigure(pose, mix, skIn) {
   const anchor = (list) => (list || [])
     .flatMap(k => (MUSCLE_ANCHORS[k] ? sides.map(S => MUSCLE_ANCHORS[k](sk, S)) : []))
     .filter(Boolean)
-    .map(m => ribbon(m.pts, m.pts.map(() => m.w)));
+    .map(m => ribbon(m.pts, m.pts.map(() => m.w), spun));
   const muscles = { primary: anchor(ms.primary), secondary: anchor(ms.secondary) };
 
   // 🔴 THE POSTURE LINE — brief §7.9: "the spine is the hero line, drawn in the
