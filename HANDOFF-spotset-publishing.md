@@ -29,13 +29,18 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   ⭕ run the test 14 days). The opt-in link stays `https://play.google.com/apps/testing/com.spotset.app`
   for any late tester. The remaining production gate is TIME + the "apply for production" questions.
 - 🚀 **versionCode 4 (v2.28) SUBMITTED FOR REVIEW 2026-08-22 ~14:45** on Closed testing – Alpha,
-  full rollout on approval ("changes in review"; quick checks were still running — they auto-send).
-  It carries everything since 2.15.1: the design pass, all 340 figures, the facing-pair logo +
-  backdrop + icons, the opening animation WITH SOUND (native-only; MainActivity lifts the WebView
-  gesture rule). AAB archived: `_archive/PTApp/releases/2026-08-22-spotset-v2.28-vc4.aab`,
-  versionName verified INSIDE the bundle, jarsigner-verified. Only console warning: the usual
-  no-deobfuscation-file note. 🔴 **Check the console/inbox for the review result before assuming
-  it is live** — closed-testing updates usually clear in hours, the dialog says "up to 7 days".
+  full rollout on approval. AAB archived: `_archive/PTApp/releases/2026-08-22-spotset-v2.28-vc4.aab`,
+  versionName verified INSIDE the bundle. 🔴 **Probe the console/inbox for the review result before
+  quoting status** (console: Chrome profile **u/1**, account Calnorm).
+- 🔴 **THE NEXT PLAY UPLOAD IS ALREADY BUILT: vc9 / v2.32** —
+  `_archive/PTApp/releases/2026-08-22-spotset-v2.32-vc9.apk` (build the AAB fresh via
+  `bundleRelease` when uploading; same tree state = master `e7b75d6`+). It adds everything after
+  vc4: sound suite, showcase wall, launcher icons (vc4 still shows the OLD launcher icon — vc9's
+  AAB fixes that). Upload flow proven this session: console → SpotSet → Closed testing Alpha →
+  Create new release (the AAB upload + release notes + submit was driven via Chrome u/1).
+  Numbering agreed with the figures session: next patch v2.32.1+/vc10+.
+- **Sideloads vc4→vc9 went to Pierre directly in-chat** (signature = upload key, so a Play-installed
+  copy must be uninstalled before sideloading; his data re-syncs).
 - ⚠️ **"Item not found" on the store page right after opting in is normal** — a newly-published
   closed test takes a few hours to become installable. It does NOT affect the opt-in or the clock.
 - ✅ **Play developer name is now Calnorm.** Submitted and approved 2026-08-21; the console header

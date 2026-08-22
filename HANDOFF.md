@@ -1,80 +1,29 @@
 # PTApp / SpotSet — HANDOFF
 
-**Last updated:** 2026-08-22, after v2.23.2 shipped — the figures round closed and the next one specified.
-**To resume:** Pierre types `continue`. **Read §0 back to him and stop.** Do not investigate, do not
-draft, do not ask follow-up questions — he said explicitly: *"I will clear, and immediately after
-clear I will continue. I will not do anything between."* The state below is the state you will find.
-
-🔴 **Both tasks are now open and each has its own handoff — pick by subject, not by habit.**
+**Last updated:** 2026-08-22 ~19:30, Beirut — after the v2.25→v2.32 marathon (design round, logo,
+opening + sound suite, showcase wall, Play vc4 submitted).
+**To resume:** Pierre types `continue`. **Read §0 back to him and stop.** Do not investigate, do
+not draft, do not ask follow-up questions.
 
 ---
-
-> 📌 **Store publishing is a SEPARATE thread** — `HANDOFF-spotset-publishing.md`. If he says
-> `spotset`, `publish` or `illume`, read that one instead. The app is named **SpotSet**; "PTApp" is
-> only the repo/project name.
 
 ## 0. Status — read this out
 
-- 🔴 **NEXT UP, ALL SPECIFIED AND NONE STARTED** — `docs/2026-08-22-figures-next-round-brief.md`:
-  six figure items (zoom anchoring, direct-manipulation gestures, rotating equipment, blue
-  equipment, **different muscles on the fault figure**, multi-position sequences) plus **a design
-  refinement round at xhigh** and **the logo (B3)**. Pierre is switching to Opus 5 / xhigh for it.
-- **The figures thread is `HANDOFF-figures.md`** (trigger: `figures`). All 340 movements have
-  figures as of v2.23.2 and it is live.
-- **The Supabase soak clock restarted honestly:** the Phase-1 daily job is
-  `node scripts/soak-day.mjs` (mirror, then verify). 1/7 clean days.
-  Detail: `HANDOFF-multi-user-build.md` §0.
-
-- 🔴 **EVERY TASK HAS ITS OWN HANDOFF. Read the one for the subject, not this section.**
-  - ➡️ **THE LIVE THREAD: the exercise figures (B2) → `HANDOFF-figures.md`** (trigger `figures`).
-    Pierre cleared it to start; §9 step 1 is six proof movements. **This is what `continue` means
-    right now.**
-  - **The design pass → `HANDOFF-design.md` — ✅ FINISHED.** Five stages, v2.17 → v2.21.1 live; no
-    screen is still in the old idiom. The movement library (B1) shipped in v2.21.
-  - **Task A — multi-user / Supabase → `HANDOFF-multi-user-build.md`.** Phase 1 done, mirror
-    running; next action is **wait out the soak** (`node scripts/soak-status.mjs` — never quote a
-    remembered number). Nothing to build there.
-  - **Store publishing → `HANDOFF-spotset-publishing.md`.** The iOS pipeline is written and
-    committed; the Apple enrolment is still processing. 🔴 **The Play testers are still on
-    versionCode 3 / v2.15.1** — they have none of the design pass or the library, and only a new
-    AAB reaches them.
-  - **What is left, across all tracks:** `docs/design/2026-08-22-what-is-left.md`.
-- **The design decision record** — anchor, palette, the reversal, the three features it spawned:
-  `docs/design/2026-08-21-design-differentiation-brief.md` §7; the spec is
-  `docs/superpowers/specs/2026-08-21-visual-language-dashboard-design.md`.
-- **Task A's decision record** (the design, not the build state):
-  `docs/2026-08-21-multi-user-accounts-decision.md` — the role hierarchy is **§10**, the scoping and
-  no-admin decisions **§11**, the priced RLS **§12**.
-- **Task A, the shape he specified (2026-08-21):** exactly **two roles**, `pt` and `client`. A PT may
-  have PTs *or* clients under them — so `parent_pt_id` lives on both. **"Prime" is not a role**; it
-  is simply a PT with no parent, which is why Elie's position is data and never hardcoded. The one
-  real new cost was recursive RLS (a parent PT reading down the tree); **it is now priced and
-  cleared — §12.** Don't recurse at query time: a materialized `ltree` path on `app_users` makes
-  ancestry a GiST containment match, and one predicate covers own-data, downline and peer isolation.
-- **Task A, §11 — three questions closed (2026-08-21 ~12:00).** **No admin role**: re-parenting,
-  recovery and tree-deletion run from the Supabase SQL console with `service_role`, never from a
-  login on a phone. **Peer PTs are fully isolated** both ways (two primes = disjoint trees).
-  🔴 **"Mine" is the default scope on every screen** — a parent PT's Dashboard/Schedule/Clients never
-  merge a descendant's data; the downline is a deliberate drill-in. That is a *product* rule: RLS
-  permits the subtree, the query still filters `owner_id = auth.uid()`.
-- **Backend is decided:** Supabase Postgres (free tier now, VPS later), auth behind ONE thin module.
-  See `docs/2026-08-21-backend-platform-decision.md`. `DATA_VERSION` stays 6; the merge kernel is
-  untouched in Phase 1.
-- **Task B's finding, so it is not re-derived:** the app is not ugly, it is *generic* — three
-  independent artifacts (SpotSet, the Agribond grouping page, and a cancellation email from
-  ayoubcomputers.com, an unrelated Lebanese retailer) share one visual grammar. The house style is an
-  industry-wide LLM default, named as ~10 concrete traits in §2/§2b of the brief. **Escaping it is a
-  differentiation problem, not a cleanup problem** — copying "what good apps do" lands back in it.
-- **Google closed test is running and unaffected by any of this** — the tester clock counts testers,
-  not builds. 🔴 The opted-in count is a live reading; **never quote one from a file.** Probe:
-  Play Console → SpotSet → Dashboard, and the console is at `play.google.com/console/u/1/…`
-  (**u/1**, because the Play account is `pierreghorra@` while Chrome's default profile is
-  `pierreishere@`). Latest observation is in §0a of the publishing handoff.
-- **P3 / P6 (SessionCard refactor, live ordinal) remain decided-but-unbuilt.** They are now *behind*
-  A and B. Details in `CLAUDE.md` → KNOWN ISSUES.
-- Nothing is broken and nothing is urgent. **The next action is his: create the Supabase project** — everything else in Task A is blocked behind it (free tier is fine; Pro is only needed from Phase 3).
+- 🔴 **EVERY SUBJECT HAS ITS OWN HANDOFF — route by trigger, newest first:**
+  - **`showcase` / `logo` / `suite` / `sound` → `HANDOFF-showcase.md`** — the freshest thread
+    (this session): v2.32 shipped; OPEN: Pierre's "S" logo idea + the Play upload of vc9.
+    **`continue` right after this session's clear means THIS one.**
+  - **`spotset` / `publish` / `illume` → `HANDOFF-spotset-publishing.md`** — vc4 in Play review
+    (probe before quoting), vc9 ready as the next upload, Apple activation pending on Apple.
+  - **`figures` → `HANDOFF-figures.md`** — the CCHealth session's thread, wrapped end-of-marathon;
+    resumes there, not here. 🔴 Two-session git rules in CLAUDE.md KNOWN ISSUES if both run again.
+  - **Supabase soak → `HANDOFF-multi-user-build.md`** — daily job `node scripts/soak-day.mjs`.
+- **Current version v2.32** (CLAUDE.md carries the law: suite scripts in step, no svg per frame,
+  frozen mark, worktree deploys). Design round v2.25 findings parked for Pierre:
+  `docs/design/2026-08-22-fresh-eyes-structure-review.md` (money tracking DEFERRED, his word).
 
 ---
+
 
 ## 0b. What this session did (2026-08-21, ~09:00–11:40)
 
