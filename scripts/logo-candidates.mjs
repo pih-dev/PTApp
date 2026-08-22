@@ -14,6 +14,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { figureFor } from '../src/figures/poses.js';
 import { figureSvg } from '../src/figures/svg.js';
+import { buildFigure } from '../src/figures/render.js';
 
 const CANDIDATES = [
   { id: 'hinge', movement: 'Deadlift', half: 'correct', note: 'the hinge — the gym\'s defining silhouette, wide, fits a square box' },
@@ -52,27 +53,129 @@ for (const c of CANDIDATES) {
   marks[c.id] = { ...c, svg: cropSvg(svg) };
 }
 
-// The pair lockup for LARGE sizes (Play icon, splash): correct solid, fault
-// ghosted behind it — the app's thesis in one picture. Built from the same two
-// library poses; the fault half sits offset and translucent.
-function pairLockup() {
+// ─── Round 2 (Pierre, from his own compile): THE FACING PAIR ─────────────────
+// His direction, verbatim where it matters: correct and fault face each other
+// so they read like "greater-than and less-than"; accentuate the difference;
+// keep it coloured or simplify — and play with left-smaller-lower /
+// right-smaller-higher until it "seems right". These studies do exactly that.
+const rr = (v) => Math.round(v * 10) / 10;
+let pairUid = 0;
+
+function boundsOf(markup, margin = 40) {
+  let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+  const take = (x, y) => {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+  };
+  for (const dm of markup.matchAll(/ d="([^"]*)"/g))
+    for (const m of dm[1].matchAll(/(-?\d+(?:\.\d+)?)[ ,](-?\d+(?:\.\d+)?)/g)) take(+m[1], +m[2]);
+  for (const m of markup.matchAll(/cx="(-?\d+(?:\.\d+)?)" cy="(-?\d+(?:\.\d+)?)" rx?="(-?\d+(?:\.\d+)?)"/g)) {
+    take(+m[1] - +m[3], +m[2] - +m[3]); take(+m[1] + +m[3], +m[2] + +m[3]);
+  }
+  for (const m of markup.matchAll(/<rect x="(-?[\d.]+)" y="(-?[\d.]+)" width="([\d.]+)" height="([\d.]+)"/g)) {
+    take(+m[1], +m[2]); take(+m[1] + +m[3], +m[2] + +m[4]);
+  }
+  return { x: minX - margin, y: minY - margin, w: maxX - minX + margin * 2, h: maxY - minY + margin * 2 };
+}
+
+// Rebuild svg.js's equipment shapes (it does not export the helper).
+const equipShapes = (equip) => equip.map((e) => {
+  if (e.k === 'circle') return `<circle cx="${rr(e.x)}" cy="${rr(e.y)}" r="${rr(e.r)}"/>`;
+  if (e.k === 'bar') {
+    const dx = e.b.x - e.a.x, dy = e.b.y - e.a.y, L = Math.hypot(dx, dy);
+    if (L < 0.5) return '';
+    return `<rect x="${rr(e.a.x - e.w)}" y="${rr(e.a.y - e.w)}" width="${rr(L + e.w * 2)}" height="${rr(e.w * 2)}" rx="${rr(e.w)}" transform="rotate(${rr(Math.atan2(dy, dx) * 180 / Math.PI)} ${rr(e.a.x)} ${rr(e.a.y)})"/>`;
+  }
+  if (e.k === 'quad') return `<path d="M${e.pts.map(p => `${rr(p.x)} ${rr(p.y)}`).join('L')}Z"/>`;
+  return '';
+}).join('');
+
+// One half of the pair as raw markup. treatment:
+//   'colour' — the app's full look on a SOLID body: equipment, muscle wash,
+//              posture line, fault ring (Pierre's compile, cleaned up).
+//   'lines'  — body + posture line only: the difference IS the line. The
+//              logo-simplified read that survives any size and any ground.
+function pairLayer(pose, { role, treatment }) {
+  const f = buildFigure(pose, 0);
+  const id = `plg${++pairUid}`;
+  const bodyPaths = f.body.map(d => `<path d="${d}"/>`).join('')
+    + f.deltoids.map(c => `<circle cx="${rr(c.cx)}" cy="${rr(c.cy)}" r="${rr(c.r)}"/>`).join('')
+    + `<ellipse cx="${rr(f.head.cx)}" cy="${rr(f.head.cy)}" rx="${rr(f.head.rx)}" ry="${rr(f.head.ry)}" transform="rotate(${rr(f.head.rot)} ${rr(f.head.cx)} ${rr(f.head.cy)})"/>`;
+  const stroke = role === 'fault' ? 'var(--warn)' : 'var(--ok)';
+  const guide = f.guide
+    ? [f.guide.d, f.guide.mirror].filter(Boolean).map(d =>
+        `<path d="${d}" fill="none" stroke="var(--ground)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>`
+        + `<path d="${d}" fill="none" stroke="${stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`).join('')
+    : '';
+  if (treatment === 'lines') {
+    const ring = (role === 'fault' && f.fault.length)
+      ? `<g fill="none" stroke="var(--anatomy)" stroke-width="8">${f.fault.map(m => `<circle cx="${rr(m.x)}" cy="${rr(m.y)}" r="${rr(m.r + 10)}"/>`).join('')}</g>`
+      : '';
+    return `<g fill="currentColor">${bodyPaths}</g>${guide}${ring}`;
+  }
+  const washes = (list, colour, op) => (list && list.length
+    ? `<g clip-path="url(#${id})" fill="${colour}" opacity="${op}">${list.map(d => `<path d="${d}"/>`).join('')}</g>` : '');
+  const ring = f.fault.length
+    ? `<g clip-path="url(#${id})" fill="var(--anatomy)" opacity="0.8">${f.fault.map(m => `<circle cx="${rr(m.x)}" cy="${rr(m.y)}" r="${rr(m.r)}"/>`).join('')}</g>`
+      + `<g fill="none" stroke="var(--anatomy)" stroke-width="8">${f.fault.map(m => `<circle cx="${rr(m.x)}" cy="${rr(m.y)}" r="${rr(m.r + 12)}"/>`).join('')}</g>`
+    : '';
+  return `<g fill="var(--equipment)" opacity="0.95">${equipShapes(f.equip)}</g>`
+    + `<clipPath id="${id}">${bodyPaths}</clipPath>`
+    + `<g fill="currentColor">${bodyPaths}</g>`
+    + washes(f.muscles.secondary, 'var(--muscle-2)', 0.5)
+    + washes(f.muscles.primary, 'var(--muscle)', 0.78)
+    + guide + ring;
+}
+
+// Compose the facing pair. Pierre's compile: the CORRECT half is mirrored to
+// face left, the fault half keeps the library's facing — hips meet in the
+// middle, "> <". layout:
+//   sym  — same size, same baseline, a small gap.
+//   off  — his asked-for play: both slightly smaller, left nudged down,
+//          right nudged up, pulled together so the hips overlap.
+//   lock — the same, tighter, for the interlocked read.
+function pairSvg(treatment, layout) {
   const fig = figureFor('Deadlift');
-  const ok = cropSvg(figureSvg(fig.correct, { detail: 'mark' }));
-  const bad = cropSvg(figureSvg(fig.fault, { detail: 'mark' }));
-  const inner = (svg) => svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '');
-  const vb = ok.match(/viewBox="([^"]*)"/)[1].split(' ').map(Number);
-  const [x, y, w, h] = vb;
-  return `<svg viewBox="${x - w * 0.12} ${y - h * 0.10} ${w * 1.24} ${h * 1.18}" xmlns="http://www.w3.org/2000/svg">`
-    + `<g opacity="0.28" transform="translate(${w * 0.10} ${-h * 0.06})"><svg viewBox="${vb.join(' ')}" width="${w}" height="${h}" x="${x}" y="${y}">${inner(bad)}</svg></g>`
-    + `<svg viewBox="${vb.join(' ')}" width="${w}" height="${h}" x="${x}" y="${y}">${inner(ok)}</svg>`
+  const okL = pairLayer(fig.correct, { role: 'correct', treatment });
+  const faR = pairLayer(fig.fault, { role: 'fault', treatment });
+  const vbA = boundsOf(okL), vbB = boundsOf(faR);
+  const x = Math.min(vbA.x, vbB.x), y = Math.min(vbA.y, vbB.y);
+  const w = Math.max(vbA.x + vbA.w, vbB.x + vbB.w) - x, h = Math.max(vbA.y + vbA.h, vbB.y + vbB.h) - y;
+  const vb = `${x.toFixed(0)} ${y.toFixed(0)} ${w.toFixed(0)} ${h.toFixed(0)}`;
+  const mirror = (inner) => `<g transform="translate(${rr(2 * x + w)} 0) scale(-1 1)">${inner}</g>`;
+  const half = (inner, px, py, s) =>
+    `<svg viewBox="${vb}" width="${rr(w * s)}" height="${rr(h * s)}" x="${rr(px)}" y="${rr(py)}">${inner}</svg>`;
+  const L = { sym: { s: 1, lx: 0, ly: 0, rx: w * 1.04, ry: 0, W: w * 2.04, H: h },
+              off: { s: 0.94, lx: 0, ly: h * 0.09, rx: w * 0.80, ry: 0, W: w * 0.80 + w * 0.94, H: h * 0.94 + h * 0.09 },
+              lock: { s: 0.94, lx: 0, ly: h * 0.09, rx: w * 0.64, ry: 0, W: w * 0.64 + w * 0.94, H: h * 0.94 + h * 0.09 } }[layout];
+  return `<svg viewBox="0 0 ${rr(L.W)} ${rr(L.H)}" xmlns="http://www.w3.org/2000/svg">`
+    + half(mirror(okL), L.lx, L.ly, L.s)
+    + half(faR, L.rx, L.ry, L.s)
     + `</svg>`;
 }
-marks.pair = { id: 'pair', movement: 'Deadlift pair', note: 'correct solid + fault ghost — the thesis, for LARGE sizes only', svg: pairLockup() };
+
+const PAIR_STUDIES = [
+  { id: 'pair-sym-colour', layout: 'sym', treatment: 'colour', note: 'his compile, cleaned: symmetric, full colour' },
+  { id: 'pair-off-colour', layout: 'off', treatment: 'colour', note: 'left down, right up, pulled together — coloured' },
+  { id: 'pair-sym-lines', layout: 'sym', treatment: 'lines', note: 'symmetric, mono body — the posture lines carry the whole difference' },
+  { id: 'pair-off-lines', layout: 'off', treatment: 'lines', note: 'the "> <" read, mono + lines' },
+  { id: 'pair-lock-lines', layout: 'lock', treatment: 'lines', note: 'tighter interlock, mono + lines' },
+];
+const pairs = {};
+for (const p of PAIR_STUDIES) {
+  pairs[p.id] = { ...p, movement: 'Deadlift pair, facing', svg: pairSvg(p.treatment, p.layout) };
+  marks[p.id] = pairs[p.id]; // reachable by --freeze once Pierre picks
+}
 
 const SIZES = [220, 96, 48, 24, 16];
+// Live token values from src/styles.css (v2.25.1) — the figure hues so the
+// coloured studies preview EXACTLY what the app would paint, per skin.
 const skinVars = {
-  midnight: '--ground:#0A1524;--ground-lit:#0F2A52;--raised:#16263C;--chalk:#E9EEF3;--chalk-dim:#9DAABB;--bar:#5A78A8;',
-  steel: '--ground:#A9BAD2;--ground-lit:#D3DEEC;--raised:rgba(255,255,255,0.55);--chalk:#141C33;--chalk-dim:#3A4767;--bar:#475A80;',
+  midnight: '--ground:#0A1524;--ground-lit:#0F2A52;--raised:#16263C;--chalk:#E9EEF3;--chalk-dim:#9DAABB;--bar:#5A78A8;'
+    + '--ok:#4FC08D;--warn:#E0A32B;--anatomy:#F2622C;--muscle:#F03A68;--muscle-2:#9A7BC8;--equipment:#4AA0F0;',
+  steel: '--ground:#A9BAD2;--ground-lit:#D3DEEC;--raised:rgba(255,255,255,0.55);--chalk:#141C33;--chalk-dim:#3A4767;--bar:#475A80;'
+    + '--ok:#0E5238;--warn:#583E04;--anatomy:#9C3A12;--muscle:#C41A4F;--muscle-2:#5A4C9E;--equipment:#2D66C4;',
 };
 
 const cell = (m, size) => `
@@ -81,23 +184,28 @@ const cell = (m, size) => `
     <div class="cap">${size}</div>
   </div>`;
 
-const RECOMMENDED = 'hinge';
+const RECOMMENDED = 'pair-off-lines';
+const LIVE = 'hinge';
 
-const section = (skin) => `
-  <section style="${skinVars[skin]}background:var(--ground);color:var(--chalk)">
-    <h2>${skin}</h2>
-    ${Object.values(marks).map(m => `
+const rows = (list) => list.map(m => `
       <div class="row">
         <div class="label">
-          <strong>${m.id}${m.id === RECOMMENDED ? ' <span class="pick">live now</span>' : ''}</strong>
+          <strong>${m.id}${m.id === RECOMMENDED ? ' <span class="pick">recommended</span>' : ''}${m.id === LIVE ? ' <span class="pick">live now</span>' : ''}</strong>
           <small>${m.movement}</small>
           <em>${m.note}</em>
         </div>
         <div class="cells">
           ${SIZES.map(s => cell(m, s)).join('')}
-          <div class="cell"><div class="box framed" style="width:56px;height:56px"><span style="width:34px;height:34px">${m.svg}</span></div><div class="cap">header</div></div>
+          <div class="cell"><div class="box framed" style="width:56px;height:56px"><span style="width:${m.id.startsWith('pair') ? 44 : 34}px;height:${m.id.startsWith('pair') ? 30 : 34}px">${m.svg}</span></div><div class="cap">header</div></div>
         </div>
-      </div>`).join('')}
+      </div>`).join('');
+
+const section = (skin) => `
+  <section style="${skinVars[skin]}background:var(--ground);color:var(--chalk)">
+    <h2>${skin} — the facing pair (round 2)</h2>
+    ${rows(Object.values(pairs))}
+    <h2>${skin} — single figures (round 1)</h2>
+    ${rows(Object.values(marks).filter(m => !m.id.startsWith('pair')))}
   </section>`;
 
 const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -130,10 +238,13 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewp
 </style></head><body>
 <header>
   <h1>The SpotSet Mark</h1>
-  <p>Every candidate is a real pose from the app's own figure library — the mark is drawn from the
-  system it fronts. Judge at 24 and 16: that is where it will live. The pair lockup is for the
-  store icon only.</p>
-  <p class="how">To switch: say the name — <b>hinge · squat · press · row · pair</b>. One command re-freezes it.</p>
+  <p>Round 2, from your compile: correct and fault FACE each other — the "&gt; &lt;" read. Five
+  studies: symmetric vs offset-and-pulled-together, full colour vs mono-with-lines. Everything is
+  drawn live from the figure library. Judge the pairs at 96 and 48 (store icon / splash); the
+  header cell shows the honest 24px truth.</p>
+  <p class="how">To pick: say the name — <b>pair-sym-colour · pair-off-colour · pair-sym-lines ·
+  pair-off-lines · pair-lock-lines</b> (or a round-1 single). Sizing nudges are one number each —
+  say "left lower" / "tighter" and I re-cut.</p>
 </header>
 ${section('midnight')}
 ${section('steel')}
