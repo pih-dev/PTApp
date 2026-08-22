@@ -385,17 +385,6 @@ button:active { transform: scale(0.97); }
   margin-bottom: 0;
   transition: background 0.16s, transform 0.16s;
 }
-/* The live session: the accent as an inline-start bar, the same mark the
-   Dashboard uses. The amber glow box is gone with the card it lived in. */
-.card.card-now {
-  padding-inline-start: 12px;
-  position: relative;
-}
-.card.card-now::before {
-  content: ''; position: absolute; inset-block: 10px; inset-inline-start: 0;
-  width: 3px; border-radius: 2px; background: var(--accent);
-  box-shadow: 0 0 14px var(--accent);
-}
 .card.card-tap:active {
   transform: scale(0.99);
   background: var(--raised);
@@ -636,27 +625,22 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 [dir="rtl"] .modal-title { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
 /* ─── Misc ───
-   `.section-title` is the bar's older sibling: the screens that have not had
-   their layout pass yet still render it, so it carries the same type. When a
-   screen is rebuilt it graduates to a real `.bar`. */
-.section-title {
-  font-family: var(--font-display);
-  font-size: 15px; font-weight: 700;
-  letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--chalk);
-  margin: 24px 0 12px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid var(--bar);
-  display: flex; align-items: center; gap: 8px;
-}
-.section-header {
-  display: flex; justify-content: space-between; align-items: center;
-}
+   v2.25: `.section-title` and `.section-header` are RETIRED — every screen's
+   head is a real `.bar` now (General's modal sections use `.subbar`). */
 .empty {
   text-align: center; padding: 60px 20px;
   color: var(--chalk-dim); font-size: 15px;
 }
-.empty-icon { font-size: 44px; margin-bottom: 12px; opacity: 0.7; }
+/* In-sheet notification (General): the renewal-banner shape with a semantic
+   edge — tokens only, the old literal green/red pair belonged to no skin. */
+.notice {
+  padding: 10px 14px; margin-bottom: 12px;
+  border-radius: 6px; font-size: 13px; font-weight: 500;
+  background: var(--raised); color: var(--chalk);
+  border-inline-start: 3px solid var(--bar);
+}
+.notice-ok { border-inline-start-color: var(--ok); }
+.notice-warn { border-inline-start-color: var(--warn); }
 
 /* ─── Stats ─── */
 /* v2.18: the three tinted stat tiles are GONE. They were the clearest instance
@@ -790,24 +774,34 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 
 /* ─── Week Strip ───
    🔴 SELECTION IS CHALK; LOAD IS THE ACCENT. The selected day is chrome — the
-   user's own cursor — so it fills with the bar and brightens. The dot under a
+   user's own cursor — so it lifts and underlines in chalk. The dot under a
    day means that day HAS sessions, which is load, so the dot is the one thing
-   here allowed to wear the accent. */
-.week-strip { display: flex; gap: 4px; padding: 16px 0; overflow-x: auto; }
+   here allowed to wear the accent.
+   v2.25: the seven raised boxes are gone — a row of filled cells was the card
+   idiom the design pass deleted everywhere else. Days now stand on a bar
+   shaft (the same grammar as the Dashboard's load columns), and only the
+   SELECTED day takes a fill, because it is the one the user is holding. */
+.week-strip { display: flex; gap: 2px; padding: 14px 0 10px; overflow-x: auto; }
 .week-day {
-  flex: 1; min-width: 48px; padding: 10px 4px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background: var(--raised);
+  position: relative;
+  flex: 1; min-width: 44px; padding: 8px 2px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
   color: var(--chalk-dim);
   text-align: center; font-family: inherit;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+/* Every day stands on the shaft; the selected one's shaft goes to chalk. */
+.week-day::after {
+  content: ''; position: absolute; inset-inline: 10px; bottom: 0;
+  height: 3px; border-radius: 1px; background: var(--bar);
 }
 .week-day.selected {
-  border-color: var(--chalk-dim);
-  background: var(--bar);
+  background: var(--raised);
   color: var(--chalk);
 }
+.week-day.selected::after { background: var(--chalk); }
 .week-day.is-today { color: var(--chalk); }
 .week-day-label {
   font-family: var(--font-display);
@@ -847,9 +841,17 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   background: transparent;
   color: var(--chalk-dim);
   font-size: 13px; font-weight: 600; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 7px;
 }
 .type-btn.selected {
   border-width: 2px;
+}
+/* The swatch that replaced the type emoji (v2.25). Its colour is set inline
+   from SESSION_TYPES — legal here and only here, because in the PICKER the
+   per-type colour is a legend (the user is telling six named things apart). */
+.type-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  display: inline-block; flex: none;
 }
 
 /* ─── Client Chips (multi-select booking) ─── */
@@ -1026,9 +1028,13 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 }
 [dir="rtl"] .filter-btn { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
-/* ─── Success Modal ─── */
+/* ─── Success / confirm modals ─── */
 .success-center { text-align: center; margin-bottom: 20px; }
-.success-icon { font-size: 44px; margin-bottom: 12px; }
+/* The drawn mark that replaced the emoji strip (v2.25): an icon inheriting a
+   semantic colour from its inline style — --ok for a booking, --warn for a
+   cancel, red only over the delete that earns it. */
+.modal-mark { margin-bottom: 12px; }
+.modal-mark svg { display: inline-block; }
 .success-name {
   font-family: var(--font-display);
   font-size: 17px; font-weight: 700;
@@ -1153,7 +1159,12 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   color: var(--chalk-dim); margin-top: 8px;
 }
 .load-cols { flex: 1; display: flex; align-items: flex-end; gap: 6px; }
-.load-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+/* A column is a BUTTON since v2.25 (it opens its day in Schedule) — the resets
+   keep it drawing exactly as the div it replaced. */
+.load-col {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 0; background: none; border: none; font-family: inherit; cursor: pointer;
+}
 /* column-reverse: the stack loads from the bar upward, the way plates go on */
 .load-stack { display: flex; flex-direction: column-reverse; gap: 2px; min-height: 7px; width: 100%; }
 .load-seg {
@@ -1586,36 +1597,6 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   --warn: #583E04;
   --anatomy: #9C3A12;
 }
-/* Header: glossier glass — more transparent base, stronger blur for frosted look */
-/* Nav: glossier glass — more transparent base, stronger blur + saturate for frosted look */
-
-
-
-
-
-/* Stat cards: more solid accent fills */
-
-/* Bumped from 0.5 → 0.72 in v2.8 (same readability concern as dark theme) */
-
-/* Light theme — indigo tint instead of white alpha for count pair */
-  color: #1E40AF;
-  background: rgba(37,99,235,0.14);
-}
-  border-color: #2563EB;
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
-}
-
-
-
-
-
-
-
-
-/* Toggle buttons: stronger glass bg, darker inactive text for contrast */
-
-
-
 /* ─── RTL overrides (Arabic) ─── */
 [dir="rtl"] .logo { direction: ltr; } /* Keep logo LTR — "PTApp" is a brand name */
 [dir="rtl"] .lang-toggle { margin-left: 0; margin-right: auto; }

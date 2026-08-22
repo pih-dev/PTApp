@@ -1,4 +1,5 @@
 import React from 'react';
+import { SPOTSET_MARK_SVG } from '../spotsetMark';
 
 // Reusable SVG icons — eliminates duplication across components.
 // All icons accept `size` prop and inherit color from parent via currentColor.
@@ -46,6 +47,17 @@ export const CloseIcon = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
   </svg>
+);
+
+// The SpotSet mark (B3, v2.25): the figure library's own deadlift-hinge
+// silhouette, frozen (src/spotsetMark.js — regeneration is deliberate, via
+// scripts/logo-candidates.mjs --freeze). It replaces the placeholder dumbbell:
+// the mark now IS a figure from the system it fronts, carrying currentColor so
+// every skin owns it. The markup is a build-time constant, so the injection
+// here is static string, not user data.
+export const SpotSetMark = ({ size = 24 }) => (
+  <span style={{ width: size, height: size, display: 'inline-flex' }} aria-hidden="true"
+    dangerouslySetInnerHTML={{ __html: SPOTSET_MARK_SVG }} />
 );
 
 // A drawn check in a ring — the success sheet's mark. It replaces the ✅ emoji

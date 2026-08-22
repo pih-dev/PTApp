@@ -102,7 +102,7 @@ export default function RenewalModal({ show, client, clients, sessions, onClose,
     >
       {error && (
         <div className="booking-renewal-banner" style={{ marginBottom: 12 }}>
-          ⚠️ {error}
+          {error}
         </div>
       )}
       <div className="field">

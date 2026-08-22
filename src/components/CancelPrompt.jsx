@@ -1,5 +1,6 @@
 import React from 'react';
 import Modal from './Modal';
+import { CloseIcon } from './Icons';
 import { formatDate } from '../utils';
 import { t } from '../i18n';
 
@@ -15,7 +16,8 @@ export default function CancelPrompt({ session, clientName, lang, onConfirm, onC
         </button>
       }>
       <div className="success-center">
-        <div className="success-icon" style={{ fontSize: 40 }}>❌</div>
+        {/* Drawn X on --warn — cancelled's colour, never an emoji (v2.25). */}
+        <div className="modal-mark" style={{ color: 'var(--warn)' }}><CloseIcon size={40} /></div>
         <div className="success-name">{clientName}</div>
         <div className="success-detail">{formatDate(session.date, lang)} {t(lang, 'at')} {session.time}</div>
       </div>

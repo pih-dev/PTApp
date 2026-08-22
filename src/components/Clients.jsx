@@ -5,6 +5,7 @@ import { genId, phoneMatchesQuery, getDefaultCountryCode, setDefaultCountryCode,
 import OverrideHelpPopup from './OverrideHelpPopup';
 import RenewalModal from './RenewalModal';
 import SessionCountPair from './SessionCountPair';
+import Bar from './Bar';
 import EvalSection from './EvalSection';
 import { t, dateLocale } from '../i18n';
 
@@ -162,10 +163,9 @@ export default function Clients({ state, dispatch, lang }) {
 
   return (
     <div>
-      <div className="section-title section-header" style={{ marginTop: 16 }}>
-        <span>{t(lang, 'myClients')} ({state.clients.length})</span>
+      <Bar label={t(lang, 'myClients')} count={state.clients.length}>
         <button className="btn-sm" onClick={openAdd}>{'+ ' + t(lang, 'add')}</button>
-      </div>
+      </Bar>
 
       {state.clients.length > 0 && (
         <input
@@ -532,7 +532,9 @@ export default function Clients({ state, dispatch, lang }) {
             </button>
           }>
           <div className="success-center">
-            <div className="success-icon" style={{ fontSize: 40 }}>⚠️</div>
+            {/* Drawn, not an emoji (v2.25). Red is legal here: this IS the
+                destructive act the colour is reserved for. */}
+            <div className="modal-mark" style={{ color: '#EF4444' }}><TrashIcon size={40} /></div>
             <div className="success-name">{deletePrompt.name}</div>
             <div className="success-detail">{t(lang, 'deleteConfirmMsg')}</div>
           </div>

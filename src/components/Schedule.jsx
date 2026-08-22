@@ -1,10 +1,12 @@
 import React, { useState, useRef, useMemo } from 'react';
 import Modal from './Modal';
 import CancelPrompt from './CancelPrompt';
-import { WhatsAppIcon, EditIcon, TrashIcon, BarMark } from './Icons';
-import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, getFocusTags, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, localDateStr, getStatus, haptic, parseSessionCountOverride, formatOverrideDraft, getRenewalDueMap, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict, suggestBookingTime } from '../utils';
+import { WhatsAppIcon, EditIcon, BarMark, OkIcon } from './Icons';
+import { genId, today, formatDate, formatDateLong, SESSION_TYPES, TIMES, DURATIONS, sendBookingWhatsApp, sendReminderWhatsApp, getOccupiedSlots, getEffectiveSessionCount, localDateStr, haptic, parseSessionCountOverride, formatOverrideDraft, getRenewalDueMap, getCurrentPackage, getEffectivePeriod, generateRecurringDates, hasClientSlotConflict, suggestBookingTime, isSessionNow } from '../utils';
 import SessionCountPair from './SessionCountPair';
 import OverrideHelpPopup from './OverrideHelpPopup';
+import Bar from './Bar';
+import SessionCard from './SessionCard';
 import { t, dateLocale } from '../i18n';
 
 // v2.10 recurring booking helpers (module-scope, no re-creation per render).
@@ -16,10 +18,13 @@ const weekdayLabel = (jsDay, lang) => {
   return new Date(2024, 0, 1 + offset).toLocaleDateString(dateLocale(lang), { weekday: 'short' });
 };
 
-export default function Schedule({ state, dispatch, lang }) {
+export default function Schedule({ state, dispatch, lang, initialDate }) {
   const [showForm, setShowForm] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(today());
+  // v2.25: a Dashboard week column can open Schedule ON that day (fresh-eyes
+  // review #9). The prop is an initial value only — the tab remounts on every
+  // entry, and App clears it when the user navigates by the nav bar instead.
+  const [selectedDate, setSelectedDate] = useState(initialDate || today());
   const [form, setForm] = useState({ clientIds: [], type: 'Strength', date: today(), time: '09:00', duration: 45 });
   // v2.10 recurring booking. Active only when `repeat` is true and not editing.
   //   weekdays — Set of JS getDay() numbers (0=Sun..6=Sat) the protocol repeats on
@@ -245,7 +250,7 @@ export default function Schedule({ state, dispatch, lang }) {
     ),
     single: (
       <button className="btn-primary" onClick={saveSession}>
-        {`📅 ${t(lang, 'bookSessionBtn')}${form.clientIds.length > 1 ? ` (${form.clientIds.length} ${t(lang, 'client')})` : ''}`}
+        {`${t(lang, 'bookSessionBtn')}${form.clientIds.length > 1 ? ` (${form.clientIds.length} ${t(lang, 'client')})` : ''}`}
       </button>
     ),
   }[mode];
@@ -287,11 +292,11 @@ export default function Schedule({ state, dispatch, lang }) {
         }}>{t(lang, 'next')}</button>
       </div>
 
-      {/* Day Sessions */}
-      <div className="section-title section-header">
-        <span>{t(lang, 'sessionsCount')} ({daySessions.length})</span>
+      {/* Day Sessions — the head graduated from `.section-title` to the bar,
+          and the rows are the shared SessionCard (v2.25, review P3 scope B). */}
+      <Bar label={t(lang, 'sessionsCount')} count={daySessions.length}>
         <button className="btn-sm" onClick={openBooking} disabled={state.clients.length === 0}>{t(lang, 'book')}</button>
-      </div>
+      </Bar>
 
       {state.clients.length === 0 ? (
         <div className="empty">
@@ -304,96 +309,23 @@ export default function Schedule({ state, dispatch, lang }) {
           <div>{t(lang, 'noSessionsDay')}</div>
         </div>
       ) : (
-        daySessions.map(session => {
-          const status = getStatus(session.status, lang, t);
-          const client = state.clients.find(c => c.id === session.clientId);
-          // v2.8: effective count honours the PT's manual override for this period
-          const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
-          return (
-            <div key={session.id} className="card">
-              <div className="srow-head">
-                <span className="srow-name">
-                  {getClientName(session.clientId)}
-                  <SessionCountPair auto={monthAuto} effective={monthCount} override={monthOverride} />
-                </span>
-                <span className="srow-time">{session.time}</span>
-              </div>
-              <div>
-                <div>
-                  <div className="srow-meta">
-                    <span className="srow-mark">{session.duration}{t(lang, 'min')}</span>
-                    {/* Inline type selector — keep focus tags so switching back preserves selections.
-                         Tags from other types stay hidden (not deleted) so a mixed-subcategory session
-                         can accumulate work across types without losing prior selections.
-                         Matches Dashboard behavior (decided 2026-04-02, commit eb29798). */}
-                    <select className="inline-type-select" value={session.type} onChange={e => {
-                      dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value } });
-                    }}>
-                      {SESSION_TYPES.map(stype => <option key={stype.label} value={stype.label}>{stype.label}</option>)}
-                    </select>
-                    <span className={`badge badge-${session.status}`}>{status.label}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex-row">
-                {(session.status === 'scheduled' || session.status === 'confirmed') && (
-                  <button className="btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }}
-                    onClick={() => { haptic(); updateStatus(session.id, 'completed'); }}>{t(lang, 'complete')}</button>
-                )}
-                {client && (
-                  <button className="btn-whatsapp" style={{ fontSize: 12, padding: '6px 12px' }}
-                    onClick={() => sendReminderWhatsApp(client, session, state.messageTemplates, lang, state.sessions)}>
-                    <WhatsAppIcon size={14} />
-                    {t(lang, 'remind')}
-                  </button>
-                )}
-                <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }} onClick={() => openEdit(session)}>
-                  <EditIcon size={14} />
-                  {t(lang, 'edit')}
-                </button>
-                {session.status === 'cancelled' ? (
-                  <button className="btn-confirm" style={{ fontSize: 12, padding: '6px 12px' }}
-                    onClick={() => updateStatus(session.id, 'scheduled')}>{t(lang, 'restore')}</button>
-                ) : (
-                  <button className="btn-danger-sm" onClick={() => { haptic(); cancelSession(session); }}>
-                    <TrashIcon />
-                  </button>
-                )}
-              </div>
-              {/* Focus tags — tappable, auto-save */}
-              {(() => {
-                const tags = getFocusTags(session.type);
-                const focus = session.focus || [];
-                const toggleFocus = (tag) => {
-                  const updated = focus.includes(tag) ? focus.filter(f => f !== tag) : [...focus, tag];
-                  dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, focus: updated } });
-                };
-                return (
-                  <div>
-                    <div className="focus-row">
-                      {tags.map(tag => (
-                        <button key={tag} className={`focus-tag${focus.includes(tag) ? ' active' : ''}`}
-                          onClick={() => { haptic(); toggleFocus(tag); }}>{tag}</button>
-                      ))}
-                    </div>
-                    {/* See Dashboard.jsx comment — no readOnly, iOS Safari bug */}
-                    <textarea key={session.sessionNotes || ''} className={`focus-notes${session.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
-                      defaultValue={session.sessionNotes || ''}
-                      onFocus={e => { e.target.classList.add('editing'); }}
-                      onBlur={e => {
-                        e.target.classList.remove('editing');
-                        e.target.classList.toggle('has-content', e.target.value.trim() !== '');
-                        if (e.target.value !== (session.sessionNotes || '')) {
-                          dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, sessionNotes: e.target.value } });
-                        }
-                      }}
-                    />
-                  </div>
-                );
-              })()}
-            </div>
-          );
-        })
+        <div className="srows">
+          {daySessions.map((session, idx) => {
+            const client = state.clients.find(c => c.id === session.clientId);
+            return (
+              <SessionCard key={session.id}
+                session={session} client={client} lang={lang} dispatch={dispatch}
+                countPair={getEffectiveSessionCount(client, session, state.sessions)}
+                isNow={isSessionNow(session)}
+                index={idx}
+                onRemind={(s, c) => sendReminderWhatsApp(c, s, state.messageTemplates, lang, state.sessions)}
+                onEdit={openEdit}
+                onCancel={cancelSession}
+                onRestore={(s) => updateStatus(s.id, 'scheduled')}
+              />
+            );
+          })}
+        </div>
       )}
 
       {/* Booking Modal */}
@@ -401,20 +333,6 @@ export default function Schedule({ state, dispatch, lang }) {
         <Modal title={mode === 'edit' ? t(lang, 'editSession') : t(lang, 'bookSessionBtn')}
           onClose={() => { setShowForm(false); resetRepeat(); }}
           action={bookingAction}>
-          {/* v2.10: Repeat toggle — only visible in create mode; switches client selector
-              to single-select and unlocks weekday chips + count input below time picker. */}
-          {mode !== 'edit' && (
-            <label className="repeat-toggle">
-              <input type="checkbox" checked={repeat} onChange={e => {
-                const on = e.target.checked;
-                setRepeat(on);
-                setPreview(null);
-                // Recurring is single-client only — drop extras when enabling
-                if (on) setForm(p => ({ ...p, clientIds: p.clientIds.slice(0, 1) }));
-              }} />
-              <span>{t(lang, 'repeatSessions')}</span>
-            </label>
-          )}
           {/* v2.9: banner shown when any selected client is renewal-due — informs PT that
               booking will auto-advance their package. Placed BEFORE the book button fires
               so it appears while PT is reviewing the selection. After booking the renewal
@@ -425,7 +343,7 @@ export default function Schedule({ state, dispatch, lang }) {
               false there. The PT is told to renew explicitly instead. */}
           {mode !== 'repeatPreview' && form.clientIds.some(cid => isDue(cid)) && (
             <div className="booking-renewal-banner">
-              ⚠️ {t(lang, 'packageLimitHit')} — {t(lang, mode === 'repeatConfig' ? 'repeatNoAutoRenew' : 'willAutoRenew')}
+              {t(lang, 'packageLimitHit')} — {t(lang, mode === 'repeatConfig' ? 'repeatNoAutoRenew' : 'willAutoRenew')}
             </div>
           )}
           {/* ── Preview step: hide all input fields, show checkable date rows ── */}
@@ -543,7 +461,10 @@ export default function Schedule({ state, dispatch, lang }) {
                       className={`type-btn${form.type === stype.label ? ' selected' : ''}`}
                       style={form.type === stype.label ? { borderColor: stype.color, background: `${stype.color}20`, color: stype.color } : {}}
                       onClick={() => setForm(p => ({ ...p, type: stype.label }))}>
-                      {stype.emoji} {stype.label}
+                      {/* The swatch replaces the emoji (v2.25) — the per-type colour
+                          is a legend the picker keeps, drawn instead of typed. */}
+                      <span className="type-dot" style={{ background: stype.color }} />
+                      {stype.label}
                     </button>
                   ))}
                 </div>
@@ -595,6 +516,24 @@ export default function Schedule({ state, dispatch, lang }) {
                   })}
                 </div>
               </div>
+              {/* v2.10: Repeat toggle — create mode only; switches the client selector
+                  to single-select and unlocks the weekday chips + count below.
+                  v2.25 (fresh-eyes review #5): moved from the TOP of the form to
+                  here, beside the config it unlocks — the most common booking
+                  (one client, one slot) no longer walks past a mode switch it
+                  never uses, and the client picker is the first control again. */}
+              {mode !== 'edit' && (
+                <label className="repeat-toggle">
+                  <input type="checkbox" checked={repeat} onChange={e => {
+                    const on = e.target.checked;
+                    setRepeat(on);
+                    setPreview(null);
+                    // Recurring is single-client only — drop extras when enabling
+                    if (on) setForm(p => ({ ...p, clientIds: p.clientIds.slice(0, 1) }));
+                  }} />
+                  <span>{t(lang, 'repeatSessions')}</span>
+                </label>
+              )}
               {/* ── v2.10: Weekday chips + count — only in repeat mode ── */}
               {mode === 'repeatConfig' && (
                 <>
@@ -692,7 +631,8 @@ export default function Schedule({ state, dispatch, lang }) {
                 onClick={advance}>{isLast ? t(lang, 'done') : t(lang, 'skip')}</button>
             </>}>
             <div className="success-center">
-              <div className="success-icon">✅</div>
+              {/* A drawn check on --ok, never an emoji (v2.25). */}
+              <div className="modal-mark" style={{ color: 'var(--ok)' }}><OkIcon /></div>
               <div className="success-name">{client.name}</div>
               <div className="success-detail">{formatDate(session.date, lang)} {t(lang, 'at')} {session.time}</div>
               {/* v2.8: inline override edit. Default view shows the pair + pencil; pencil toggles

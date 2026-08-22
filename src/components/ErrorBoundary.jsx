@@ -110,7 +110,7 @@ class ErrorBoundary extends React.Component {
     return (
       <div style={s.wrap}>
         <div style={s.card}>
-          <h1 style={s.title}>⚠ Something went wrong</h1>
+          <h1 style={s.title}>Something went wrong</h1>
           <p style={s.text}>
             The app hit an error and stopped. Your data is still saved in this browser.
             Download a backup before trying Reset.

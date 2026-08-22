@@ -189,103 +189,26 @@ export default function Dashboard({ state, dispatch, setTab, lang, onOpenDay }) 
         </button>
       </Bar>
 
-      {/* Expanded view: upcoming sessions with full inline functionality */}
+      {/* Expanded view: upcoming sessions with full inline functionality.
+          v2.25: the row is the shared SessionCard (review P3, scope B) —
+          Schedule renders the SAME component, so the two lists cannot drift. */}
       {expanded ? (
         upcoming.length === 0 ? emptyState('noUpcoming', 'bookSession') : (
           <div className="srows">
             {upcoming.map((session, idx) => {
-              const status = getStatus(session.status, lang, t);
               const client = state.clients.find(c => c.id === session.clientId);
-              // v2.8: effective count honours the PT's manual override for this period
-              const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
-              const pkg = client ? renewalDue.get(client.id) : undefined; // undefined for sliding (non-contract) clients
-              const tags = getFocusTags(session.type);
-              const focus = session.focus || [];
-              const isNext = isNowSession(session);
-              const toggleFocus = (tag) => {
-                const updated = focus.includes(tag) ? focus.filter(f => f !== tag) : [...focus, tag];
-                dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, focus: updated } });
-              };
               return (
-                // --i staggers the reveal; capped so row 40 doesn't wait 1.2s
-                <div key={session.id} className={`srow${isNext ? ' is-now' : ''}`} style={{ '--i': Math.min(idx, 8) }}>
-                  <div className="srow-head">
-                    <span className="srow-name">
-                      {getClientName(session.clientId)}
-                      <SessionCountPair auto={monthAuto} effective={monthCount} override={monthOverride} />
-                    </span>
-                    <span className="srow-time">{session.time}</span>
-                  </div>
-                  <div className="srow-meta">
-                    <span className="srow-mark">{session.duration}{t(lang, 'min')}</span>
-                    {/* Inline type selector — keep focus tags so switching back preserves
-                        selections. The emoji is deliberately NOT in the option label here:
-                        a <select> shows the chosen option's text on the surface, which would
-                        put an emoji back on a screen that just removed them. */}
-                    <select className="inline-type-select" value={session.type} onChange={e => {
-                      dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, type: e.target.value } });
-                    }}>
-                      {SESSION_TYPES.map(stype => <option key={stype.label} value={stype.label}>{stype.label}</option>)}
-                    </select>
-                    <span className="srow-date">
-                      {session.date === todayStr ? t(lang, 'today') : formatDate(session.date, lang)}
-                    </span>
-                    <span className={`badge badge-${session.status}`}>{status.label}</span>
-                  </div>
-                  {/* The package, as load. Sliding clients have no contract and get no
-                      plates — an empty rack would imply a package that does not exist. */}
-                  {pkg && (
-                    <div className="srow-load">
-                      <Plates used={pkg.effective} size={pkg.contractSize} due={pkg.due} />
-                      <span className="plate-count">{pkg.effective}/{pkg.contractSize}</span>
-                    </div>
-                  )}
-                  <div className="srow-actions">
-                    {(session.status === 'scheduled' || session.status === 'confirmed') && (
-                      <button className="btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }}
-                        onClick={() => { haptic(); updateStatus(session.id, 'completed'); }}>{t(lang, 'complete')}</button>
-                    )}
-                    {client && (
-                      <button className="btn-whatsapp" style={{ fontSize: 12, padding: '6px 12px' }}
-                        onClick={() => sendReminderWhatsApp(client, session, state.messageTemplates, lang, state.sessions)}>
-                        <WhatsAppIcon size={14} />
-                        {t(lang, 'remind')}
-                      </button>
-                    )}
-                    <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }}
-                      onClick={() => { setActiveSession(session); }}>
-                      <EditIcon size={14} />
-                      {t(lang, 'edit')}
-                    </button>
-                    {session.status !== 'cancelled' && (
-                      <button className="btn-danger-sm" onClick={() => { haptic(); cancelSession(session); }}>
-                        <TrashIcon />
-                      </button>
-                    )}
-                  </div>
-                  {/* Focus tags — tappable, auto-save */}
-                  <div className="focus-row" style={{ marginTop: 8 }}>
-                    {tags.map(tag => (
-                      <button key={tag} className={`focus-tag${focus.includes(tag) ? ' active' : ''}`}
-                        onClick={() => { haptic(); toggleFocus(tag); }}>{tag}</button>
-                    ))}
-                  </div>
-                  {/* NOTE: Do NOT add `readOnly` here. On iOS Safari, tapping a readonly
-                      textarea decides "no keyboard" before onFocus can run — even if onFocus
-                      sets readOnly=false. The collapsed/expanded behavior is handled entirely
-                      by the .editing CSS class, not by readOnly. */}
-                  <textarea key={session.sessionNotes || ''} className={`focus-notes${session.sessionNotes ? ' has-content' : ''}`} rows="1" placeholder={t(lang, 'notesPlaceholder')}
-                    defaultValue={session.sessionNotes || ''}
-                    onFocus={e => { e.target.classList.add('editing'); }}
-                    onBlur={e => {
-                      e.target.classList.remove('editing');
-                      e.target.classList.toggle('has-content', e.target.value.trim() !== '');
-                      if (e.target.value !== (session.sessionNotes || '')) {
-                        dispatch({ type: 'UPDATE_SESSION', payload: { id: session.id, sessionNotes: e.target.value } });
-                      }
-                    }}
-                  />
-                </div>
+                <SessionCard key={session.id}
+                  session={session} client={client} lang={lang} dispatch={dispatch}
+                  countPair={getEffectiveSessionCount(client, session, state.sessions)}
+                  pkg={client ? renewalDue.get(client.id) : undefined} // undefined for sliding (non-contract) clients
+                  isNow={isSessionNow(session)}
+                  index={idx}
+                  dateLabel={session.date === todayStr ? t(lang, 'today') : formatDate(session.date, lang)}
+                  onRemind={(s, c) => sendReminderWhatsApp(c, s, state.messageTemplates, lang, state.sessions)}
+                  onEdit={(s) => setActiveSession(s)}
+                  onCancel={cancelSession}
+                />
               );
             })}
           </div>
@@ -300,7 +223,7 @@ export default function Dashboard({ state, dispatch, setTab, lang, onOpenDay }) 
               // v2.8: effective count honours the PT's manual override for this period
               const { auto: monthAuto, effective: monthCount, override: monthOverride } = getEffectiveSessionCount(client, session, state.sessions);
               const pkg = client ? renewalDue.get(client.id) : undefined;
-              const isNext = isNowSession(session);
+              const isNext = isSessionNow(session);
               return (
                 <div key={session.id} className={`srow srow-tap${isNext ? ' is-now' : ''}`}
                   style={{ '--i': Math.min(idx, 8) }}
@@ -332,10 +255,38 @@ export default function Dashboard({ state, dispatch, setTab, lang, onOpenDay }) 
         )
       )}
 
+      {/* Due for renewal — BELOW the upcoming list since v2.25 (fresh-eyes
+          review #1): the thumb's question between sets is "who is next, right
+          now", and a renewal block above the list cost that glance a scroll.
+          Renewal is urgent but not more frequent than the next session. */}
+      {renewalDueClients.length > 0 && (
+        <div className="dashboard-renewal-section">
+          <Bar label={t(lang, 'dueForRenewal')} count={renewalDueClients.length} />
+          {renewalDueClients.map(c => {
+            const { effective, contractSize } = renewalDue.get(c.id);
+            return (
+              <div key={c.id} className="rrow">
+                <div className="rrow-main">
+                  <div className="rrow-name">{c.name}</div>
+                  {/* 🔴 Every plate on the accent: this package is spent. The accent
+                      means load and urgency and nothing else — never chrome. */}
+                  <div className="rrow-load">
+                    <Plates used={effective} size={contractSize} due />
+                    <span className="plate-count">{effective}/{contractSize}</span>
+                  </div>
+                </div>
+                <button className="btn-renew" onClick={() => { haptic(); setRenewClient(c); }}>
+                  {t(lang, 'renewContract')}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Action Sheet Modal */}
       {activeSession && (() => {
         const session = activeSession;
-        const st = getSessionType(session.type);
         const status = getStatus(session.status, lang, t);
         const client = state.clients.find(c => c.id === session.clientId);
         return (
@@ -350,7 +301,7 @@ export default function Dashboard({ state, dispatch, setTab, lang, onOpenDay }) 
             <div style={{ textAlign: 'center', padding: '8px 0 16px' }}>
               <span className={`badge badge-${session.status}`} style={{ fontSize: 14, padding: '6px 14px' }}>{status.label}</span>
               <div style={{ marginTop: 12, color: 'var(--t3)', fontSize: 15 }}>
-                {st.emoji} {session.type} · {session.duration}{t(lang, 'min')}
+                {session.type} · {session.duration}{t(lang, 'min')}
               </div>
               <div style={{ marginTop: 4, color: 'var(--t3)', fontSize: 15 }}>
                 {formatDateLong(session.date, lang)} {t(lang, 'at')} {session.time}
@@ -399,7 +350,10 @@ export default function Dashboard({ state, dispatch, setTab, lang, onOpenDay }) 
                   className={`type-btn${form.type === stype.label ? ' selected' : ''}`}
                   style={form.type === stype.label ? { borderColor: stype.color, background: `${stype.color}20`, color: stype.color } : {}}
                   onClick={() => setForm(p => ({ ...p, type: stype.label }))}>
-                  {stype.emoji} {stype.label}
+                  {/* The swatch replaces the emoji (v2.25): the per-type colour is a
+                      legend the picker keeps — the drawn dot carries it, no emoji. */}
+                  <span className="type-dot" style={{ background: stype.color }} />
+                  {stype.label}
                 </button>
               ))}
             </div>

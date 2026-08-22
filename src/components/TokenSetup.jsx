@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { SpotSetMark } from './Icons';
 import { validateToken, saveToken, DEMO_TOKEN } from '../sync';
 import { anyLocalDataExists, saveData } from '../utils';
 import { buildDemoData } from '../demoData';
@@ -112,13 +113,10 @@ export default function TokenSetup({ onConnected, lang }) {
     //    one subtitle; not now that it holds a form.
     <div className="setup-container" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="setup-card">
+        {/* The SpotSet mark (v2.25): a figure from the app's own library —
+            the placeholder dumbbell is retired. */}
         <div className="logo-icon setup-logo">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6.5 6.5h11M6.5 17.5h11"/>
-            <rect x="2" y="5" width="4.5" height="14" rx="1.5"/>
-            <rect x="17.5" y="5" width="4.5" height="14" rx="1.5"/>
-            <line x1="4.25" y1="12" x2="19.75" y2="12"/>
-          </svg>
+          <SpotSetMark size={32} />
         </div>
         <h2 className="setup-title">SpotSet</h2>
         <p className="setup-sub">{showSignIn ? t(lang, 'signInSubtitle') : t(lang, 'tokenSubtitle')}</p>

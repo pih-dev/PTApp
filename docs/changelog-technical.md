@@ -4,6 +4,63 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.25 - design refinement round + the mark (B3) (2026-08-22)
+
+The two non-figure items queued in the 2026-08-22 brief, run at xhigh on Fable 5.
+
+**The mark.** `scripts/logo-candidates.mjs` renders real library poses
+(`figureFor` → `figureSvg(detail:'mark')`), tight-crops them, and can `--freeze`
+one into `src/spotsetMark.js` as a static string — the logo must not move when a
+pose is tuned, so the app never renders it live. `SpotSetMark` (Icons.jsx) wraps
+it; App header + TokenSetup use it. Candidates sheet: tmp/logo-candidates.html
+(+ published artifact for Pierre's pick). +9 KB bundle.
+
+**Fresh-eyes structure review** (the stripped-formatting rule from KNOWN
+ISSUES, first run): findings + triage in
+docs/design/2026-08-22-fresh-eyes-structure-review.md. Shipped from it:
+upcoming-above-renewals on Home (#1), tappable week columns deep-linking to a
+Schedule day (#9, `initialDate` prop + App-held `scheduleDate` cleared on nav),
+Repeat toggle moved beside the config it unlocks (#5), General reordered with
+the dev to-do last (#12). Parked for Pierre: money tracking, Sessions-tab
+rethink, package vocabulary, editors-off-the-rows, confirm loop, eval-section
+order.
+
+**Coherence sweep (P3 scope B included).** New shared `SessionCard` renders the
+Dashboard-expanded and Schedule rows (pure leaf, callbacks up, type-change
+preserves focus tags); `Bar`/`Plates` extracted to their own files;
+`isSessionNow` moved to utils so "now" is one rule on both tabs — Schedule rows
+gain the live accent bar. Schedule/Clients/Sessions heads → `Bar`; General →
+`.subbar` + tokenised `.notice` classes. Week strip restyled: boxes out, bar
+shafts under transparent columns, selection = raised fill + chalk underline.
+Every interface emoji replaced by drawn marks (OkIcon added; type-dot swatches
+keep the picker's per-type colour legend). Dead CSS deleted: `.section-title`,
+`.section-header`, `.success-icon`, `.empty-icon`, `.card-now`, and the
+orphaned theme-era declarations that had sat unparsed since v2.17.
+
+---
+
+## v2.24.1 - equipment blue saturated (2026-08-22)
+
+`--equipment` #6E9BD8→#4D8DE8 (midnight), #33598F→#2D66C4 (steel), opacity
+0.6→0.85 in svg.js — the translucent steel blue read as "grayed out" beside the
+vivid green/orange on Pierre's phone. (Backfilled entry: shipped from the
+figures session without a changelog line.)
+
+---
+
+## v2.24 - direct gestures, colour roles, fault muscles (2026-08-22)
+
+Figures brief items 1, 2, 3b, 4, 5: pinch zooms 1–3× continuously and drag
+always turns (`touch-action: none` on the figure block — Pierre ruled the sheet
+need not scroll from the art); zoom anchors on the fault joint (`zoomAnchor()`,
+shared by both halves); colour ruling green held / blue equipment / orange
+stress; `--equipment` token added to both skins + sanity-skins; 8 of 44
+archetypes declare `faultMuscles` (mechanism done, the other 36 are Pierre's
+judging job). Detail: instructions-v2.24.md, HANDOFF-figures.md §0.
+(Backfilled entry: shipped from the figures session without a changelog line.)
+
+---
+
 ## v2.23.2 - zoom on every pair, logo to library (2026-08-22)
 
 Round 2 of the staged path to Pierre's stated destination ("eventually 3D

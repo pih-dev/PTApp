@@ -13,7 +13,7 @@ import { SKINS } from '../skins';
 // the in-app "App Instructions" button silently served stale docs. Bumping this
 // is now an explicit step in the CLAUDE.md deploy checklist.
 const DOCS = {
-  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.24.md',
+  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.25.md',
   changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
 };
 
@@ -209,14 +209,11 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
         </button>
       </div>
 
-      {/* In-app notification banner — replaces native alert() */}
+      {/* In-app notification banner — replaces native alert(). v2.25: painted
+          by the .notice classes from tokens — the literal green/red pair here
+          belonged to no skin and read wrong on steel. */}
       {notification && (
-        <div style={{
-          padding: '10px 14px', marginBottom: 12, borderRadius: 8, fontSize: 13, fontWeight: 500,
-          background: notification.type === 'error' ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)',
-          color: notification.type === 'error' ? '#EF4444' : '#10B981',
-          border: `1px solid ${notification.type === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`,
-        }}>
+        <div className={`notice ${notification.type === 'error' ? 'notice-warn' : 'notice-ok'}`}>
           {notification.text}
         </div>
       )}
@@ -225,7 +222,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
           the charts and the docs. 🔴 Order is Pierre's (2026-08-22): frequently
           used ABOVE housekeeping. */}
       <div>
-        <div className="section-title" style={{ marginTop: 20 }}>{t(lang, 'referenceTitle')}</div>
+        <div className="subbar">{t(lang, 'referenceTitle')}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {/* The library is first because it is the one opened during a session. */}
           <button className="btn-secondary" style={{ fontSize: 13, padding: '12px 14px' }}
@@ -251,7 +248,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
 
       {/* Backup section */}
       <div style={{ marginBottom: 20 }}>
-        <div className="section-title" style={{ marginTop: 20 }}>{t(lang, 'backupTitle')}</div>
+        <div className="subbar">{t(lang, 'backupTitle')}</div>
 
         <div className="flex-row" style={{ gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
           <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
@@ -408,9 +405,49 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
         </div>
       </div>
 
+      {/* WhatsApp message templates — editable by PT */}
+      <div style={{ marginBottom: 20 }}>
+        <div className="subbar">{t(lang, 'waTitle')}</div>
+        <div style={{ fontSize: 11, color: 'var(--t4)', marginBottom: 10 }}>
+          {t(lang, 'waPlaceholders')} {'{name}'} {'{type}'} {'{emoji}'} {'{date}'} {'{time}'} {'{duration}'} {'{number}'} {'{periodEnd}'}
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--t3)', marginBottom: 4 }}>{t(lang, 'bookingMsg')}</div>
+          <textarea className="focus-notes" rows="6"
+            key={`booking-${JSON.stringify(state.messageTemplates?.booking || '')}`}
+            defaultValue={(state.messageTemplates && state.messageTemplates.booking) || DEFAULT_TEMPLATES[lang || 'en'].booking}
+            onBlur={e => {
+              const val = e.target.value.trim();
+              dispatch({ type: 'SET_TEMPLATES', payload: { ...state.messageTemplates, booking: val || undefined } });
+            }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--t3)', marginBottom: 4 }}>{t(lang, 'reminderMsg')}</div>
+          <textarea className="focus-notes" rows="4"
+            key={`reminder-${JSON.stringify(state.messageTemplates?.reminder || '')}`}
+            defaultValue={(state.messageTemplates && state.messageTemplates.reminder) || DEFAULT_TEMPLATES[lang || 'en'].reminder}
+            onBlur={e => {
+              const val = e.target.value.trim();
+              dispatch({ type: 'SET_TEMPLATES', payload: { ...state.messageTemplates, reminder: val || undefined } });
+            }}
+          />
+        </div>
+
+        <button className="btn-ghost" style={{ fontSize: 11, padding: '6px 10px' }}
+          onClick={() => {
+            dispatch({ type: 'SET_TEMPLATES', payload: {} });
+            setNotification({ text: t(lang, 'templatesReset'), type: 'success' });
+          }}>
+          {t(lang, 'resetDefaults')}
+        </button>
+      </div>
+
       {/* To-do list — shared between PT and developer */}
       <div style={{ marginBottom: 20 }}>
-        <div className="section-title" style={{ marginTop: 20 }}>{t(lang, 'todoTitle')}</div>
+        <div className="subbar">{t(lang, 'todoTitle')}</div>
 
         {(state.todos || []).length === 0 && (
           <div style={{ fontSize: 13, color: 'var(--t4)', marginBottom: 8 }}>{t(lang, 'noItems')}</div>
@@ -424,7 +461,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
             {/* Done toggle — checkbox */}
             <button onClick={() => { haptic(); dispatch({ type: 'TOGGLE_TODO', payload: todo.id }); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: 2,
-                color: todo.done ? '#10B981' : 'var(--t4)' }}>
+                color: todo.done ? 'var(--ok)' : 'var(--t4)' }}>
               {todo.done ? (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="3" fill="currentColor" opacity="0.15"/>
@@ -484,46 +521,6 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
             {t(lang, 'add')}
           </button>
         </div>
-      </div>
-
-      {/* WhatsApp message templates — editable by PT */}
-      <div style={{ marginBottom: 20 }}>
-        <div className="section-title" style={{ marginTop: 20 }}>{t(lang, 'waTitle')}</div>
-        <div style={{ fontSize: 11, color: 'var(--t4)', marginBottom: 10 }}>
-          {t(lang, 'waPlaceholders')} {'{name}'} {'{type}'} {'{emoji}'} {'{date}'} {'{time}'} {'{duration}'} {'{number}'} {'{periodEnd}'}
-        </div>
-
-        <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--t3)', marginBottom: 4 }}>{t(lang, 'bookingMsg')}</div>
-          <textarea className="focus-notes" rows="6"
-            key={`booking-${JSON.stringify(state.messageTemplates?.booking || '')}`}
-            defaultValue={(state.messageTemplates && state.messageTemplates.booking) || DEFAULT_TEMPLATES[lang || 'en'].booking}
-            onBlur={e => {
-              const val = e.target.value.trim();
-              dispatch({ type: 'SET_TEMPLATES', payload: { ...state.messageTemplates, booking: val || undefined } });
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--t3)', marginBottom: 4 }}>{t(lang, 'reminderMsg')}</div>
-          <textarea className="focus-notes" rows="4"
-            key={`reminder-${JSON.stringify(state.messageTemplates?.reminder || '')}`}
-            defaultValue={(state.messageTemplates && state.messageTemplates.reminder) || DEFAULT_TEMPLATES[lang || 'en'].reminder}
-            onBlur={e => {
-              const val = e.target.value.trim();
-              dispatch({ type: 'SET_TEMPLATES', payload: { ...state.messageTemplates, reminder: val || undefined } });
-            }}
-          />
-        </div>
-
-        <button className="btn-ghost" style={{ fontSize: 11, padding: '6px 10px' }}
-          onClick={() => {
-            dispatch({ type: 'SET_TEMPLATES', payload: {} });
-            setNotification({ text: t(lang, 'templatesReset'), type: 'success' });
-          }}>
-          {t(lang, 'resetDefaults')}
-        </button>
       </div>
 
       {/* In-app document viewer — renders markdown natively */}

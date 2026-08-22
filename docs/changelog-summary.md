@@ -4,6 +4,37 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.25 - the design round, and the app's own mark (August 22, 2026)
+
+The logo is now a real figure from the movement library — the deadlift hinge —
+instead of the placeholder dumbbell. Home puts the next session above renewals,
+and tapping a day in the week figure opens Schedule on that day. Every screen
+now opens with the same bar head, the Schedule week strip lost its grey boxes,
+the session rows on Home and Schedule are one shared component, the Repeat
+toggle moved down beside the options it unlocks, and the last emojis in the
+interface were replaced with drawn marks. Full detail: instructions-v2.25.md.
+
+---
+
+## v2.24.1 - the equipment blue, brightened (August 22, 2026)
+
+Phone review: the equipment blue read as grayed-out next to the vivid green and
+orange. It now sits in the same saturated family (and is more opaque) in both
+skins.
+
+---
+
+## v2.24 - the figure obeys the finger, and every colour means one thing (August 22, 2026)
+
+Pinch zooms continuously, one finger always turns, and the zoom lands on the
+joint being taught instead of the hips. Green = form held, orange = form lost
+and where it stresses, blue = the equipment, crimson/violet = the muscles. On
+eight patterns the wrong figure now highlights the muscles that position
+actually loads — a rounded deadlift lights the erectors and forearms, not the
+glutes. Full detail: instructions-v2.24.md.
+
+---
+
 ## v2.23.2 - zoom on every figure, and the logo opens the library (August 22, 2026)
 
 Tap SpotSet in the header and the movement library opens. It was the one thing

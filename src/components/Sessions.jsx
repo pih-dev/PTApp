@@ -4,6 +4,7 @@ import { formatDate, SESSION_TYPES, getEffectiveSessionCount, getFocusTags, DURA
 import SessionCountPair from './SessionCountPair';
 import { t } from '../i18n';
 import { BarMark } from './Icons';
+import Bar from './Bar';
 
 // Editable focus tags + notes for completed sessions
 function EditableFocus({ session, dispatch, lang }) {
@@ -59,7 +60,7 @@ export default function Sessions({ state, dispatch, lang }) {
 
   return (
     <div>
-      <div className="section-title" style={{ marginTop: 16 }}>{t(lang, 'allSessions')} ({sorted.length})</div>
+      <Bar label={t(lang, 'allSessions')} count={sorted.length} />
       <div className="filter-row">
         {['active', 'all', 'scheduled', 'completed', 'cancelled'].map(f => (
           <button key={f} className={`filter-btn${filter === f ? ' active' : ''}`} onClick={() => { haptic(); setFilter(f); }}>

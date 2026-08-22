@@ -6,6 +6,7 @@ import Schedule from './components/Schedule';
 import Sessions from './components/Sessions';
 import TokenSetup from './components/TokenSetup';
 import TokenUpdateModal from './components/TokenUpdateModal';
+import { SpotSetMark } from './components/Icons';
 import General from './components/General';
 import { reducer, loadData, saveData, today, timeToMinutes, haptic, initElasticScroll, mergeData, dataEquals } from './utils';
 import { getToken, fetchRemoteData, pushRemoteData, isDemo, resetConcurrencyTokens } from './sync';
@@ -36,6 +37,11 @@ const debouncedSync = (token, data, onStatus, onTokenExpired) => {
 export default function App() {
   const [state, dispatch] = useReducer(reducer, null, loadData);
   const [tab, setTab] = useState('home');
+  // v2.25: a Dashboard week column deep-links to its day in Schedule. The date
+  // is an INITIAL value only (Schedule remounts per tab entry); tapping the nav
+  // clears it so a later manual visit opens on today, not a stale deep link.
+  const [scheduleDate, setScheduleDate] = useState(null);
+  const openScheduleDay = (date) => { setScheduleDate(date); setTab('schedule'); };
   const [showGeneral, setShowGeneral] = useState(false);
   // 🔴 THE LOGO OPENS THE LIBRARY (Pierre, 2026-08-22). It is the one thing on
   //    the header that did nothing, and the movement library is the screen a PT
@@ -269,14 +275,10 @@ export default function App() {
             onClick={() => setShowLibrary(true)}
             aria-label={t(lang, 'movementLibrary')}
           >
+          {/* The SpotSet mark (B3, v2.25): the library's own hinge silhouette,
+              frozen — see src/spotsetMark.js. The dumbbell placeholder is retired. */}
           <div className="logo-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="6" y1="12" x2="18" y2="12"/>
-              <rect x="3.5" y="7.5" width="3" height="9" rx="1.2"/>
-              <rect x="17.5" y="7.5" width="3" height="9" rx="1.2"/>
-              <rect x="1" y="9" width="2.5" height="6" rx="1"/>
-              <rect x="20.5" y="9" width="2.5" height="6" rx="1"/>
-            </svg>
+            <SpotSetMark size={26} />
           </div>
           <div>
             <div className="logo-text">SpotSet</div>
@@ -317,9 +319,9 @@ export default function App() {
       )}
 
       <div className="content" ref={contentRef}>
-        {tab === 'home' && <Dashboard state={state} dispatch={dispatch} setTab={setTab} lang={lang} />}
+        {tab === 'home' && <Dashboard state={state} dispatch={dispatch} setTab={setTab} lang={lang} onOpenDay={openScheduleDay} />}
         {tab === 'clients' && <Clients state={state} dispatch={dispatch} lang={lang} />}
-        {tab === 'schedule' && <Schedule state={state} dispatch={dispatch} lang={lang} />}
+        {tab === 'schedule' && <Schedule state={state} dispatch={dispatch} lang={lang} initialDate={scheduleDate} />}
         {tab === 'sessions' && <Sessions state={state} dispatch={dispatch} lang={lang} />}
       </div>
 
@@ -345,7 +347,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.24.1</div>
+          <div><strong>Version:</strong> v2.25</div>
           <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>
@@ -360,7 +362,7 @@ export default function App() {
 
       <div className="nav">
         {tabs.map(tb => (
-          <button key={tb.id} className={`nav-btn${tab === tb.id ? ' active' : ''}`} onClick={() => { haptic(); setTab(tb.id); }}>
+          <button key={tb.id} className={`nav-btn${tab === tb.id ? ' active' : ''}`} onClick={() => { haptic(); setScheduleDate(null); setTab(tb.id); }}>
             {tb.icon}
             {tb.label}
           </button>
