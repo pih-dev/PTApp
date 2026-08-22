@@ -14,7 +14,15 @@ at each milestone. A restart could end the session at any moment.
 
 ## 0. Status — read this out
 
-- 🟢 **BUILT AND SHIPPED — v2.22.0, the pilot six.** Back Squat · Deadlift · Chest Press Machine ·
+- 🟢 **ALL 340 MOVEMENTS HAVE FIGURES — v2.23.0.** Composed from **44 patterns**: the pattern owns
+  the pose and the fault, the movement contributes its muscles (from the bank) and its equipment
+  (from its name). 100% bank coverage is a build gate. Cost 37 KB for the whole library.
+  **Text is keyed by pattern too — Elie reviews 44, not 340**, and every entry prints "Not reviewed"
+  until he has.
+- 🔴 **WEAKEST THREE PATTERNS, judged on the contact sheet:** `leg-raise`, `wrist-curl`, `rotation`.
+  Not broken, just weaker than the other 41 — the first place to spend time.
+  `node scripts/figures-contact.mjs` builds that sheet.
+- 🟢 **v2.22.0, the pilot seven (superseded by the above).** Back Squat · Deadlift · Chest Press Machine ·
   Pull-Up · Barbell Curl · Leg Press. Each has the pair (correct + one fault, ringed on the joint
   that takes it) and three sentences — the fault, the risk, the cue — in English and Arabic.
   Live on gh-pages. The other 334 movements are untouched: no figure, no placeholder.

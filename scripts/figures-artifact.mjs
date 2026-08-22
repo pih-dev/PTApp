@@ -111,7 +111,6 @@ const movement = (name) => {
   return `<section class="mv">
     <header><h2>${name}</h2></header>
     ${pairBlock(name, 'midnight')}
-    ${pairBlock(name, 'steel')}
     ${markRow(name)}
     <div class="txt">
       <p><b>The fault</b> ${t.flaw}</p>
@@ -136,7 +135,7 @@ const KEY = [
 //    makes a browser guess — and it guesses latin-1, turning every Arabic cue
 //    into mojibake. One tag, and the page is correct wherever it is opened.
 const html = `<meta charset="utf-8">
-<title>One Library Or Seven Drawings</title>
+<title>One Library Or 340 Drawings</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Saira:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -241,9 +240,10 @@ const html = `<meta charset="utf-8">
 </style>
 <div class="wrap">
   <div>
-    <h1>One library, or seven drawings?</h1>
-    <p class="sub">All seven correct figures on one ground. If one of them does not look like it was
-      drawn by the same hand as the other six, that is the finding.</p>
+    <h1>One library, or 340 drawings?</h1>
+    <p class="sub">All 340 movements are drawn now, from 44 patterns. Here is one figure per pattern on
+      one ground — if any of them does not look like it was drawn by the same hand as the rest,
+      that is the finding.</p>
   </div>
 
   ${contact('midnight')}
@@ -258,12 +258,12 @@ const html = `<meta charset="utf-8">
   <div class="check">
     <h3>What to check, and what to reply</h3>
     <ol>
-      <li><b>One hand.</b> Same proportions, same weight of line, same amount of equipment across all seven?</li>
-      <li><b>The 22px mark.</b> In the rows above &mdash; can you tell the movements apart, or are they seven grey smudges?</li>
+      <li><b>One hand.</b> Same proportions, same weight of line, same amount of equipment across all 44?</li>
+      <li><b>The 22px mark.</b> In the rows above &mdash; can you tell the movements apart, or are they grey smudges?</li>
       <li><b>Both skins.</b> Does anything that reads on midnight stop reading on steel?</li>
       <li><b>The pair.</b> In the appendix, is the fault obvious <em>without</em> reading the sentence under it?</li>
     </ol>
-    <p class="verdict">Reply with the figure that breaks it &mdash; or &ldquo;scale it&rdquo;.</p>
+    <p class="verdict">Reply with the pattern that breaks it. The weakest three are already named below.</p>
   </div>
 
   <div class="key" style="${skinVars('midnight')}">
@@ -271,7 +271,11 @@ const html = `<meta charset="utf-8">
   </div>
 
   <div class="open">
-    <h3>Two things still open</h3>
+    <h3>What is still open</h3>
+    <p><b>Three patterns read weakest</b>, judged on the contact sheet: <b>leg raise</b> (the legs
+      read flatter than they are), <b>wrist curl</b> (the plate is drawn at barbell scale) and
+      <b>rotation</b> (a twist is hard to show without a second camera). They are the first place to
+      spend time, and none of them is broken — just weaker than the other 41.</p>
     <p><b>The Leg Press fault may be the wrong one.</b> It currently draws the knee snapped into
       lockout. A biomechanics review argues the more common and more serious error is going too deep
       &mdash; the pelvis peeling off the seat pad and the lower back rounding under the sled.
