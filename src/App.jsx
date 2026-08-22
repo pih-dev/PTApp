@@ -7,6 +7,7 @@ import Sessions from './components/Sessions';
 import TokenSetup from './components/TokenSetup';
 import TokenUpdateModal from './components/TokenUpdateModal';
 import { SpotSetMark, SpotSetBackdrop } from './components/Icons';
+import Splash from './components/Splash';
 import General from './components/General';
 import { reducer, loadData, saveData, today, timeToMinutes, haptic, initElasticScroll, mergeData, dataEquals } from './utils';
 import { getToken, fetchRemoteData, pushRemoteData, isDemo, resetConcurrencyTokens } from './sync';
@@ -42,6 +43,12 @@ export default function App() {
   // clears it so a later manual visit opens on today, not a stale deep link.
   const [scheduleDate, setScheduleDate] = useState(null);
   const openScheduleDay = (date) => { setScheduleDate(date); setTab('schedule'); };
+  // v2.27: the opening. Reduced-motion users never see it — the guard is here,
+  // not in the component, so their launch pays zero mount cost.
+  const [showSplash, setShowSplash] = useState(() => {
+    try { return !window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+    catch { return true; }
+  });
   const [showGeneral, setShowGeneral] = useState(false);
   // 🔴 THE LOGO OPENS THE LIBRARY (Pierre, 2026-08-22). It is the one thing on
   //    the header that did nothing, and the movement library is the screen a PT
@@ -269,6 +276,7 @@ export default function App() {
     <div className="app-container" data-skin={skin} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       {/* First child on purpose: every later sibling paints over it. */}
       <SpotSetBackdrop />
+      {showSplash && <Splash onDone={() => setShowSplash(false)} />}
       <div className="header">
         <div className="logo">
           <button
@@ -349,7 +357,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.26</div>
+          <div><strong>Version:</strong> v2.27</div>
           <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>

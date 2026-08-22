@@ -4,6 +4,32 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.27 - the opening + the icon set (2026-08-22)
+
+**The opening.** Splash.jsx renders the frozen mark once per launch: overlay on
+the ground gradient, halves stagger (opacity-only on nested <svg> — Safari),
+lines draw via `pathLength="100"` + dashoffset (hooks now baked into the
+frozen mark by the freeze pipeline), ring pops (transform-box: fill-box),
+wordmark rises; 1.4s total, tap skips, matchMedia guard in App plus a CSS belt
+means prefers-reduced-motion pays zero cost. The SOUND hook is a documented
+comment in Splash.jsx — Atmos-style hit at the Capacitor stage; web autoplay
+is blocked by policy.
+
+**Icons.** `--export` mode added to logo-candidates.mjs: flattens the mark's
+tokens to the midnight skin's LIVE values (read from styles.css at export
+time), composes icon-512 / adaptive-fg-512 / ios-1024 / apple-touch-180, and
+rasterises via sharp (devDependency) to _archive/PTApp/branding/. Shipped:
+public/icon-512.png + public/apple-touch-icon.png, manifest.json rewritten
+(PNG icons, any+maskable, #0A1524 — the old inline dumbbell on #2563EB is
+gone), apple-touch-icon link added to index.html. 🔴 Deploy now copies FIVE
+files to gh-pages (the two icons join index/sw/manifest) — pipeline updated in
+CLAUDE.md.
+
+**Parked (Pierre):** the "S" arrangement of the pair (next logo round); money
+tracking (no in-app payments — nothing store-mandated).
+
+---
+
 ## v2.26 - the mark is the facing pair + the backdrop (2026-08-22)
 
 Pierre picked `pair-off-colour` from the round-2 sheet (his own compile made

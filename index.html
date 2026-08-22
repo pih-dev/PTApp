@@ -8,6 +8,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#0A1524" />
   <link rel="manifest" href="/manifest.json" />
+  <!-- v2.27: iOS home-screen icon — the facing-pair mark. iOS ignores manifest
+       icons, so without this link the PWA icon on the PT's iPhone was whatever
+       Safari scraped. A real PNG on gh-pages (deploy copies it). -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
   <title>SpotSet — Personal Trainer</title>

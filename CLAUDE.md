@@ -44,11 +44,11 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.26
-**The logo is THE FACING PAIR (Pierre's pick) + the backdrop.** 🔴 **Mark and backdrop are FROZEN in `src/spotsetMark.js`** (`--freeze pair-off-colour --freeze-bg pair-off-lines`) — never render them live (a logo must not move when a pose is tuned). The mono pair sits faint behind every screen (`.app-bg`). 🔴 **The figure-token-in-UI rule has ONE sanctioned exception: this mark — it IS a figure.** Detail: `docs/instructions-v2.26.md`.
+## Current Version: v2.27
+**The opening + the icon set.** `Splash.jsx` performs the mark once per launch — tap skips, reduced-motion never mounts it, the SOUND hook is a comment there (native stage). Icons: `--export` → `public/icon-512.png` + `apple-touch-icon.png`, manifest rewritten. 🔴 **Mark + backdrop are FROZEN in `src/spotsetMark.js`** (`--freeze pair-off-colour --freeze-bg pair-off-lines`) — never render them live; the freeze bakes the `pm-*` animation hooks. 🔴 **Figure-tokens-in-UI has ONE sanctioned exception: the mark — it IS a figure.** Detail: `docs/instructions-v2.27.md`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
-All 340 movements have the FORM panel: the pair, the posture line, colour-coded muscles, a key, three sentences EN+AR. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
+All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
 - 🔴 **A MOVEMENT IS NOT THE UNIT OF DRAWING — A PATTERN IS.** 44 archetypes (`figures/archetypes.js`) own the pose and the fault; the movement contributes its **muscles from the bank** and its **equipment from its NAME**. `classify.js` maps all 340, first-match-wins, **and 100% coverage is a build gate** — an unclassified movement silently shows nothing. 🔴 Its ORDER is the logic: "external rotation" must beat "rotation".
 - 🔴 **A FIGURE IS ANGLES, NEVER COORDINATES** — `canon.js` owns every bone length and the only FK function, so §7.13 (*the wrong figure reuses the same bone lengths*) holds **by construction across all 340**. `fs` (projection) is the one escape hatch and must be IDENTICAL across a pair; `sanity-figures` asserts it, plus no colour literal, no NaN path, hip at half standing height.
 - 🔴 **SAY WHAT THE POSITION DOES, NEVER WHAT IT CAUSES.** `figureText.js` is keyed by PATTERN (44 entries — that is what makes Elie's review possible at all). **No named pathology, no evidence-grade adverb**; the build FAILS on either. **The Arabic may never be stronger than the English.** 🔴 **A REVIEW FLAG NOTHING RENDERS IS NOT A REVIEW PROCESS** — every entry is `reviewed: false` and the panel prints it.
@@ -73,9 +73,10 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 ## Version History
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules in force live in TRAPS / CONVENTIONS, never here.
 
-- **v2.17–v2.20.1** (08-21/22) — THE DESIGN PASS, five stages: skins, Dashboard, shell, deep screens, press affordance. → `v2.17`…`v2.20.1`
+- **v2.17–v2.20.1** (08-21/22) — THE DESIGN PASS, five stages. → `v2.17`…`v2.20.1`
 - **v2.21–v2.24.1** (08-22) — the movement library, then the figures: pilot → all 340 from 44 patterns, gestures, colour roles, fault muscles. → `v2.21`…`v2.24.md`
-- **v2.25–v2.25.3** (08-22) — the design refinement round: bar heads everywhere, shared SessionCard (P3), week strip de-boxed, emojis out, fresh-eyes review; then the equipment-blue passes. → `v2.25`…`v2.25.3`
+- **v2.25–v2.25.3** (08-22) — the design refinement round (bar heads, shared SessionCard/P3, emojis out, fresh-eyes) + the equipment-blue passes. → `v2.25`…`v2.25.3`
+- **v2.26** (08-22) — the FACING-PAIR logo (Pierre's pick) + the faint mono backdrop. → `v2.26`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
@@ -173,9 +174,9 @@ Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` r
 - 🔴 **THE DESTINATION IS 3D THAT ROTATES AND ZOOMS, REACHED A ROUND AT A TIME** (Pierre, 08-22). Stages and state: `docs/2026-08-22-figures-3d-options.md`. **Zoom is DOUBLE-TAP, not pinch** — pinch needs `touch-action: none` and the sheet must keep its vertical scroll; pinch comes with the 3D rig. **One gesture, two jobs, decided by `zoom`**: zoomed out it turns, zoomed in it pans.
 - **The header logo opens the movement library** (`.logo-btn` in `App.jsx`). General's entry stays — a shortcut, not a move.
 - **NEXT ROTATION CANDIDATES, in order:** the squat (valgus is frontal; the pair is already front-on, so it would gain the profile), rows, the rotation patterns. Options and costs: `docs/2026-08-22-figures-3d-options.md`.
-- **The 2026-08-22 brief:** the **figures' next round runs in the CCHealth session** (`HANDOFF-figures.md` — this session must NOT touch `src/figures/*`, `Figure.jsx`, `MovementSheet.jsx`, `figureText.js`); the design round + logo shipped as v2.25. Brief rulings that are LAW: 🔴 **the movement card FITS, never scrolls** · 🔴 **the fault figure highlights DIFFERENT muscles**. Open from B3: Pierre picks the mark — round 2 is the FACING PAIR ("> <"; swap = `--freeze <id>` + rebuild) — then Play/iOS icons + favicon, then an ANIMATED mark + THX/Atmos-style opening sound (native stage).
+- **The 2026-08-22 brief:** the **figures' next round runs in the CCHealth session** (`HANDOFF-figures.md` — this session must NOT touch `src/figures/*`, `Figure.jsx`, `MovementSheet.jsx`, `figureText.js`); the design round + logo shipped as v2.25. Brief rulings that are LAW: 🔴 **the movement card FITS, never scrolls** · 🔴 **the fault figure highlights DIFFERENT muscles**. B3: mark picked, animation + icons shipped (v2.27). Open: the SOUND (native) · the "S" idea — the pair arranged to read as SpotSet's S · store uploads: `_archive/PTApp/branding/`.
 - 🔴 **TWO SESSIONS SHARE THIS TREE: stage EXPLICIT paths only (never `git add -A`); never `git checkout gh-pages` here — deploy via a separate `git worktree`.**
-- 🔴 **FRESH EYES, STRIPPED-STRUCTURE (standing rule):** before a design is called done, a subagent that has never seen it — Fable 5, max effort, ALL formatting stripped — argues the opposite: what is missing, what earns nothing, is the order wrong. First run (v2.25): `docs/design/2026-08-22-fresh-eyes-structure-review.md` — **parked findings (money tracking above all) await Pierre.**
+- 🔴 **FRESH EYES, STRIPPED-STRUCTURE (standing rule):** before a design is called done, a subagent that has never seen it — Fable 5, max effort, ALL formatting stripped — argues the opposite: what is missing, what earns nothing, is the order wrong. First run (v2.25): `docs/design/2026-08-22-fresh-eyes-structure-review.md` — money tracking DEFERRED (no in-app payments); the rest await Pierre.
 
 ---
 
@@ -196,20 +197,17 @@ npm run build
 node scripts/verify-bundle.mjs
 
 # 3. Bump the version in the App.jsx debug panel; rebuild if changed. Feature
-#    releases: also bump DOCS.instructions in General.jsx (it served v2.9 docs
-#    for two releases unnoticed).
+#    releases: also bump DOCS.instructions in General.jsx.
 
 # 4. Release hygiene gate — the five rules below. Run BEFORE committing.
 
 # 5. Commit and push source to master
 git add <files> && git commit -m "message" && git push origin master
 
-# 6. Deploy built files to gh-pages (THIS IS WHAT MAKES IT LIVE)
-cp dist/index.html /tmp/ptapp-deploy.html && cp dist/sw.js /tmp/ptapp-deploy-sw.js && cp dist/manifest.json /tmp/ptapp-deploy-manifest.json
-git checkout gh-pages
-cp /tmp/ptapp-deploy.html index.html && cp /tmp/ptapp-deploy-sw.js sw.js && cp /tmp/ptapp-deploy-manifest.json manifest.json
-git add index.html sw.js manifest.json && git commit -m "Deploy vX.Y: description" && git push origin gh-pages
-git checkout master
+# 6. Deploy to gh-pages (THIS MAKES IT LIVE) — via the STANDING WORKTREE,
+#    never `git checkout gh-pages`. Five files since v2.27.
+for f in index.html sw.js manifest.json icon-512.png apple-touch-icon.png; do cp "dist/$f" "C:/projects/PTApp-ghpages/$f"; done
+git -C C:/projects/PTApp-ghpages add -A && git -C C:/projects/PTApp-ghpages commit -m "Deploy vX.Y: description" && git -C C:/projects/PTApp-ghpages push origin gh-pages
 
 # 7. Tell Pierre the version number so he can verify on his phone
 ```

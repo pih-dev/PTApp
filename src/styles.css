@@ -348,6 +348,65 @@ button:active { transform: scale(0.97); }
 }
 .app-bg svg { width: 100%; height: auto; display: block; }
 
+/* ─── The opening (v2.27) ───
+   One orchestrated moment, then out of the way: mark scales up and fades in,
+   the halves stagger, the posture lines DRAW (pathLength="100" is baked into
+   the frozen mark so the dash math is size-independent), the fault ring lands,
+   the wordmark rises. Every keyframe is transform/opacity/dashoffset — no
+   layout, no paint storms — and a tap anywhere skips.
+   🔴 Safari-safe on purpose: transforms animate only on the HTML wrapper, an
+   SVG <g> (the ring) — never on a nested <svg> viewport element. */
+.splash {
+  position: fixed; inset: 0; z-index: 400;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px;
+  background: radial-gradient(130% 70% at 50% 6%, var(--ground-lit) 0%, var(--ground) 62%, var(--ground) 100%);
+  cursor: pointer;
+  transition: opacity 0.32s ease;
+}
+.splash-leave { opacity: 0; pointer-events: none; }
+.splash-mark {
+  width: min(64vw, 300px); color: var(--chalk);
+  animation: splashIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.splash-mark svg { width: 100%; height: auto; display: block; overflow: visible; }
+@keyframes splashIn {
+  from { transform: scale(0.94); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+/* The halves stagger in — opacity only on the inner viewports (Safari). */
+.splash-mark .pm-ok    { animation: pmFade 0.4s ease-out both 0.05s; }
+.splash-mark .pm-fault { animation: pmFade 0.4s ease-out both 0.2s; }
+@keyframes pmFade { from { opacity: 0; } to { opacity: 1; } }
+/* The lines draw — the green and the orange are the story. */
+.splash-mark .pm-line {
+  stroke-dasharray: 100;
+  animation: pmDraw 0.55s ease-in-out both 0.45s;
+}
+@keyframes pmDraw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+/* The fault ring lands last. */
+.splash-mark .pm-ring {
+  transform-box: fill-box; transform-origin: center;
+  animation: pmRing 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both 0.92s;
+}
+@keyframes pmRing {
+  from { transform: scale(0.4); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.splash-word {
+  font-family: var(--font-display);
+  font-size: 26px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--chalk);
+  animation: wordUp 0.4s ease-out both 0.8s;
+}
+@keyframes wordUp {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+[dir="rtl"] .splash-word { letter-spacing: 0.1em; } /* brand name stays Latin */
+/* Belt to App's matchMedia guard: reduced motion never sees the splash. */
+@media (prefers-reduced-motion: reduce) { .splash { display: none; } }
+
 /* ─── Bottom Nav ─── */
 .nav {
   position: fixed;

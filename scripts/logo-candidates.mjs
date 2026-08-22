@@ -103,14 +103,18 @@ function pairLayer(pose, { role, treatment }) {
     + f.deltoids.map(c => `<circle cx="${rr(c.cx)}" cy="${rr(c.cy)}" r="${rr(c.r)}"/>`).join('')
     + `<ellipse cx="${rr(f.head.cx)}" cy="${rr(f.head.cy)}" rx="${rr(f.head.rx)}" ry="${rr(f.head.ry)}" transform="rotate(${rr(f.head.rot)} ${rr(f.head.cx)} ${rr(f.head.cy)})"/>`;
   const stroke = role === 'fault' ? 'var(--warn)' : 'var(--ok)';
+  // `pm-line` + pathLength="100" are ANIMATION HOOKS: inert everywhere except
+  // under `.splash-mark`, where the launch sequence draws the lines and pops
+  // the ring (v2.27). pathLength normalises the dash math to 0–100 so the CSS
+  // never needs to know a path's true length.
   const guide = f.guide
     ? [f.guide.d, f.guide.mirror].filter(Boolean).map(d =>
         `<path d="${d}" fill="none" stroke="var(--ground)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>`
-        + `<path d="${d}" fill="none" stroke="${stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`).join('')
+        + `<path class="pm-line" pathLength="100" d="${d}" fill="none" stroke="${stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`).join('')
     : '';
   if (treatment === 'lines') {
     const ring = (role === 'fault' && f.fault.length)
-      ? `<g fill="none" stroke="var(--anatomy)" stroke-width="8">${f.fault.map(m => `<circle cx="${rr(m.x)}" cy="${rr(m.y)}" r="${rr(m.r + 10)}"/>`).join('')}</g>`
+      ? `<g class="pm-ring" fill="none" stroke="var(--anatomy)" stroke-width="8">${f.fault.map(m => `<circle cx="${rr(m.x)}" cy="${rr(m.y)}" r="${rr(m.r + 10)}"/>`).join('')}</g>`
       : '';
     return `<g fill="currentColor">${bodyPaths}</g>${guide}${ring}`;
   }
@@ -118,7 +122,7 @@ function pairLayer(pose, { role, treatment }) {
     ? `<g clip-path="url(#${id})" fill="${colour}" opacity="${op}">${list.map(d => `<path d="${d}"/>`).join('')}</g>` : '');
   const ring = f.fault.length
     ? `<g clip-path="url(#${id})" fill="var(--anatomy)" opacity="0.8">${f.fault.map(m => `<circle cx="${rr(m.x)}" cy="${rr(m.y)}" r="${rr(m.r)}"/>`).join('')}</g>`
-      + `<g fill="none" stroke="var(--anatomy)" stroke-width="8">${f.fault.map(m => `<circle cx="${rr(m.x)}" cy="${rr(m.y)}" r="${rr(m.r + 12)}"/>`).join('')}</g>`
+      + `<g class="pm-ring" fill="none" stroke="var(--anatomy)" stroke-width="8">${f.fault.map(m => `<circle cx="${rr(m.x)}" cy="${rr(m.y)}" r="${rr(m.r + 12)}"/>`).join('')}</g>`
     : '';
   return `<g fill="var(--equipment)" opacity="0.95">${equipShapes(f.equip)}</g>`
     + `<clipPath id="${id}">${bodyPaths}</clipPath>`
@@ -144,14 +148,14 @@ function pairSvg(treatment, layout) {
   const w = Math.max(vbA.x + vbA.w, vbB.x + vbB.w) - x, h = Math.max(vbA.y + vbA.h, vbB.y + vbB.h) - y;
   const vb = `${x.toFixed(0)} ${y.toFixed(0)} ${w.toFixed(0)} ${h.toFixed(0)}`;
   const mirror = (inner) => `<g transform="translate(${rr(2 * x + w)} 0) scale(-1 1)">${inner}</g>`;
-  const half = (inner, px, py, s) =>
-    `<svg viewBox="${vb}" width="${rr(w * s)}" height="${rr(h * s)}" x="${rr(px)}" y="${rr(py)}">${inner}</svg>`;
+  const half = (inner, px, py, s, cls) =>
+    `<svg class="${cls}" viewBox="${vb}" width="${rr(w * s)}" height="${rr(h * s)}" x="${rr(px)}" y="${rr(py)}">${inner}</svg>`;
   const L = { sym: { s: 1, lx: 0, ly: 0, rx: w * 1.04, ry: 0, W: w * 2.04, H: h },
               off: { s: 0.94, lx: 0, ly: h * 0.09, rx: w * 0.80, ry: 0, W: w * 0.80 + w * 0.94, H: h * 0.94 + h * 0.09 },
               lock: { s: 0.94, lx: 0, ly: h * 0.09, rx: w * 0.64, ry: 0, W: w * 0.64 + w * 0.94, H: h * 0.94 + h * 0.09 } }[layout];
   return `<svg viewBox="0 0 ${rr(L.W)} ${rr(L.H)}" xmlns="http://www.w3.org/2000/svg">`
-    + half(mirror(okL), L.lx, L.ly, L.s)
-    + half(faR, L.rx, L.ry, L.s)
+    + half(mirror(okL), L.lx, L.ly, L.s, 'pm-half pm-ok')
+    + half(faR, L.rx, L.ry, L.s, 'pm-half pm-fault')
     + `</svg>`;
 }
 
@@ -295,4 +299,58 @@ export const SPOTSET_BG_RATIO = ${ratioOf(bg)};` : ''}
 `;
   writeFileSync('src/spotsetMark.js', out);
   console.log(`froze mark '${id}'${bgId ? ` + backdrop '${bgId}'` : ''} into src/spotsetMark.js (${m.length}${bg ? ` + ${bg.length}` : ''} bytes)`);
+}
+
+// --export [<id>]: the store icon set, colours FLATTENED to the midnight skin's
+// live values (an icon file cannot resolve CSS vars — and it must not go stale
+// when a token moves, so the values are read from styles.css at export time).
+// SVGs to tmp/, PNGs (if sharp is available) to _archive/PTApp/branding/.
+const exportArg = process.argv.indexOf('--export');
+if (exportArg !== -1) {
+  const { readFileSync } = await import('node:fs');
+  const css = readFileSync('src/styles.css', 'utf8');
+  const tok = (name, fallback) => {
+    const m2 = css.match(new RegExp(`${name}:\\s*(#[0-9A-Fa-f]{3,8})`));
+    return m2 ? m2[1] : fallback;
+  };
+  const LIT = {
+    '--ground': tok('--ground', '#0A1524'), '--ok': tok('--ok', '#4FC08D'),
+    '--warn': tok('--warn', '#E0A32B'), '--anatomy': tok('--anatomy', '#F2622C'),
+    '--muscle': tok('--muscle', '#F03A68'), '--muscle-2': tok('--muscle-2', '#9A7BC8'),
+    '--equipment': tok('--equipment', '#2E6BF2'),
+  };
+  const chalk = tok('--chalk', '#E9EEF3');
+  const id = process.argv[exportArg + 1] || 'pair-off-colour';
+  let flat = marks[id].svg.replace(/var\((--[a-z0-9-]+)\)/g, (_, v) => LIT[v] || chalk)
+    .replace(/currentColor/g, chalk);
+  const [, , mw, mh] = flat.match(/viewBox="([^"]*)"/)[1].split(' ').map(Number);
+  const inner = flat.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '');
+  const vb = flat.match(/viewBox="([^"]*)"/)[1];
+  const compose = (S, frac, rx, bg) => {
+    const w2 = S * frac, h2 = w2 * (mh / mw), x2 = (S - w2) / 2, y2 = (S - h2) / 2;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${S} ${S}">`
+      + (bg ? `<rect width="${S}" height="${S}" rx="${rx}" fill="${LIT['--ground']}"/>` : '')
+      + `<svg viewBox="${vb}" width="${w2.toFixed(1)}" height="${h2.toFixed(1)}" x="${x2.toFixed(1)}" y="${y2.toFixed(1)}">${inner}</svg></svg>`;
+  };
+  const files = {
+    'icon-512.svg': compose(512, 0.78, 90, true),          // Play Store listing icon
+    'icon-fg-512.svg': compose(512, 0.60, 0, false),       // Play adaptive FOREGROUND (66% safe zone)
+    'icon-ios-1024.svg': compose(1024, 0.76, 0, true),     // App Store (Apple applies its own mask)
+    'apple-touch-180.svg': compose(180, 0.78, 0, true),    // iOS home-screen PWA icon
+  };
+  for (const [f, svg] of Object.entries(files)) writeFileSync(`tmp/${f}`, svg);
+  console.log('SVG icon set → tmp/ (colours:', JSON.stringify(LIT), ')');
+  try {
+    const sharp = (await import('sharp')).default;
+    const outDir = 'C:/projects/_archive/PTApp/branding/2026-08-22-pair-mark';
+    mkdirSync(outDir, { recursive: true });
+    for (const [f, svg] of Object.entries(files)) {
+      const png = f.replace('.svg', '.png');
+      const size = +f.match(/(\d+)/)[1];
+      await sharp(Buffer.from(svg), { density: 300 }).resize(size, size).png().toFile(`${outDir}/${png}`);
+      console.log(`PNG → ${outDir}/${png}`);
+    }
+  } catch (e) {
+    console.log('sharp unavailable — PNGs skipped (npm i -D sharp to rasterise):', e.message.split('\n')[0]);
+  }
 }

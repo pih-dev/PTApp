@@ -4,6 +4,17 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.27 - the opening, and the app's icons (August 22, 2026)
+
+Launch the app and the mark performs once — figures step in, the posture lines
+draw, the fault ring lands, the name rises — under 1.5s, tap to skip,
+reduced-motion never sees it. The opening SOUND waits for the native app
+(browsers block autoplay). And the facing pair is now the icon everywhere: a
+real iPhone home-screen icon at last, the Android/PWA icon, and the full store
+set staged in the archive. Full detail: instructions-v2.27.md.
+
+---
+
 ## v2.26 - the logo is the pair, and the app got its backdrop (August 22, 2026)
 
 Pierre's pick from the mark sheet: the facing pair — correct deadlift mirrored
