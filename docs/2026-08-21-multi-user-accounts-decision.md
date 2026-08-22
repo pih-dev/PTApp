@@ -643,6 +643,26 @@ The driver split in `src/` (`githubDriver` / `supabaseDriver` behind one build f
 itself dual-writes rather than a laptop script doing it once a day. Then seven consecutive clean
 days of the gate above. **Any unexplained divergence halts the plan** — it is never worked around.
 
+### 🔴 CORRECTION, 2026-08-22 — the soak clock had not actually started
+
+`sanity-live-supabase-diff` had failed on **every one of its 34 runs across two days: 0 clean days
+out of 7.** Nothing was broken and no record was ever lost. The gate was being asked a question
+**Phase 1 cannot answer** — `mirror-to-supabase.mjs` is a MANUAL laptop script, the app does not
+dual-write yet, and GitHub moves whenever anyone touches the phone. So Postgres is stale within
+minutes of any edit and the gate correctly reports a difference that means only *"the mirror has not
+run since the last edit"*.
+
+The last failure, diffed field by field, was exactly that: one session (`sessions:5tghmqu`), two
+fields — `_modified`, and a `focus: []` that review finding **P3** writes into live records. Every
+collection count matched on both sides.
+
+**So the Phase-1 daily job is `node scripts/soak-day.mjs` — mirror, THEN verify, as one operation.**
+The mirror's own byte-identical read-back is the only honest Phase-1 claim, because a soak proves
+that two *independent writers* agree and in Phase 1 there is only one writer. The gate above is
+**unchanged and stays exactly as strict**; it becomes the real soak the day the driver split lands,
+and it is still what must be green before cutover. First clean day under the corrected routine:
+2026-08-22.
+
 
 ---
 

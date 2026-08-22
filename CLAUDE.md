@@ -164,6 +164,8 @@ Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` r
 - **Program pruning (v2.15)** — before `data.json` nears 1 MB. 🔴 **Snapshot first** — cloud deletes are irreversible.
 - **Review finding P3 — DECIDED 2026-08-05, NOT BUILT.** SessionCard scope B (Dashboard-expanded + Schedule); kills the `focus: []` bug at `Schedule.jsx:201`. **Do it with the Schedule layout pass.**
 - **App name = SpotSet**; `com.spotset.app` is PERMANENT.
+- 🔴 **THE SUPABASE SOAK IS PHASE 1, SO THE DAILY JOB IS `node scripts/soak-day.mjs` — MIRROR THEN VERIFY.** `mirror-to-supabase.mjs` is a MANUAL one-way script; the app does NOT dual-write, so Postgres is stale the moment anyone touches the phone and `sanity-live-supabase-diff` alone can never be clean (0/7 across 34 runs). That gate is unchanged and becomes the REAL soak the day dual-write lands. Detail: `HANDOFF-multi-user-build.md` §0.
+- 🔴 **NEXT ON FIGURES: rotatable / multi-angle figures** (Pierre, 08-22) — the pair stays, each half becomes draggable. Options and costs: `docs/2026-08-22-figures-3d-options.md`.
 - 🔴 **TODO — FRESH EYES ON DESIGN, THE STRIPPED-STRUCTURE WAY (Pierre, 2026-08-22).** Before a design is called done, hand it to a subagent that has never seen it — **Fable 5, max effort — with ALL FORMATTING STRIPPED**, so it receives structure and words only and cannot be anchored by the treatment already chosen. Brief it to argue the **opposite side**: what is missing, what earns nothing, is the order wrong. First run: v2.22 figures review page.
 
 ---

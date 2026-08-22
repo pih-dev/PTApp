@@ -14,6 +14,20 @@ at each milestone. A restart could end the session at any moment.
 
 ## 0. Status — read this out
 
+- 🔴 **NEXT TASK, ASKED FOR BY PIERRE 2026-08-22: MORE THAN ONE ANGLE — OR 3D THE USER CAN DRAG.**
+  His words: *"I need different angles where possible. Either that or 3D. They drag them… So there
+  will be two pictures. For example, one is the posture — both regarding the correct and the most
+  common mistake. Draggable by finger for 3D, for people to see."*
+  **The shape of the ask, as I read it:** the PAIR STAYS (correct + most common mistake). What
+  changes is that each half becomes rotatable rather than a fixed camera — drag with a finger and
+  the figure turns, so a fault that is invisible from one side (elbow flare, knee valgus) can be
+  seen without a second drawing. **Confirm that reading before building.** The full options write-up
+  is `docs/2026-08-22-figures-3d-options.md` — read it before choosing.
+- **Why this is the right next move and not a nice-to-have:** the bench press already needed a third
+  camera because flare is out-of-plane (§11), and the same problem is queued behind at least the
+  squat, the row and every rotation pattern. A rotatable figure retires that whole class of
+  workaround instead of adding a fourth and fifth static camera per movement.
+
 - 🟢 **ALL 340 MOVEMENTS HAVE FIGURES — v2.23.0.** Composed from **44 patterns**: the pattern owns
   the pose and the fault, the movement contributes its muscles (from the bank) and its equipment
   (from its name). 100% bank coverage is a build gate. Cost 37 KB for the whole library.

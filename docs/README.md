@@ -105,4 +105,5 @@ listed here. `.0` releases are `instructions-vX.Y.md`, patches `instructions-vX.
   router's 8 KB per-file budget, and the first 8 KB is scaffold. The spec above is the design record;
   open a plan only when the build sequence itself is the question.
 - **`docs/changelog-technical.md`** — 163 KB. Grep it.
+- [Rotatable figures — the options](2026-08-22-figures-3d-options.md) — Pierre's multi-angle / 3D ask: four routes, what each costs, why 2.5D on the existing skeleton wins. 🔴 Read before building it
 - [Design differentiation brief](design/2026-08-21-design-differentiation-brief.md) — why the app reads as generic, measured against the Agribond page; the opening questions for the design session

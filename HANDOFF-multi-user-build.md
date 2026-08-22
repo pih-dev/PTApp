@@ -1,6 +1,6 @@
 # SpotSet — Multi-User Build (Task A) HANDOFF
 
-**Last updated:** 2026-08-21 ~22:05, Beirut.
+**Last updated:** 2026-08-22, Beirut (the soak finding below).
 **To resume:** Pierre types `continue` or `multi-user`. **Read §0 back to him and stop.**
 Do not investigate, do not re-derive, do not ask follow-up questions.
 
@@ -18,6 +18,33 @@ moment it became true, and the working tree was clean and pushed at every point.
 ---
 
 ## 0. Status — read this out
+
+- 🔴 **THE 7-DAY SOAK CANNOT PASS AS CURRENTLY DRIVEN, AND THE REASON IS DESIGN, NOT DATA.**
+  Found 2026-08-22 while running the full sanity suite. `sanity-live-supabase-diff` has failed on
+  **every one of its 34 runs across 2 days — 0 clean days out of 7.** The cause is not a bug in the
+  mirror and no record has ever been lost:
+  · **We are in PHASE 1.** `mirror-to-supabase.mjs` is a MANUAL one-way script Pierre runs from his
+    laptop. The app does not dual-write. Nothing keeps Postgres current between runs.
+  · GitHub is live and moves whenever Elie or Pierre touches the app. So the mirror is stale the
+    moment anyone uses the phone, and the gate correctly reports a difference.
+  · **The last failure, diffed field by field, was exactly that and nothing more:** one session
+    (`sessions:5tghmqu`), two fields — `_modified` (GitHub 2026-08-22T01:12:54Z vs Postgres
+    2026-08-21T08:30:06Z) and `focus` (GitHub `[]`, Postgres absent). Counts matched on every
+    collection: 21 clients, 514 sessions, 2 evaluations, 1 program, 15 todos, 91 audit entries.
+    The Postgres tenant row's own `updated_at` is 2026-08-21T20:00Z — **hours older than the GitHub
+    change**. It is staleness, not divergence.
+- 🔴 **SO "SEVEN CONSECUTIVE CLEAN DAYS" IS MEASURING THE WRONG THING RIGHT NOW.** A soak is only
+  meaningful once there is a SECOND INDEPENDENT WRITER that could disagree — i.e. once Phase 2
+  dual-write exists. In Phase 1 the only honest daily check is **mirror, then verify**: the mirror's
+  own byte-identical read-back is what proves the copy is faithful.
+- **The fix shipped 2026-08-22:** `node scripts/soak-day.mjs` runs the mirror and then the gate as
+  one operation, and the Phase-1 clock counts THAT. `sanity-live-supabase-diff` on its own is
+  unchanged and stays exactly as strict — it becomes the real soak the day dual-write lands, and it
+  is still the thing that must be green before any cutover.
+- 🔴 **A SIDE FINDING WORTH ITS OWN LINE:** the field that changed was `focus: [] `. That is review
+  finding **P3** (`Schedule.jsx:201`, the `focus: []` bug) writing an empty array into a live record
+  and bumping `_modified`. It is harmless, but it is churning live data and it is why this record was
+  the one that diverged. P3 is already queued with the Schedule layout pass.
 
 - 🔴 **THE SUPABASE PROJECT EXISTS AND `0001` IS APPLIED AND VERIFIED LIVE.**
   Org **Calnorm** (free) → project **spotset**, ref `trflnwrusbbbihelovkh`, **eu-central-1
