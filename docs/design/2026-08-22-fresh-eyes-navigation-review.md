@@ -1,5 +1,16 @@
 # Fresh-eyes review, second run — the navigation and IA
 
+🔴 **CORRECTION, 2026-08-22 evening — FINDING #2 IS VOID. THERE IS NO PLATE CALCULATOR.**
+`Plates.jsx` is the **package-progress disc row** — filled = sessions used, hollow = remaining,
+all-accent = spent and due. It is the core "plate and bar" visual language, drawn on every
+`SessionCard` and the Dashboard renewal rows. It is not a tool, it has no button, and it has no
+user-facing string. **I put "a barbell plate calculator" into the stripped-structure brief by reading
+the FILENAME instead of opening the file**, the reviewer reasoned about a feature that does not
+exist, and Pierre then sent Elie a picture card showing a PLATES button his app has never had. Elie
+looked for it, did not recognise it, and said forget it — the only honest reading of which is that he
+was asked about nothing. **Every claim below about the plate calculator is void**, including the
+"indefensible middle" line and rank 2 of the value/risk table. See §8c.
+
 **Date:** 2026-08-22 · **Trigger:** Pierre, on the bottom bar: *"I think there are redundancies…
 you can access from the client what you can access from the others. It's a major revisiting."*
 **Reviewer:** Fable 5, max effort, structure stripped of all colour / type / branding / names, no
@@ -51,10 +62,9 @@ Half right, and the half that is wrong matters:
 
 ## 4. Wrong place
 
-- 🔴 **The plate calculator.** The only tool used *mid-set with a loaded bar in front of him* — the
-  most time-critical thing in the app — sits at the bottom of one tab under a renewal list. It pays
-  for prime real estate and delivers no speed. **Either it is reachable from anywhere, or it comes
-  off Home as a novelty. The middle it currently occupies is indefensible.**
+- ~~**The plate calculator.**~~ 🔴 **VOID — the feature does not exist. See the correction at the
+  top and §8c.** Left in place, struck through, because deleting a wrong finding hides the mistake
+  that produced it.
 - **The flat all-sessions list** is "a database inspector wearing a tab". Demote to per-client
   history + a ledger behind the calendar's overflow.
 - **The movement library** — 340 movements with figures, plausibly the most-built asset in the
@@ -112,7 +122,7 @@ Nothing deleted. Two demoted, one promoted, one made ubiquitous, one de-duplicat
 | # | Change | How it hurts | Worth it |
 |---|---|---|---|
 | 1 | Sessions tab → Library | Thumb goes to slot 4 for the ledger, finds movements. One bad week; audit two taps away. | High |
-| 2 | Plate calculator → header tool | A week of fumbling *mid-set*, the worst place to fumble. **Announce it, don't just move it.** | High |
+| ~~2~~ | ~~Plate calculator → header tool~~ | 🔴 **VOID — no such feature. §8c.** | — |
 | 3 | Norm charts next to evaluations | Almost nothing; the settings copy can stay. | High |
 | 4 | Override edit leaves Schedule | Breaks the real booking-time *"how many left?"* conversation. Mitigate: read-only count at booking + link into the client. | Medium |
 | 5 | Kill compact/expanded toggle | If the two forms serve glance vs act, one gets worse. **Verify with Elie before touching.** | Low |
@@ -146,12 +156,46 @@ Asked with three picture cards (`_archive/PTApp/elie-questions/`), two labelled 
     the switch.
 - **Q1, the plate calculator — no answer yet.**
 
+## 8c. The plate calculator that never existed — what actually happened
+
+**The chain, in order, because each link is a different kind of failure:**
+
+1. Building the stripped-structure brief, I listed Home's contents from a component inventory and
+   wrote **"a barbell plate calculator"**. The component is `Plates.jsx`. I never opened it. The
+   name was plausible for a gym app, so it went in as fact.
+2. The reviewer had no codebase access **by design** — that is what makes the review honest — so it
+   could not catch the error. It reasoned well about a thing that does not exist and produced its
+   second-strongest finding: *"it pays for prime real estate and delivers no speed."*
+3. That finding reached Pierre in the artifact, and reached **Elie as a picture card showing a
+   PLATES button** rendered in his own skin. He went looking for it on his phone, could not work out
+   what it was, and said forget it.
+4. Only when Pierre reported *"he didn't know what it's for"* did anyone open the file.
+
+**What `Plates.jsx` actually is:** the package read as load on a bar. Filled disc = a session used,
+hollow = remaining, the whole row goes accent when the package is spent and due. Above
+`PLATE_MAX = 16` it becomes a filled shaft instead, because a 36-disc row is noise. It is drawn by
+every `SessionCard` and by the Dashboard's renewal rows. **It is the design language, not a tool.**
+
+**The rule this earns, and it is general, not about plates:**
+🔴 **A STRIPPED-STRUCTURE BRIEF IS ONLY AS GOOD AS ITS SOURCE. BUILD IT FROM OPENED FILES, NEVER FROM
+FILENAMES.** The whole method depends on the reviewer being blind to the code — which means the brief
+is the *only* thing standing between a wrong premise and a confident wrong finding, and there is no
+second check downstream. A guess in the brief is laundered into a conclusion by a process designed to
+be trusted. Cost here: one wasted finding, one wasted question to the end user, and a picture of a
+button that does not exist. Logged for every project:
+`C:/Users/pierr/.claude/projects/C--projects-CCHealth/memory/project_todo_list.md`.
+
+**What is NOT concluded from Elie's "forget it":** nothing about the disc row. He was asked about a
+button, not about the plates on his session cards. Whether he reads the discs as "used vs remaining"
+is untested and remains untested. 🔴 **Do not treat this as evidence against the visual language** —
+that would be the same error twice, inferring a fact from a question that was never asked.
+
 ## 9. Open — Pierre's calls
 
 1. ✅ **Slot four: Sessions out, Library in — DONE.** Approved by Pierre 2026-08-22 and shipped as
    v2.33 the same evening. The ledger lives behind "All" on the Schedule day bar.
-2. 🔴 **The plate calculator: header tool, or off Home entirely?** Pick one; the middle is the
-   finding. Elie has the card and has not answered this one.
+2. ✅ **The plate calculator question is WITHDRAWN, not answered** — there was never such a feature
+   (§8c). Nothing to decide, nothing to change, and Elie's "forget it" carries no information.
 3. ✅ **Finding #4 (the override edit) — CLOSED by Elie, no change.** See §8b.
 4. 🔴 **Finding #5 (the two views) — Elie uses only one but did not say which.** One word from him
    finishes it; the toggle is unpersisted either way (§8b).

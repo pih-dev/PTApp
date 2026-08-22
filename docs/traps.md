@@ -604,3 +604,28 @@ the floor and a crunch reads as nothing at all. The shared bases (`STAND`, `STAN
 Cable" contains the word "rotation" and was drawn as a trunk twist until the external-rotation rule
 moved above the rotation rule. Nothing errors; the wrong movement is simply drawn. The order IS the
 logic, which is why the rule list carries its reasoning in comments.
+
+## A filename is not a feature (2026-08-22)
+
+**Symptom:** a fresh-eyes reviewer produced a confident, well-argued finding about a feature that
+does not exist, and it reached both Pierre and the end user before anyone noticed.
+
+**Root cause:** the stripped-structure brief listed Home as containing "a barbell plate calculator".
+The component is `Plates.jsx`. Nobody opened it. It is the package-progress disc row — filled disc =
+a session used, hollow = remaining, accent when spent — the visual language drawn on every
+`SessionCard`, with no button and no user-facing string.
+
+**Why nothing downstream caught it.** The fresh-eyes method deliberately gives the reviewer NO
+codebase access; that blindness is what makes the review honest. It also means **the brief is the
+only thing between a wrong premise and a confident wrong finding.** A guess in the brief is laundered
+into a conclusion by a process built to be trusted, and the reviewer cannot be blamed for it.
+
+🔴 **THE RULE: BUILD A STRIPPED-STRUCTURE BRIEF FROM OPENED FILES, NEVER FROM FILENAMES.** Anything
+you cannot open goes into the brief as *unknown*, not as a plausible guess — a reviewer told "there
+is something here I could not read" reasons correctly around it; a reviewer told a fiction does not.
+This is `Probe Before You Assert` on a new surface: a component name is a plan, not a state.
+
+**Cost:** one wasted finding, one wasted question to the real end user, a picture card sent to him
+showing a button his app has never had, and a published artifact that had to be corrected.
+Write-up: `docs/design/2026-08-22-fresh-eyes-navigation-review.md` §8c. Logged for all projects in
+CCHealth's `project_todo_list.md`.
