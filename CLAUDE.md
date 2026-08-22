@@ -44,9 +44,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.35.1
-🔴 **UPPERCASE + LETTER-SPACING + A CONDENSED FACE ARE THREE LEGIBILITY TAXES — NEVER RE-ADD THEM TO CONTENT.** They survive on `.logo-text`, `.splash-word`, `.bar-label` ONLY. The block is last in `styles.css` at (0,1,0); the Arabic rules are (0,2,0) and still win. 🔴 **A CONDITIONALLY-PRESENT MARKER IS A LAYOUT BUG** — reserve the room, hide the ink (`.week-day-dot.is-empty`). 🔴 **Harvesting selectors from an existing rule set misses every COMPOUND one** (`.srow .inline-type-select` outranked the block at (0,2,0)) — sweep for those separately. → `v2.35`, `v2.35.1`.
-Skins **Lume · Midnight · Enamel · Steel**, `DEFAULT_SKIN='lume'` (a stored pick still wins). Bar: Home · Clients · Schedule · **Library**. 🔴 **`MovementLibrary` is ONE component with an `embedded` prop** — never fork it. 🔴 **ELIE'S RULINGS, DO NOT RE-PROPOSE: compact view gone, session-count edit STAYS at booking.** 🔴 **THE FIGURE SET IS UNRATIFIED — anatomy crimson, muscles TEAL, and every chart Elie teaches from paints muscle RED. ASK HIM; if he refuses, move the ACCENT, not the convention.**
+## Current Version: v2.37
+**BIG STEPS + six skins + the Display sheet.** 🔴 **RANK IS SIZE AND WEIGHT, NOT CASE** — name 22px/700 vs label 12.5px; caps + `0.06em` return ONLY to small structural labels, **never a name, never body text** (v2.35 stripped all three everywhere and the screen went monotone — readable, unsortable). 🔴 **`--tt` (case) and `--ts` (scale ×0.9–1.3) ARE USER SETTINGS on `<html>`** — `Display.jsx`, guarded localStorage; on `<html>` because Modal portals to `<body>`. RTL's (0,2,0) rules still kill caps, always. Skins: **Lume · Midnight · Rally · Enamel · Steel · Chalkline**; `.skin-swatch` is the ONE sanctioned foreign-skin literal. 🔴 **A TALL BOX AROUND SMALL TEXT READS AS A CELL, NOT A CONTROL** — tighten padding, keep `min-height` for the thumb. → `v2.37`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
@@ -73,6 +72,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 
 ## Version History
 - **v2.17–v2.25.3** (08-21/22) — THE DESIGN PASS, the movement library, the figures (all 340 from 44 patterns), then the refinement round. → `v2.17`…`v2.25.3`
+- **v2.35–v2.36** (08-22/23) — the legibility pass (uppercase/tracking/condensed off), then the figures session's medicine ball, stability ball and dumbbells. → `v2.35`…`v2.36`
 - **v2.34** (08-22) — NEEDLE: warm soot + one orange needle, because the app runs in hundreds of gyms so a palette taken from ONE room cannot work, and midnight-and-arc was the palette of the Precor equipment beside it. → `v2.34`
 - **v2.33–v2.33.1** (08-22) — the Library takes slot four; all modals portal to `<body>`; Home drops the compact view. → `v2.33`, `v2.33.1`
 - **v2.26–v2.32** (08-22) — the FACING-PAIR logo, backdrop and icons; the opening animation then its SOUND; turns + 360 stamps; header split, showcase, suite, random wall. → `v2.26`…`v2.32`

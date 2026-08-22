@@ -4,6 +4,23 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.37 - bigger names, six themes, and dials you control (August 23, 2026)
+
+Names are now much bigger and heavier than the labels around them, which is what
+makes a screen scannable - the previous version was readable but everything
+looked the same, so nothing stood out.
+
+New button at the top of every screen: theme, text size, and CAPITALS on/off.
+Six themes now, in three pairs - Lume/Enamel, Midnight/Steel, and the new
+vibrant pair Rally/Chalkline, taken from the kettlebell rack in the second room
+of the gym. Text size has five steps; your choice is remembered.
+
+Buttons and tags are tighter around their text so they look like something you
+press rather than a box with a word parked in it. Full detail:
+instructions-v2.37.md.
+
+---
+
 ## v2.36 - dumbbells join the 3D vocabulary (August 23, 2026)
 
 The 360° spin could only draw a barbell or nothing, so every dumbbell

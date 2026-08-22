@@ -4,6 +4,38 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.37 - Big Steps + six skins + the Display sheet (2026-08-23)
+
+**Typography.** Pierre's pick from the type lab. 🔴 The diagnosis was MONOTONE, not
+illegible: v2.35 stripped uppercase/tracking/condensed everywhere, which fixed reading
+and killed sorting - the original marked RANK with those three, so a label looked
+nothing like a name. Rank now comes from size and weight (name 22px/700 vs label
+12.5px), which costs nothing to read, and caps + tracking return ONLY to small
+structural labels - never a name, never body text.
+
+**Two user dials, because no static type choice fits every pair of eyes.** `--tt`
+(case) and `--ts` (scale, five stops 0.9-1.3) are set on `<html>` from localStorage by
+`Display.jsx`. 🔴 On `<html>`, not the container: Modal portals to `<body>` (v2.33).
+🔴 Every storage access guarded (iOS "Block All Cookies" SecurityError). 🔴 The
+`[dir="rtl"]` rules are (0,2,0) and still force `text-transform:none`, so Arabic never
+sees caps whatever the toggle says.
+
+**`rally` + `chalkline`** — the vibrant pair, from the kettlebell rack in the gym's
+second room. Pink accent: a hue no other skin uses, so it cannot be confused with
+midnight's cyan or lume's orange. Rally's muscles go cyan (the accent is pink), fault
+stays orange. `sanity-skins` green on all 20 tokens each.
+
+**Button proportion.** Chips `6px 10px`, buttons `9px 13px`, `line-height: 1.15` - a
+tall box around small text reads as a cell, not a control. `min-height` keeps the tap
+target honest (38/42/50), so the box is tight in PROPORTION without being small in
+FACT, and it scales with `--ts`.
+
+**Swatch exemption, documented:** `.skin-swatch` is the one sanctioned place for a
+literal belonging to another skin - a picker must show the five looks you are not
+wearing.
+
+---
+
 ## v2.35.1 - the straggler: `.srow .inline-type-select` (2026-08-23)
 
 The one string the v2.35 pass missed, and it missed for two compounding reasons.

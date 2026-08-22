@@ -8,6 +8,7 @@ import TokenUpdateModal from './components/TokenUpdateModal';
 import { SpotSetMark, SpotSetBackdrop } from './components/Icons';
 import Splash from './components/Splash';
 import General from './components/General';
+import Display, { loadDisplay, saveDisplay, applyDisplay } from './components/Display';
 import { reducer, loadData, saveData, today, timeToMinutes, haptic, initElasticScroll, mergeData, dataEquals } from './utils';
 import { getToken, fetchRemoteData, pushRemoteData, isDemo, resetConcurrencyTokens } from './sync';
 import { isSignedIn, isSessionExpired, getUserId, onAuthChange } from './auth';
@@ -51,6 +52,19 @@ export default function App() {
   // v2.30.1: the on-demand showcase, opened from the header mark.
   const [showShowcase, setShowShowcase] = useState(false);
   const [showGeneral, setShowGeneral] = useState(false);
+  // v2.37: the Display sheet — theme, text size, label case. Pierre asked for
+  // these at the TOP, not inside General: they are the settings you reach for
+  // while squinting at the screen, which is the worst moment to go hunting.
+  const [showDisplay, setShowDisplay] = useState(false);
+  const [display, setDisplayState] = useState(loadDisplay);
+  const setDisplay = (patch) => setDisplayState(prev => {
+    const next = { ...prev, ...patch };
+    saveDisplay(next);
+    return next;
+  });
+  // Written to <html> for the same reason data-skin is: Modal portals to <body>
+  // (v2.33), so a property scoped to the app container never reaches a sheet.
+  useEffect(() => { applyDisplay(display); }, [display]);
   // 🔴 THE WORD GOES TO THE LIBRARY (v2.30.1 split; the mark replays the show).
   //    v2.33: the library is now a TAB, so the word SELECTS it rather than
   //    opening a sheet, and the General entry is gone. One room, one door plus
@@ -335,6 +349,13 @@ export default function App() {
           </button>
           {/* Right side: sync dot + menu button. Version removed from header (lives in debug panel + General). */}
           <div className="header-right">
+            {/* v2.37: theme + text size + caps, one tap from every screen. */}
+            <button className="display-btn" onClick={() => { haptic(); setShowDisplay(true); }}
+              aria-label={t(lang, 'display')}>
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="9"/><path d="M12 3v18"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>
+              </svg>
+            </button>
             {syncStatus !== 'idle' && (
               <button className={`sync-btn ${syncStatus}`}
                 onClick={syncStatus === 'failed'
@@ -374,6 +395,13 @@ export default function App() {
         {tab === 'library' && <MovementLibrary lang={lang} embedded />}
       </div>
 
+      {showDisplay && (
+        <Display lang={lang} skin={skin} setSkin={setSkin}
+          caps={display.caps} setCaps={(caps) => setDisplay({ caps })}
+          scale={display.scale} setScale={(scale) => setDisplay({ scale })}
+          onClose={() => setShowDisplay(false)} />
+      )}
+
       {showGeneral && <General state={state} dispatch={dispatch} onClose={() => setShowGeneral(false)}
           lang={lang} setLang={setLang} skin={skin} setSkin={setSkin}
           onUpdateToken={() => setShowTokenUpdate(true)} />}
@@ -395,7 +423,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.36</div>
+          <div><strong>Version:</strong> v2.37</div>
           <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>

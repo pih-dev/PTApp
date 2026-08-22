@@ -27,11 +27,15 @@
 // Order is the picker's order, and it is deliberate: the two dark skins first,
 // because the gym is the dark case. Midnight and Steel stay — nothing is taken
 // away from anyone who already picked one, and reverting is choosing again.
+// v2.37: six, in three pairs — soot, blue, and the vibrant one. Dark first in
+// each pair, because the gym is the dark case.
 export const SKINS = [
   { id: 'lume', labelKey: 'skinLume' },
   { id: 'midnight', labelKey: 'skinMidnight' },
+  { id: 'rally', labelKey: 'skinRally' },
   { id: 'enamel', labelKey: 'skinEnamel' },
   { id: 'steel', labelKey: 'skinSteel' },
+  { id: 'chalkline', labelKey: 'skinChalkline' },
 ];
 
 // v2.34: new installs open on Lume. 🔴 An existing phone keeps whatever it saved
