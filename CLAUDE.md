@@ -167,7 +167,7 @@ Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` r
 - **Program pruning (v2.15)** before `data.json` nears 1 MB. 🔴 **Snapshot first** — cloud deletes are final.
 - **Review finding P3 — BUILT in v2.25** (SessionCard scope B). 🔴 Its Dashboard-compact follow-up is MOOT: v2.33.1 deleted the compact view.
 - **App name = SpotSet**; `com.spotset.app` PERMANENT.
-- 🔴 **THE SUPABASE SOAK IS PHASE 1, SO THE DAILY JOB IS `node scripts/soak-day.mjs` — MIRROR THEN VERIFY.** `mirror-to-supabase.mjs` is MANUAL and one-way; the app does NOT dual-write, so `sanity-live-supabase-diff` alone can never be clean. It becomes the REAL soak the day dual-write lands. Detail: `HANDOFF-multi-user-build.md` §0.
+- 🔴 **SUPABASE IS PHASE 1: THE DAILY JOB IS `node scripts/soak-day.mjs` — MIRROR THEN VERIFY.** `mirror-to-supabase.mjs` is MANUAL and one-way; the app does NOT dual-write, so `sanity-live-supabase-diff` alone can never be clean. It becomes the REAL soak when dual-write lands. Detail: `HANDOFF-multi-user-build.md` §0.
 - 🔴 **THE DESTINATION IS 3D THAT ROTATES AND ZOOMS, A ROUND AT A TIME** (Pierre, 08-22); stages in `docs/2026-08-22-figures-3d-options.md`. **Zoom is DOUBLE-TAP** — pinch needs `touch-action: none` and the sheet must keep vertical scroll, so it comes with the 3D rig. **One gesture, two jobs by `zoom`**: out it turns, in it pans.
 - **NEXT ROTATION CANDIDATES:** the squat (valgus is frontal, so it gains the profile), then rows, then the rotation patterns — costs in the 3d-options doc above.
 - **Brief rulings that are LAW:** 🔴 **the movement card FITS, never scrolls** · 🔴 **the fault figure highlights DIFFERENT muscles**. Open: the "S" idea. Threads: `HANDOFF-figures.md`; uploads `_archive/PTApp/branding/`.
@@ -206,13 +206,15 @@ for f in index.html sw.js manifest.json icon-512.png apple-touch-icon.png openin
 for f in dist/opening-*.m4a; do cp "$f" "C:/projects/PTApp-ghpages/"; done
 git -C C:/projects/PTApp-ghpages add -A && git -C C:/projects/PTApp-ghpages commit -m "Deploy vX.Y: description" && git -C C:/projects/PTApp-ghpages push origin gh-pages
 
-# 7. Tell Pierre the version number so he can verify on his phone
+# 7. Tell Pierre the version number, AND BUILD HIM THE APK — standing, every
+#    version (2026-08-22): assembleRelease w/ JDK 21, verify versionName INSIDE
+#    the .apk, archive to _archive/PTApp/releases/, then SendUserFile it.
 ```
 
 **Critical notes** (the incidents behind these: `docs/release-hygiene.md`):
 - Pushing to `master` does NOT deploy, and pushing to `gh-pages` does not guarantee it either — **verify `gh api repos/pih-dev/PTApp/pages/builds/latest --jq .status` reaches `built`.** Stuck on `building`? `gh api -X POST repos/pih-dev/PTApp/pages/builds`, then re-verify. Never push `gh-pages` twice in quick succession.
-- **A schema change needs a live-data byte-diff gate, and all three existing ones are SPENT by design** (`live-v6-diff`, `live-v5-diff`, `live-migration` — each asserts a snapshot the archive has moved past, so each prints "DO NOT DEPLOY"). **A v6→v7 change needs a NEW `sanity-live-v7-diff.mjs`, copied from the v6 one.**
-- Run the whole suite before every deploy — **check exit codes, don't eyeball output**: `for f in scripts/sanity/*.mjs; do node "$f" || echo "FAIL $f"; done`. The 3 live-diff gates above are SPENT by design; `sanity-rls-matrix` exits **2** = live RLS pass skipped. **Exit 2 is not a pass.** 🔴 **`sanity-live-supabase-diff` run BARE is EXPECTED to fail in Phase 1** — the app does not dual-write, so it compares GitHub against a mirror that is stale the moment anyone touches a phone. The daily job is **`node scripts/soak-day.mjs`** (mirror, then verify); only runs it drives count toward the streak. Do not 'fix' the bare failure.
+- **A schema change needs a live-data byte-diff gate, and all three are SPENT by design** (`live-v6-diff`, `live-v5-diff`, `live-migration` each assert a snapshot the archive moved past, so each prints "DO NOT DEPLOY"). **v6→v7 needs a NEW `sanity-live-v7-diff.mjs`, copied from the v6 one.**
+- Run the whole suite before every deploy — **check exit codes, don't eyeball output**: `for f in scripts/sanity/*.mjs; do node "$f" || echo "FAIL $f"; done`. `sanity-rls-matrix` exits **2** = live RLS skipped. **Exit 2 is not a pass.** 🔴 **`sanity-live-supabase-diff` run BARE is EXPECTED to fail in Phase 1** (no dual-write, so the mirror is stale the moment anyone touches a phone). The daily job is **`node scripts/soak-day.mjs`**; only its runs count toward the streak. Do not 'fix' the bare failure.
 
 ### 🔒 Release hygiene — the rules (added 2026-08-03)
 CLAUDE.md was slimmed to 19.5 KB at v2.9.2 and back to 42 KB in five months: every release appended, none collapsed. **Never skip these "just this once" — that is how it regrew.** Why: `docs/release-hygiene.md` §1.
