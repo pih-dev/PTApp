@@ -64,10 +64,16 @@ at each milestone. A restart could end the session at any moment.
   deploy) + gear rule in `53aaff9`.
   **(2) "2 heads per posture"** (photo, Side Rotary Medicine Ball Throw): the ball drew at the grip
   MIDPOINT, and the rotation family's split-arm poses (gap ~620) put that beside the head on all 13
-  ball movements. Ball now rides the grip FARTHER from the head when grips are >120 apart (near-hand
-  was tried and clipped at the frame top); hands-together holds unchanged. `53aaff9` + v2.35.1.
-  ⚠️ Noticed, not touched: **Ball Squat draws a BARBELL** (its name never matches the ball rule) —
-  judging call for a future round, listed here so it is not re-found.
+  ball movements. Ball now rides the grip FARTHER from the head when grips are >120 apart AND differ
+  in height (near-hand was tried and clipped at the frame top); hands-together holds unchanged.
+  `53aaff9` + v2.35.1, **tightened in v2.35.2 (`c134fc8`)**: the mobile-ux-reviewer caught the first
+  rule moving the PRONE stability-ball pair's support ball (the one the client lies on) into a
+  raised hand — level symmetric grips now keep the centre; rotation throws verified unchanged.
+  ⚠️ Noticed, queued for a judging round, so none of it is re-found: **Ball Squat draws a BARBELL**
+  (name never matches the ball rule) · the prone pair's near-head ball is pre-existing and still
+  imperfect · rollout fault ball overflows the cell's right edge by 20 units (pre-existing) ·
+  **Offset Barbell Press spins as a symmetric bar**, contradicting its asymmetric-load teaching
+  point (so the 360° set is 7 bench movements, not 6 — decide spin-exclude vs. offset plates).
 - 🔴 **OPEN, in rough priority for the next figures session:**
   1. **Fault muscles content: 36/44 archetypes still share the bank's wash** — judging work with
      Pierre, not guessing. 2. **spinEquip vocabulary** stops at barbell + bench — dumbbell, cable,
