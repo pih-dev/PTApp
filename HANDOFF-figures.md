@@ -78,6 +78,10 @@ at each milestone. A restart could end the session at any moment.
   - Full audit behind this: `CCHealth/docs/sessions/2026-08-22-ptapp-figures-audit.md`.
 - **Weakest three patterns, unchanged:** `leg-raise`, `wrist-curl`, `rotation`.
   `node scripts/figures-contact.mjs` builds the judging sheet.
+- 🟡 **ROM check added to `sanity-figures.mjs` (§5c), WARN-ONLY — 24 warnings, most look like
+  sign-convention artifacts** (elbow flexion sign flips when the arm loads overhead/prone: push-up,
+  plank, triceps-overhead, knee-tuck). Before it may FAIL builds it must compute joint angles from
+  the skeleton geometry, not the raw pose numbers. Until then the warning list is a judging aid.
 
 - 🔴 **THE DESTINATION, IN PIERRE'S WORDS (08-22): "eventually 3D models that can be rotated and
   zoomed in/out, after a few rounds."** That is an instruction about ORDER — each round ships

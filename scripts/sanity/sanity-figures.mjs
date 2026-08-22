@@ -131,6 +131,42 @@ for (const id of ids) {
   }
 }
 
+// 5c. JOINT RANGE OF MOTION — warn-first (CCHealth audit 2026-08-22). Poses are
+//     cumulative per-segment degrees, so each entry IS the relative joint angle.
+//     Bounds are generous drawing tolerances, not physiotherapy: the job is to
+//     catch an elbow bending backwards or a spine folded double, not to referee
+//     flexibility. 🔴 WARN, NOT FAIL, until Pierre reviews the current warnings:
+//     the shipped art contains values a strict gate would reject (chest-press
+//     fault elbow = 180°), and blocking the build on shipped art helps nobody.
+//     Front-view lateral angles are judged on magnitude only (the far side is a
+//     mirrored negation by convention).
+const ROM = { lumbar: [-130, 105], thoraxRel: [-50, 50], neckRel: [-50, 50], knee: [-175, 30], elbow: [-25, 185] };
+const inR = (v, [lo, hi]) => v >= lo && v <= hi;
+let romWarn = 0;
+for (const id of ids) {
+  const a = ARCHETYPES[id];
+  for (const kind of ['correct', 'fault']) {
+    const p = { ...a.base, ...a[kind] };
+    const front = (p.view || 'side') === 'front';
+    if (p.spine) {
+      if (!inR(p.spine[0], ROM.lumbar)) { console.warn(`ROM: "${id}" ${kind} lumbar ${p.spine[0]}°`); romWarn++; }
+      if (!inR(p.spine[1], ROM.thoraxRel)) { console.warn(`ROM: "${id}" ${kind} thorax ${p.spine[1]}°`); romWarn++; }
+      if (!inR(p.spine[2], ROM.neckRel)) { console.warn(`ROM: "${id}" ${kind} neck ${p.spine[2]}°`); romWarn++; }
+    }
+    for (const [limb, key, range] of [['legs', 1, ROM.knee], ['arms', 1, ROM.elbow]]) {
+      for (const side of ['near', 'far']) {
+        const seg = p[limb] && p[limb][side];
+        if (!seg) continue;
+        // Side view: both sides face the same way, signed check. Front view:
+        // the far side is a mirrored negation, so judge magnitude only.
+        const v = front ? Math.abs(seg[key]) : seg[key];
+        if (!inR(v, range)) { console.warn(`ROM: "${id}" ${kind} ${limb}.${side}[${key}] = ${seg[key]}°`); romWarn++; }
+      }
+    }
+  }
+}
+if (romWarn) console.warn(`ROM: ${romWarn} warning(s) — human judging, not build failures (yet)`);
+
 // 6. The canon is the canon: the hip at half standing height is the ratio that
 //    was wrong first time round and the one a careless edit would break again.
 const stand = skeleton({ view: 'side', spine: [0, 0, 0], legs: { near: [0, 0, 90], far: [0, 0, 90] } });
