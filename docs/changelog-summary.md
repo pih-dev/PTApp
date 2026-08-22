@@ -4,6 +4,14 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.25.1 - brighter muscle red and equipment blue (August 22, 2026)
+
+Phone review straight after v2.25: the muscle wash and the equipment read too
+quiet. Hotter muscle red in both skins, stronger primary wash, near-opaque
+equipment. Colour values only.
+
+---
+
 ## v2.25 - the design round, and the app's own mark (August 22, 2026)
 
 The logo is now a real figure from the movement library — the deadlift hinge —

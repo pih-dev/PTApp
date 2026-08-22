@@ -4,6 +4,14 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.25.1 - brighter muscle red and equipment blue (2026-08-22)
+
+Figures-session patch from Pierre's live phone review (df3a10e): `--muscle`
+midnight #F03A68 / steel #C41A4F, primary wash opacity 0.62→0.78, equipment
+opacity 0.85→0.95 (svg.js). Colour values only; deployed same hour.
+
+---
+
 ## v2.25 - design refinement round + the mark (B3) (2026-08-22)
 
 The two non-figure items queued in the 2026-08-22 brief, run at xhigh on Fable 5.
