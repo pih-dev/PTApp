@@ -4,6 +4,21 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.28 - the opening sound + Play versionCode 4 (2026-08-22)
+
+scripts/make-opening-sound.mjs synthesises public/opening.wav (233 KB,
+deterministic seed, no deps): 42-58Hz sub swell, decorrelated shimmer,
+detuned-partial width, impact at 450ms = the .pm-line draw delay (change one,
+change both). Splash plays it ONLY when Capacitor.isNativePlatform() - and the
+wav never deploys to gh-pages, so the web build could not fetch it even
+without the gate. MainActivity lifts setMediaPlaybackRequiresUserGesture for
+launch autoplay. android versionCode 3->4, versionName 2.15.1->2.28; AAB
+verified INSIDE the bundle per the build trap. Real Atmos is a licensed
+format; this is the stereo craft that carries the feel - said plainly in the
+user docs too.
+
+---
+
 ## v2.27 - the opening + the icon set (2026-08-22)
 
 **The opening.** Splash.jsx renders the frozen mark once per launch: overlay on

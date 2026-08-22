@@ -4,6 +4,17 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.28 - the opening sound, and the Play release (August 22, 2026)
+
+The opening has its audio: a sub swell, a wide shimmer, one impact landing
+exactly when the posture lines draw. Native app only - browsers refuse sound
+before a touch, and that restriction is what the Android build lifts. Also the
+first Play build since v2.15.1: versionCode 4 carries the design pass, the
+figures, the logo, the backdrop and the opening to the closed testers.
+Full detail: instructions-v2.28.md.
+
+---
+
 ## v2.27 - the opening, and the app's icons (August 22, 2026)
 
 Launch the app and the mark performs once — figures step in, the posture lines

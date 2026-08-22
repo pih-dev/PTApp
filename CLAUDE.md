@@ -44,8 +44,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.27
-**The opening + the icon set.** `Splash.jsx` performs the mark once per launch — tap skips, reduced-motion never mounts it, the SOUND hook is a comment there (native stage). Icons: `--export` → `public/icon-512.png` + `apple-touch-icon.png`, manifest rewritten. 🔴 **Mark + backdrop are FROZEN in `src/spotsetMark.js`** (`--freeze pair-off-colour --freeze-bg pair-off-lines`) — never render them live; the freeze bakes the `pm-*` animation hooks. 🔴 **Figure-tokens-in-UI has ONE sanctioned exception: the mark — it IS a figure.** Detail: `docs/instructions-v2.27.md`.
+## Current Version: v2.28
+**The opening SOUND + the Play release.** `scripts/make-opening-sound.mjs` synthesises `public/opening.wav` (deterministic; impact at 450ms = the `.pm-line` draw delay — change one, change both). 🔴 **NATIVE-ONLY playback**: Splash gates on `Capacitor.isNativePlatform()`, MainActivity lifts the WebView gesture rule, and the wav is NOT in the gh-pages deploy list. Android `versionCode 4` / `2.28` — 🔴 verify the versionName INSIDE the .aab, never the exit code (JDK 21; `gradlew` exits 0 on failure). Detail: `docs/instructions-v2.27.md`, `-v2.28.md`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
@@ -76,7 +76,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 - **v2.17–v2.20.1** (08-21/22) — THE DESIGN PASS, five stages. → `v2.17`…`v2.20.1`
 - **v2.21–v2.24.1** (08-22) — the movement library, then the figures: pilot → all 340 from 44 patterns, gestures, colour roles, fault muscles. → `v2.21`…`v2.24.md`
 - **v2.25–v2.25.3** (08-22) — the design refinement round (bar heads, shared SessionCard/P3, emojis out, fresh-eyes) + the equipment-blue passes. → `v2.25`…`v2.25.3`
-- **v2.26** (08-22) — the FACING-PAIR logo (Pierre's pick) + the faint mono backdrop. → `v2.26`
+- **v2.26–v2.27** (08-22) — the FACING-PAIR logo + backdrop; then the opening animation and the PWA/store icon set. → `v2.26`, `v2.27`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
