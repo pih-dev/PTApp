@@ -4,6 +4,17 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.35.2 - the prone stability ball stays under the client (August 23, 2026)
+
+The v2.35.1 split-grip rule was too broad: on the two prone stability-ball
+movements (Prone Y Raise, Prone Scapular Retraction) the client lies ON the
+ball with both arms out level - the rule moved that support ball into a
+raised hand. Caught by the mobile-UX review before Pierre saw it. The
+one-hand anchor now also requires the grips to differ in height, so level
+symmetric holds keep their centre. The 13 rotation throws are unchanged.
+
+---
+
 ## v2.35.1 - the medicine ball leaves the head (August 23, 2026)
 
 Pierre's phone report: "2 heads per posture" on Side Rotary Medicine Ball

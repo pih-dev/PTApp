@@ -151,7 +151,14 @@ function equipment(sk, anchor, gear, view) {
         // rotation pose raises it to the frame's top edge, so the ball
         // clipped or left the cell entirely). The outstretched throwing arm
         // is both the honest hold and the one that stays in frame.
-        const apart = Math.hypot(g.x - gF.x, g.y - gF.y) > 120;
+        // …but only when the grips differ in HEIGHT. Level symmetric grips
+        // (Stability Ball Prone Y Raise / Scapular Retraction — the client
+        // lies ON the ball, arms out) are not a one-hand hold, and the first
+        // cut of this rule put their support ball into a raised hand
+        // (mobile-ux review, 2026-08-23). Level-and-wide keeps the centre —
+        // imperfect for the prone pair (pre-existing), regression-free.
+        const apart = Math.hypot(g.x - gF.x, g.y - gF.y) > 120
+          && Math.abs(g.y - gF.y) > 60;
         const at = !apart ? centre
           : (Math.hypot(g.x - sk.head.x, g.y - sk.head.y)
              >= Math.hypot(gF.x - sk.head.x, gF.y - sk.head.y) ? g : gF);
