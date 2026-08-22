@@ -4,6 +4,31 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.23.2 - zoom on every pair, logo to library (2026-08-22)
+
+Round 2 of the staged path to Pierre's stated destination ("eventually 3D
+models that can be rotated and zoomed in/out, after a few rounds"). The stages
+are written down in docs/2026-08-22-figures-3d-options.md so the order survives
+a /clear.
+
+**ZOOM: double-tap, not pinch, and it is a touch-action constraint.** Pinch
+needs `touch-action: none`, which would take vertical scroll away from a bottom
+sheet that must scroll. Double-tap is detected from pointerup timing (300ms, no
+travel) rather than `dblclick`, which no mobile browser fires reliably on a
+plain div. Applied as a CSS transform on `.fig-art` inside an `overflow: hidden`
+`.fig-view` — vector, so sharp at any scale, and the figure's geometry is
+untouched, so the canon/posture line/fault marker cannot drift under zoom.
+
+**ONE GESTURE, TWO JOBS, DECIDED BY STATE.** zoom === 1 -> a horizontal drag
+turns (rotatable patterns only). zoom > 1 -> it pans. Never a modifier, which a
+phone does not have.
+
+**The logo is a button** (`.logo-btn`) opening MovementLibrary, hoisted into
+App.jsx with its own state. General's entry is unchanged — a shortcut, not a
+move.
+
+---
+
 ## v2.23.1 - rotatable figures: a tween between two authored cameras (2026-08-22)
 
 Pierre: "I need different angles where possible. Either that or 3D. They drag

@@ -69,6 +69,26 @@ Render each figure at, say, 12 angles at build time; the drag scrubs through fra
 
 ---
 
+## 🔴 THE DESTINATION, STATED BY PIERRE 2026-08-22
+
+> *"Eventually 3D models that can be rotated and zoomed in/out, after a few rounds."*
+
+So this is not a choice between the routes below — it is an **order**. Route B is not the
+destination, it is the road to it, and "after a few rounds" is the instruction that matters: each
+round has to ship something usable on its own.
+
+| Round | What ships | State |
+|---|---|---|
+| 1 | Rotation on **one** pattern, tweened between two authored cameras | ✅ v2.23.1 |
+| 2 | **Zoom on every pair** (double-tap + pan), and the logo opens the library | ✅ v2.23.2 |
+| 3 | Rotation on the patterns whose fault is genuinely out-of-plane — **each needs its second camera authored and judged**, not just switched on | next |
+| 4 | Depth on the skeleton: a body-fixed frame per segment, so a figure turns continuously instead of tweening between two stops | |
+| 5 | Pinch-zoom, once the figure has a surface of its own — pinch needs `touch-action: none`, which a scrolling bottom sheet cannot give up | |
+
+**Round 3 is the one to resist rushing.** A drag handle on a pattern whose fault is fully visible
+from one camera does nothing, and a control that does nothing is worse than no control. The bench
+press earned it because flare is abduction; most patterns have not.
+
 ## Recommendation
 
 **Route B, prototyped on ONE pattern before anything scales** — exactly how the pilot seven were

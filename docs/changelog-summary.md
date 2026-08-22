@@ -4,6 +4,20 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.23.2 - zoom on every figure, and the logo opens the library (August 22, 2026)
+
+Tap SpotSet in the header and the movement library opens. It was the one thing
+up there that did nothing, and the library is what you reach for most.
+
+Double-tap any pair of figures and both zoom in; drag to move around, Reset to
+come back. It works on all 340, not just the bench press that turns.
+
+Pinch would have been the obvious gesture, but it needs the browser to give up
+vertical scrolling, and the sheet has to scroll. Pinch comes with the 3D
+version, when a figure gets a screen of its own.
+
+---
+
 ## v2.23.1 - the bench press turns under your finger (August 22, 2026)
 
 Open Flat Barbell Press and the pair has a DRAG TO TURN bar under it. Slide a

@@ -26,15 +26,25 @@ import { t } from '../i18n';
 
 export const hasFigure = (name) => !!figureFor(name);
 
-function Fig({ pose, label, caption, wide, mix = 0 }) {
+function Fig({ pose, label, caption, wide, mix = 0, zoom = 1, pan }) {
   // Memoised because `figureSvg` mints a fresh clipPath id per call: without
   // this the markup string differs on every render, so React tears down and
   // re-parses both SVGs whenever anything above them re-renders. `mix` is in
   // the key because it is exactly what should force a redraw.
   const html = useMemo(() => figureSvg(pose, { title: label, mix }), [pose, label, mix]);
+  // 🔴 ZOOM IS A CSS TRANSFORM ON THE ART, NOT A NEW viewBox. The figure is
+  //    already vector, so scaling costs nothing and stays sharp — and it leaves
+  //    the geometry untouched, which means the canon, the posture line and the
+  //    fault marker cannot drift because somebody zoomed.
+  const style = zoom === 1 ? undefined : {
+    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+    transformOrigin: 'center center',
+  };
   return (
     <figure className={`fig-cell${wide ? ' fig-wide' : ''}`}>
-      <div className="fig-art" dangerouslySetInnerHTML={{ __html: html }} />
+      <div className="fig-view">
+        <div className="fig-art" style={style} dangerouslySetInnerHTML={{ __html: html }} />
+      </div>
       <figcaption className={`fig-cap${caption === 'fault' ? ' fig-cap-fault' : ''}`}>{label}</figcaption>
     </figure>
   );
@@ -47,27 +57,61 @@ export default function Figure({ name, lang }) {
   //    and not the other would compare two different cameras and teach the
   //    wrong difference. One gesture, one angle, both figures.
   const [mix, setMix] = useState(0);
+  // 🔴 ZOOM IS DOUBLE-TAP, NOT PINCH — and that is a touch-action decision, not
+  //    a preference. Pinch needs `touch-action: none`, which would take the
+  //    vertical scroll away from a bottom sheet that has to scroll. Double-tap
+  //    needs nothing from the browser, works with a mouse for free, and leaves
+  //    the sheet's own gestures alone. Real pinch arrives with the 3D rig, when
+  //    the figure gets a surface of its own.
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
   const drag = useRef(null);
+  const lastTap = useRef(0);
+
+  const toggleZoom = useCallback(() => {
+    setZoom((z) => (z === 1 ? 2.2 : 1));
+    setPan({ x: 0, y: 0 });
+  }, []);
 
   // Pointer events, not touch events: one code path for finger, mouse and pen,
   // and `setPointerCapture` keeps the gesture alive when the finger leaves the
   // little SVG box — which it always does on a phone.
   const onDown = useCallback((e) => {
-    drag.current = { x: e.clientX, base: 0 };
-    setMix((m) => { drag.current.base = m; return m; });
+    // 🔴 ONE GESTURE, TWO JOBS, DECIDED BY STATE — never by a modifier key that
+    //    a phone does not have. Zoomed in, a horizontal drag PANS, because that
+    //    is the only thing it can usefully mean when the figure is larger than
+    //    its box. Zoomed out it TURNS. A drag doing both at once would do
+    //    neither well.
+    drag.current = { x: e.clientX, y: e.clientY, mix: 0, pan };
+    setMix((m) => { drag.current.mix = m; return m; });
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* older webviews */ }
-  }, []);
+  }, [pan]);
+
   const onMove = useCallback((e) => {
     if (!drag.current) return;
+    const dxPx = e.clientX - drag.current.x;
+    if (zoom !== 1) {
+      setPan({ x: drag.current.pan.x + dxPx, y: drag.current.pan.y + (e.clientY - drag.current.y) });
+      return;
+    }
     // 🔴 SCALED BY THE ELEMENT'S OWN WIDTH, not a magic pixel count: the same
     //    swipe has to travel the same amount of turn on a 360px phone and a
     //    tablet. Half the width is a full turn — enough that it cannot be
     //    triggered by the vertical scroll the sheet also needs.
     const w = e.currentTarget.getBoundingClientRect().width || 1;
-    const dx = (e.clientX - drag.current.x) / (w * 0.5);
-    setMix(Math.max(0, Math.min(1, drag.current.base + dx)));
-  }, []);
-  const onUp = useCallback(() => { drag.current = null; }, []);
+    setMix(Math.max(0, Math.min(1, drag.current.mix + dxPx / (w * 0.5))));
+  }, [zoom]);
+
+  const onUp = useCallback((e) => {
+    const moved = drag.current && Math.abs(e.clientX - drag.current.x) > 6;
+    drag.current = null;
+    // A tap is a pointer that went down and up without travelling. Two inside
+    // 300ms is the zoom toggle — measured here rather than relying on
+    // `dblclick`, which no mobile browser fires reliably on a plain div.
+    if (moved) return;
+    const now = Date.now();
+    if (now - lastTap.current < 300) { toggleZoom(); lastTap.current = 0; } else { lastTap.current = now; }
+  }, [toggleZoom]);
   // 🔴 The axis is claimed in CSS with `touch-action: pan-y`, NOT with a
   //    preventDefault here. The sheet must still scroll vertically under the
   //    finger; telling the browser which axis we want is the only way to keep
@@ -80,22 +124,31 @@ export default function Figure({ name, lang }) {
   return (
     <>
       <div className="subbar">{t(lang, 'formSection')}</div>
+      {/* EVERY pair zooms; only some turn. So the handlers are always attached
+          and the drag decides what it means from `zoom`. */}
       <div
-        className={`fig-pair${pair.rotatable ? ' fig-rotatable' : ''}`}
-        onPointerDown={pair.rotatable ? onDown : undefined}
-        onPointerMove={pair.rotatable ? onMove : undefined}
-        onPointerUp={pair.rotatable ? onUp : undefined}
-        onPointerCancel={pair.rotatable ? onUp : undefined}
+        className={`fig-pair fig-interactive${zoom !== 1 ? ' fig-zoomed' : ''}${pair.rotatable ? ' fig-rotatable' : ''}`}
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onUp}
       >
-        <Fig pose={pair.correct} label={t(lang, 'figureCorrect')} caption="correct" mix={mix} />
-        <Fig pose={pair.fault} label={t(lang, 'figureFault')} caption="fault" mix={mix} />
+        <Fig pose={pair.correct} label={t(lang, 'figureCorrect')} caption="correct" mix={mix} zoom={zoom} pan={pan} />
+        <Fig pose={pair.fault} label={t(lang, 'figureFault')} caption="fault" mix={mix} zoom={zoom} pan={pan} />
       </div>
-      {pair.rotatable && (
-        <div className="fig-drag">
-          <span className="fig-drag-hint">{t(lang, 'figureDragHint')}</span>
+      <div className="fig-drag">
+        <span className="fig-drag-hint">
+          {t(lang, pair.rotatable ? 'figureDragHint' : 'figureZoomHint')}
+        </span>
+        {pair.rotatable && (
           <span className="fig-drag-bar"><i style={{ left: `${mix * 100}%` }} /></span>
-        </div>
-      )}
+        )}
+        {zoom !== 1 && (
+          <button type="button" className="fig-zoom-reset" onClick={toggleZoom}>
+            {t(lang, 'figureZoomReset')}
+          </button>
+        )}
+      </div>
 
       {/* 🔴 THE THIRD FIGURE, and it exists for ONE reason: some faults do not
           happen in the plane the pair is drawn in. Elbow flare on a bench press

@@ -1401,6 +1401,17 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 /* The third figure gets the full width because the second camera is always a
    view from above, and a supine figure from above is wide and short — squeezing
    it into a third column would throw away the only reason it exists. */
+/* The logo is a control now, so it has to look pressable without becoming a
+   button — the header is chrome and the accent never touches chrome. Fill on
+   press, nothing at rest: the same rule every other tappable row follows. */
+.logo-btn {
+  display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;
+  background: none; border: 0; padding: 4px 6px; margin: -4px -6px;
+  border-radius: 8px; color: inherit; font: inherit; text-align: start;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.logo-btn:active { background: var(--raised); }
+
 .fig-wide { margin: 4px 0 8px; }
 
 /* 🔴 `pan-y` AND NOTHING ELSE. The sheet still has to scroll vertically under
@@ -1409,7 +1420,19 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
    is what broke elastic overscroll the last time (docs/traps.md). */
 /* `user-select: none` because a horizontal drag over text selects it, and a
    figure that highlights its own caption while you turn it looks broken. */
-.fig-rotatable { touch-action: pan-y; cursor: ew-resize; user-select: none; -webkit-user-select: none; }
+.fig-interactive { touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.fig-rotatable { cursor: ew-resize; }
+/* 🔴 THE ZOOM IS CLIPPED BY ITS OWN BOX. Without this the scaled figure paints
+   over the caption, the key and the movement's own facts — and on a phone that
+   reads as the app breaking, not as a zoom. */
+.fig-view { overflow: hidden; border-radius: 6px; }
+.fig-zoomed { cursor: grab; }
+.fig-zoomed .fig-view { background: var(--raised); }
+.fig-zoom-reset {
+  background: none; border: 0; padding: 0 2px; color: var(--chalk-dim); cursor: pointer;
+  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+}
+[dir="rtl"] .fig-zoom-reset { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 .fig-drag { display: flex; align-items: center; gap: 10px; margin: 2px 0 8px; }
 .fig-drag-hint {
   font-family: var(--font-display); font-size: 10px; letter-spacing: 0.14em;

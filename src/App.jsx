@@ -1,5 +1,6 @@
 import React, { useState, useReducer, useEffect, useRef } from 'react';
 import Dashboard from './components/Dashboard';
+import MovementLibrary from './components/MovementLibrary';
 import Clients from './components/Clients';
 import Schedule from './components/Schedule';
 import Sessions from './components/Sessions';
@@ -36,6 +37,12 @@ export default function App() {
   const [state, dispatch] = useReducer(reducer, null, loadData);
   const [tab, setTab] = useState('home');
   const [showGeneral, setShowGeneral] = useState(false);
+  // 🔴 THE LOGO OPENS THE LIBRARY (Pierre, 2026-08-22). It is the one thing on
+  //    the header that did nothing, and the movement library is the screen a PT
+  //    reaches for most between sets — three taps through General was three too
+  //    many. The General entry stays: this is a shortcut, not a move, and
+  //    removing the documented path would strand anyone who learned it.
+  const [showLibrary, setShowLibrary] = useState(false);
   // 🔴 THE GATE IS IDENTITY OR LOCAL DATA — NEVER TOKEN VALIDITY (§4).
   //    An expired session still gets in and sees a banner; it must never be a
   //    login wall. A lapsed token black-holing the PT's schedule in a gym with
@@ -256,6 +263,12 @@ export default function App() {
     <div className="app-container" data-skin={skin} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="header">
         <div className="logo">
+          <button
+            type="button"
+            className="logo-btn"
+            onClick={() => setShowLibrary(true)}
+            aria-label={t(lang, 'movementLibrary')}
+          >
           <div className="logo-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="6" y1="12" x2="18" y2="12"/>
@@ -269,6 +282,7 @@ export default function App() {
             <div className="logo-text">SpotSet</div>
             <div className="logo-sub">{t(lang, 'personalTrainer')}</div>
           </div>
+          </button>
           {/* Right side: sync dot + menu button. Version removed from header (lives in debug panel + General). */}
           <div className="header-right">
             {syncStatus !== 'idle' && (
@@ -309,6 +323,7 @@ export default function App() {
         {tab === 'sessions' && <Sessions state={state} dispatch={dispatch} lang={lang} />}
       </div>
 
+      {showLibrary && <MovementLibrary lang={lang} onClose={() => setShowLibrary(false)} />}
       {showGeneral && <General state={state} dispatch={dispatch} onClose={() => setShowGeneral(false)}
           lang={lang} setLang={setLang} skin={skin} setSkin={setSkin}
           onUpdateToken={() => setShowTokenUpdate(true)} />}
@@ -330,7 +345,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.23.1</div>
+          <div><strong>Version:</strong> v2.23.2</div>
           <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>
