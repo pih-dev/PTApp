@@ -26,6 +26,16 @@ crossfading through all 340. Launch stays the 3-second opening untouched.
 Full detail: instructions-v2.31.md.
 
 ---
+## v2.31.1 - shoulders attached, body all white (August 22, 2026)
+
+Pierre caught arms floating free of the body at mid-turn: real depth puts
+a shoulder up to 76 units off the spine and nothing connected them - the
+authored views never needed a shoulder girdle, so the rig never had one.
+Spun figures now draw the clavicle from neck to each shoulder. And per his
+call, the body paints full white instead of translucent gray, every figure.
+
+---
+
 ## v2.30.3 - the black marks on the joints are gone (August 22, 2026)
 
 One arc-direction flag: the round caps on a turned figure's limbs wound

@@ -98,7 +98,10 @@ export function figureSvg(pose, { detail = 'full', title = '', className = '', m
       //    half of the fault marker — disappears. It fails silently and it
       //    looks exactly like "the wash isn't implemented yet".
       `<clipPath id="${id}">${bodyPaths}</clipPath>`,
-      `<g fill="currentColor" opacity="0.78">${bodyPaths}</g>`,
+      // v2.30.4, Pierre: "make them white rather than gray, all white" — the
+      // body paints at full strength now. currentColor still carries the
+      // skin's chalk, so steel keeps its own value.
+      `<g fill="currentColor">${bodyPaths}</g>`,
       // The muscle wash, COLOUR-CODED: primary movers in --muscle, supporting
       // work in --muscle-2. Clipped, so it can only ever paint on the body — a
       // wash that spills outside the silhouette reads as a bug, not as anatomy.

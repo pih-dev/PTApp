@@ -315,6 +315,21 @@ export function buildFigure(pose, mix, skIn) {
     { d: foot('N'), z: zOf(['ankleN', 'toeN']) },
     { d: arm('N'), z: zOf(['shoulderN', 'elbowN', 'wristN']) },
   ];
+  // 🔴 THE SHOULDER GIRDLE (round 4, Pierre's find at 60/135°): the authored
+  //    side view nudges shoulders 12 units, so arms glue to the neck column
+  //    for free. Real depth puts a shoulder up to 76 units off the spine —
+  //    and the arm plus its deltoid float DETACHED beside the body, because
+  //    the rig never drew what connects them. On a spun figure each shoulder
+  //    gets its clavicle: a ribbon from the neck base out to the joint.
+  //    Authored figures keep their bytes — the nudge means they never needed it.
+  if (spun) {
+    for (const S of ['N', 'F']) {
+      parts.push({
+        d: ribbon([sk.neckBase, sk['shoulder' + S]], [g.neckBase, g.deltoid], spun),
+        z: zOf(['neckBase', 'shoulder' + S]),
+      });
+    }
+  }
   if (spun) parts.sort((a, b) => a.z - b.z);
   // Filter BEFORE splitting into parallel arrays, or an empty ribbon would
   // shift `body` against `bodyZ` and shade the wrong limb.
