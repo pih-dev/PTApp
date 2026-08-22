@@ -37,6 +37,12 @@ keep the picker's per-type colour legend). Dead CSS deleted: `.section-title`,
 `.section-header`, `.success-icon`, `.empty-icon`, `.card-now`, and the
 orphaned theme-era declarations that had sat unparsed since v2.17.
 
+**Deployed with** the figures thread's implicit-equipment commit (0758f9f):
+`poses.js` GEAR rules give bars to movements whose NAME doesn't carry the
+equipment (equipment-less figures 145 → 107, the rest genuinely bodyweight),
+and midnight `--equipment` moved to the azure Pierre matched from his
+reference photo.
+
 ---
 
 ## v2.24.1 - equipment blue saturated (2026-08-22)

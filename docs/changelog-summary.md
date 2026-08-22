@@ -14,6 +14,11 @@ the session rows on Home and Schedule are one shared component, the Repeat
 toggle moved down beside the options it unlocks, and the last emojis in the
 interface were replaced with drawn marks. Full detail: instructions-v2.25.md.
 
+Deployed together with a figures fix from the other thread: movements whose
+name does not say their equipment (Deadlift, Front Squat, Push Press…) now
+draw their bar — 38 more movements show their gear — and the equipment blue
+was matched to the reference photo.
+
 ---
 
 ## v2.24.1 - the equipment blue, brightened (August 22, 2026)
