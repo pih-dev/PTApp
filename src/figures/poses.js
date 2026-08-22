@@ -334,11 +334,27 @@ export function figureFor(name) {
   const a = ARCHETYPES[id];
   if (!a) return null;
   const pair = { correct: build(name, 'correct'), fault: build(name, 'fault'), archetype: id };
+  const gear = gearFor(name);
 
   // A rotatable pattern hangs its second camera off each half as `alt`; the
   // renderer tweens between them and the sheet grows a drag handle. When a
   // pattern rotates, the standing third figure is redundant — the same view is
   // now a finger-drag away — so it is dropped rather than shown twice.
+  // Round 4 (v2.29): the JUDGED patterns turn continuously — Pierre approved
+  // curl, hinge and the bench on the prototype sheet, frame by frame. The
+  // gate is deliberate and narrow: side-authored pose (no baked `fs`), a
+  // gear the 3D equipment vocabulary can draw (barbell, or nothing), and a
+  // pattern a human has judged through the turn. Everything else keeps its
+  // authored view until its own judging round — a control that renders an
+  // unjudged angle is worse than no control.
+  const SPINS = new Set(['curl', 'hinge', 'bench-press']);
+  const fsBaked = !!(a.base.fs || a.correct.fs || a.fault.fs);
+  if (SPINS.has(id) && !fsBaked && (gear === 'barbell' || gear === 'none')) {
+    pair.spin = { gear, anchor: a.anchor };
+    pair.rotatable = true;
+    return pair;   // spin supersedes the two-camera tween AND the extra view
+  }
+
   const rot = ROTATES[id];
   if (rot) {
     pair.correct.alt = rot.correct();

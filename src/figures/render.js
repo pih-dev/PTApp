@@ -398,10 +398,10 @@ function jointAt(sk, name) {
 //
 // `mix` matters because a rotatable pair can be zoomed mid-turn, and the
 // joint has moved with the camera tween by then.
-export function zoomAnchor(pose, mix = 0) {
-  const sk = (pose.alt && mix > 0)
+export function zoomAnchor(pose, mix = 0, skIn) {
+  const sk = skIn || ((pose.alt && mix > 0)
     ? lerpSkeleton(skeleton(pose), skeleton(pose.alt), Math.min(1, mix))
-    : skeleton(pose);
+    : skeleton(pose));
   const chain = (pose.fault && pose.fault.joints) || (pose.guide && pose.guide.joints);
   if (!chain || !chain.length) return null;
   const pts = chain.map(j => jointAt(sk, j));

@@ -4,6 +4,16 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.29 - three movements turn in your hand (August 22, 2026)
+
+Round 4 reaches the app: on curls, deadlifts and the barbell bench press,
+the drag now turns the pair continuously through 180 degrees - the barbell
+and the bench rotate with the body as one object. Only the three
+patterns Pierre judged frame-by-frame; everything else keeps its authored
+view until its own judging round.
+
+---
+
 ## v2.28 - the opening sound, and the Play release (August 22, 2026)
 
 The opening has its audio: a sub swell, a wide shimmer, one impact landing

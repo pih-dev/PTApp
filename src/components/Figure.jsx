@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState, useCallback } from 'react';
 import { figureFor } from '../figures/poses';
 import { figureSvg, CELL } from '../figures/svg';
 import { zoomAnchor } from '../figures/render';
+import { spunSkeleton, spinEquip } from '../figures/spin';
 import { figureText } from '../figureText';
 import { t } from '../i18n';
 
@@ -27,12 +28,25 @@ import { t } from '../i18n';
 
 export const hasFigure = (name) => !!figureFor(name);
 
-function Fig({ pose, label, caption, wide, mix = 0, zoom = 1, pan, origin }) {
+function Fig({ pose, label, caption, wide, mix = 0, zoom = 1, pan, origin, spin }) {
   // Memoised because `figureSvg` mints a fresh clipPath id per call: without
   // this the markup string differs on every render, so React tears down and
   // re-parses both SVGs whenever anything above them re-renders. `mix` is in
   // the key because it is exactly what should force a redraw.
-  const html = useMemo(() => figureSvg(pose, { title: label, mix }), [pose, label, mix]);
+  // Round 4 (v2.29): a spin-enabled pair maps the SAME drag to a continuous
+  // turn — mix 0..1 becomes 0..180° on the turntable — instead of the
+  // two-camera tween. Both halves receive the same θ, the pair rule on rails.
+  const html = useMemo(() => {
+    if (spin) {
+      const th = mix * 180;
+      return figureSvg(pose, {
+        title: label,
+        sk: spunSkeleton(pose, th),
+        equip: spinEquip(pose, th, spin.gear, spin.anchor),
+      });
+    }
+    return figureSvg(pose, { title: label, mix });
+  }, [pose, label, mix, spin]);
   // 🔴 ZOOM IS A CSS TRANSFORM ON THE ART, NOT A NEW viewBox. The figure is
   //    already vector, so scaling costs nothing and stays sharp — and it leaves
   //    the geometry untouched, which means the canon, the posture line and the
@@ -79,7 +93,8 @@ export default function Figure({ name, lang }) {
   // shared by both halves — the same rule that makes the drag turn them
   // together. Recomputed with `mix` because a rotatable pair can zoom mid-turn.
   const origin = useMemo(() => {
-    const a = pair && zoomAnchor(pair.fault, mix);
+    const a = pair && zoomAnchor(pair.fault, mix,
+      pair.spin ? spunSkeleton(pair.fault, mix * 180) : undefined);
     if (!a) return undefined;
     const px = (v, lo, span) => `${Math.max(0, Math.min(100, ((v - lo) / span) * 100)).toFixed(1)}%`;
     return `${px(a.x, CELL.x, CELL.w)} ${px(a.y, CELL.y, CELL.h)}`;
@@ -213,8 +228,8 @@ export default function Figure({ name, lang }) {
         onPointerUp={onUp}
         onPointerCancel={onUp}
       >
-        <Fig pose={pair.correct} label={t(lang, 'figureCorrect')} caption="correct" mix={mix} zoom={zoom} pan={pan} origin={origin} />
-        <Fig pose={pair.fault} label={t(lang, 'figureFault')} caption="fault" mix={mix} zoom={zoom} pan={pan} origin={origin} />
+        <Fig pose={pair.correct} label={t(lang, 'figureCorrect')} caption="correct" mix={mix} zoom={zoom} pan={pan} origin={origin} spin={pair.spin} />
+        <Fig pose={pair.fault} label={t(lang, 'figureFault')} caption="fault" mix={mix} zoom={zoom} pan={pan} origin={origin} spin={pair.spin} />
       </div>
       <div className="fig-drag">
         <span className="fig-drag-hint">

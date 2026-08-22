@@ -111,7 +111,9 @@ at each milestone. A restart could end the session at any moment.
   tween; ROTATES and BENCH/PUSHUP_ABOVE then delete themselves); (3) extend spinEquip past
   barbell+bench (dumbbell, cable, machine); (4) front-authored poses (squat family) carry a baked
   `fs` and need re-authoring as side+depth before they can spin; (5) sanity gate: pair rule
-  becomes "same 3D bone lengths".
+  becomes "same 3D bone lengths"; (6) **THE 3D LOOK (Pierre, after approving the hole fix):
+  "different shades of brightness so that it would seem 3D"** — lighter base gray + per-part
+  brightness from the depth each part already carries. Future round, after the turn ships in-app.
 - 🔴 **THE DESTINATION, IN PIERRE'S WORDS (08-22): "eventually 3D models that can be rotated and
   zoomed in/out, after a few rounds."** That is an instruction about ORDER — each round ships
   something usable on its own. The staged path and where it stands live in
