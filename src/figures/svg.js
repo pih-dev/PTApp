@@ -60,11 +60,12 @@ export function figureSvg(pose, { detail = 'full', title = '', className = '', m
   const f = buildFigure(pose, mix);
   const mark = detail === 'mark';
   const id = `fg${++uid}`;
-  // Held versus lost, and the hue carries it: --accent is this app's "under
-  // load, pay attention" colour and --warn is its "this is going wrong" one.
-  // The pose says which by whether it marks a fault, so the two can never be
-  // set inconsistently from a pose file.
-  const guideStroke = f.fault.length ? 'var(--warn)' : 'var(--accent)';
+  // Held versus lost, and the hue carries it. v2.24, Pierre's ruling: the
+  // correct posture line is GREEN (--ok — "this is right"), the lost one stays
+  // --warn orange, and blue now belongs to the equipment. The accent cyan was
+  // too close to the equipment blue to keep both. The pose says which by
+  // whether it marks a fault, so the two can never be set inconsistently.
+  const guideStroke = f.fault.length ? 'var(--warn)' : 'var(--ok)';
 
   const bodyPaths = f.body.map(d => `<path d="${d}"/>`).join('')
     + f.deltoids.map(c => `<circle cx="${r(c.cx)}" cy="${r(c.cy)}" r="${r(c.r)}"/>`).join('')

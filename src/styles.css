@@ -1450,7 +1450,11 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 [dir="rtl"] .fig-drag-hint { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 .fig-drag-bar { position: relative; flex: 1; height: 2px; background: var(--bar); border-radius: 1px; }
 .fig-drag-bar i {
-  position: absolute; top: -4px; width: 10px; height: 10px; margin-inline-start: -5px;
+  /* translateX, not margin-inline-start: the dot is positioned with a
+     deliberately PHYSICAL `left` (it tracks the finger), so its centring must
+     be direction-agnostic too — in RTL the logical margin became margin-right
+     and the dot sat 5px off-centre (i18n review, v2.24). */
+  position: absolute; top: -4px; width: 10px; height: 10px; transform: translateX(-50%);
   border-radius: 50%; background: var(--chalk); display: block;
 }
 .fig-unreviewed {

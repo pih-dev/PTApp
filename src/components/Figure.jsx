@@ -248,11 +248,14 @@ export default function Figure({ name, lang }) {
           carrying an accent line, a warn line, two muscle hues and an --anatomy
           marker is a chart, and an unlabelled chart is a guessing game. */}
       <div className="fig-key">
-        <span className="fk"><i style={{ background: 'var(--accent)' }} />{t(lang, 'figKeyHeld')}</span>
+        {/* v2.24: held = green (--ok), matching the posture line — blue moved
+            to the equipment and two blues in one key was a guessing game. */}
+        <span className="fk"><i style={{ background: 'var(--ok)' }} />{t(lang, 'figKeyHeld')}</span>
         <span className="fk"><i style={{ background: 'var(--warn)' }} />{t(lang, 'figKeyLost')}</span>
         <span className="fk"><i style={{ background: 'var(--muscle)' }} />{t(lang, 'figKeyPrimary')}</span>
         <span className="fk"><i style={{ background: 'var(--muscle-2)' }} />{t(lang, 'figKeySecondary')}</span>
         <span className="fk"><i style={{ background: 'var(--anatomy)' }} />{t(lang, 'figKeyFault')}</span>
+        <span className="fk"><i style={{ background: 'var(--equipment)' }} />{t(lang, 'figKeyEquip')}</span>
       </div>
 
       {/* The text is DATA (src/figureText.js), keyed by PATTERN — a movement can

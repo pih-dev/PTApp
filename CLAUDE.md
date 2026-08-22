@@ -44,8 +44,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.23.2
-**The exercise figures, ALL 340 (B2).** Every movement opens with a FORM panel: the pair, the posture line, colour-coded muscles, a key, and three sentences EN+AR. Cost 37 KB. Detail: `docs/instructions-v2.22.md`…`-v2.23.2.md`; thread: `HANDOFF-figures.md`.
+## Current Version: v2.24
+**The exercise figures, ALL 340 (B2).** Every movement opens with a FORM panel: the pair, the posture line, colour-coded muscles, a key, and three sentences EN+AR. Cost 37 KB. v2.24: direct gestures (pinch/drag), fault-anchored zoom, green/blue/orange colour roles, fault-specific muscles on 8 patterns. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`; thread: `HANDOFF-figures.md`.
 - 🔴 **A MOVEMENT IS NOT THE UNIT OF DRAWING — A PATTERN IS.** 44 archetypes (`figures/archetypes.js`) own the pose and the fault; the movement contributes its **muscles from the bank** and its **equipment from its NAME**. `classify.js` maps all 340, first-match-wins, **and 100% coverage is a build gate** — an unclassified movement silently shows nothing. 🔴 Its ORDER is the logic: "external rotation" must beat "rotation".
 - 🔴 **A FIGURE IS ANGLES, NEVER COORDINATES** — `canon.js` owns every bone length and the only FK function, so §7.13 (*the wrong figure reuses the same bone lengths*) holds **by construction across all 340**. `fs` (projection) is the one escape hatch and must be IDENTICAL across a pair; `sanity-figures` asserts it, plus no colour literal, no NaN path, hip at half standing height.
 - 🔴 **SAY WHAT THE POSITION DOES, NEVER WHAT IT CAUSES.** `figureText.js` is keyed by PATTERN (44 entries — that is what makes Elie's review possible at all). **No named pathology, no evidence-grade adverb**; the build FAILS on either. **The Arabic may never be stronger than the English.** 🔴 **A REVIEW FLAG NOTHING RENDERS IS NOT A REVIEW PROCESS** — every entry is `reviewed: false` and the panel prints it.
