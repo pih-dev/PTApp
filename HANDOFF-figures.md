@@ -96,11 +96,19 @@ at each milestone. A restart could end the session at any moment.
 - 🔴 **ROUND 3 SKIPPED BY PIERRE'S RULING (08-22 evening): "let's go straight to round four."**
   The round-3 audit found only Push-Up qualified for a second static camera anyway; its authored
   poses are parked at `_archive/PTApp/figures/2026-08-22-pushup-above-poses-round3-parked.diff`.
-- 🟡 **ROUND 4 PROTOTYPE COMMITTED (`src/figures/spin.js`, a598da5) — awaiting Pierre's visual
-  judgement.** Continuous rotation about the body-fixed trunk axis; standing spreads to front
-  widths at 90°, supine turns toward the top view, no NaN. Not wired to any screen yet. Next if
-  approved: depth-sort the ribbons (the 90° blob risk), girth interpolation side↔front, then the
-  drag maps to θ instead of the two-camera tween.
+- 🟢 **ROUND 4 PROTOTYPE APPROVED BY PIERRE ("you sorted them out, all of them") — through v4
+  (9ee48be).** What works: turntable rotation about the world vertical (NOT the trunk line — that
+  hoisted a hinged deadlift's legs), body-fixed lateral depth, sphere bells that survive every
+  angle, near-bell-over-hand depth split, bench swivels WITH the lifter, depth-sorted ribbons,
+  girth blending, both-sides muscle wash past a quarter turn. Still prototype-only — no screen
+  imports spin.js.
+- 🟡 **ROUND 4 OPEN ITEMS:** (1) at mirror angles the far arm ducks behind the torso and the
+  enclosed background reads as a dark ball — honest occlusion, needs a visual answer (fill the
+  arm-torso gap? dim far limbs?); (2) wire the drag to θ in Figure.jsx (replaces the two-camera
+  tween; ROTATES and BENCH/PUSHUP_ABOVE then delete themselves); (3) extend spinEquip past
+  barbell+bench (dumbbell, cable, machine); (4) front-authored poses (squat family) carry a baked
+  `fs` and need re-authoring as side+depth before they can spin; (5) sanity gate: pair rule
+  becomes "same 3D bone lengths".
 - 🔴 **THE DESTINATION, IN PIERRE'S WORDS (08-22): "eventually 3D models that can be rotated and
   zoomed in/out, after a few rounds."** That is an instruction about ORDER — each round ships
   something usable on its own. The staged path and where it stands live in
