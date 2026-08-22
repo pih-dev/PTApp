@@ -1,8 +1,11 @@
 # SpotSet — The Exercise Figures (B2) HANDOFF
 
-**Created:** 2026-08-22, Beirut · **Last updated:** 2026-08-22, before a `/clear`.
+**Created:** 2026-08-22, Beirut · **Last updated:** 2026-08-22 late evening, before a `/clear`
+(the CCHealth-run round-4 marathon; CCHealth-side record:
+`CCHealth/docs/sessions/2026-08-22-ptapp-figures-round4.md`).
 **Owner thread:** the figures, and only the figures.
-**To resume:** Pierre types `figures`. **Read §0 back to him and stop**, then start §9's step 1.
+**To resume:** Pierre types `figures`. **Read §0 back to him and stop.** Next work = §0's OPEN
+list, in order. Verify the live version yourself before quoting one.
 
 > 🔴 **OWNERSHIP HANDOVER 2026-08-22 (Pierre's instruction): the CCHealth session (Fable 5) now
 > RUNS the figures thread** — the six queued items and the spatial rounds. The PTApp session keeps
@@ -28,48 +31,37 @@ at each milestone. A restart could end the session at any moment.
 
 ## 0. Status — read this out
 
-- 🟢 **SHIPPED AND LIVE — v2.23.2. All 340 movements have figures.** Composed from 44 patterns; the
-  pattern owns the pose and the fault, the movement contributes its muscles (bank) and its equipment
-  (its name). The bench press turns under a finger; every pair double-taps to zoom. The header logo
-  opens the movement library.
-- 🔴 **THE NEXT ROUND IS SPECIFIED AND NOT STARTED — READ
-  `docs/2026-08-22-figures-next-round-brief.md` FIRST.** Six figure items and two others, captured
-  in Pierre's own words on 2026-08-22 before he cleared. In his priority order as he said them:
-  1. ✅ **DONE 2026-08-22 (CCHealth session)** — zoom now anchors on the fault joint
-     (`zoomAnchor()` in `render.js`, shared origin for both halves; falls back to the posture
-     line's midpoint). Sanity + build clean, all 340 anchors finite.
-  2. ✅ **DONE 2026-08-22 (CCHealth session)** — direct manipulation per his ruling: pinch zooms
-     continuously (1–3×), one-finger drag always turns (vertical pans while zoomed; pan-only for
-     non-rotatable pairs), double-tap kept as the mouse/accessibility path. `touch-action: none`
-     on the figure block — it is its own non-scrolling surface; the sheet scrolls from the text
-     below. Also fixed from mobile-UX review: cancelled pointers no longer count as taps, and pan
-     is clamped so the art can never leave the box. **Needs his thumb on a real phone.**
-  3. **The equipment should ROTATE with the figure, not swap** at the halfway point. *(Re-confirmed
-     live by Pierre on v2.24 day — still round-4 territory, same as free 360° rotation.)*
-  3b. 🔴 **COLOUR RULING (Pierre, live, 2026-08-22 evening): GREEN = correct posture line (--ok),
-     BLUE = equipment only, ORANGE = stress/fault.** Shipped in v2.24. Orange on the fault half
-     means "wrong AND loads the joint"; different muscles alone mean "different movement, not
-     necessarily dangerous". Keep the three roles distinct in every future change.
-  4. ✅ **DONE 2026-08-22 (CCHealth session)** — `--equipment` token added to both skins
-     (midnight `#6E9BD8`, steel `#33598F`), equipment paints from it at 0.6 opacity, token
-     added to `sanity-skins.mjs`. Marks (list-size) stay currentColor silhouettes.
-  5. 🟡 **MECHANISM DONE 2026-08-22 (CCHealth session), CONTENT PARTIAL** — an archetype opts in
-     with `faultMuscles: {primary, secondary}` (poses.js `build()`); the sanity gate validates the
-     anchors and that the halves actually differ. **8 of 44 declared** (hinge, overhead-press,
-     triceps-pushdown, triceps-overhead, push-up, bench-press, hip-extension, leg-raise), each
-     justified against its fault pose's own comment. **The other 36 are a judging job for Pierre**
-     — declaring a wrong muscle is worse than sharing the bank's, so they stayed opt-out. Captions
-     unchanged (figureText is Elie's review pipeline).
-  6. **Some movements need a SEQUENCE of positions, not a pair** — his example is the military press:
-     start, lift, flip the bar, before the drive, lockout. Three open questions in the brief.
-- 🔴 **TWO NON-FIGURE ITEMS QUEUED IN THE SAME BREATH**, both in the brief and in CLAUDE.md's
-  KNOWN ISSUES: a **design refinement round at xhigh** ("we changed the overall design but it's not
-  where I want it to be — it can be much, much better"), and **the logo** — the name SpotSet stays,
-  the mark is open, and his idea is to draw it FROM the figure library: two silhouettes carrying the
-  correct/fault thesis. That is B3, and the plan always said it comes after the figures so the mark
-  is drawn into a system that exists. It exists now.
-- **He is switching to Opus 5 at xhigh effort for that work.** Session dump for this whole thread:
-  `_archive/PTApp/claude-sessions/2026-08-22-figures-b2-FULL-SESSION.txt`.
+- 🟢 **LIVE ON THE PWA: v2.31.1** (gh-pages). All 340 movements have figures; 24 of them are
+  **360°**: drag turns the pair continuously (yaw 0–180°, vertical drag tilts ±75°), body, bar,
+  bells and bench rotating as ONE object. The library stamps 360° movements and filters for them;
+  a `2+` stamp is wired for future multi-picture movements. Body paints **full white** (his
+  ruling), colours settled: **green = held posture line, orange = stress, blue = equipment**.
+- 🟢 **PLAY STORE: v2.28 submitted to Closed testing – Alpha with the synthesised opening sound**
+  (native-only; the PWA cannot autoplay). All 12 tester opt-ins done — the 14-day production clock
+  is running. **Apple stays pending.** AAB archived:
+  `_archive/PTApp/releases/2026-08-22-spotset-v2.28-vc4.aab`. Publishing is the PTApp session's
+  thread (`HANDOFF-spotset-publishing.md`).
+- 🟢 **SHIPPED THIS SESSION (CCHealth/Fable, v2.24→v2.31.1)** — brief items 1 (fault-anchored
+  zoom), 2 (pinch + direct drag), 4 (equipment token/blue), 5 mechanism + 8/44 fault-muscle
+  declarations; implicit-equipment rules (Deadlift/Front Squat etc. draw their bar — was 145
+  movements drawing nothing); round 4 in-app for the judged patterns (curl, hinge, bench-press
+  with barbell-or-none gear); 360° stamps + filter; two-axis rotation; and the render-engine bug
+  ledger closed: pan-updater crash (live white-screen), guide hairpin, bowtie quads → triangles,
+  cap sweep-flag winding (the recurring "black marks on the joints"), shoulder girdle (arms
+  floated detached at mid-turn — the authored views never needed a clavicle, real depth does).
+- 🔴 **OPEN, in rough priority for the next figures session:**
+  1. **Fault muscles content: 36/44 archetypes still share the bank's wash** — judging work with
+     Pierre, not guessing. 2. **spinEquip vocabulary** stops at barbell + bench — dumbbell, cable,
+     machine needed before more patterns spin. 3. **More spin patterns** — each needs judging
+     through the turn before the gate opens (`SPINS` in `figures/poses.js`). 4. **Front-authored
+     poses (squat family) carry baked `fs`** — re-author as side + depth before they can spin.
+  5. **Sequences (brief item 6)** — his three open questions still unanswered. 6. **The 3D LOOK:
+     my depth-tint attempt was NOT what he meant** ("I'm talking about gradient… even gradient
+     won't work — we'll sort this out later") — parked by his ruling; `bodyZ` stays exported for
+     it. 7. ROM gate stays warn-only until it computes angles from skeleton geometry. 8. The
+     leg-curl family (24 authored figures) re-judged with the normal-continuity fix on.
+- **Non-figure threads (PTApp session's): design refinement round + the logo/name (B3) — done to
+  v2.31 by the PTApp session; splash/opening + publishing are its subjects too.**
 - 🔴 **MODEL POLICY (Pierre's ruling, 2026-08-22 — best result FIRST, quota second, enforce):**
   - **The three flagship tasks — the UI redesign, the logo/name (B3), and the figures thread
     (including spatial/3D/rotate/zoom) — run on Fable 5 at xhigh.** Pierre explicitly accepts
@@ -93,27 +85,15 @@ at each milestone. A restart could end the session at any moment.
   plank, triceps-overhead, knee-tuck). Before it may FAIL builds it must compute joint angles from
   the skeleton geometry, not the raw pose numbers. Until then the warning list is a judging aid.
 
-- 🔴 **ROUND 3 SKIPPED BY PIERRE'S RULING (08-22 evening): "let's go straight to round four."**
-  The round-3 audit found only Push-Up qualified for a second static camera anyway; its authored
-  poses are parked at `_archive/PTApp/figures/2026-08-22-pushup-above-poses-round3-parked.diff`.
-- 🟢 **ROUND 4 PROTOTYPE APPROVED BY PIERRE ("you sorted them out, all of them") — through v4
-  (9ee48be).** What works: turntable rotation about the world vertical (NOT the trunk line — that
-  hoisted a hinged deadlift's legs), body-fixed lateral depth, sphere bells that survive every
-  angle, near-bell-over-hand depth split, bench swivels WITH the lifter, depth-sorted ribbons,
-  girth blending, both-sides muscle wash past a quarter turn. Still prototype-only — no screen
-  imports spin.js.
-- 🟡 **ROUND 4 OPEN ITEMS:** (1) 🔴 REVISED with Pierre's photo evidence (his phone, debug180):
-  the dark marks are perfectly CIRCULAR HOLES punched in the body fill — hip-cap-sized at the
-  waist, toe-cap-sized at the foot — plus the head DETACHES from the neck at 180°. That is not
-  occlusion: it smells like ribbon cap winding cancelling the outline under the nonzero fill rule
-  when the geometry mirrors (spun past 90°). Reproduce with `scratchpad/debug180.html`, inspect
-  the ribbon path data for reversed cap winding. Pierre's ruling: fix later, majors or easy; (2) wire the drag to θ in Figure.jsx (replaces the two-camera
-  tween; ROTATES and BENCH/PUSHUP_ABOVE then delete themselves); (3) extend spinEquip past
-  barbell+bench (dumbbell, cable, machine); (4) front-authored poses (squat family) carry a baked
-  `fs` and need re-authoring as side+depth before they can spin; (5) sanity gate: pair rule
-  becomes "same 3D bone lengths"; (6) **THE 3D LOOK (Pierre, after approving the hole fix):
-  "different shades of brightness so that it would seem 3D"** — lighter base gray + per-part
-  brightness from the depth each part already carries. Future round, after the turn ships in-app.
+- 📜 **Round-4 history, compressed (all resolved above):** round 3 skipped by his ruling (push-up
+  poses parked at `_archive/PTApp/figures/2026-08-22-pushup-above-poses-round3-parked.diff`);
+  the spin engine lives in `src/figures/spin.js` — TURNTABLE about the world vertical (rotating
+  about the trunk line hoisted a hinged deadlift's legs — never again), body-fixed lateral depth,
+  pitch about the screen axis, equipment riding the same transforms plus the ground re-anchor.
+  Spun ribbons are built hole-proof: same-winding triangles + bend/end cap circles — 🔴 **and the
+  cap arcs' sweep flag must match the triangles' winding or every cap cancels to a half-dark
+  bite** (the bug that survived three fixes; found by colouring each part). Authored figures are
+  byte-guarded: any render.js change gets byte-compared over all 680 before it ships.
 - 🔴 **THE DESTINATION, IN PIERRE'S WORDS (08-22): "eventually 3D models that can be rotated and
   zoomed in/out, after a few rounds."** That is an instruction about ORDER — each round ships
   something usable on its own. The staged path and where it stands live in
