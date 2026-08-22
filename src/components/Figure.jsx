@@ -28,7 +28,7 @@ import { t } from '../i18n';
 
 export const hasFigure = (name) => !!figureFor(name);
 
-function Fig({ pose, label, caption, wide, mix = 0, zoom = 1, pan, origin, spin }) {
+function Fig({ pose, label, caption, wide, mix = 0, zoom = 1, pan, origin, spin, pitch = 0 }) {
   // Memoised because `figureSvg` mints a fresh clipPath id per call: without
   // this the markup string differs on every render, so React tears down and
   // re-parses both SVGs whenever anything above them re-renders. `mix` is in
@@ -41,12 +41,12 @@ function Fig({ pose, label, caption, wide, mix = 0, zoom = 1, pan, origin, spin 
       const th = mix * 180;
       return figureSvg(pose, {
         title: label,
-        sk: spunSkeleton(pose, th),
-        equip: spinEquip(pose, th, spin.gear, spin.anchor),
+        sk: spunSkeleton(pose, th, pitch),
+        equip: spinEquip(pose, th, spin.gear, spin.anchor, pitch),
       });
     }
     return figureSvg(pose, { title: label, mix });
-  }, [pose, label, mix, spin]);
+  }, [pose, label, mix, spin, pitch]);
   // 🔴 ZOOM IS A CSS TRANSFORM ON THE ART, NOT A NEW viewBox. The figure is
   //    already vector, so scaling costs nothing and stays sharp — and it leaves
   //    the geometry untouched, which means the canon, the posture line and the
@@ -89,16 +89,21 @@ export default function Figure({ name, lang }) {
   //    text below, not from on top of the art.
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  // v2.30.1: the second axis (Pierre: "turning a 3D object in any direction").
+  // Vertical drag on an UNZOOMED spin pair tilts toward the view from above
+  // or below, clamped so a figure never hangs upside down mid-lesson. Zoomed,
+  // vertical still pans — inspecting detail beats tilting once you are close.
+  const [pitch, setPitch] = useState(0);
   // The anchor comes from the FAULT pose (the correct one has no marker) and is
   // shared by both halves — the same rule that makes the drag turn them
   // together. Recomputed with `mix` because a rotatable pair can zoom mid-turn.
   const origin = useMemo(() => {
     const a = pair && zoomAnchor(pair.fault, mix,
-      pair.spin ? spunSkeleton(pair.fault, mix * 180) : undefined);
+      pair.spin ? spunSkeleton(pair.fault, mix * 180, pitch) : undefined);
     if (!a) return undefined;
     const px = (v, lo, span) => `${Math.max(0, Math.min(100, ((v - lo) / span) * 100)).toFixed(1)}%`;
     return `${px(a.x, CELL.x, CELL.w)} ${px(a.y, CELL.y, CELL.h)}`;
-  }, [pair, mix]);
+  }, [pair, mix, pitch]);
   const pointers = useRef(new Map());   // pointerId → {x, y}, the live fingers
   const drag = useRef(null);            // one-finger baseline
   const pinch = useRef(null);           // two-finger baseline
@@ -140,9 +145,9 @@ export default function Figure({ name, lang }) {
     //    immediately, zoomed or not — a drag never changes meaning under the
     //    same finger. Vertical drag pans while zoomed (secondary); horizontal
     //    pan exists only for pairs that cannot turn.
-    drag.current = { x: e.clientX, y: e.clientY, mix: 0, pan };
+    drag.current = { x: e.clientX, y: e.clientY, mix: 0, pan, pitch };
     setMix((m) => { drag.current.mix = m; return m; });
-  }, [pan, zoom]);
+  }, [pan, zoom, pitch]);
 
   const onMove = useCallback((e) => {
     if (!pointers.current.has(e.pointerId)) return;
@@ -187,6 +192,13 @@ export default function Figure({ name, lang }) {
     //    tablet. Half the width is a full turn.
     const w = e.currentTarget.getBoundingClientRect().width || 1;
     setMix(Math.max(0, Math.min(1, drag.current.mix + dxPx / (w * 0.5))));
+    // v2.30.1, Pierre: "turning a 3D object in any direction you move." On a
+    // SPIN pair, the vertical component of the same unzoomed drag tilts the
+    // scene (±75° — above and below, never upside down). Tween pairs keep
+    // horizontal-only: their second camera is authored, not computed.
+    if (pair.spin && zoom <= 1.01) {
+      setPitch(Math.max(-75, Math.min(75, drag.current.pitch + (dyPx / (w * 0.5)) * 90)));
+    }
   }, [zoom, pair, clampPan]);
 
   const onUp = useCallback((e) => {
@@ -198,8 +210,9 @@ export default function Figure({ name, lang }) {
         // One finger lifted out of a pinch: the survivor becomes a fresh drag,
         // baselined HERE so the figure does not leap to the old baseline.
         const [, p] = remaining[0];
-        drag.current = { x: p.x, y: p.y, mix: 0, pan };
+        drag.current = { x: p.x, y: p.y, mix: 0, pan, pitch: 0 };
         setMix((m) => { drag.current.mix = m; return m; });
+        setPitch((v) => { drag.current.pitch = v; return v; });
       }
       return;
     }
@@ -239,8 +252,8 @@ export default function Figure({ name, lang }) {
         onPointerUp={onUp}
         onPointerCancel={onUp}
       >
-        <Fig pose={pair.correct} label={t(lang, 'figureCorrect')} caption="correct" mix={mix} zoom={zoom} pan={pan} origin={origin} spin={pair.spin} />
-        <Fig pose={pair.fault} label={t(lang, 'figureFault')} caption="fault" mix={mix} zoom={zoom} pan={pan} origin={origin} spin={pair.spin} />
+        <Fig pose={pair.correct} label={t(lang, 'figureCorrect')} caption="correct" mix={mix} zoom={zoom} pan={pan} origin={origin} spin={pair.spin} pitch={pitch} />
+        <Fig pose={pair.fault} label={t(lang, 'figureFault')} caption="fault" mix={mix} zoom={zoom} pan={pan} origin={origin} spin={pair.spin} pitch={pitch} />
       </div>
       <div className="fig-drag">
         <span className="fig-drag-hint">

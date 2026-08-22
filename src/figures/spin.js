@@ -121,12 +121,29 @@ const rot3 = (v, P, t) => {
 // and flatten as they turn edge-on, the bench is a slab under the trunk.
 // Prototype vocabulary: barbell + bench only — the rest keep their 2D shapes
 // until this is approved.
-export function spinEquip(pose, theta, gear, anchor) {
+export function spinEquip(pose, theta, gear, anchor, pitchDeg = 0) {
   const t = theta * RAD;
+  const tp = pitchDeg * RAD;
   const sk = skeleton3(pose);
   const P = sk.pelvis;
   const out = [];
-  const pr = (p) => rot3(p, P, t);
+  // The equipment rides the SAME two rotations as the joints — yaw then
+  // pitch — AND the same ground re-anchor, or the bar detaches from the hands
+  // the moment the scene tilts (under yaw alone the re-anchor shift was
+  // near-zero, which is why this never showed before pitch existed).
+  const raw = (p) => {
+    const r1 = rot3(p, P, t);
+    if (!tp) return r1;
+    const vy = r1.y - P.y, vz = r1.z || 0;
+    return { x: r1.x, y: P.y + vy * Math.cos(tp) - vz * Math.sin(tp), z: vy * Math.sin(tp) + vz * Math.cos(tp) };
+  };
+  let gdx = 0, gdy = 0;
+  if (pose.ground && sk[pose.ground.joint]) {
+    const g0 = raw(sk[pose.ground.joint]);
+    gdx = pose.ground.x != null ? pose.ground.x - g0.x : 0;
+    gdy = (pose.ground.y != null ? pose.ground.y : FLOOR) - g0.y;
+  }
+  const pr = (p) => { const q = raw(p); return { x: q.x + gdx, y: q.y + gdy, z: q.z }; };
 
   if (gear === 'barbell') {
     const grip = {
@@ -186,8 +203,26 @@ export function reground(sk, pose) {
   return sk;
 }
 
-export const spunSkeleton = (pose, theta) => {
-  const sk = reground(spin(skeleton3(pose), theta), pose);
+// v2.30.1 (Pierre: "turning a 3D object in any direction you move"): a second
+// axis. After the yaw turntable, PITCH tilts the whole scene about the
+// horizontal screen axis through the pelvis — drag up peeks from above, drag
+// down from below. Clamped by the CALLER (±75°) so a figure never hangs
+// upside down mid-lesson.
+export function pitch3(sk, deg) {
+  if (!deg) return sk;
+  const t = deg * RAD;
+  const P = sk.pelvis;
+  for (const v of Object.values(sk)) {
+    if (!v || typeof v !== 'object' || typeof v.x !== 'number') continue;
+    const vy = v.y - P.y, vz = v.z || 0;
+    v.y = P.y + vy * Math.cos(t) - vz * Math.sin(t);
+    v.z = vy * Math.sin(t) + vz * Math.cos(t);
+  }
+  return sk;
+}
+
+export const spunSkeleton = (pose, theta, pitch = 0) => {
+  const sk = reground(pitch3(spin(skeleton3(pose), theta), pitch), pose);
   // The renderer needs the turn angle for two blends it cannot infer from
   // joints alone: girth (a body is wider than it is deep) and muscle sides.
   sk.theta = theta;
