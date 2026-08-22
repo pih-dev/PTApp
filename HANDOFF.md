@@ -1,6 +1,6 @@
 # PTApp / SpotSet — HANDOFF
 
-**Last updated:** 2026-08-22 ~00:5x, Beirut.
+**Last updated:** 2026-08-22, after v2.23.2 shipped — the figures round closed and the next one specified.
 **To resume:** Pierre types `continue`. **Read §0 back to him and stop.** Do not investigate, do not
 draft, do not ask follow-up questions — he said explicitly: *"I will clear, and immediately after
 clear I will continue. I will not do anything between."* The state below is the state you will find.
@@ -14,6 +14,16 @@ clear I will continue. I will not do anything between."* The state below is the 
 > only the repo/project name.
 
 ## 0. Status — read this out
+
+- 🔴 **NEXT UP, ALL SPECIFIED AND NONE STARTED** — `docs/2026-08-22-figures-next-round-brief.md`:
+  six figure items (zoom anchoring, direct-manipulation gestures, rotating equipment, blue
+  equipment, **different muscles on the fault figure**, multi-position sequences) plus **a design
+  refinement round at xhigh** and **the logo (B3)**. Pierre is switching to Opus 5 / xhigh for it.
+- **The figures thread is `HANDOFF-figures.md`** (trigger: `figures`). All 340 movements have
+  figures as of v2.23.2 and it is live.
+- **The Supabase soak clock restarted honestly:** the Phase-1 daily job is
+  `node scripts/soak-day.mjs` (mirror, then verify). 1/7 clean days.
+  Detail: `HANDOFF-multi-user-build.md` §0.
 
 - 🔴 **EVERY TASK HAS ITS OWN HANDOFF. Read the one for the subject, not this section.**
   - ➡️ **THE LIVE THREAD: the exercise figures (B2) → `HANDOFF-figures.md`** (trigger `figures`).

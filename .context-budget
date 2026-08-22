@@ -27,5 +27,12 @@
 # deliberately. Next release that touches this file COLLAPSES the v2.21 history
 # line rather than raising again.
 
-CLAUDE.md=27000
+# 30 KB from 2026-08-22 (v2.23.2): the figures are now the app's biggest
+# subsystem — 44 patterns, a claims gate, four figure-internal colour tokens with
+# derived meanings, a rotation/zoom gesture contract, and two RULINGS a session
+# would otherwise re-argue (the movement card must FIT; the fault figure shows
+# DIFFERENT muscles). Rulings cannot route: a session that never opens the doc
+# re-litigates them, which is the exact failure the inline rules exist to stop.
+
+CLAUDE.md=30000
 MEMORY.md=12000

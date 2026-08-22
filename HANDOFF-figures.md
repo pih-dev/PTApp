@@ -1,6 +1,7 @@
 # SpotSet — The Exercise Figures (B2) HANDOFF
 
-**Created:** 2026-08-22, Beirut · **Owner thread:** the figures, and only the figures.
+**Created:** 2026-08-22, Beirut · **Last updated:** 2026-08-22, before a `/clear`.
+**Owner thread:** the figures, and only the figures.
 **To resume:** Pierre types `figures`. **Read §0 back to him and stop**, then start §9's step 1.
 
 🔴 **STANDING INSTRUCTION FOR THIS SUBJECT: keep this file current AS YOU GO.** Update §0 and commit
@@ -13,6 +14,39 @@ at each milestone. A restart could end the session at any moment.
 ---
 
 ## 0. Status — read this out
+
+- 🟢 **SHIPPED AND LIVE — v2.23.2. All 340 movements have figures.** Composed from 44 patterns; the
+  pattern owns the pose and the fault, the movement contributes its muscles (bank) and its equipment
+  (its name). The bench press turns under a finger; every pair double-taps to zoom. The header logo
+  opens the movement library.
+- 🔴 **THE NEXT ROUND IS SPECIFIED AND NOT STARTED — READ
+  `docs/2026-08-22-figures-next-round-brief.md` FIRST.** Six figure items and two others, captured
+  in Pierre's own words on 2026-08-22 before he cleared. In his priority order as he said them:
+  1. **Zoom anchors on the wrong point** — it scales about the cell's centre; for a shoulder movement
+     the teaching is in the top third and falls out of frame. Anchor it on the fault joint.
+  2. 🔴 **THE GESTURES ARE INVERTED AND HE HAS OVERRULED MY OBJECTION.** He wants drag-to-turn
+     immediately, pinch-to-zoom continuously, and turning to keep working while zoomed. My argument
+     was that pinch needs `touch-action: none` and the sheet must scroll. **His ruling: the movement
+     card does not need to scroll — make it fit.** Do not re-argue it.
+  3. **The equipment should ROTATE with the figure, not swap** at the halfway point.
+  4. **Colour the equipment blue** — as a new per-skin token, never a literal, never `--accent`.
+  5. 🔴 **THE FAULT FIGURE SHOULD HIGHLIGHT DIFFERENT MUSCLES.** A different posture recruits
+     different muscles — an inclined overhead press works the chest; a rounded deadlift tires the
+     arms. Today both halves show the same wash, which is a lie on the fault figure. **This is the
+     strongest teaching idea in the feature** and it reframes the pair from right-vs-wrong to
+     this-trains-X vs that-trains-Y.
+  6. **Some movements need a SEQUENCE of positions, not a pair** — his example is the military press:
+     start, lift, flip the bar, before the drive, lockout. Three open questions in the brief.
+- 🔴 **TWO NON-FIGURE ITEMS QUEUED IN THE SAME BREATH**, both in the brief and in CLAUDE.md's
+  KNOWN ISSUES: a **design refinement round at xhigh** ("we changed the overall design but it's not
+  where I want it to be — it can be much, much better"), and **the logo** — the name SpotSet stays,
+  the mark is open, and his idea is to draw it FROM the figure library: two silhouettes carrying the
+  correct/fault thesis. That is B3, and the plan always said it comes after the figures so the mark
+  is drawn into a system that exists. It exists now.
+- **He is switching to Opus 5 at xhigh effort for that work.** Session dump for this whole thread:
+  `_archive/PTApp/claude-sessions/2026-08-22-figures-b2-FULL-SESSION.txt`.
+- **Weakest three patterns, unchanged:** `leg-raise`, `wrist-curl`, `rotation`.
+  `node scripts/figures-contact.mjs` builds the judging sheet.
 
 - 🔴 **THE DESTINATION, IN PIERRE'S WORDS (08-22): "eventually 3D models that can be rotated and
   zoomed in/out, after a few rounds."** That is an instruction about ORDER — each round ships
