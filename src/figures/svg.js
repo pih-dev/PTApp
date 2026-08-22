@@ -80,7 +80,7 @@ export function figureSvg(pose, { detail = 'full', title = '', className = '', m
       // blue"). v2.24.1: opacity 0.6 → 0.85 — on his phone the translucent
       // blue read as "grayed out" beside the full-strength green and orange
       // lines. Enough transparency survives for the limb-over-bar depth cue.
-      `<g fill="var(--equipment)" opacity="0.85">${equipMarkup(f.equip)}</g>`,
+      `<g fill="var(--equipment)" opacity="0.95">${equipMarkup(f.equip)}</g>`,
       // 🔴 NO <g> INSIDE A clipPath. Only shapes, text and <use> are legal
       //    children; a group is silently ignored, the clip resolves to EMPTY,
       //    and everything clipped by it — the whole muscle code and the filled
@@ -91,8 +91,10 @@ export function figureSvg(pose, { detail = 'full', title = '', className = '', m
       // The muscle wash, COLOUR-CODED: primary movers in --muscle, supporting
       // work in --muscle-2. Clipped, so it can only ever paint on the body — a
       // wash that spills outside the silhouette reads as a bug, not as anatomy.
-      washes(f.muscles.secondary, 'var(--muscle-2)', 0.5, id),
-      washes(f.muscles.primary, 'var(--muscle)', 0.62, id),
+      // v2.25.1: primary wash 0.62 → 0.78 (Pierre: "make the red brighter") —
+      // the hue got brighter in the same pass, see --muscle in styles.css.
+      washes(f.muscles.secondary, 'var(--muscle-2)', 0.55, id),
+      washes(f.muscles.primary, 'var(--muscle)', 0.78, id),
       // 🔴 THE POSTURE LINE, over everything the body paints and under the fault
       //    marker. The halo is not decoration: an accent stroke laid straight on
       //    a silhouette of similar value disappears at list size, and this line
