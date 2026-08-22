@@ -139,13 +139,18 @@ export function spinEquip(pose, theta, gear, anchor) {
     // be a flat plate. r stays constant through the whole turn.
     const HALF = 230, BELL_R = 62;
     const a = pr({ ...grip, z: -HALF }), b = pr({ ...grip, z: +HALF });
-    if (Math.hypot(b.x - a.x, b.y - a.y) > 8) out.push({ k: 'bar', a, b, w: 10, z: (a.z + b.z) / 2 });
-    for (const zz of [-(HALF - 30), HALF - 30]) {
+    const endOn = Math.hypot(b.x - a.x, b.y - a.y) <= 8;
+    if (!endOn) out.push({ k: 'bar', a, b, w: 10, z: (a.z + b.z) / 2 });
+    const bells = [-(HALF - 30), HALF - 30].map(zz => {
       const c = pr({ ...grip, z: zz });
       // Each bell carries its own depth so the renderer can paint the near one
       // OVER the hand — judged defect: "it looks like the sphere is transparent".
-      out.push({ k: 'circle', x: c.x, y: c.y, r: BELL_R, z: c.z });
-    }
+      return { k: 'circle', x: c.x, y: c.y, r: BELL_R, z: c.z };
+    });
+    // End-on, the far bell is fully eclipsed by the near one — drawing it
+    // anyway showed through the body's translucent fill as a dark hole
+    // (the 180° artifact). One bell is what the eye would see.
+    out.push(...(endOn ? [bells.reduce((m, x) => (x.z > m.z ? x : m))] : bells));
   }
 
   if (anchor === 'bench') {
@@ -181,4 +186,10 @@ export function reground(sk, pose) {
   return sk;
 }
 
-export const spunSkeleton = (pose, theta) => reground(spin(skeleton3(pose), theta), pose);
+export const spunSkeleton = (pose, theta) => {
+  const sk = reground(spin(skeleton3(pose), theta), pose);
+  // The renderer needs the turn angle for two blends it cannot infer from
+  // joints alone: girth (a body is wider than it is deep) and muscle sides.
+  sk.theta = theta;
+  return sk;
+};

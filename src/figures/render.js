@@ -30,6 +30,14 @@ const CAP_STEPS = 7;
 
 const lerp = (a, b, t) => a + (b - a) * t;
 const dist = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
+// Round 4: girth between the side and front tables, per key. A quarter-turned
+// body is genuinely between "deep" and "broad" — snapping tables mid-turn
+// would make every limb pop a size.
+const blendGirth = (a, b, t) => {
+  const o = {};
+  for (const k of Object.keys(a)) o[k] = lerp(a[k], b[k], t);
+  return o;
+};
 
 // Centripetal Catmull-Rom. Centripetal (alpha = 0.5) rather than uniform
 // because a deep squat bends the knee past 140°, and a uniform spline
@@ -189,8 +197,13 @@ export function buildFigure(pose, mix, skIn) {
   const sk = skIn || ((pose.alt && mix > 0)
     ? lerpSkeleton(skeleton(pose), skeleton(pose.alt), Math.min(1, mix))
     : skeleton(pose));
-  const g = GIRTH[sk.view];
-  const body = [];
+  // Round 4: a spun skeleton (spin.js) carries its turn angle. Two things
+  // blend with it that a fixed view cannot supply — the girth (a body is
+  // wider than it is deep, so a quarter-turned figure is between the two
+  // tables), and the paint order (below).
+  const spun = typeof sk.theta === 'number';
+  const across = spun ? Math.abs(Math.sin(sk.theta * Math.PI / 180)) : 0;
+  const g = spun ? blendGirth(GIRTH.side, GIRTH.front, across) : GIRTH[sk.view];
 
   const leg = (S) => ribbon(
     [sk['hip' + S], sk['knee' + S], sk['ankle' + S]],
@@ -205,16 +218,30 @@ export function buildFigure(pose, mix, skIn) {
   // Far side first: it is behind the torso, so painting it first lets the torso
   // and near limbs sit over it and the overlap reads as depth rather than as a
   // seam. Same fill throughout — one fill, one weight (the reference read).
-  body.push(leg('F'), foot('F'), arm('F'));
-
-  // The torso is one ribbon through the spine chain. THIS is the line that
-  // carries the arch: pelvis → lumbar → thorax → neck, four points whose angles
-  // the pose sets, so "neutral" and "rounded" are the same path with different
-  // numbers rather than two drawings.
-  body.push(ribbon(
-    [sk.pelvis, sk.lumbar, sk.thorax, sk.neckBase],
-    [g.pelvis, g.lumbar, g.thorax, g.neckBase],
-  ));
+  // 🔴 On a SPUN figure "far" is not a constant — a limb that started far
+  //    swings toward the camera mid-turn — so each part carries its mean depth
+  //    and the list is depth-sorted, farthest painted first. Unspun figures
+  //    keep the authored order exactly.
+  const zOf = (names) => names.reduce((s, n) => s + ((sk[n] && sk[n].z) || 0), 0) / names.length;
+  const parts = [
+    { d: leg('F'), z: zOf(['hipF', 'kneeF', 'ankleF']) },
+    { d: foot('F'), z: zOf(['ankleF', 'toeF']) },
+    { d: arm('F'), z: zOf(['shoulderF', 'elbowF', 'wristF']) },
+    // The torso is one ribbon through the spine chain. THIS is the line that
+    // carries the arch: pelvis → lumbar → thorax → neck, four points whose
+    // angles the pose sets, so "neutral" and "rounded" are the same path with
+    // different numbers rather than two drawings.
+    {
+      d: ribbon([sk.pelvis, sk.lumbar, sk.thorax, sk.neckBase],
+        [g.pelvis, g.lumbar, g.thorax, g.neckBase]),
+      z: zOf(['pelvis', 'lumbar', 'thorax', 'neckBase']),
+    },
+    { d: leg('N'), z: zOf(['hipN', 'kneeN', 'ankleN']) },
+    { d: foot('N'), z: zOf(['ankleN', 'toeN']) },
+    { d: arm('N'), z: zOf(['shoulderN', 'elbowN', 'wristN']) },
+  ];
+  if (spun) parts.sort((a, b) => a.z - b.z);
+  const body = parts.map(p => p.d);
 
   // Deltoid caps: the shoulder is a ball, and a torso ribbon alone ends in a
   // slab. These are what give the figure its 2-head-wide shoulder line.
@@ -223,15 +250,15 @@ export function buildFigure(pose, mix, skIn) {
     { cx: sk.shoulderF.x, cy: sk.shoulderF.y, r: g.deltoid },
   ];
 
-  body.push(leg('N'), foot('N'), arm('N'));
-
   // Muscles are now CODED, not just washed (Pierre, 2026-08-22 — "you also
   // highlighted the muscles that are engaged with a colour code"). Primary
   // movers and supporting muscles paint from two different tokens, so the
   // figure answers "what does this train" and not merely "something happens
   // here". An array is still accepted and means primary-only.
   const ms = Array.isArray(pose.muscles) ? { primary: pose.muscles, secondary: [] } : (pose.muscles || {});
-  const sides = MUSCLE_SIDES(sk.view);
+  // Past a quarter turn both limbs are visible, so both wash — the same rule
+  // MUSCLE_SIDES applies to an authored front view.
+  const sides = (spun && across > 0.5) ? ['N', 'F'] : MUSCLE_SIDES(sk.view);
   const anchor = (list) => (list || [])
     .flatMap(k => (MUSCLE_ANCHORS[k] ? sides.map(S => MUSCLE_ANCHORS[k](sk, S)) : []))
     .filter(Boolean)
@@ -287,7 +314,15 @@ const mirrorJoint = (j) => (j.endsWith('N') ? j.slice(0, -1) + 'F' : j);
 // the line follows the curve of the limb it sits on instead of cutting the
 // corner off every joint.
 function polyline(pts) {
-  const [P] = densify(pts, pts.map(() => 0));
+  // Round 4: a spun figure can point a limb AT the camera, projecting two
+  // guide joints almost onto each other — the line hairpins, and its 15-wide
+  // ground-colour halo rounds the fold into a dark disc (the 180° "black
+  // ball" found in review). Collapse near-coincident points; the guide just
+  // ends where the limb leaves the picture plane, which is what an eye
+  // expects. A hand-authored pose never puts guide joints 18 units apart, so
+  // unspun figures are untouched by construction.
+  const dedup = pts.filter((p, i) => i === 0 || dist(p, pts[i - 1]) > 18);
+  const [P] = densify(dedup, dedup.map(() => 0));
   const s = sampleSpline(P, P.map(() => 0));
   if (s.length < 2) return '';
   return `M${r(s[0].x)} ${r(s[0].y)}` + s.slice(1).map(p => `L${r(p.x)} ${r(p.y)}`).join('');
