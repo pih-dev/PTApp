@@ -155,6 +155,33 @@ export function ribbon(joints, widths, keepSide = false) {
   };
 
   const end = s[s.length - 1], start = s[0];
+
+  // 🔴 SPUN RIBBONS ARE BUILT HOLE-PROOF, NOT OUTLINE-FIRST. One closed
+  //    outline is the right shape for authored art, but under free rotation a
+  //    folded limb makes it self-intersect — first at the edges (the normal
+  //    flip above), then at the CAPS, which sweep through the interior when
+  //    the ends fold. Every incremental patch left Pierre finding the next
+  //    hole. So a spun ribbon is instead many small SIMPLE subpaths — one
+  //    quad per sample step plus a full circle at each end — all wound the
+  //    SAME direction, so where they overlap the nonzero winding ADDS and can
+  //    never cancel to a hole. Slightly heavier path data, polygonal edge at
+  //    prototype quality; the authored 680 keep the smooth bezier outline and
+  //    their exact shipped bytes.
+  if (keepSide) {
+    const shoelace = (q) => (q[1].x - q[0].x) * (q[1].y + q[0].y) + (q[2].x - q[1].x) * (q[2].y + q[1].y)
+      + (q[3].x - q[2].x) * (q[3].y + q[2].y) + (q[0].x - q[3].x) * (q[0].y + q[3].y);
+    let d = '';
+    for (let i = 0; i < s.length - 1; i++) {
+      const q = [left[i], left[i + 1], right[i + 1], right[i]];
+      if (shoelace(q) < 0) q.reverse();
+      d += `M${r(q[0].x)} ${r(q[0].y)}L${r(q[1].x)} ${r(q[1].y)}L${r(q[2].x)} ${r(q[2].y)}L${r(q[3].x)} ${r(q[3].y)}Z`;
+    }
+    const circle = (c, w) =>
+      `M${r(c.x - w)} ${r(c.y)}A${r(w)} ${r(w)} 0 1 1 ${r(c.x + w)} ${r(c.y)}A${r(w)} ${r(w)} 0 1 1 ${r(c.x - w)} ${r(c.y)}Z`;
+    d += circle(start, start.w) + circle(end, end.w);
+    return d;
+  }
+
   const poly = [
     ...left,
     ...cap(end, left[left.length - 1], right[right.length - 1], end.w),
