@@ -31,6 +31,14 @@ at each milestone. A restart could end the session at any moment.
   list rows are already being touched (that pass also owns review finding P3).
 - **The clinical text is IN and every entry is `reviewed: false`.** `src/figureText.js`, keyed by
   movement. Elie and Pierre go through them; a correction is a one-line edit. §5 is unchanged.
+- 🔴 **OPEN DECISION #2 — THE LEG PRESS FAULT.** A biomechanics review argues the drawn fault
+  (snapping into lockout) is the wrong one: the more common and more injurious error is going too
+  deep, the pelvis peeling off the seat pad and the lumbar spine flexing under the sled. It is one
+  pose to change. **Pierre's and Elie's call**, not mine.
+- 🔴 **THE CLAIMS RULE IS NOW LAW AND A BUILD GATE (v2.22.2).** Figure text says what the position
+  DOES, never what it CAUSES — no named pathology, no evidence-grade adverb, and the Arabic may
+  never be stronger than the English. The first version named a diagnosis per movement and the Leg
+  Press one was factually backwards. `sanity-figures.mjs` fails the build on either.
 - **The traps this pilot produced are written up** — `docs/traps.md` → *Figures — the four geometric
   traps*, and indexed in CLAUDE.md's TRAPS block. Read them before drawing movement seven.
 
