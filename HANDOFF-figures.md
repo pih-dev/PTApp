@@ -4,6 +4,14 @@
 **Owner thread:** the figures, and only the figures.
 **To resume:** Pierre types `figures`. **Read §0 back to him and stop**, then start §9's step 1.
 
+> 🔴 **OWNERSHIP HANDOVER 2026-08-22 (Pierre's instruction): the CCHealth session (Fable 5) now
+> RUNS the figures thread** — the six queued items and the spatial rounds. The PTApp session keeps
+> the **UI redesign and the logo/name (B3) only**. PTApp session: do NOT touch `src/figures/*`,
+> `src/components/Figure.jsx`, `src/components/MovementSheet.jsx` or `src/figureText.js` while
+> this stands — pull before editing anything, both sessions commit+push at every milestone.
+> **Known collision point: the skins/token files** — figures item 4 adds an equipment token there
+> while the redesign edits the same files. Whoever edits skins pulls first.
+
 🔴 **STANDING INSTRUCTION FOR THIS SUBJECT: keep this file current AS YOU GO.** Update §0 and commit
 at each milestone. A restart could end the session at any moment.
 
