@@ -575,12 +575,18 @@ button:active { transform: scale(0.97); }
   background: #128C7E; color: #fff;
   width: 100%;
 }
+/* 🔴 GREEN IS A STATUS, NOT A BUTTON (v2.35). Restore was --ok filled and sat
+   directly beside WhatsApp's filled #128C7E — two different greens, both solid,
+   ten pixels apart. Pierre's word for it was "mean", and he was describing a
+   collision, not a colour. Restore now wears the same neutral fill as Complete
+   (the button he taps most), so the only saturated thing in that row is the one
+   button that belongs to a third party and is recognised BY its green. */
 .btn-confirm {
   padding: 7px 12px; border-radius: 6px; font-size: 11px;
   font-family: var(--font-display); font-weight: 700;
   letter-spacing: 0.08em; text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 4px;
-  background: var(--ok); color: var(--ground);
+  background: var(--bar); color: var(--chalk);
 }
 .btn-danger-sm {
   padding: 8px 10px; border-radius: 6px;
@@ -941,10 +947,16 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   font-family: var(--font-mono); font-variant-numeric: tabular-nums;
   font-size: 20px; font-weight: 600; margin-top: 2px;
 }
+/* 🔴 THE DOT ALWAYS OCCUPIES ITS SPACE, EVEN WHEN THERE IS NOTHING TO SHOW.
+   v2.35, Pierre on his phone: page to a week with no sessions and every column
+   loses the dot's 10px, so the whole strip shrinks and the layout jumps between
+   one week and the next. A marker that is CONDITIONALLY PRESENT is a layout
+   bug wearing a feature's clothes — reserve the room, hide the ink. */
 .week-day-dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--accent); margin: 4px auto 0;
 }
+.week-day-dot.is-empty { background: transparent; }
 [dir="rtl"] .week-day-label { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
 /* ─── Week Nav ─── */
@@ -1940,3 +1952,89 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   border-bottom: 2px solid var(--warn);
 }
 .auth-banner:active { opacity: 0.7; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE LEGIBILITY PASS (v2.35)
+
+   🔴 UPPERCASE + LETTER-SPACING + A CONDENSED FACE ARE THREE LEGIBILITY TAXES,
+      AND WE WERE CHARGING ALL THREE ON EVERY STRING IN THE APP.
+
+   Pierre, on his phone, 2026-08-22: "the font is really difficult to read in all
+   themes" — after first blaming the new palette and then correcting himself:
+   "I don't think it has anything to do with the color... maybe the fonts are
+   condensed." He was right. Colour was never the problem.
+
+   Why each one costs: UPPERCASE destroys word-shape, which is what fluent
+   readers actually match on; LETTER-SPACING breaks a word into loose glyphs, so
+   the eye has to re-assemble it; CONDENSED narrows the counters and the
+   distinguishing strokes. Any one is a style choice. All three, at 10-12px, on
+   every button, badge, tag, name and nav label, is a wall.
+
+   🔴 THE FIX WAS ALREADY IN THIS FILE, SHIPPED AND REVIEWED — as the ARABIC
+      path. Arabic has no case and its joins break under tracking, so every one
+      of these classes already had a `[dir="rtl"]` rule turning all three off and
+      carrying hierarchy by WEIGHT instead. That path has been live for months.
+      This block is that same treatment, promoted to the default for everyone.
+      The selector list below is harvested from those rules, not hand-written.
+
+   Specificity is doing the work on purpose: these are (0,1,0) and sit last in
+   the file, so they beat the original declarations; the Arabic rules are (0,2,0)
+   and still win, so RTL is byte-identical to before.
+
+   THE IDENTITY SURVIVES IN THREE PLACES, deliberately: `.logo-text` (the
+   wordmark), `.splash-word` (the opening), `.bar-label` (the section head, which
+   IS the plate-and-bar signature). A brand can be condensed. A button cannot.
+   ══════════════════════════════════════════════════════════════════════════ */
+.badge,
+.blockhead-label,
+.btn-confirm,
+.btn-ghost,
+.btn-primary,
+.btn-renew,
+.btn-secondary,
+.btn-sm,
+.btn-whatsapp,
+.btn-whatsapp-lg,
+.client-name,
+.empty-line,
+.field-label,
+.fig-cap,
+.fig-drag-hint,
+.fig-lead,
+.fig-unreviewed,
+.fig-zoom-reset,
+.filter-btn,
+.focus-tag,
+.load-cap,
+.load-day,
+.logo-sub,
+.modal-title,
+.mv-row-muscle,
+.nav-btn,
+.rrow-name,
+.section-title,
+.setup-title,
+.srow-mark,
+.srow-name,
+.subbar,
+.success-name,
+.week-day-label,
+.week-nav-label,
+.weekday-chip {
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--font-body);
+}
+
+/* Sentence case is narrower than caps, so the reclaimed room goes back into
+   size. 🔴 --chalk-faint is still decoration-only; nothing here moves text onto
+   it. These are the sizes Pierre was squinting at, measured off his screenshot. */
+.badge, .srow-mark, .focus-tag, .filter-btn, .week-day-label, .nav-btn,
+.field-label, .logo-sub, .subbar, .blockhead-label, .mv-row-muscle {
+  font-size: 13px;
+}
+.btn-primary, .btn-secondary, .btn-sm, .btn-ghost, .btn-confirm,
+.btn-whatsapp, .btn-renew { font-size: 13.5px; }
+.btn-whatsapp-lg { font-size: 15px; }
+/* Names are the thing he scans for. They were 'JANANE MALLAT' in tracked caps. */
+.srow-name, .client-name, .rrow-name, .success-name { font-size: 17px; font-weight: 600; }

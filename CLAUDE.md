@@ -44,8 +44,9 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.34
-**NEEDLE: the accent leaves cyan.** Skins **Lume · Midnight · Enamel · Steel**, `DEFAULT_SKIN='lume'` (a stored pick still wins — nothing repaints itself). Warm soot + one orange needle: the app runs in hundreds of gyms, so a palette taken from ONE room cannot work, and midnight-and-arc was the palette of the Precor equipment beside it. Bar: Home · Clients · Schedule · **Library** (ledger behind "All" on Schedule). 🔴 **`MovementLibrary` is ONE component with an `embedded` prop** — never fork it. 🔴 **ELIE'S RULINGS, DO NOT RE-PROPOSE: compact view gone, session-count edit STAYS at booking.** 🔴 **THE FIGURE SET IS UNRATIFIED — anatomy crimson, muscles TEAL, and every chart Elie teaches from paints muscle RED. ASK HIM; if he refuses, move the ACCENT, not the convention.** → `v2.33`…`v2.34`.
+## Current Version: v2.35
+🔴 **UPPERCASE + LETTER-SPACING + A CONDENSED FACE ARE THREE LEGIBILITY TAXES — NEVER RE-ADD THEM TO CONTENT.** They survive on `.logo-text`, `.splash-word`, `.bar-label` ONLY. The block is last in `styles.css` at (0,1,0); the Arabic rules are (0,2,0) and still win, so RTL is unchanged. 🔴 **A CONDITIONALLY-PRESENT MARKER IS A LAYOUT BUG** — reserve the room, hide the ink (`.week-day-dot.is-empty`). → `v2.35`.
+Skins **Lume · Midnight · Enamel · Steel**, `DEFAULT_SKIN='lume'` (a stored pick still wins). Bar: Home · Clients · Schedule · **Library**. 🔴 **`MovementLibrary` is ONE component with an `embedded` prop** — never fork it. 🔴 **ELIE'S RULINGS, DO NOT RE-PROPOSE: compact view gone, session-count edit STAYS at booking.** 🔴 **THE FIGURE SET IS UNRATIFIED — anatomy crimson, muscles TEAL, and every chart Elie teaches from paints muscle RED. ASK HIM; if he refuses, move the ACCENT, not the convention.**
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
@@ -72,6 +73,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 
 ## Version History
 - **v2.17–v2.25.3** (08-21/22) — THE DESIGN PASS, the movement library, the figures (all 340 from 44 patterns), then the refinement round. → `v2.17`…`v2.25.3`
+- **v2.34** (08-22) — NEEDLE: warm soot + one orange needle, because the app runs in hundreds of gyms so a palette taken from ONE room cannot work, and midnight-and-arc was the palette of the Precor equipment beside it. → `v2.34`
 - **v2.33–v2.33.1** (08-22) — the Library takes slot four; all modals portal to `<body>`; Home drops the compact view. → `v2.33`, `v2.33.1`
 - **v2.26–v2.32** (08-22) — the FACING-PAIR logo, backdrop and icons; the opening animation then its SOUND; turns + 360 stamps; header split, showcase, suite, random wall. → `v2.26`…`v2.32`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
@@ -131,12 +133,12 @@ One function owns the computation, and **both the live preview and the save path
 | `buildSession(clientId, date, time)` | The only constructor for a new session from the booking form | `Schedule.jsx` |
 
 Also single-source, from v2.10.1 — **never re-inline what they own:** `applyOverride`, `formatOverrideDraft`, `getFocusTags`, `getSessionType`, `openWhatsApp`, `friendly`, `makeTemplateSender`.
-- **`normCharts.js` owns ALL chart data + scoring**; never inline a threshold. **Bump `CHARTS_VERSION` on any table change** — old records keep frozen scores, new evaluations use the new table, no migration. Currently **3** (Elie's age-banded 1RM numbers, v2.13.2).
-- **`EvalTimer.jsx` is retained but unrendered** (1RM attempts aren't timed). **Do not delete it** — a rep-based battery reuses it.
+- **`EvalTimer.jsx` is unrendered but 🔴 DO NOT DELETE IT** — a rep-based battery reuses it.
+- **`normCharts.js` owns ALL chart data + scoring**; never inline a threshold. **Bump `CHARTS_VERSION` on any table change** — old records keep frozen scores, no migration. Currently **3** (Elie's 1RM numbers, v2.13.2).
 
 ### Program generation
 - **Frozen at generation.** `PROGRAM_RULES_VERSION` (`programRules.js`) + `EXERCISE_BANK_VERSION` (`exerciseBank.js`) are stamped per record; later changes never rewrite stored programs. **Bump either on ANY change** to volume tiers, method catalog, fat-loss thresholds, or the bank. **`exerciseBank.js` is GENERATED** — rebuild via `scripts/build_exercise_bank.py`, never hand-edit.
-- **Blocks store `days` (+ `daysAlt` for the endurance/fat-loss block only), NOT 4 duplicated weeks** — every other method is identical week-to-week within a block, so 4 copies would be dead weight in `data.json`. Deliberate deviation from the spec's "weeks" framing.
+- **Blocks store `days` (+ `daysAlt` for endurance/fat-loss only), NOT 4 duplicated weeks** — every other method is identical week-to-week within a block, so 4 copies would be dead weight. Deliberate deviation from the spec's "weeks" framing.
 - **The Deadlift anchor counts toward Back, not its bank primary (Quads).** Spec §6 maps Deadlift to the Pull day, so `fillBucket` force-overrides the anchor's `bucket` to the day's major — without it, Back runs an exercise short every block.
 
 ### Arabic / i18n
@@ -146,10 +148,10 @@ Also single-source, from v2.10.1 — **never re-inline what they own:** `applyOv
 ### Colour, type & badges — everything paints from tokens
 🔴 **NEVER hardcode a colour: a literal belongs to ONE skin** (`sanity-skins.mjs` enforces it). **The full 18-token inventory and the type roles live in `docs/design-system.md`** (routed on colour/palette/skin/typography).
 - 🔴 **THE ACCENT (arc `#35B7E8`) NEVER TOUCHES CHROME** — no tab, button, link or focus ring. Load, urgency, the live session. **Never `#2563EB`** in new work; `#EF4444` = destructive only.
-- 🔴 **`--chalk-faint` is DECORATION ONLY** (no text under 13px) and **`--anatomy` is for figures, never the UI**.
-- 🔴 **Bundled type, never fetched** — `src/fonts.css` is GENERATED by `scripts/build_fonts.mjs`. 🔴 **Under `[dir="rtl"]` uppercase AND letter-spacing are OFF** — Arabic has no case, spacing breaks its joins; hierarchy is weight.
+- 🔴 **`--chalk-faint` is DECORATION ONLY** and **`--anatomy` is for figures, never the UI**.
+- 🔴 **Bundled type, never fetched** — `src/fonts.css` is GENERATED by `scripts/build_fonts.mjs`. 🔴 **Uppercase + tracking are OFF for content in BOTH scripts** (v2.35) — Arabic never tolerated them and neither do human eyes at 11px; hierarchy is weight.
 - 🔴 **OUTLINE MEANS "OFF", FILL MEANS "PRESS ME"** — a tappable control gets a surface; two states of one control differ by **fill and text colour**, never border width. An all-outline screen is coherent and inert.
-- **Status badges use a CSS class, NEVER inline `style={{color,background}}`.**
+- **Status badges use a CSS class, NEVER inline `style={{color,background}}`.** 🔴 **Green is a STATUS, not a button.**
 
 ### Sync (v2.6+)
 Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` retries 3× on 409 and **merges, never blind-overwrites**; per-record `_modified` + union-by-ID means a freshly-edited record beats a stale device's. **Every failure surfaces via `syncStatus` — never `.catch(() => {})` on a sync path.**
@@ -163,13 +165,12 @@ Debounced 1s; localStorage saves immediately, the push waits. `pushRemoteData` r
 ---
 
 ## KNOWN ISSUES / OBLIGATIONS
-- 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026` on makdissi-dev; replace via General → Backup.
-- **Program pruning (v2.15)** before `data.json` nears 1 MB. 🔴 **Snapshot first** — cloud deletes are final.
+- 🔴 **SYNC TOKEN EXPIRES 2027-07-06 — RENEW JUNE 2027.** `PTApp-sync-2026`, makdissi-dev; General → Backup.
+- **Program pruning** before `data.json` nears 1 MB. 🔴 **Snapshot first** — cloud deletes are final.
 - **Review finding P3 — BUILT in v2.25** (SessionCard scope B). 🔴 Its Dashboard-compact follow-up is MOOT: v2.33.1 deleted the compact view.
-- **App name = SpotSet**; `com.spotset.app` PERMANENT.
+- **SpotSet**; `com.spotset.app` PERMANENT.
 - 🔴 **SUPABASE IS PHASE 1: THE DAILY JOB IS `node scripts/soak-day.mjs` — MIRROR THEN VERIFY.** `mirror-to-supabase.mjs` is MANUAL and one-way; the app does NOT dual-write, so `sanity-live-supabase-diff` alone can never be clean. It becomes the REAL soak when dual-write lands. Detail: `HANDOFF-multi-user-build.md` §0.
-- 🔴 **THE DESTINATION IS 3D THAT ROTATES AND ZOOMS, A ROUND AT A TIME** (Pierre, 08-22); stages in `docs/2026-08-22-figures-3d-options.md`. **Zoom is DOUBLE-TAP** — pinch needs `touch-action: none` and the sheet must keep vertical scroll, so it comes with the 3D rig. **One gesture, two jobs by `zoom`**: out it turns, in it pans.
-- **NEXT ROTATION CANDIDATES:** the squat (valgus is frontal, so it gains the profile), then rows, then the rotation patterns — costs in the 3d-options doc above.
+- 🔴 **THE DESTINATION IS 3D THAT ROTATES AND ZOOMS, A ROUND AT A TIME** (Pierre, 08-22); stages, and the rotation candidates in order, in `docs/2026-08-22-figures-3d-options.md`. **Zoom is DOUBLE-TAP** — pinch needs `touch-action: none` and the sheet must keep vertical scroll, so it comes with the 3D rig. **One gesture, two jobs by `zoom`**: out it turns, in it pans.
 - **Brief rulings that are LAW:** 🔴 **the movement card FITS, never scrolls** · 🔴 **the fault figure highlights DIFFERENT muscles**. Open: the "S" idea. Threads: `HANDOFF-figures.md`; uploads `_archive/PTApp/branding/`.
 - 🔴 **TWO SESSIONS SHARE THIS TREE: stage EXPLICIT paths (never `git add -A`); never `git checkout gh-pages` — deploy via the worktree.**
 - 🔴 **FRESH EYES, STRIPPED-STRUCTURE (standing rule):** before a design is called done, a subagent that has never seen it — Fable 5, max effort, ALL formatting stripped — argues the opposite. 🔴 **BUILD THE BRIEF FROM OPENED FILES, NEVER FILENAMES** — the reviewer is blind by design, so a guess in the brief becomes a confident finding with nothing downstream to catch it (`traps.md`, the plate calculator that never existed). Runs: `docs/design/2026-08-22-fresh-eyes-structure-review.md` (whole app) · `…-navigation-review.md` (the bar).
@@ -229,5 +230,5 @@ ls docs/instructions-v*.md
 2. **Only ONE full version section — `## Current Version`.** The outgoing one collapses to a `## Version History` line **in the same commit** that promotes the new one; History is capped at 8, the 9th drops to `docs/changelog-summary.md`.
 3. **No version ships without a changelog line AND an instructions file.** `.0` → `instructions-vX.Y.md`, patch → `instructions-vX.Y.Z.md` (`v2.10.0.md` is a legacy exception).
 4. **A durable rule NEVER lives only in a version/changelog entry** — a kernel claim, a "never do Y at call sites", a platform trap goes into `TRAPS` / `docs/traps.md` / CONVENTIONS **when written**. Version sections record what shipped; rule sections record what is true.
-5. **Completed instructions get rewritten as settled fact.** A resolved "placeholder / awaiting / TBD / parked" item is rewritten in place — a future session cannot tell a live instruction from a finished one, and will act on it.
-6. **New docs get a router row or a `docs/README.md` line** in the same commit. An unreachable doc is a doc that does not exist.
+5. **Completed instructions get rewritten as settled fact** — a future session cannot tell a live instruction from a finished one, and will act on it.
+6. **New docs get a router row or a `docs/README.md` line** in the same commit.

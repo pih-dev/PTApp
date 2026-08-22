@@ -4,6 +4,25 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.35 - the text is readable now (August 22, 2026)
+
+Every button, badge, tag, status, name and label was set in UPPERCASE, with
+extra letter-spacing, in a condensed typeface, at 10-12px. That is three
+different things all making text harder to read, stacked on top of each other.
+They are now off everywhere except the logo, the opening, and the section
+headings - and the type is a few points bigger.
+
+Pierre spotted it and diagnosed it himself: it was never the colours. The fix
+was already in the app, as the Arabic layout, which has always turned all three
+off because Arabic cannot take them. That treatment is now the default for
+everyone; Arabic is unchanged.
+
+Also: Restore is no longer green next to the green WhatsApp button, and the week
+strip no longer shrinks when you page to a week with no sessions. Full detail:
+instructions-v2.35.md.
+
+---
+
 ## v2.34 - two new looks: Lume and Enamel (August 22, 2026)
 
 General - skin picker - Lume. Or Enamel for daylight. Midnight and Steel are

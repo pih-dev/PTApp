@@ -274,7 +274,8 @@ export default function Schedule({ state, dispatch, lang, initialDate }) {
             <button key={d} onClick={() => setSelectedDate(d)} className={cls}>
               <div className="week-day-label">{dt.toLocaleDateString(dateLocale(lang), { weekday: 'short' })}</div>
               <div className="week-day-num">{dt.getDate()}</div>
-              {hasSession && <div className="week-day-dot" />}
+              {/* Always rendered: see the .week-day-dot note in styles.css. */}
+              <div className={`week-day-dot${hasSession ? '' : ' is-empty'}`} />
             </button>
           );
         })}

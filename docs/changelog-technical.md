@@ -4,6 +4,30 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.35 - the legibility pass; green stops being a button (2026-08-22)
+
+🔴 **Three legibility taxes were being charged at once** on every string: uppercase
+(destroys word-shape), letter-spacing (breaks a word into loose glyphs) and a
+condensed face (narrows the counters), at 10-12px. Pierre diagnosed it himself after
+first blaming the new palette.
+
+**The fix was already in styles.css as the ARABIC path.** Arabic has no case and its
+joins break under tracking, so all 36 of these classes already had a `[dir="rtl"]`
+rule turning the three off and carrying hierarchy by weight. This promotes that to the
+default. **The selector list is harvested from those rules, not hand-written**, which
+is why it is complete. Specificity is load-bearing: the new rules are (0,1,0) last in
+file so they beat the originals; the RTL rules are (0,2,0) so **Arabic is unchanged**.
+Identity survives on `.logo-text`, `.splash-word`, `.bar-label` only.
+
+`.btn-confirm` leaves `--ok` for `--bar`: Restore was a filled green ten pixels from
+WhatsApp's filled `#128C7E`. **Green is a status, not a button.**
+
+`.week-day-dot` is always rendered with an `.is-empty` variant: it was conditional, so
+an empty week lost 10px from every column and the strip changed height between weeks.
+**A conditionally-present marker is a layout bug wearing a feature's clothes.**
+
+---
+
 ## v2.34 - NEEDLE: two skins (lume, enamel); the accent leaves cyan (2026-08-22)
 
 Two `[data-skin]` token blocks added to `styles.css`, both registered in `skins.js`
