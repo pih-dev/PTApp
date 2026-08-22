@@ -4,6 +4,28 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.23.0 - every movement has a figure (August 22, 2026)
+
+All 340 of them. Open any movement in the library or tap any name in a program
+and you get the pair, the posture line, the colour-coded muscles and the three
+sentences - in English or Arabic.
+
+They were not drawn one at a time. A Front Squat, a Box Squat, a Smith Machine
+Squat and a Sumo Squat are one drawing with a different bar in it, so the app now
+knows 44 movement PATTERNS, and each movement takes its pose from its pattern,
+its muscles from the exercise bank, and its equipment from its own name. Every
+one of the 340 is checked at build time; if a new movement ever arrives that
+fits no pattern, the build stops rather than quietly showing an empty sheet.
+
+The whole library cost 37 KB. Photographs of 340 movements would have been tens
+of megabytes.
+
+The coaching text is keyed by pattern too, which is the part that makes it
+reviewable: Elie reads 44 patterns, not 340 entries. Everything still says "Not
+reviewed" on screen until he has been through it.
+
+---
+
 ## v2.22.2 - the coaching text stops naming injuries (August 22, 2026)
 
 An adversarial review of the figure text found several claims that were too

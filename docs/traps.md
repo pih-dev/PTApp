@@ -582,3 +582,25 @@ every ordinary front-view pose does. Lying down (a supine figure seen from above
 horizontal, and negation maps 180° to 180°: both arms end up on the SAME side of the body, the bar
 floats above the figure instead of lying across it, and the result reads as a rendering bug rather
 than the one-character typo it is.
+
+**TOOLING, and it bit twice in one session: a python heredoc that writes `\b` into a JS regex
+writes a BACKSPACE.** `python <<'EOF'` … `s.replace(x, "\\b(...)")` looks like it is inserting a
+word boundary. In a non-raw python string `\b` is chr(8), so the file ends up with an invisible
+0x08 where the boundary should be. The regex still parses, still runs, and silently stops matching —
+in this session it made one exercise unclassifiable and then disarmed a safety gate's banned-word
+check. `cat -A` shows it as `^H`. Use `chr(92)+'b'`, a raw string, or the Edit tool.
+
+---
+
+## Figures at scale (v2.23, `src/figures/`)
+
+**The lying and kneeling bases are where a figure library goes wrong.** A supine or prone figure
+needs its centre line one torso-depth off the floor, and a plank needs its shoulders HIGHER than its
+heels — the arms are propping the front end up. Drawn dead level, a plank reads as a person lying on
+the floor and a crunch reads as nothing at all. The shared bases (`STAND`, `STAND_FRONT`, `SUPINE`,
+`PRONE`, `QUAD`, `SEATED`, `HINGED`) exist so that is solved once.
+
+**An ordered classifier fails silently when it is misordered.** "Shoulder External Rotation with
+Cable" contains the word "rotation" and was drawn as a trunk twist until the external-rotation rule
+moved above the rotation rule. Nothing errors; the wrong movement is simply drawn. The order IS the
+logic, which is why the rule list carries its reasoning in comments.

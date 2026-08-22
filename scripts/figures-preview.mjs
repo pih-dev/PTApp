@@ -12,7 +12,8 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { FIGURES } from '../src/figures/poses.js';
+import { PATTERN_SAMPLES } from '../src/figures/poses.js';
+const FIGURES = PATTERN_SAMPLES();
 import { figureSvg } from '../src/figures/svg.js';
 
 const skins = [

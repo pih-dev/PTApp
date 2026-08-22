@@ -4,6 +4,54 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.23.0 - all 340 movements, composed from 44 patterns (2026-08-22)
+
+Pierre after the pilot: "Very promising. Go ahead. Continue to do for all of
+them." The answer was not 340 hand-authored poses - it was to stop treating a
+movement as the unit of drawing.
+
+**THE ARCHITECTURE.** A figure is composed from three sources, each owning what
+it knows:
+  - POSE + FAULT from one of 44 archetypes (src/figures/archetypes.js). The
+    pattern owns the fault, because a rounded back is a rounded back on all
+    sixteen deadlift variants.
+  - MUSCLES from the bank, per movement, mapped onto the renderer's anchors.
+    Collision rule kept from the blueprint review: quads/hamstrings share the
+    hip-knee band, so only the primary survives (same for biceps/triceps and
+    abs/erectors).
+  - EQUIPMENT from the NAME - barbell, dumbbell, kettlebell, cable, band, TRX,
+    ball, machine, landmine, sled, or none - drawn at the archetype's declared
+    anchor and always as a function of the skeleton.
+
+**src/figures/classify.js** is an ordered rule list plus an override table;
+first match wins, so specific beats general ("Single Leg Romanian Deadlift"
+before the deadlift rule, "external rotation" before the rotation rule - that
+one bit, and the fix is a comment in the file). 100% coverage of the bank is a
+BUILD GATE: an unclassified movement renders nothing and fails silently.
+
+**src/figureText.js is keyed by PATTERN.** 44 entries, EN+AR, all
+`reviewed: false`. That is the review economics: Elie reads 44, not 340. The
+v2.22.2 claims rule is unchanged and still gated.
+
+**Cost: 652 -> 690 KB for 340 movements.** The parametric-route argument got
+stronger the further it scaled, exactly as the handoff predicted.
+
+**Pose lessons from authoring 44 patterns at once:** the lying and kneeling
+bases were the hard part - a supine/prone figure needs its centre line one
+torso-depth off the floor and its shoulders HIGHER than its heels, or a plank
+reads as a person lying down. The bases (STAND, STAND_FRONT, SUPINE, PRONE,
+QUAD, SEATED, HINGED) are the reusable part; each archetype changes only what
+its movement changes.
+
+**Known weakest patterns**, from the contact sheet: leg-raise, wrist-curl,
+rotation. Recorded in the instructions doc rather than left to be rediscovered.
+
+**Tooling trap, twice in one session:** a python heredoc that writes `\b` into
+a JS regex writes a BACKSPACE (0x08), not a word boundary. The regex then stops
+matching and nothing errors. Both incidents are in traps.md.
+
+---
+
 ## v2.22.2 - claims discipline, the review flag on screen, blueprint refinements (2026-08-22)
 
 Three adversarial passes over v2.22.1, run as a workflow: six xhigh biomechanics

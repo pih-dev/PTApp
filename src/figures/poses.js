@@ -1,218 +1,272 @@
-// ─── The pilot six (B2 step 1) ───────────────────────────────────────────────
+// ─── Assembling a figure for any of the 340 movements ────────────────────────
 //
-// One movement per bucket — a squat, a hinge, a horizontal press, a vertical
-// pull, a single-joint arm movement, a machine movement — as the handoff's step
-// 1 specifies. These six exist to be JUDGED: if they do not look like one
-// library and like this app, the route changes and nothing is scaled.
+// A figure is THREE things composed, and each comes from the place that knows it:
+//   · the POSE comes from the archetype (`archetypes.js`) — the pattern owns the
+//     shape and the fault, because a Front Squat and a Box Squat are one drawing;
+//   · the MUSCLES come from the bank (`exerciseBank.js`) — per movement, so a
+//     Close Grip Bench and a Dumbbell Fly wash differently even where the pose
+//     is shared;
+//   · the EQUIPMENT comes from the NAME — the one place that reliably says
+//     barbell, dumbbell, cable, machine or nothing.
 //
-// A pose is ANGLES ONLY (see canon.js). Every number below is degrees:
-//   spine  [lumbar, thorax, neck]  — measured from straight up, cumulative,
-//                                    positive = leaning forward (+x)
-//   legs   [thigh, shin, foot]     — from straight down, cumulative, positive = +x
-//   arms   [upper, fore, hand]     — same convention as legs
-// A side-view figure faces +x. In a front view "near" is the figure's right.
+// 🔴 EQUIPMENT IS A FUNCTION OF THE SKELETON, never a fixed coordinate. The bar
+//    is drawn where the HANDS are. Change a pose and the bar follows; there is
+//    no second place to keep in sync and a bar can never float free of the grip
+//    that is supposed to be holding it.
 //
-// 🔴 THE MOMENT, NOT THE POSE (brief §7.13). Each pair is drawn at the instant
-//    in the lift where the error actually lives — the drive out of the hole,
-//    the bar breaking the floor, the bottom of the press. A figure at lockout
-//    cannot show the fault it is there to teach.
-//
-// 🔴 EQUIPMENT IS A FUNCTION OF THE SKELETON, not a set of fixed coordinates.
-//    The bar is drawn where the HANDS are. Change a pose and the bar follows;
-//    there is no second place to keep in sync, and a bar can never float free
-//    of the grip that is supposed to be holding it.
-//
-// 🔴 AND THE FIGURE MUST NOT GO SHORT-LEGGED. Foreshortening a femur in a front
-//    view shortens the leg against a torso that did not change — which is the
-//    infant ratio §7.13 was written against, arriving through the back door. So
-//    a front-view pose is drawn at the shallowest depth that still shows the
-//    fault, not at the deepest depth the lift reaches. (v1 of this file drew the
-//    squat at fs.thigh 0.53 and the figure read as a toddler.)
+// 🔴 NOTHING HERE MAY HAND OUT A COORDINATE FOR A JOINT. Poses are angles only,
+//    which is what makes brief §7.13 — the wrong figure reuses the same bone
+//    lengths — hold by construction across all 340 rather than by discipline at
+//    340 call sites.
 
 import { FLOOR } from './canon.js';
+import { ARCHETYPES } from './archetypes.js';
+import { archetypeFor } from './classify.js';
+import { EXERCISES } from '../exerciseBank.js';
 
-// Olympic plate: 450mm against a 1750mm figure over 750 units → r ≈ 90.
 const PLATE = 90;
-const CURL_PLATE = 60;   // a 10–15kg plate — what a curl actually carries
+const CELL_TOP = -40;
 
-// ── shared equipment builders ────────────────────────────────────────────────
 const bar = (a, b, w = 9) => ({ k: 'bar', a, b, w });
 const disc = (x, y, r = PLATE) => ({ k: 'circle', x, y, r });
 const quad = (pts) => ({ k: 'quad', pts });
 const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 
-// A barbell seen end-on (a side view): the plate IS the barbell from here.
-const barbellEndOn = (p, r = PLATE) => [disc(p.x, p.y, r)];
-
-// A barbell seen across (a front view): the shaft plus a plate at each end.
-const barbellAcross = (p, half, r = PLATE) => [
-  bar({ x: p.x - half, y: p.y }, { x: p.x + half, y: p.y }, 10),
-  disc(p.x - half + r * 0.4, p.y, r),
-  disc(p.x + half - r * 0.4, p.y, r),
-];
-
-// A slab of upholstery — a bench pad, a seat back — laid along a direction.
-// Machines are mostly pads and rails, so this is most of the equipment
-// vocabulary the library will ever need.
 function pad(from, to, thickness, offset) {
   const dx = to.x - from.x, dy = to.y - from.y;
   const L = Math.hypot(dx, dy) || 1;
-  const ux = dx / L, uy = dy / L;
-  const nx = -uy, ny = ux;
+  const ux = dx / L, uy = dy / L, nx = -uy, ny = ux;
   const P = (t, n) => ({ x: from.x + ux * t + nx * n, y: from.y + uy * t + ny * n });
   return quad([P(0, offset), P(L, offset), P(L, offset + thickness), P(0, offset + thickness)]);
 }
 
-// ── 1. BACK SQUAT — front view, the drive out of the bottom ──────────────────
-//
-// FRONT view on purpose: the fault this movement is famous for is the knee
-// caving inward (valgus), and valgus happens in the frontal plane — a profile
-// figure literally cannot show it. Drawn just above parallel, which is both
-// where the knee actually caves on the way up and shallow enough to keep the
-// femur's foreshortening off the leg-length ratio.
-const squatBase = {
-  view: 'front',
-  root: { x: 0, y: 455 },
-  ground: { joint: 'ankleN', y: FLOOR - 43 },
-  spine: [0, 0, 0],
-  head: 0,
-  fs: { thigh: 0.75, shin: 0.95, foot: 0.45, upperArm: 0.83, forearm: 0.77, hand: 0.7 },
-  arms: { near: [42, 135, 6], far: [-42, -135, -6] },
-  // No glutes in a FRONT view — they are behind the figure, and washing the
-  // pelvis crimson from the front marks a muscle the viewer cannot see.
-  muscles: { primary: ['quads'], secondary: ['erectors', 'calves'] },
-  guide: { joints: ['hipN', 'kneeN', 'ankleN'], mirror: true },
-  equip: (sk) => barbellAcross({ x: sk.neckBase.x, y: sk.neckBase.y + 26 }, 330, PLATE),
+// ── the bank's muscle names → the anchors the renderer knows ─────────────────
+// 🔴 QUADS AND HAMSTRINGS SHARE THE HIP→KNEE BAND. Listing both paints two hues
+//    over each other on one thigh and produces a muddy third colour exactly
+//    where the posture line runs, so only the primary one survives. Same for
+//    biceps/triceps and abs/erectors.
+const MUSCLE_MAP = {
+  Abs: 'abs', Quads: 'quads', Glutes: 'glutes', Chest: 'chest', Shoulders: 'delts',
+  Traps: 'traps', Triceps: 'triceps', Lats: 'lats', Biceps: 'biceps',
+  Forearms: 'forearms', Hamstrings: 'hamstrings', Back: 'lats', Calves: 'calves',
+  'Rear Delts': 'delts', Abductors: 'glutes', 'Rotator Cuffs': 'delts',
+  'Spinal Erectors': 'erectors', Adductors: 'quads', Psoas: 'abs',
+  'Middle Back': 'lats',
+};
+const COLLIDES = [['quads', 'hamstrings'], ['biceps', 'triceps'], ['abs', 'erectors']];
+
+function musclesFor(ex) {
+  const primary = MUSCLE_MAP[ex.primary];
+  const seen = new Set(primary ? [primary] : []);
+  const secondary = [];
+  for (const m of ex.muscles || []) {
+    const k = MUSCLE_MAP[m];
+    if (!k || seen.has(k)) continue;
+    if (COLLIDES.some(pair => pair.includes(k) && pair.some(o => seen.has(o)))) continue;
+    seen.add(k);
+    secondary.push(k);
+    if (secondary.length === 2) break;   // three hues on one body is a chart, not a figure
+  }
+  return { primary: primary ? [primary] : [], secondary };
+}
+
+// ── the name → what is in the hands ─────────────────────────────────────────
+// Ordered, first match wins: "Barbell Ab Rollout" is a barbell before it is a
+// wheel, and "Kettlebell Suitcase Deadlift" is a kettlebell before it is a bar.
+const GEAR = [
+  [/landmine/i, 'landmine'],
+  [/kettlebell/i, 'kettlebell'],
+  [/barbell|smith|olympic|\bbar\b/i, 'barbell'],
+  [/dumbbell|dumbell/i, 'dumbbell'],
+  [/\btrx\b|suspension/i, 'trx'],
+  [/medicine ball|sandbag|tornado|swiss ball|stability ball|\bball\b/i, 'ball'],
+  [/cable|pulley|pec-deck|crossover/i, 'cable'],
+  [/resistance band|\bband\b|rip trainer|battling rope|\brope\b/i, 'band'],
+  [/\bsled\b/i, 'sled'],
+  [/machine|hack/i, 'machine'],
+  [/broomstick|valslide|slide board|proprioception|roman chair|ab wheel|\bwheel\b|\bdisk\b/i, 'simple'],
+];
+const gearFor = (name) => {
+  for (const [re, k] of GEAR) if (re.test(name)) return k;
+  return 'none';
 };
 
-// ── 2. DEADLIFT — side view, the instant the bar breaks the floor ────────────
+// ── drawing the equipment at the archetype's anchor ──────────────────────────
 //
-// The spine chain is the whole point here: neutral is a gently DECREASING lean
-// going up the back (concave, the arch held); rounding is an INCREASING lean
-// (the C-shape). Same four points, same bone lengths — different numbers. A
-// hinged figure could not tell those two apart, which is §7.9's argument in one
-// movement.
-//
-// 🔴 DRAWN AT THE BAR PASSING THE KNEE, NOT AT THE FLOOR — and that is the
-//    §7.13 "choose the moment" rule doing real work. At the floor the torso and
-//    the femur are both near-horizontal, the figure folds into a wedge, and a
-//    reader cannot tell a hinge from a crouch (the pilot's first attempt did
-//    exactly this). Past the knee the torso is ~51° and the femur ~25°, the
-//    hinge is unmistakable — and it is also the point in the pull where a back
-//    actually rounds under load.
-const deadliftBase = {
-  view: 'side',
-  root: { x: -171, y: 430 },
-  ground: { joint: 'ankleN', y: FLOOR - 43 },
-  legs: { near: [25, -10, 75], far: [22, -7, 75] },
-  // The hip extensors are the prime movers of a deadlift; the erectors hold a
-  // shape rather than create the movement, so they are supporting. (Blueprint
-  // review, 2026-08-22 — the first split had it the other way round.)
-  muscles: { primary: ['glutes', 'hamstrings'], secondary: ['erectors', 'lats'] },
-  guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
-  equip: (sk) => barbellEndOn(midpoint(sk.wristN, sk.handN)),
-};
+// Deliberately a small vocabulary. The reference read set the test: draw the
+// equipment to the level where the MOVEMENT is identifiable and no further —
+// the bar, the plates, the frame's silhouette, never the knurling.
+function equipment(sk, anchor, gear, view) {
+  const out = [];
+  const g = midpoint(sk.wristN, sk.handN);
+  const gF = midpoint(sk.wristF, sk.handF);
+  const centre = midpoint(g, gF);
+  const across = view === 'front';
 
-// ── 3. CHEST PRESS MACHINE — side view, the bottom of the press ──────────────
-//
-// 🔴 THIS IS THE BUCKET'S SUBSTITUTE, AND THE SWAP IS A FINDING, NOT A DODGE.
-//    The obvious pick was the flat barbell bench press. Its defining fault is
-//    elbow FLARE, which is abduction — it happens in the plane a profile camera
-//    is looking down. Drawn from the side, a 45° tuck and a 90° flare project to
-//    nearly the same picture, so the pair would teach nothing; drawn from above
-//    they are unmistakable, but the legs then run away from the camera and the
-//    figure stops belonging to the set (both were tried — see HANDOFF-figures
-//    §11). The honest fix is per-pose out-of-plane foreshortening, which would
-//    differ between the two figures of one pair and therefore breaks §7.13. So
-//    the bench press waits for that decision, and the horizontal-press bucket is
-//    carried by a machine press, whose fault — the elbow riding ABOVE the
-//    shoulder line — is sagittal and reads perfectly in profile.
-const chestPressBase = {
-  view: 'side',
-  root: { x: 0, y: 500 },
-  ground: { joint: 'ankleN', y: FLOOR - 43 },
-  spine: [-8, 2, 3],
-  head: 4,
-  legs: { near: [78, -86, 96], far: [74, -82, 96] },
-  muscles: { primary: ['chest'], secondary: ['delts', 'triceps'] },
-  // The chain starts in the TRUNK, not at the shoulder: whether the elbow is
-  // riding high is only readable against the line of the torso it is attached to.
-  guide: { joints: ['lumbar', 'thorax', 'shoulderN', 'elbowN', 'wristN'] },
-  equip: (sk) => {
-    const h = midpoint(sk.wristN, sk.handN);
-    return [
-      pad(sk.pelvis, { x: sk.neckBase.x, y: sk.neckBase.y - 40 }, 40, -86),
-      pad({ x: sk.pelvis.x - 70, y: sk.pelvis.y + 46 }, { x: sk.pelvis.x + 140, y: sk.pelvis.y + 46 }, 34, 0),
-      // The handle and the arm it swings on: enough machine to read "machine".
-      disc(h.x, h.y, 24),
-      bar({ x: h.x, y: h.y }, { x: h.x + 170, y: h.y - 46 }, 12),
-      bar({ x: h.x + 170, y: h.y - 46 }, { x: h.x + 170, y: FLOOR - 10 }, 14),
-    ];
-  },
-};
+  const handHeld = () => {
+    switch (gear) {
+      case 'barbell':
+        if (across) {
+          const half = Math.max(Math.abs(g.x - centre.x), 150) + 130;
+          out.push(bar({ x: centre.x - half, y: centre.y }, { x: centre.x + half, y: centre.y }, 10));
+          out.push(disc(centre.x - half + PLATE * 0.4, centre.y), disc(centre.x + half - PLATE * 0.4, centre.y));
+        } else {
+          out.push(disc(g.x, g.y, PLATE));
+        }
+        break;
+      case 'dumbbell':
+        for (const p of [g, gF]) {
+          out.push(bar({ x: p.x - 32, y: p.y }, { x: p.x + 32, y: p.y }, 7));
+          out.push(disc(p.x - 28, p.y, 22), disc(p.x + 28, p.y, 22));
+        }
+        break;
+      case 'kettlebell':
+        for (const p of [g, gF]) {
+          out.push(disc(p.x, p.y + 36, 34));
+          out.push(bar({ x: p.x, y: p.y }, { x: p.x, y: p.y + 16 }, 8));
+        }
+        break;
+      case 'ball':
+        out.push(disc(centre.x, centre.y, 46));
+        break;
+      case 'cable': {
+        // The stack is off to the side and a line runs to the hand: that LINE is
+        // what says "cable" rather than "holding something".
+        const stackY = anchor === 'cable-high' ? 90 : anchor === 'cable-mid' ? 300 : FLOOR - 90;
+        out.push(quad([{ x: 380, y: stackY }, { x: 448, y: stackY }, { x: 448, y: FLOOR }, { x: 380, y: FLOOR }]));
+        out.push(bar({ x: g.x, y: g.y }, { x: 384, y: stackY + 16 }, 4));
+        break;
+      }
+      case 'band':
+        out.push(bar({ x: g.x, y: g.y }, { x: 400, y: FLOOR - 40 }, 4));
+        break;
+      case 'trx':
+        out.push(bar({ x: g.x, y: g.y }, { x: g.x - 30, y: CELL_TOP }, 4));
+        out.push(bar({ x: gF.x, y: gF.y }, { x: gF.x - 30, y: CELL_TOP }, 4));
+        break;
+      case 'landmine':
+        out.push(bar({ x: g.x, y: g.y }, { x: -400, y: FLOOR }, 9));
+        out.push(disc(g.x, g.y, 34));
+        break;
+      case 'machine':
+        out.push(disc(g.x, g.y, 24));
+        out.push(bar({ x: g.x, y: g.y }, { x: g.x + 170, y: g.y - 46 }, 12));
+        out.push(bar({ x: g.x + 170, y: g.y - 46 }, { x: g.x + 170, y: FLOOR - 10 }, 14));
+        break;
+      case 'sled':
+        out.push(quad([{ x: -320, y: FLOOR - 130 }, { x: -190, y: FLOOR - 130 },
+          { x: -190, y: FLOOR }, { x: -320, y: FLOOR }]));
+        out.push(bar({ x: g.x, y: g.y }, { x: -190, y: FLOOR - 110 }, 5));
+        break;
+      case 'simple':
+        out.push(disc(g.x, g.y, 26));
+        break;
+      default: break;
+    }
+  };
 
-// ── 3b. FLAT BARBELL PRESS — THREE figures, because two cannot do it ─────────
-//
-// 🔴 THIS IS THE MOVEMENT THAT PROVED TWO FIGURES IS NOT ALWAYS ENOUGH, and
-//    Pierre approved the fix on 2026-08-22: "instead of two pictures, you want
-//    to insert three pictures? If that's all, yeah, sure."
-//
-//    The bench press has TWO faults worth teaching and they live in different
-//    planes. The profile pair carries the one profile can show — the hips
-//    coming off the bench as the arch is pushed past control, which loads the
-//    lumbar spine. The third figure is a second camera, from ABOVE, carrying
-//    the one profile physically cannot: elbow flare, which is abduction and
-//    therefore invisible to a side-on view.
-//
-//    🔴 AND NOTE WHAT WAS *NOT* DONE. The tempting fix was to fake the flare in
-//    profile by foreshortening the humerus differently in the two figures. That
-//    is a bone-length change wearing perspective as a disguise, it breaks §7.13,
-//    and `sanity-figures.mjs` fails the build on it. A second camera is honest;
-//    a fudged bone is not.
-const benchBase = {
-  view: 'side',
-  root: { x: 140, y: 516 },
-  head: 8,
-  fs: { upperArm: 0.72 },
-  // The arms are the SAME in both profile figures on purpose: this pair is
-  // about the trunk, and a second thing changing would make the reader guess
-  // which difference is the fault.
-  arms: { near: [66, 133, 0], far: [62, 137, 0] },
-  muscles: { primary: ['chest'], secondary: ['delts', 'triceps'] },
-  guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
-  equip: (sk) => {
-    const g = midpoint(sk.wristN, sk.handN);
-    return [
-      // The bench: a pad under the body and a post to the floor, so "lying on a
-      // bench" is not left to the reader's imagination.
-      // The pad sits just under the body's back, not at a plausible-looking
-      // height: a bench a lifter is floating above is the fastest way to make a
-      // careful drawing look careless.
-      pad({ x: -230, y: 556 }, { x: 250, y: 556 }, 34, 0),
-      bar({ x: 60, y: 590 }, { x: 60, y: FLOOR }, 16),
-      ...barbellEndOn(g),
-    ];
-  },
-};
+  switch (anchor) {
+    case 'shoulders': {
+      if (gear === 'dumbbell' || gear === 'kettlebell' || gear === 'none') { handHeld(); break; }
+      const c = { x: sk.neckBase.x, y: sk.neckBase.y + 26 };
+      out.push(bar({ x: c.x - 330, y: c.y }, { x: c.x + 330, y: c.y }, 10));
+      out.push(disc(c.x - 330 + PLATE * 0.4, c.y), disc(c.x + 330 - PLATE * 0.4, c.y));
+      break;
+    }
+    case 'hands':
+    case 'cable-high':
+    case 'cable-mid':
+    case 'sled':
+      handHeld();
+      break;
+    case 'feet': {
+      // A pad or a strap on the shin, plus the machine's column behind it.
+      const p = midpoint(sk.ankleN, sk.toeN);
+      out.push(disc(p.x, p.y - 20, 26));
+      out.push(bar({ x: p.x, y: p.y - 20 }, { x: p.x + 60, y: FLOOR }, 10));
+      break;
+    }
+    case 'hips':
+      if (gear !== 'none') out.push(disc(sk.pelvis.x, sk.pelvis.y - 44, 44));
+      break;
+    case 'bench':
+      out.push(pad({ x: -230, y: 556 }, { x: 250, y: 556 }, 34, 0));
+      out.push(bar({ x: 60, y: 590 }, { x: 60, y: FLOOR }, 16));
+      handHeld();
+      break;
+    case 'bars':
+      out.push(bar({ x: g.x - 190, y: g.y }, { x: g.x + 190, y: g.y }, 11));
+      out.push(bar({ x: g.x - 170, y: g.y }, { x: g.x - 170, y: FLOOR }, 10));
+      out.push(bar({ x: g.x + 170, y: g.y }, { x: g.x + 170, y: FLOOR }, 10));
+      break;
+    case 'overhead-bar': {
+      const y = (sk.wristN.y + sk.wristF.y) / 2;
+      out.push(bar({ x: -430, y }, { x: 430, y }, 12));
+      out.push(bar({ x: -400, y }, { x: -400, y: FLOOR }, 9));
+      out.push(bar({ x: 400, y }, { x: 400, y: FLOOR }, 9));
+      break;
+    }
+    case 'machine-press':
+      out.push(pad(sk.pelvis, { x: sk.neckBase.x, y: sk.neckBase.y - 40 }, 40, -86));
+      out.push(pad({ x: sk.pelvis.x - 70, y: sk.pelvis.y + 46 }, { x: sk.pelvis.x + 140, y: sk.pelvis.y + 46 }, 34, 0));
+      out.push(disc(g.x, g.y, 24));
+      out.push(bar({ x: g.x, y: g.y }, { x: g.x + 170, y: g.y - 46 }, 12));
+      out.push(bar({ x: g.x + 170, y: g.y - 46 }, { x: g.x + 170, y: FLOOR - 10 }, 14));
+      break;
+    case 'machine-rails': {
+      // A hack squat: a back pad on two rails and a platform under the feet.
+      const foot = midpoint(sk.ankleN, sk.toeN);
+      out.push(pad(sk.pelvis, sk.neckBase, 44, -96));
+      out.push(quad([{ x: foot.x - 150, y: FLOOR - 24 }, { x: foot.x + 150, y: FLOOR - 24 },
+        { x: foot.x + 150, y: FLOOR }, { x: foot.x - 150, y: FLOOR }]));
+      out.push(bar({ x: sk.neckBase.x - 150, y: 60 }, { x: sk.neckBase.x - 60, y: FLOOR }, 12));
+      break;
+    }
+    case 'machine-sled': {
+      const foot = midpoint(sk.ankleN, sk.toeN);
+      const ax = sk.ankleN.x - sk.hipN.x, ay = sk.ankleN.y - sk.hipN.y;
+      const L = Math.hypot(ax, ay) || 1;
+      const ux = ax / L, uy = ay / L, px = -uy, py = ux;
+      const P = (t, n) => ({ x: foot.x + px * t + ux * n, y: foot.y + py * t + uy * n });
+      out.push(pad(sk.pelvis, sk.neckBase, 44, -96));
+      out.push(quad([P(-160, 14), P(160, 14), P(160, 52), P(-160, 52)]));
+      out.push(bar(P(-150, 52), P(-150, 320), 11));
+      out.push(bar(P(150, 52), P(150, 320), 11));
+      break;
+    }
+    default: break;
+  }
+  return out.filter(Boolean);
+}
 
-// The view from above. Same skeleton, quarter-turned — the rig already supports
-// it, so this is a camera move and not a second canon.
-const benchAbove = {
-  view: 'front',
-  root: { x: 210, y: 415 },
-  spine: [-90, 2, -2],
-  head: 0,
-  // The forearm is vertical at the bottom of the press — straight up out of the
-  // page — so from above it is almost entirely foreshortened. The legs run away
-  // from the camera to the floor.
+// ── assembly ─────────────────────────────────────────────────────────────────
+const BY_NAME = new Map(EXERCISES.map(e => [e.name, e]));
+
+function build(name, kind) {
+  const id = archetypeFor(name);
+  const a = ARCHETYPES[id];
+  if (!a) return null;
+  const ex = BY_NAME.get(name);
+  const gear = gearFor(name);
+  const variant = kind === 'fault' ? a.fault : a.correct;
+  const view = variant.view || a.base.view;
+
+  return {
+    ...a.base,
+    ...variant,
+    muscles: ex ? musclesFor(ex) : { primary: [], secondary: [] },
+    guide: a.guide,
+    fault: kind === 'fault' ? a.faultJoint : undefined,
+    equip: (sk) => equipment(sk, a.anchor, gear, view),
+  };
+}
+
+// The view from above for the bench press — the one fault a profile camera
+// physically cannot show, because flare is abduction. HANDOFF-figures §11.
+const BENCH_ABOVE = {
+  view: 'front', root: { x: 210, y: 415 }, spine: [-90, 2, -2], head: 0,
   fs: { forearm: 0.45, hand: 0.4, thigh: 0.6, shin: 0.55, foot: 0.4 },
-  // 🔴 IN A QUARTER-TURNED FRONT VIEW THE MIRROR IS (180 − a), NOT (−a).
-  //    Mirroring reflects across the BODY's long axis. Upright, that axis is
-  //    vertical and reflecting negates the angle — which is what every other
-  //    pose in this file does. Lying down, the axis is horizontal, and negation
-  //    maps 180° to 180°: both arms end up on the SAME side of the body, the
-  //    bar floats above the figure instead of across it, and the drawing is
-  //    nonsense in a way that looks like a rendering bug rather than a typo.
+  // 🔴 In a quarter-turned front view the mirror is (180 − a), not (−a).
   legs: { near: [50, 58, 60], far: [130, -58, -60] },
   arms: { near: [180, 12, 0], far: [0, -12, 0] },
   muscles: { primary: ['chest'], secondary: ['delts'] },
@@ -222,10 +276,6 @@ const benchAbove = {
     const g = midpoint(sk.wristN, sk.handN);
     const gF = midpoint(sk.wristF, sk.handF);
     const mid = (g.y + gF.y) / 2;
-    // The bar is shorter here than a real one: seen end-on down its length the
-    // plates would run off the cell, and a figure cropped by its own equipment
-    // reads as a mistake. The MOVEMENT has to fit the cell — that is what a
-    // fixed cell means.
     const span = Math.abs(g.y - gF.y) / 2 + 95;
     return [
       pad({ x: -270, y: mid - 62 }, { x: 230, y: mid - 62 }, 124, 0),
@@ -236,214 +286,47 @@ const benchAbove = {
   },
 };
 
-// ── 4. PULL-UP — front view, the top of the rep ──────────────────────────────
-//
-// 🔴 GROUNDED TO THE BAR, not to the floor. For a pull-up the fixed object in
-//    the world is the bar; the body hangs from it. So the pose anchors the
-//    WRIST, and the faulty version — which hangs back and lower because the
-//    elbows have flared and the hips have swung — arrives at the same bar by
-//    construction instead of by hand-tuned coordinates.
-const pullupBase = {
-  view: 'front',
-  root: { x: 0, y: 500 },
-  ground: { joint: 'wristN', x: 118, y: 62 },
-  legs: { near: [-30, -70, 100], far: [-26, -74, 100] },
-  muscles: { primary: ['lats'], secondary: ['biceps', 'forearms'] },
-  // Read from the BAR down into the body — the hand is the fixed end and the
-  // flare is the angle the chain makes on its way to the trunk.
-  guide: { joints: ['wristN', 'elbowN', 'shoulderN', 'thorax'], mirror: true },
-  equip: (sk) => {
-    const y = (sk.wristN.y + sk.wristF.y) / 2;
-    return [
-      bar({ x: -430, y }, { x: 430, y }, 12),
-      // The uprights: enough frame to read "bar", and no more (the reference
-      // read — equipment to the level where the movement is identifiable).
-      bar({ x: -400, y }, { x: -400, y: FLOOR }, 9),
-      bar({ x: 400, y }, { x: 400, y: FLOOR }, 9),
-    ];
-  },
+// 🔴 `figureFor(name)` IS THE ONLY WAY A SCREEN GETS A FIGURE. It returns null
+//    for a name no archetype covers, so a frozen program naming a dropped
+//    exercise degrades to the v2.21 sheet instead of crashing.
+export function figureFor(name) {
+  const id = archetypeFor(name);
+  const a = ARCHETYPES[id];
+  if (!a) return null;
+  const pair = { correct: build(name, 'correct'), fault: build(name, 'fault'), archetype: id };
+  if (a.extraId === 'bench-above') {
+    pair.extra = { pose: BENCH_ABOVE, labelKey: 'figureFromAbove', caption: 'fault' };
+  }
+  return pair;
+}
+
+export const hasFigureFor = (name) => !!ARCHETYPES[archetypeFor(name)];
+
+// Every movement in the bank. Used by the preview harness and the sanity gate,
+// never by a screen — a screen asks for one movement at a time.
+export const ALL_FIGURES = () => {
+  const out = {};
+  for (const e of EXERCISES) {
+    const f = figureFor(e.name);
+    if (f) out[e.name] = f;
+  }
+  return out;
 };
 
-// ── 5. BARBELL CURL — side view, mid-curl ────────────────────────────────────
-//
-// The single-joint entry, and the one that shows the OTHER lumbar failure:
-// the deadlift ROUNDS the back, the swung curl hyper-EXTENDS it. Two opposite
-// curvatures of the same four-point chain — the clearest evidence in the pilot
-// that the spine is being drawn and not assembled.
-const curlBase = {
-  view: 'side',
-  root: { x: 0, y: 375 },
-  ground: { joint: 'ankleN', y: FLOOR - 43 },
-  muscles: { primary: ['biceps'], secondary: ['forearms'] },
-  guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
-  equip: (sk) => barbellEndOn(midpoint(sk.wristN, sk.handN), CURL_PLATE),
+// One representative movement per pattern, for the preview sheet: 340 figures
+// on one page cannot be judged, and 42 patterns is the thing being judged.
+export const PATTERN_SAMPLES = () => {
+  const seen = new Set(), out = {};
+  for (const e of EXERCISES) {
+    const id = archetypeFor(e.name);
+    if (!id || seen.has(id)) continue;
+    const f = figureFor(e.name);
+    if (!f) continue;
+    seen.add(id);
+    out[e.name] = f;
+  }
+  return out;
 };
 
-// ── 6. LEG PRESS — side view, near lockout ───────────────────────────────────
-//
-// The machine entry. The sled is a back pad, a platform and two rails: the
-// movement is unreadable without them, and how much to draw is exactly the test
-// the reference read set — the frame's silhouette, not its branding.
-const legPressBase = {
-  view: 'side',
-  root: { x: 0, y: 560 },
-  spine: [-50, 4, -6],
-  head: 8,
-  arms: { near: [-38, 62, 10], far: [-34, 58, 10] },
-  muscles: { primary: ['quads', 'glutes'], secondary: ['erectors'] },
-  // Foot to trunk: on a leg press the knee's position only means something
-  // against the seat the hips are sitting in.
-  guide: { joints: ['ankleN', 'kneeN', 'pelvis', 'lumbar', 'thorax'] },
-  equip: (sk) => {
-    const foot = midpoint(sk.ankleN, sk.toeN);
-    // The platform is perpendicular to the press axis, and the press axis is
-    // the line the foot travels along — hip to ankle. Derived, so a change to
-    // the recline angle carries the whole machine with it.
-    const ax = sk.ankleN.x - sk.hipN.x, ay = sk.ankleN.y - sk.hipN.y;
-    const L = Math.hypot(ax, ay) || 1;
-    const ux = ax / L, uy = ay / L;
-    const px = -uy, py = ux;
-    const P = (t, n) => ({ x: foot.x + px * t + ux * n, y: foot.y + py * t + uy * n });
-    return [
-      pad(sk.pelvis, sk.neckBase, 44, -96),
-      quad([P(-160, 14), P(160, 14), P(160, 52), P(-160, 52)]),
-      bar(P(-150, 52), P(-150, 320), 11),
-      bar(P(150, 52), P(150, 320), 11),
-    ];
-  },
-};
-
-// ── The library ──────────────────────────────────────────────────────────────
-//
-// Keyed by the EXACT bank name (src/exerciseBank.js). A key that does not match
-// a bank entry is a figure nobody can ever reach, so sanity-figures.mjs checks
-// every key against the bank.
-export const FIGURES = {
-  'Back Squat': {
-    correct: {
-      ...squatBase,
-      // The knee tracks out over the foot.
-      legs: { near: [22, -27, 120], far: [-22, 27, -120] },
-    },
-    fault: {
-      ...squatBase,
-      // Same femur, same tibia — the knee has simply travelled inside the foot.
-      legs: { near: [-2, 21, 120], far: [2, -21, -120] },
-      fault: { joints: ['kneeN', 'kneeF'], r: 40 },
-    },
-  },
-
-  'Deadlift': {
-    correct: {
-      ...deadliftBase,
-      spine: [55, -4, -4],
-      head: -6,
-      arms: { near: [2, 1, 6], far: [0, 3, 6] },
-    },
-    fault: {
-      ...deadliftBase,
-      spine: [46, 10, 10],
-      head: -12,
-      // The rounded back drops the shoulder, so the arm bends a little to keep
-      // the hand on a bar that has not moved. That is what actually happens.
-      arms: { near: [0, 4, 8], far: [-2, 6, 8] },
-      fault: { joints: ['lumbar'], r: 48, offset: { x: -30, y: 18 } },
-    },
-  },
-
-  'Chest Press Machine': {
-    correct: {
-      ...chestPressBase,
-      // Elbow behind and level with the shoulder: the joint is inside its safe
-      // arc and the chest, not the capsule, is taking the load.
-      arms: { near: [-81, 161, -10], far: [-77, 157, -10] },
-    },
-    fault: {
-      ...chestPressBase,
-      // Elbow riding above the shoulder line at the bottom.
-      arms: { near: [-110, 180, -12], far: [-106, 176, -12] },
-      fault: { joints: ['shoulderN'], r: 40 },
-    },
-  },
-
-  'Flat Barbell Press': {
-    correct: {
-      ...benchBase,
-      // A controlled arch: the glutes stay on the pad and the chest is lifted by
-      // the upper back, not by the lower one.
-      spine: [-86, 10, -22],
-      legs: { near: [76, -84, 98], far: [72, -80, 98] },
-    },
-    fault: {
-      ...benchBase,
-      // The arch pushed past control — the hips leave the bench and the lumbar
-      // spine, not the upper back, is holding the position.
-      root: { x: 140, y: 470 },
-      spine: [-78, 20, -30],
-      legs: { near: [84, -92, 98], far: [80, -88, 98] },
-      fault: { joints: ['lumbar'], r: 46, offset: { x: 10, y: 40 } },
-    },
-    // 🔴 The third camera. Its own fault marker, because it teaches its own
-    //    fault — this is not a decorative second angle.
-    extra: { pose: benchAbove, labelKey: 'figureFromAbove', caption: 'fault' },
-  },
-
-  'Pull-Up': {
-    correct: {
-      ...pullupBase,
-      spine: [-1, 1, -1],
-      head: 0,
-      // The top of the rep: elbows bent and driven down, chest toward the bar.
-      arms: { near: [152, 34, 4], far: [-152, -34, -4] },
-    },
-    fault: {
-      ...pullupBase,
-      // The heave: the elbows flare wide, the hips swing forward, the ribs open
-      // and the chin cranes. The hand still finishes on the bar because the pose
-      // is anchored there.
-      spine: [-14, 6, -10],
-      head: -14,
-      legs: { near: [-48, -56, 100], far: [-44, -60, 100] },
-      arms: { near: [136, 46, 8], far: [-136, -46, -8] },
-      fault: { joints: ['shoulderN', 'shoulderF'], r: 36 },
-    },
-  },
-
-  'Barbell Curl': {
-    correct: {
-      ...curlBase,
-      spine: [2, -2, 2],
-      head: -4,
-      legs: { near: [2, -3, 88], far: [-3, 4, 88] },
-      arms: { near: [5, 115, 12], far: [2, 118, 12] },
-    },
-    fault: {
-      ...curlBase,
-      // The heave: the lifter leans back and drives the bar with the lower back
-      // while the elbows travel forward off the ribs.
-      spine: [-18, 6, 8],
-      head: 12,
-      legs: { near: [5, -8, 88], far: [0, -3, 88] },
-      arms: { near: [28, 98, 14], far: [25, 101, 14] },
-      fault: { joints: ['lumbar'], r: 46, offset: { x: -26, y: 6 } },
-    },
-  },
-
-  'Leg Press': {
-    correct: {
-      ...legPressBase,
-      // Stopping short of lockout: the knee still carries a soft bend, which is
-      // the whole coaching cue for this machine.
-      legs: { near: [133, -15, 88], far: [129, -12, 88] },
-    },
-    fault: {
-      ...legPressBase,
-      // Snapped straight and pushed past straight — the joint, not the muscle,
-      // is now holding the sled.
-      legs: { near: [136, 7, 88], far: [133, 9, 88] },
-      fault: { joints: ['kneeN'], r: 40 },
-    },
-  },
-};
-
-export const FIGURE_NAMES = Object.keys(FIGURES);
+// Kept for the pilot preview and the app's own smoke checks.
+export const FIGURES = PATTERN_SAMPLES();

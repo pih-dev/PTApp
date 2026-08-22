@@ -44,22 +44,19 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.22.2
-**The exercise figures (B2) — the pilot seven (08-22).** A FORM panel: the pair (correct + the same body with one fault, ringed on the joint that takes it), the posture line, the colour-coded muscles, a key, and three sentences. `DATA_VERSION` stays 6. Detail: `docs/instructions-v2.22.md`, `-v2.22.1.md`, `-v2.22.2.md`; thread: `HANDOFF-figures.md`.
-- 🔴 **A FIGURE IS ANGLES, NEVER COORDINATES** — `src/figures/canon.js` owns every bone length and the only FK function, so brief §7.13 (*the wrong figure reuses the same bone lengths*) holds **by construction**. `fs` (projection) is the one escape hatch and must be IDENTICAL across a pair; `sanity-figures.mjs` asserts it, plus no colour literal, no NaN path, hip at half standing height.
-- 🔴 **SAY WHAT THE POSITION DOES, NEVER WHAT IT CAUSES.** Figure text states mechanics — where the load goes, which tissue is at end of range, what stops working. **No named pathology, no evidence-grade adverb**; `sanity-figures` FAILS THE BUILD on either. v2.22 named a diagnosis per movement and one (Leg Press / meniscus) was backwards. **The Arabic may never be stronger than the English** — it translated "mechanism" as سبب and upgraded every hedge for half the audience.
-- 🔴 **A REVIEW FLAG NOTHING RENDERS IS NOT A REVIEW PROCESS.** Every entry ships `reviewed: false` and the panel PRINTS it until Elie signs off.
-- 🔴 **THE MOVEMENT SHEET STILL SHOWS ONLY WHAT HAS AN OWNER.** The v2.21 ban on invented cues stands; `src/figureText.js` satisfies it — per-movement, EN+AR, `reviewed: false` until Elie reads it, movement-level mechanism only (never about a person, never a prescription). Read it via `figureText()`, **never `t()`** (returns the KEY on a miss).
-- 🔴 **THE FIGURE HAS FOUR MEANINGS AND ALL FOUR ARE DERIVED.** The posture line takes `--accent` when the pose marks no fault and `--warn` when it does; the muscle bands take `--muscle` (prime movers) / `--muscle-2` (supporting). **`--anatomy` is the fault marker and nothing else.** All three are figure-internal and UI-forbidden; `sanity-skins` asserts all 20 tokens per skin. A figure carrying four meanings **must ship its key** (`.fig-key`).
-- **A THIRD FIGURE (`extra`) IS FOR A FAULT OUTSIDE THE PAIR'S PLANE** — a second camera on a second fault, with its own marker and its own sentence (`sanity-figures` rejects one that marks nothing). Approved by Pierre 08-22 for the bench press, where flare is abduction and profile cannot show it. 🔴 **NEVER fake it with per-figure foreshortening** — that is a bone-length change disguised as perspective.
-- **Bilingual search folds through `normaliseSearch` (`utils.js`) on BOTH sides** — typed Arabic differs from written Arabic (harakat, tatweel, alef/ya/ta-marbuta) invisibly, and `includes()` fails on it. `muscleLabel`/`MUSCLE_AR` in `i18n.js` own muscle names.
-- **Sub-section scale: `.subbar` (the bar inside a card/modal) · `.lrow` (the row it divides) · `.num` (mono digits inside a sentence).** A bold body heading is not a bar; a 1px `--sep` hairline is the retired trait.
-- 🔴 **`.card` IS A ROW** — transparent, no border/shadow, a 2px `--bar` shaft under it. **A real container is `.panel`**; `.srow`/`.bar`/`.plates` are the Dashboard's richer idiom.
-- 🔴 **SELECTION IS CHALK · LOAD IS THE ACCENT · RED IS DESTRUCTIVE ONLY** · 🔴 **NO EMOJI IN THE INTERFACE** (WhatsApp templates keep theirs — the client reads those).
-- 🔴 **A SKIN IS VALUES, NOTHING ELSE** — ONLY in `src/skins.js`; `sanity-skins.mjs` asserts all 18 tokens per skin. `[data-skin="steel"]` is the token block only; **never add a per-element override**.
-- 🔴 **A restyle is presentation only** — if a kernel call or reducer action has to change, it has grown out of scope and **stops**.
-- **`TOKEN_KEY`/`DEMO_TOKEN`/`isDemo` in `utils.js`** (import cycle), re-exported by `githubDriver`. 🔴 **`DEMO` is a review credential** — seeded local data, sync off, **seeds ONLY onto an empty store**.
-- **Sign-in is DARK** (needs `VITE_SUPABASE_*`); **`sync.js` is `src/backend/`** — `githubDriver` + dormant `supabaseDriver`. State: `HANDOFF-multi-user-build.md`, `HANDOFF-spotset-publishing.md`.
+## Current Version: v2.23.0
+**The exercise figures, ALL 340 (B2).** Every movement opens with a FORM panel: the pair, the posture line, colour-coded muscles, a key, and three sentences EN+AR. Cost 37 KB. Detail: `docs/instructions-v2.22.md`…`-v2.23.md`; thread: `HANDOFF-figures.md`.
+- 🔴 **A MOVEMENT IS NOT THE UNIT OF DRAWING — A PATTERN IS.** 44 archetypes (`figures/archetypes.js`) own the pose and the fault; the movement contributes its **muscles from the bank** and its **equipment from its NAME**. `classify.js` maps all 340, first-match-wins, **and 100% coverage is a build gate** — an unclassified movement silently shows nothing. 🔴 Its ORDER is the logic: "external rotation" must beat "rotation".
+- 🔴 **A FIGURE IS ANGLES, NEVER COORDINATES** — `canon.js` owns every bone length and the only FK function, so §7.13 (*the wrong figure reuses the same bone lengths*) holds **by construction across all 340**. `fs` (projection) is the one escape hatch and must be IDENTICAL across a pair; `sanity-figures` asserts it, plus no colour literal, no NaN path, hip at half standing height.
+- 🔴 **SAY WHAT THE POSITION DOES, NEVER WHAT IT CAUSES.** `figureText.js` is keyed by PATTERN (44 entries — that is what makes Elie's review possible at all). **No named pathology, no evidence-grade adverb**; the build FAILS on either. **The Arabic may never be stronger than the English.** 🔴 **A REVIEW FLAG NOTHING RENDERS IS NOT A REVIEW PROCESS** — every entry is `reviewed: false` and the panel prints it.
+- 🔴 **THE FIGURE HAS FOUR MEANINGS AND ALL FOUR ARE DERIVED.** Posture line = `--accent` held / `--warn` at fault (derived from whether the pose marks a fault); muscle bands = `--muscle` prime / `--muscle-2` supporting; **`--anatomy` is the fault marker and nothing else**. All figure-internal and UI-forbidden; `sanity-skins` asserts all 20 tokens per skin. A figure carrying four meanings **ships its key**.
+- **A THIRD FIGURE (`extraId`) IS FOR A FAULT OUTSIDE THE PAIR'S PLANE** — a second camera with its own marker and sentence. 🔴 **NEVER fake it with per-figure foreshortening**: that is a bone-length change disguised as perspective.
+- **Bilingual search folds through `normaliseSearch` (`utils.js`) on BOTH sides** — typed Arabic differs from written Arabic invisibly and `includes()` fails on it. `muscleLabel`/`MUSCLE_AR` own muscle names; **`t()` returns the KEY on a miss, so never use it for data**.
+- **Sub-section scale: `.subbar` · `.lrow` · `.num`.** 🔴 **`.card` IS A ROW** — transparent, a 2px `--bar` shaft under it; **a real container is `.panel`**.
+- 🔴 **SELECTION IS CHALK · LOAD IS THE ACCENT · RED IS DESTRUCTIVE ONLY** · 🔴 **NO EMOJI IN THE INTERFACE** (WhatsApp templates keep theirs).
+- 🔴 **A SKIN IS VALUES, NOTHING ELSE** — ONLY in `src/skins.js` + the token block; **never a per-element override**.
+- **`TOKEN_KEY`/`DEMO_TOKEN`/`isDemo` in `utils.js`** (import cycle). 🔴 **`DEMO` is a review credential** — seeded local data, sync off, **seeds ONLY onto an empty store**.
+- **Sign-in is DARK**; **`sync.js` is `src/backend/`**. State: `HANDOFF-multi-user-build.md`, `HANDOFF-spotset-publishing.md`.
 
 ## Governance — Elie's Standing Authority (granted 2026-07-18)
 Elie may drive app changes in-session on Pierre's conditions (*"since we're using github we can roll back, make sure data backups are done at every juncture"*). Routes on `Elie`.
@@ -73,7 +70,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 **One line per release, 8 max**; older drops to `docs/changelog-summary.md`, detail to `docs/instructions-v*.md`. Rules in force live in TRAPS / CONVENTIONS, never here.
 
 - **v2.17–v2.20.1** (08-21/22) — THE DESIGN PASS, five stages: skins, Dashboard, shell, deep screens, press affordance. → `v2.17`…`v2.20.1`
-- **v2.21–v2.21.1** (08-22) — the movement library, and General reordered. → `v2.21`, `v2.21.1`
+- **v2.21–v2.22.2** (08-22) — the movement library; then the figures pilot: the pair, the posture line, the muscle code, the claims rewrite. → `v2.21`…`v2.22.2`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---
@@ -108,9 +105,11 @@ Full write-ups in **`docs/traps.md`** — read the relevant one first. Index:
 
 **Figures (`src/figures/`)** — a front view foreshortens the femur, which re-creates the **infant ratio** §7.13 bans: draw a front pose at the shallowest depth that still shows the fault · **choose the moment or the pose is unreadable** — a deadlift at the floor puts torso and femur at the same angle and folds into a wedge; past the knee the hinge is obvious · the lateral offset rotates with the spine **only in a front view** (in profile it is depth, out of the page — rotating it hangs a stray arm off every hinge) · subdivide each bone at its midpoint before splining, or the limb bows into a noodle.
 
+**Figures at scale (v2.23)** — a supine/prone figure needs its centre line one torso-depth off the floor and a plank needs its **shoulders higher than its heels**, or it reads as someone lying down · an ORDERED classifier fails SILENTLY when misordered — it just draws the wrong movement.
+
 **Device-only bugs** — 🔴 **never style a scrollbar in a touch app**: a styled webkit scrollbar opts out of the platform's auto-hide, so it becomes a permanent bright rule down the screen (v2.20.1, invisible in a desktop browser).
 
-**Tooling** — 🔴 the Android build needs **JDK 21** (`JAVA_HOME='/c/Program Files/Microsoft/jdk-21.0.12.8-hotspot'`); PATH java here is Temurin 8, and **`gradlew` exits 0 on a FAILED build**, leaving the previous AAB in `outputs/` — a stale bundle then uploads and Play rejects it as "version code already used". Verify the versionName INSIDE the .aab, never the exit code · `fixForFileProtocol` must use *function* replacement (a string breaks React's minified `$&`) · **PS 5.1 `Get-Content`/`Set-Content` mangles UTF-8** (ANSI default corrupts em-dashes, emoji and all Arabic) — use the **Edit tool**, never round-trip source through a PowerShell pipeline.
+**Tooling** — 🔴 a python heredoc writing `\b` into a JS regex writes a **BACKSPACE (0x08)**, not a word boundary: the regex parses, runs, and silently stops matching (`cat -A` shows `^H`). Bit twice in one session — use `chr(92)+'b'`, a raw string, or the Edit tool · 🔴 the Android build needs **JDK 21** (`JAVA_HOME='/c/Program Files/Microsoft/jdk-21.0.12.8-hotspot'`); PATH java here is Temurin 8, and **`gradlew` exits 0 on a FAILED build**, leaving the previous AAB in `outputs/` — a stale bundle then uploads and Play rejects it as "version code already used". Verify the versionName INSIDE the .aab, never the exit code · `fixForFileProtocol` must use *function* replacement (a string breaks React's minified `$&`) · **PS 5.1 `Get-Content`/`Set-Content` mangles UTF-8** (ANSI default corrupts em-dashes, emoji and all Arabic) — use the **Edit tool**, never round-trip source through a PowerShell pipeline.
 
 ---
 

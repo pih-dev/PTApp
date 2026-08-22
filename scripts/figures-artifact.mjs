@@ -17,7 +17,8 @@
 //    supposed to rule on them was cut.
 
 import fs from 'node:fs';
-import { FIGURES } from '../src/figures/poses.js';
+import { PATTERN_SAMPLES } from '../src/figures/poses.js';
+const FIGURES = PATTERN_SAMPLES();
 import { figureSvg } from '../src/figures/svg.js';
 import { figureText } from '../src/figureText.js';
 import { exNameAr } from '../src/exerciseNamesAr.js';
@@ -105,8 +106,8 @@ const markRow = (name) => {
 };
 
 const movement = (name) => {
-  const t = figureText(name, 'en');
-  const ar = figureText(name, 'ar');
+  const t = figureText(name, 'en', FIGURES[name].archetype);
+  const ar = figureText(name, 'ar', FIGURES[name].archetype);
   return `<section class="mv">
     <header><h2>${name}</h2></header>
     ${pairBlock(name, 'midnight')}
