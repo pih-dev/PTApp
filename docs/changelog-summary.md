@@ -4,6 +4,20 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.35.1 - the medicine ball leaves the head (August 23, 2026)
+
+Pierre's phone report: "2 heads per posture" on Side Rotary Medicine Ball
+Throw. The ball was drawn at the midpoint of the two hands, and the rotation
+family's throw poses hold the arms apart - so the midpoint landed beside the
+head and all 13 rotation ball movements grew a second one. The ball now rides
+the outstretched throwing hand whenever the grips are apart; hands-together
+holds (rollout, plank, twist) are unchanged. Also in this patch train
+(shipped inside v2.35): the bench-press family finally spins - a gate bug had
+silently excluded it from round 4's 360° drag, which is why the bar never
+moved; six barbell bench movements now turn, raising the 360° count 24 → 30.
+
+---
+
 ## v2.35 - the text is readable now (August 22, 2026)
 
 Every button, badge, tag, status, name and label was set in UPPERCASE, with
