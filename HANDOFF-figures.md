@@ -33,10 +33,12 @@ at each milestone. A restart could end the session at any moment.
   1. ✅ **DONE 2026-08-22 (CCHealth session)** — zoom now anchors on the fault joint
      (`zoomAnchor()` in `render.js`, shared origin for both halves; falls back to the posture
      line's midpoint). Sanity + build clean, all 340 anchors finite.
-  2. 🔴 **THE GESTURES ARE INVERTED AND HE HAS OVERRULED MY OBJECTION.** He wants drag-to-turn
-     immediately, pinch-to-zoom continuously, and turning to keep working while zoomed. My argument
-     was that pinch needs `touch-action: none` and the sheet must scroll. **His ruling: the movement
-     card does not need to scroll — make it fit.** Do not re-argue it.
+  2. ✅ **DONE 2026-08-22 (CCHealth session)** — direct manipulation per his ruling: pinch zooms
+     continuously (1–3×), one-finger drag always turns (vertical pans while zoomed; pan-only for
+     non-rotatable pairs), double-tap kept as the mouse/accessibility path. `touch-action: none`
+     on the figure block — it is its own non-scrolling surface; the sheet scrolls from the text
+     below. Also fixed from mobile-UX review: cancelled pointers no longer count as taps, and pan
+     is clamped so the art can never leave the box. **Needs his thumb on a real phone.**
   3. **The equipment should ROTATE with the figure, not swap** at the halfway point.
   4. ✅ **DONE 2026-08-22 (CCHealth session)** — `--equipment` token added to both skins
      (midnight `#6E9BD8`, steel `#33598F`), equipment paints from it at 0.6 opacity, token

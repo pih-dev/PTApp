@@ -1426,7 +1426,10 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
    is what broke elastic overscroll the last time (docs/traps.md). */
 /* `user-select: none` because a horizontal drag over text selects it, and a
    figure that highlights its own caption while you turn it looks broken. */
-.fig-interactive { touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+/* v2.24: `none`, was `pan-y` — pinch-to-zoom needs the whole gesture surface,
+   and Pierre ruled the sheet does not need to scroll from on top of the art
+   (figures brief §2). The sheet still scrolls from the text below the pair. */
+.fig-interactive { touch-action: none; user-select: none; -webkit-user-select: none; }
 .fig-rotatable { cursor: ew-resize; }
 /* 🔴 THE ZOOM IS CLIPPED BY ITS OWN BOX. Without this the scaled figure paints
    over the caption, the key and the movement's own facts — and on a phone that
