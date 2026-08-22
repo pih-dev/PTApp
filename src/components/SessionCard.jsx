@@ -47,7 +47,7 @@ export default function SessionCard({
     <div className={`srow${isNow ? ' is-now' : ''}`} style={{ '--i': Math.min(index, 8) }}>
       <div className="srow-head">
         <span className="srow-name">
-          {client?.name || 'Unknown'}
+          {client?.name || t(lang, 'unknown')}
           <SessionCountPair auto={countPair.auto} effective={countPair.effective} override={countPair.override} />
         </span>
         <span className="srow-time">{session.time}</span>

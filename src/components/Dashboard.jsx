@@ -45,7 +45,7 @@ function LoadWeek({ days, total, lang, onOpenDay }) {
       <div className="load-cols">
         {days.map(d => (
           <button key={d.date} type="button" className={`load-col${d.isToday ? ' is-today' : ''}`}
-            aria-label={d.date}
+            aria-label={formatDate(d.date, lang)}
             onClick={() => { haptic(); onOpenDay(d.date); }}>
             <div className="load-stack">
               {Array.from({ length: Math.min(d.count, SEG_CAP) }, (_, i) => (
@@ -139,7 +139,7 @@ export default function Dashboard({ state, dispatch, setTab, lang, onOpenDay }) 
     return { days, total };
   }, [state.sessions, todayStr, lang]);
 
-  const getClientName = (id) => state.clients.find(c => c.id === id)?.name || 'Unknown';
+  const getClientName = (id) => state.clients.find(c => c.id === id)?.name || t(lang, 'unknown');
 
   const openEdit = () => {
     const session = activeSession;

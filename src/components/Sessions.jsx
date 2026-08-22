@@ -46,7 +46,7 @@ export default function Sessions({ state, dispatch, lang }) {
     .filter(s => filter === 'all' ? true : filter === 'active' ? s.status !== 'cancelled' : s.status === filter)
     .sort((a, b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
 
-  const getClientName = (id) => state.clients.find(c => c.id === id)?.name || 'Unknown';
+  const getClientName = (id) => state.clients.find(c => c.id === id)?.name || t(lang, 'unknown');
 
   const openEdit = (session) => {
     setEditingSession(session);

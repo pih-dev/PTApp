@@ -224,7 +224,7 @@ export default function Schedule({ state, dispatch, lang, initialDate }) {
     weekDates.push(localDateStr(d));
   }
 
-  const getClientName = (id) => state.clients.find(c => c.id === id)?.name || 'Unknown';
+  const getClientName = (id) => state.clients.find(c => c.id === id)?.name || t(lang, 'unknown');
 
   // v2.10: context-aware primary action for the booking modal, keyed on `mode` (P4).
   //   • edit          → "Save Changes" (unchanged)
