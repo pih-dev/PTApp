@@ -125,15 +125,29 @@ export const ARCHETYPES = {
     // with a vertical trunk and hanging arms the side view read as a FRONT
     // view, which made the fault's forward shin read as a knee bending
     // sideways. A split squat carries a slight forward lean anyway.
-    base: { ...STAND, root: { x: -30, y: 470 }, spine: [14, 0, 2], head: -6 },
+    // 🔴 THE REAR KNEE BENT BACKWARDS UNTIL 2026-08-23 (Pierre circled it on the
+    //    showcase wall). far was [-40, +74, 44]: a POSITIVE relative shin in an
+    //    upright side view swings the shin ANTERIORLY, which put the rear ankle
+    //    81 units off the floor and 81 units IN FRONT of the rear knee — the one
+    //    joint in the body that cannot do that. Knee flexion is negative here by
+    //    construction (see the sign note at the top of this file), and
+    //    `tmp/probe-pose.mjs` prints the sign per leg so it cannot recur unseen.
+    //    The pair was re-authored to a real split squat in the same pass: the
+    //    front leg now drops to a 60° thigh (was 34° — barely a bend), the rear
+    //    knee hovers ~117 above the floor with the heel raised and the TOE ON
+    //    THE FLOOR, which the old rear foot never touched.
+    base: { ...STAND, root: { x: -40, y: 461 }, spine: [16, 0, 2], head: -6 },
     // Front leg forward and bent, back leg trailing with the knee low.
     correct: {
-      legs: { near: [34, -36, 92], far: [-40, 74, 44] },
+      legs: { near: [60, -60, 88], far: [-18, -46, 88] },
       arms: arms([4, 2, 6], [2, 4, 6]),
     },
     fault: {
-      // The front knee has run forward past the foot and the heel has lifted.
-      legs: { near: [50, -58, 74], far: [-40, 74, 44] },
+      // The front knee has run forward past the foot and the heel has lifted:
+      // the shin leans past vertical so the knee sits ~40 ahead of the ankle,
+      // and the toe drops below the heel. The rear leg re-solves for the lower
+      // pelvis so its toe still reaches the floor rather than sinking through it.
+      legs: { near: [70, -86, 74], far: [-18, -61, 103] },
       arms: arms([6, 2, 6], [4, 4, 6]),
     },
     guide: { joints: ['hipN', 'kneeN', 'ankleN'] },
@@ -191,10 +205,18 @@ export const ARCHETYPES = {
     faultMuscles: { primary: ['erectors'], secondary: ['glutes'] },
     // Face down, heel curled toward the glute.
     // Face down on a pad, heel curling toward the glute.
+    // 🔴 THE HEEL CURLED INTO THE FLOOR until 2026-08-23. The shin read −152,
+    //    which swings it DOWN and forward from a face-down thigh — the ankle
+    //    finished 22 units under the baseline and the toe 76 under, and the
+    //    whole pattern printed as an unreadable smear on the showcase wall. A
+    //    prone body inverts the sign convention (its posterior faces the sky),
+    //    so flexion here is POSITIVE: +129 lifts the heel toward the glute,
+    //    which is the movement. The `FLOOR:` gate in sanity-figures.mjs exists
+    //    because this was found by scanning coordinates, never by looking.
     base: { view: 'side', root: { x: 150, y: 700 }, spine: [-90, 2, -2], head: 4, arms: arms([-100, 8, 6], [-103, 10, 6]) },
-    correct: { legs: { near: [92, -152, 88], far: [89, -149, 88] } },
+    correct: { legs: { near: [92, 129, 88], far: [89, 126, 88] } },
     // The hips have lifted off the pad to help the heel come up.
-    fault: { root: { x: 150, y: 666 }, spine: [-78, -12, 4], legs: { near: [86, -168, 88], far: [83, -165, 88] } },
+    fault: { root: { x: 150, y: 666 }, spine: [-78, -12, 4], legs: { near: [86, 145, 88], far: [83, 142, 88] } },
     guide: { joints: ['thorax', 'pelvis', 'kneeN', 'ankleN'] },
     faultJoint: { joints: ['lumbar'], r: 40, offset: { x: 0, y: -26 } },
     anchor: 'feet',
@@ -251,10 +273,24 @@ export const ARCHETYPES = {
 
   'hip-extension': {
     // Standing, driving one leg back against a cable or a machine pad.
-    base: { ...STAND, root: { x: -20, y: 400 }, arms: arms([10, 20, 6], [8, 22, 6]) },
-    correct: { spine: [18, -6, -6], head: -6, legs: { near: [-34, 12, 84], far: [8, -6, 88] } },
+    // 🔴 GROUNDED ON THE STANDING LEG, not the working one (2026-08-23). With
+    //    STAND's default `ankleN` anchor the KICKING foot was pinned to the
+    //    floor and the support leg hung off it — 16 units short of the ground in
+    //    the correct pose and 40 units THROUGH it in the fault. The rule is
+    //    general: `ground` names the limb that bears weight, and a pattern whose
+    //    near limb is the one that moves has to say so.
+    //    The near shin also read +12/+16 — the knee bowing backwards, the same
+    //    defect Pierre circled on the lunge. A kicked-back leg is straight.
+    base: {
+      ...STAND, root: { x: -20, y: 400 },
+      ground: { joint: 'ankleF', y: FLOOR - 43 },
+      arms: arms([10, 20, 6], [8, 22, 6]),
+    },
+    correct: { spine: [18, -6, -6], head: -6, legs: { near: [-34, -4, 18], far: [4, -4, 88] } },
     // The leg goes higher only because the lower back has arched to send it.
-    fault: { spine: [34, -14, -10], head: -12, legs: { near: [-52, 16, 84], far: [10, -8, 88] } },
+    // The standing leg is unchanged, so hip height is identical between the
+    // two and the arch is the ONLY difference the reader has to find.
+    fault: { spine: [34, -14, -10], head: -12, legs: { near: [-52, -4, 18], far: [4, -4, 88] } },
     guide: { joints: ['neckBase', 'thorax', 'pelvis', 'kneeN'] },
     faultJoint: { joints: ['lumbar'], r: 44, offset: { x: -24, y: 6 } },
     // The extra height came from the arch, so the lower back is doing the
@@ -271,6 +307,9 @@ export const ARCHETYPES = {
       arms: arms([-38, 62, 10], [-34, 58, 10]),
     },
     correct: { legs: { near: [133, -15, 88], far: [129, -12, 88] } },
+    // 🔴 THE +7/+9 IS THE FAULT, NOT A DEFECT. Snapping the knees past straight
+    // at the top of a press is what this pattern teaches; the knee gate warns
+    // on it deliberately (`KNEE:` in sanity-figures.mjs) and it must stay.
     fault: { legs: { near: [136, 7, 88], far: [133, 9, 88] } },
     guide: { joints: ['ankleN', 'kneeN', 'pelvis', 'lumbar', 'thorax'] },
     faultJoint: { joints: ['kneeN'], r: 40 },
@@ -682,8 +721,10 @@ export const ARCHETYPES = {
     // Judged by Pierre on the Judging Bench, 2026-08-23.
     faultMuscles: { primary: ['erectors'], secondary: ['quads'] },
     base: { ...STAND, root: { x: -60, y: 430 } },
-    correct: { spine: [34, -4, -4], head: -6, legs: { near: [26, -16, 78], far: [-16, 10, 88] }, arms: arms([46, 10, 6], [42, 14, 6]) },
-    fault: { spine: [22, 16, 12], head: -14, legs: { near: [24, -14, 78], far: [-14, 8, 88] }, arms: arms([42, 12, 6], [38, 16, 6]) },
+    // The trailing leg drives straight, so its shin is 0 relative — it read +10
+    // / +8 (a knee slightly past straight) until the 2026-08-23 anatomy pass.
+    correct: { spine: [34, -4, -4], head: -6, legs: { near: [26, -16, 78], far: [-16, 0, 88] }, arms: arms([46, 10, 6], [42, 14, 6]) },
+    fault: { spine: [22, 16, 12], head: -14, legs: { near: [24, -14, 78], far: [-14, 0, 88] }, arms: arms([42, 12, 6], [38, 16, 6]) },
     guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 44, offset: { x: -24, y: 12 } },
     anchor: 'sled',

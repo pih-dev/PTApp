@@ -46,8 +46,20 @@ export const BONES = {
 // Half-widths across the body, per view. A side view is narrower than a front
 // view because it is showing the body's DEPTH, not its breadth — using one set
 // of widths for both is what makes a profile figure look inflated.
+// 🔴 THE HIP OFFSET IS THE PELVIS, NOT THE STANCE (2026-08-23, Pierre's
+//    screenshot of the showcase wall: "the hip and the ass cheek seem to be
+//    larger than a normal human being anatomy"). At front.hip = 48 the two leg
+//    ribbons started 96 apart and each carried a 30-wide flank, so the hips
+//    printed 156 across against a 110-wide ribcage — the pelvis was WIDER than
+//    the chest, and because the leg ribbon reaches full girth at its first
+//    joint that width arrived as a flat horizontal SHELF at pelvis height. Read
+//    at wall size it is a cartoon pear. A stance is set by the thigh ANGLES; the
+//    offset only has to separate the two femoral heads — 38 puts them ~10% of
+//    standing height apart, which is what a pelvis actually measures. spin.js
+//    reads this same value as the hips' true DEPTH, so the 3D rig was carrying
+//    the same error and is corrected by the same number.
 export const LATERAL = {
-  front: { hip: 48, shoulder: 76 },
+  front: { hip: 38, shoulder: 76 },
   // Side-view offsets are DEPTH, not breadth — but they still have to be big
   // enough that the near and far leg do not print as one column. At 12 they did
   // (v1 of the pilot): a profile figure read as a single thick tube.
@@ -56,16 +68,33 @@ export const LATERAL = {
 
 // Half-widths of the drawn flesh at each joint, per view. These are what turn a
 // stick chain into a body; they taper distally exactly as a limb does.
+//
+// 🔴 READ THESE AS A SILHOUETTE, NOT AS A LIST. What the eye judges is the
+//    chest-to-waist-to-hip PROFILE, so the numbers are chosen against the head
+//    width (76) rather than against each other: ribcage ≈ 1.5 heads, waist ≈
+//    1.1, hips ≈ 1.55, and the hips must never out-measure the ribcage. The
+//    2026-08-23 pass moved front waist 39→50 and ribcage 55→62 for the same
+//    reason the hip offset came in: a 78-wide waist under a 156-wide pelvis is
+//    a 2:1 flare no human has, and it was reading as a NARROW TORSO rather than
+//    as wide hips — which is exactly how Pierre described it ("a black stripe
+//    or empty stripe… makes it seem like the torso is narrow"). The stripe was
+//    the white channel the pinched waist opened between the trunk and the
+//    hanging arms. Chosen by rendering four candidate sets side by side
+//    (`tmp/anat-variants.mjs`) rather than by picking numbers, because the
+//    defect is a ratio no single value reveals.
 export const GIRTH = {
   front: {
-    pelvis: 46, lumbar: 39, thorax: 55, neckBase: 21,
-    hip: 30, knee: 21, ankle: 12, toe: 8,
+    pelvis: 48, lumbar: 50, thorax: 62, neckBase: 21,
+    hip: 29, knee: 21, ankle: 12, toe: 8,
     shoulder: 21, elbow: 15, wrist: 9, handEnd: 11,
     deltoid: 27,
   },
+  // Side values are DEPTH. The shipped set made the pelvis deeper (106) than
+  // the ribcage (94), which is what read as an oversized backside in profile —
+  // his second report. A chest is deeper than a hip; these now say so.
   side: {
-    pelvis: 41, lumbar: 35, thorax: 47, neckBase: 20,
-    hip: 33, knee: 23, ankle: 12, toe: 8,
+    pelvis: 43, lumbar: 44, thorax: 53, neckBase: 20,
+    hip: 31, knee: 23, ankle: 12, toe: 8,
     shoulder: 22, elbow: 16, wrist: 9, handEnd: 11,
     deltoid: 26,
   },

@@ -327,6 +327,18 @@ export function buildFigure(pose, mix, skIn) {
         [g.pelvis, g.lumbar, g.thorax, g.neckBase], spun),
       z: zOf(['pelvis', 'lumbar', 'thorax', 'neckBase']),
     },
+    // 🔴 THE NECK, added 2026-08-23. The torso ribbon stops AT the neck base and
+    //    caps there with a 20-unit round end; the head ellipse is centred 85
+    //    further along and is only 50 deep, so a 15-unit strip of nothing has
+    //    always sat between them. Upright, the deltoid discs happen to cover it.
+    //    Rotate the body — a side plank, a bench press — and they no longer do:
+    //    the head prints as a detached ellipse floating beside the shoulders.
+    //    The ribbon runs all the way to the head CENTRE, so its last 50 units
+    //    are hidden inside the skull and no pose can open the gap again.
+    {
+      d: ribbon([sk.neckBase, sk.head], [g.neckBase, g.neckBase * 0.8], spun),
+      z: zOf(['neckBase']),
+    },
     { d: leg('N'), z: zOf(['hipN', 'kneeN', 'ankleN']) },
     { d: foot('N'), z: zOf(['ankleN', 'toeN']) },
     { d: arm('N'), z: zOf(['shoulderN', 'elbowN', 'wristN']) },

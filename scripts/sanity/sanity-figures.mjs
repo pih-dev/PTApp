@@ -16,7 +16,7 @@ import { archetypeFor } from '../../src/figures/classify.js';
 import { figureFor, ALL_FIGURES } from '../../src/figures/poses.js';
 import { FIGURE_TEXT_PATTERNS, figureText } from '../../src/figureText.js';
 import { figureSvg } from '../../src/figures/svg.js';
-import { skeleton, BONES } from '../../src/figures/canon.js';
+import { skeleton, BONES, FLOOR } from '../../src/figures/canon.js';
 
 let fail = 0;
 const bad = (m) => { console.error('FAIL: ' + m); fail++; };
@@ -154,11 +154,17 @@ for (const id of ids) {
       if (!inR(p.spine[2], ROM.neckRel)) { console.warn(`ROM: "${id}" ${kind} neck ${p.spine[2]}°`); romWarn++; }
     }
     for (const [limb, key, range] of [['legs', 1, ROM.knee], ['arms', 1, ROM.elbow]]) {
+      // 🔴 A FRONT VIEW CARRIES NO KNEE ANGLE. legs[1] there is a LATERAL angle
+      //    — the mirrored pair that brings a splayed shin back under the body —
+      //    so measuring it against a sagittal knee range is meaningless. It was
+      //    doing exactly that via Math.abs and generating half the warnings in
+      //    this list, which is how the ONE real violation (lunge, +74°) sat in
+      //    the noise from the day the gate was written until Pierre spotted the
+      //    backward knee himself on 2026-08-23.
+      if (front && limb === 'legs') continue;
       for (const side of ['near', 'far']) {
         const seg = p[limb] && p[limb][side];
         if (!seg) continue;
-        // Side view: both sides face the same way, signed check. Front view:
-        // the far side is a mirrored negation, so judge magnitude only.
         const v = front ? Math.abs(seg[key]) : seg[key];
         if (!inR(v, range)) { console.warn(`ROM: "${id}" ${kind} ${limb}.${side}[${key}] = ${seg[key]}°`); romWarn++; }
       }
@@ -166,6 +172,62 @@ for (const id of ids) {
   }
 }
 if (romWarn) console.warn(`ROM: ${romWarn} warning(s) — human judging, not build failures (yet)`);
+
+// 5d. 🔴 THE KNEE BENDS ONE WAY. Pierre, 2026-08-23, on the showcase wall: "it
+//     bends the opposite [of] what a human being would bend his knee." The
+//     lunge's rear leg had shipped at shin +74° — the shin swung ANTERIORLY,
+//     which is the one thing a knee cannot do.
+//
+//     Scoped to UPRIGHT SIDE VIEWS on purpose, and the limit is honest rather
+//     than convenient: the pose format carries no "which way is the belly
+//     facing" flag, and the prone/supine patterns are authored by flipping limb
+//     signs, so posterior cannot be derived from the spine for them. Where the
+//     trunk is within 60° of upright the convention is unambiguous — flexion is
+//     negative — and that covers every standing, hinged and seated pattern,
+//     which is where the defect lived. Lying patterns stay a human judgement.
+const UPRIGHT = 60;      // |lumbar| beyond this and the sign convention flips
+const KNEE_SOFT = 6;     // a drawn leg may sit a couple of degrees past straight
+const KNEE_HARD = 20;    // nothing anatomical needs this much hyperextension
+let kneeWarn = 0;
+for (const id of ids) {
+  const a = ARCHETYPES[id];
+  for (const kind of ['correct', 'fault']) {
+    const p = { ...a.base, ...a[kind] };
+    if ((p.view || 'side') === 'front' || !p.legs) continue;
+    if (Math.abs((p.spine && p.spine[0]) || 0) > UPRIGHT) continue;
+    for (const side of ['near', 'far']) {
+      const shin = p.legs[side] && p.legs[side][1];
+      if (shin == null || shin <= KNEE_SOFT) continue;
+      const where = `"${id}" ${kind} legs.${side} shin +${shin}°`;
+      if (shin >= KNEE_HARD) bad(`${where} — the knee bends BACKWARD (flexion is negative in an upright side view)`);
+      else { console.warn(`KNEE: ${where} — past straight; judge it`); kneeWarn++; }
+    }
+  }
+}
+if (kneeWarn) console.warn(`KNEE: ${kneeWarn} leg(s) slightly past straight`);
+
+// 5e. 🔴 A FIGURE STANDS ON THE FLOOR, IT DOES NOT SINK THROUGH IT. A pose names
+//     ONE grounded joint and the whole figure is translated to put it there — so
+//     if that joint belongs to a limb that is in the AIR, every other contact
+//     point lands wherever the arithmetic drops it. hip-extension anchored the
+//     KICKING foot and its support leg finished 40 units under the baseline
+//     (found 2026-08-23 by scanning, never by looking). Warn-only: several
+//     shipped patterns are drawn on a pad or a bench and are owed a framing
+//     round anyway (HANDOFF-figures §0, the 10 edge-clippers).
+const CONTACT = ['toeN', 'toeF', 'ankleN', 'ankleF', 'kneeN', 'kneeF', 'handN', 'handF',
+  'wristN', 'wristF', 'elbowN', 'elbowF', 'pelvis', 'thorax', 'neckBase'];
+const SINK = 12;
+let sunk = 0;
+for (const id of ids) {
+  const a = ARCHETYPES[id];
+  for (const kind of ['correct', 'fault']) {
+    const sk = skeleton({ ...a.base, ...a[kind] });
+    const below = CONTACT.filter(j => sk[j] && sk[j].y > FLOOR + SINK)
+      .map(j => `${j} ${Math.round(sk[j].y - FLOOR)}`);
+    if (below.length) { console.warn(`FLOOR: "${id}" ${kind} below the baseline — ${below.join(', ')}`); sunk++; }
+  }
+}
+if (sunk) console.warn(`FLOOR: ${sunk} pose(s) with a joint under the baseline`);
 
 // 6. The canon is the canon: the hip at half standing height is the ratio that
 //    was wrong first time round and the one a careless edit would break again.
