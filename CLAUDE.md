@@ -75,7 +75,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 - **v2.37–v2.38** (08-23) — Big Steps type + six skins + the Display sheet (rank is size and weight, not case; `--tt`/`--ts` are USER settings on `<html>`; a tall box around small text reads as a cell); then the figures session's Judging Bench (44/44 fault muscles, 75 movements turn). → `v2.37`, `v2.38`
 - **v2.17–v2.25.3** (08-21/22) — THE DESIGN PASS, the movement library, the figures (all 340 from 44 patterns), then the refinement round. → `v2.17`…`v2.25.3`
 - **v2.35–v2.36** (08-22/23) — the legibility pass, then the figures session's new equipment. → `v2.35`…`v2.36`
-- **v2.34** (08-22) — NEEDLE: warm soot + one orange needle; no ONE room's palette can serve hundreds of gyms. → `v2.34`
+- **v2.34** (08-22) — NEEDLE: warm soot + one orange needle. → `v2.34`
 - **v2.33–v2.33.1** (08-22) — the Library takes slot four; all modals portal to `<body>`; Home drops the compact view. → `v2.33`, `v2.33.1`
 - **v2.26–v2.32** (08-22) — the FACING-PAIR logo, opening animation + sound, turns + 360 stamps, showcase wall. → `v2.26`…`v2.32`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
