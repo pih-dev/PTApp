@@ -139,13 +139,25 @@ export function ribbon(joints, widths, keepSide = false) {
   // Round caps as explicit points rather than an SVG arc: an arc needs a sweep
   // flag whose sign depends on the chain's direction, and getting it wrong
   // turns a fingertip inside out. Points cannot be wrong.
-  const cap = (centre, from, to, w) => {
+  // 🔴 `out` — the OUTWARD tangent at the tip (past the end / before the start).
+  //    "Take the short way" alone is ambiguous exactly at a cap: the two edge
+  //    ends sit ~180° apart, and when curvature at the tip tilts them past the
+  //    diameter the short way sweeps THROUGH the ribbon. The crossed outline
+  //    cancels under nonzero winding and punches a cap-sized hole — the dark
+  //    disc Pierre photographed at the hips of the frozen logo pair (the
+  //    torso's pelvis cap, 2026-08-23). So the sweep whose midpoint bulges
+  //    along `out` is chosen instead; where the short way was already outward
+  //    (every clean figure) the points are identical, byte for byte.
+  const cap = (centre, from, to, w, out) => {
     const a0 = Math.atan2(from.y - centre.y, from.x - centre.x);
     let a1 = Math.atan2(to.y - centre.y, to.x - centre.x);
-    // Always take the short way round the far side of the tip.
     let d = a1 - a0;
     while (d > Math.PI) d -= 2 * Math.PI;
     while (d < -Math.PI) d += 2 * Math.PI;
+    const mid = a0 + d / 2;
+    if (Math.cos(mid) * out.x + Math.sin(mid) * out.y < 0) {
+      d -= Math.sign(d || 1) * 2 * Math.PI;
+    }
     const pts = [];
     for (let k = 1; k < CAP_STEPS; k++) {
       const a = a0 + d * (k / CAP_STEPS);
@@ -214,11 +226,15 @@ export function ribbon(joints, widths, keepSide = false) {
     return d;
   }
 
+  const outAt = (a, b) => {
+    const L = dist(a, b) || 1;
+    return { x: (b.x - a.x) / L, y: (b.y - a.y) / L };
+  };
   const poly = [
     ...left,
-    ...cap(end, left[left.length - 1], right[right.length - 1], end.w),
+    ...cap(end, left[left.length - 1], right[right.length - 1], end.w, outAt(s[s.length - 2], end)),
     ...right.slice().reverse(),
-    ...cap(start, right[0], left[0], start.w),
+    ...cap(start, right[0], left[0], start.w, outAt(s[1], start)),
   ];
   return closedPath(poly);
 }

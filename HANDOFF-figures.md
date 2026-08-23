@@ -23,17 +23,25 @@ list, in order. Verify the live version yourself before quoting one.
 🔴 **STANDING INSTRUCTION FOR THIS SUBJECT: keep this file current AS YOU GO.** Update §0 and commit
 at each milestone. A restart could end the session at any moment.
 
-> 🔴 **QUEUED FROM THE DESIGN SESSION, 2026-08-23 (Pierre, on two phone screenshots): THE `mark`
-> RENDER PATH DRAWS DARK SPOTS — hips, feet, fingers.** Visible on the showcase's hero pair and in
-> the frozen logo (`src/spotsetMark.js`); the library's full-detail Deadlift render is clean, so
-> the artifact is specific to the solid-silhouette `mark` detail (joint capsules / contact points
-> painting dark inside the fill; there is also a black wedge at the left figure's elbow/hip
-> junction). **This is renderer work → CCHealth fixes it in `src/figures/` (mark detail path).**
-> When fixed, the RE-FREEZE is the design thread's job (B3):
+> ✅ **THE DARK-SPOTS DEFECT IS FIXED IN THE RENDERER (CCHealth, 2026-08-23 ~09:40). RE-FREEZE IS
+> NOW THE DESIGN THREAD'S TURN (B3):**
 > `node scripts/logo-candidates.mjs --freeze pair-off-colour --freeze-bg pair-off-lines`, then
-> `node scripts/make-android-icons.mjs`, then the deploy pipeline. A re-freeze was run 2026-08-23
-> BEFORE this finding and came out byte-identical — i.e. the spots are in the current generator
-> output, not a stale freeze. Screenshots: `_archive/PTApp/session-images/2026-08-23-logo-dark-spots-*.jpg`.
+> `node scripts/make-android-icons.mjs`, then the deploy pipeline.
+> **Root cause, one line:** `ribbon()`'s end-cap arc chose its sweep by "the short way", which is
+> ambiguous at a ~180° cap — roughly half of all caps swept THROUGH the ribbon by atan2 luck, and
+> where the crossed region wasn't covered by another limb the nonzero fill cancelled to a hole
+> (the cap-sized dark disc at the hips of the hinge pose; Pierre's screenshots:
+> `_archive/PTApp/session-images/2026-08-23-logo-dark-spots-*.jpg`). Fix: the cap now picks the
+> sweep whose midpoint bulges OUTWARD along the chain tangent (`src/figures/render.js`).
+> **Blast radius, measured before shipping:** all 680 authored figures change bytes (the caps were
+> randomly-sided everywhere), but a pixel-diff of all 43 pattern samples shows ~0.5%/cell — every
+> visible change is a dark bite getting FILLED (Deadlift, Reverse Chin-Up, Barbell Reverse Wrist
+> Curl, Side Plank had them in the library too, sub-noticeable at cell size). Silhouettes otherwise
+> untouched; spun figures use the hole-proof subpath builder and are untouched by construction.
+> Sanity gates pass (figures, movement-library, skins; the 28 ROM warnings pre-date this).
+> ⚠️ The four PNGs in `_archive/PTApp/branding/2026-08-22-pair-mark/` were regenerated from the
+> fixed generator during verification — the submitted-store copies, if needed, are in git history
+> / Play itself.
 
 > 📌 Other threads that are NOT this one: `HANDOFF-design.md` (the visual-language pass, stages 1–5,
 > **finished**), `HANDOFF-multi-user-build.md` (Supabase / Task A), `HANDOFF-spotset-publishing.md`
