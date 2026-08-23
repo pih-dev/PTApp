@@ -51,7 +51,10 @@ at each milestone. A restart could end the session at any moment.
 
 ## 0. Status — read this out
 
-- 🟢 **LIVE ON THE PWA: v2.32 at wrap time** (gh-pages; the PTApp session's v2.32 — final suite +
+- 🟢 **LIVE ON THE PWA: v2.44 — the anatomy pass, 2026-08-23 (Pages `built` on `f8e9fdc`,
+  verified). APK vc24 archived and sent.** History below is v2.32 onward; verify the live version
+  yourself before quoting one.
+- 🟢 **v2.32 at the 08-22 wrap** (gh-pages; the PTApp session's v2.32 — final suite +
   randomized showcase wall — landed on top of the figures work minutes after this §0 was first
   written. Verify the live version yourself before quoting one; the figures state below is all IN
   v2.32). All 340 movements have figures; 24 of them are
@@ -122,8 +125,46 @@ at each milestone. A restart could end the session at any moment.
   rotation top 78, push-up/plank right 92, triceps-overhead 51, dip 43, bird-dog, knee-flexion,
   Body-Saw. One framing round owed; the audit script is in this session's transcript and belongs
   in `sanity-figures.mjs` as a WARN.
+- 🟢 **2026-08-23 (v2.44): THE ANATOMY PASS — his showcase-wall screenshot, three circles, both
+  reports real and both now LIVE on the PWA (Pages `built` on `f8e9fdc`, verified).**
+  **(1) The backward knee.** `lunge`'s rear leg shipped at shin **+74°**. A positive relative shin
+  in an upright side view swings the shin ANTERIORLY: the rear ankle sat **81 units in front of
+  the rear knee and 81 above the floor**. Re-authored as a real split squat — front thigh 60 (was
+  34, barely a bend), rear knee flexed 46 hovering 118 off the floor, heel raised, **toe actually
+  touching**, which the old rear foot never did. Fault still teaches the front knee past the toe.
+  **(2) The pelvis.** `LATERAL.front.hip` 48 started the leg ribbons 96 apart, each with a 30-wide
+  flank → **hips 156 across against a 110-wide ribcage**, arriving as a flat SHELF because a leg
+  ribbon reaches full girth at its first joint. Waist under it: 78. A 2:1 hip-to-waist flare reads
+  as a *narrow torso*, which is the other half of what he described ("a black stripe or empty
+  stripe") — that stripe was the white channel the pinched waist opened between trunk and arms.
+  Now front **hip 38 / pelvis 48 / waist 50 / ribcage 62**; side depths too (the pelvis was
+  DEEPER than the ribcage — the profile view of the same complaint). **Picked by rendering four
+  candidate sets side by side, not by choosing numbers** — `tmp/anat-variants.mjs`.
+  ✅ Same class, found by scanning coordinates rather than looking: **hip-extension anchored the
+  KICKING foot** (support leg 40 units under the baseline; now grounded on the standing leg, and
+  hip height is identical across the pair so the arch is the only difference) · **knee-flexion
+  curled the heel INTO the floor** (toe 76 under, printed as a smear — a prone body inverts the
+  sign convention, flexion there is positive) · **the head was never joined to the body** (the
+  torso caps at the neck base, the head ellipse is centred 85 further on; 15 units of nothing,
+  hidden by the deltoids upright, wide open on a side plank — there is a neck now) · sled's
+  trailing knee 10° past straight.
+  ✅ **Three guards, so none of it ships silently again** (`sanity-figures.mjs`): **KNEE** fails
+  above +20° hyperextension in an upright side view, warns above +6 — scoped honestly, since the
+  pose format carries no "which way is the belly facing" flag and prone patterns stay human
+  judgement; **FLOOR** warns on any contact joint under the baseline (8 poses today); and the
+  **ROM gate no longer measures front-view legs against a sagittal knee range** — `legs[1]` in a
+  front view is a LATERAL angle, and judging it via `Math.abs` produced half that list, which is
+  how the one real violation sat in the noise from the day the gate was written.
+  ⚠️ **Blast radius is all 680 authored figures, deliberately** — the girths are global. Sanity
+  figures / movement-library / skins pass; turntable spin re-judged at 0–180° on four patterns.
+  🔴 **NOT fixed, and now caught by the FLOOR gate instead of being silent: `bird-dog`'s support
+  arm passes 76 units through the floor.** The arm (300) is longer than the thigh (187), so a
+  level trunk cannot put both a hand and a knee on the ground — it needs a re-authored trunk
+  slope (QUAD is used by bird-dog alone, so the change is contained) plus a judging round. Its
+  far foot also points straight down into the floor. **New OPEN item 1c.**
 - 🔴 **OPEN, in rough priority for the next figures session:**
   1. **Sequences pilot — overhead press step strip** (decided above, biggest UI piece).
+     1c. **bird-dog re-author** — trunk slope so hand and knee both reach the floor, far foot flat.
      1b. **Framing round** — the 10 measured edge-clippers. 2. **spinEquip vocabulary** — cable,
      machine, landmine, kettlebell remain (world-anchored gear). 3. **More spin patterns** — each needs judging
      through the turn before the gate opens (`SPINS` in `figures/poses.js`). 4. **Front-authored
