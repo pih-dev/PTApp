@@ -57,19 +57,23 @@ function boundsOf(markup, margin = 30) {
 // the FAULT half. tilt = whole-mark rotation (negative = counter-clockwise).
 // dot = {pos} adds the Spot: 'center' | 'high' (upper-right vantage) |
 // 'stop' (a full-stop after the S's tail).
-function sMark(movement, { dx = 0.12, dy = 0.5, tilt = 0, dot = null, mirrorAll = false, dotR = 0.09, padF = 0.16, padPx = 40 } = {}) {
+function sMark(movement, { dx = 0.12, dy = 0.5, tilt = 0, dot = null, mirrorAll = false, dotR = 0.09, padF = 0.16, padPx = 40, lean = 0, band = false } = {}) {
   const fig = figureFor(movement);
   if (!fig) return null;
   const ok = layer(fig.correct, { role: 'correct' });
   const fa = layer(fig.fault, { role: 'fault' });
   const okB = boundsOf(ok), faB = boundsOf(fa);
-  const place = (markup, b, { rot180 = false, ddx = 0, ddy = 0, cls }) => {
+  const place = (markup, b, { rot = 0, ddx = 0, ddy = 0, cls }) => {
     const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
-    const t = `translate(${rr(ddx * b.w)} ${rr(ddy * b.h)})${rot180 ? ` rotate(180 ${rr(cx)} ${rr(cy)})` : ''}`;
+    const t = `translate(${rr(ddx * b.w)} ${rr(ddy * b.h)})${rot ? ` rotate(${rr(rot)} ${rr(cx)} ${rr(cy)})` : ''}`;
     return { part: `<g class="${cls}" transform="${t}">${markup}</g>`, box: { x: b.x + ddx * b.w, y: b.y + ddy * b.h, w: b.w, h: b.h } };
   };
-  const top = place(ok, okB, { ddx: dx, ddy: 0, cls: 'pm-half pm-ok' });
-  const bot = place(fa, faB, { rot180: true, ddx: -dx, ddy: dy, cls: 'pm-half pm-fault' });
+  // `lean` (round 4): the junction between the halves stops being a straight
+  // vertical link — the upper posture leans forward, the lower leans back, so
+  // the far-away read is more S. Same added angle on both; the bottom's 180°
+  // makes it the opposite visual lean by construction.
+  const top = place(ok, okB, { rot: lean, ddx: dx, ddy: 0, cls: 'pm-half pm-ok' });
+  const bot = place(fa, faB, { rot: 180 + lean, ddx: -dx, ddy: dy, cls: 'pm-half pm-fault' });
   let minX = Math.min(top.box.x, bot.box.x), minY = Math.min(top.box.y, bot.box.y);
   let maxX = Math.max(top.box.x + top.box.w, bot.box.x + bot.box.w);
   let maxY = Math.max(top.box.y + top.box.h, bot.box.y + bot.box.h);
@@ -79,6 +83,17 @@ function sMark(movement, { dx = 0.12, dy = 0.5, tilt = 0, dot = null, mirrorAll 
   const vbX = minX - pad, vbY = minY - pad, vbW = w0 + pad * 2, vbH = h0 + pad * 2;
   const ccx = minX + w0 / 2, ccy = minY + h0 / 2;
   let inner = top.part + bot.part;
+  if (band) {
+    // The paintbrush S behind the silhouettes: one thick round-capped stroke
+    // tracing the composition — head-side of the top figure, through the
+    // junction, out the bottom figure's tail. Painted in --band (each ground
+    // picks a tone the figures contrast against, flipping with dark/light).
+    const bw = w0 * 0.34;
+    const d = `M ${rr(minX + w0 * 0.72)} ${rr(minY + h0 * 0.10)}`
+      + ` C ${rr(minX + w0 * 0.18)} ${rr(minY + h0 * 0.16)}, ${rr(minX + w0 * 0.30)} ${rr(minY + h0 * 0.40)}, ${rr(ccx)} ${rr(ccy)}`
+      + ` C ${rr(minX + w0 * 0.70)} ${rr(minY + h0 * 0.60)}, ${rr(minX + w0 * 0.82)} ${rr(minY + h0 * 0.84)}, ${rr(minX + w0 * 0.28)} ${rr(minY + h0 * 0.90)}`;
+    inner = `<path class="pm-band" d="${d}" fill="none" stroke="var(--band)" stroke-width="${rr(bw)}" stroke-linecap="round"/>` + inner;
+  }
   if (mirrorAll) inner = `<g transform="translate(${rr(2 * ccx)} 0) scale(-1 1)">${inner}</g>`;
   if (tilt) inner = `<g transform="rotate(${tilt} ${rr(ccx)} ${rr(ccy)})">${inner}</g>`;
   if (dot) {
@@ -89,6 +104,9 @@ function sMark(movement, { dx = 0.12, dy = 0.5, tilt = 0, dot = null, mirrorAll 
       stop: [maxX + r * 1.2, maxY - r * 0.6],
       // Pierre round 3: "centre of the upper-left quadrant", larger.
       ulq: [minX + w0 * 0.25, minY + h0 * 0.25],
+      // Round 4: OFF the figures — observing from 20% in from the top and
+      // left of the whole canvas, not riding anyone's back.
+      tl20: [vbX + vbW * 0.2, vbY + vbH * 0.2],
     }[dot.pos];
     // The Spot. pm-spot is the animation hook: launch can wander it, then
     // settle it here — the vantage from which the set is observed.
@@ -183,3 +201,31 @@ quadrant, the S filling its box. Two movements, two Spot sizes.</p>`)
 const out3 = 'C:/projects/_archive/PTApp/branding/2026-08-23-spotset-s-pair-round3.html';
 writeFileSync(out3, html3);
 console.log(`wrote ${out3} (${R3.filter(s => s.svg).length} studies)`);
+
+// ─── Round 4 (Pierre, from deadlift-r3-bigdot): Spot OFF the figures at
+// 20%/20% of the canvas · silhouette larger still · the paintbrush-S band
+// behind (figures flip contrast against it) · the angled link (top leans
+// forward, bottom back).
+const R4BASE = { dot: { pos: 'tl20' }, dotR: 0.16, tilt: -10, padF: 0.02, padPx: 6 };
+const R4 = [
+  { id: 'deadlift-r4', title: 'Round 4 — no lean, no band', note: 'The r3-bigdot pick with the Spot moved off the figures and the S enlarged.',
+    svg: sMark('Deadlift', { ...R4BASE }) },
+  { id: 'deadlift-r4-band', title: 'Round 4 — the brush band', note: 'The wide paintbrush S behind the silhouettes; figures flip dark/light against it.',
+    svg: sMark('Deadlift', { ...R4BASE, band: true }) },
+  { id: 'deadlift-r4-lean8', title: 'Round 4 — angled link 8°', note: 'Top leans forward, bottom back — the junction is a diagonal, the far read more S.',
+    svg: sMark('Deadlift', { ...R4BASE, lean: 8 }) },
+  { id: 'deadlift-r4-lean14', title: 'Round 4 — angled link 14°', note: 'The stronger lean.',
+    svg: sMark('Deadlift', { ...R4BASE, lean: 14 }) },
+  { id: 'deadlift-r4-full', title: 'Round 4 — band + lean 8', note: 'Everything together: band behind, angled link, Spot observing from 20/20.',
+    svg: sMark('Deadlift', { ...R4BASE, band: true, lean: 8 }) },
+  { id: 'deadlift-r4-full14', title: 'Round 4 — band + lean 14', note: 'Same with the stronger lean.',
+    svg: sMark('Deadlift', { ...R4BASE, band: true, lean: 14 }) },
+];
+const html4 = html
+  .replace(/<h1>[\s\S]*?<\/p>/, `<h1>SpotSet — the Spot and the Set, round 4</h1>
+<p class="sub">From deadlift-r3-bigdot: the Spot observes from 20% in from top and left, the S
+fills the box, the paintbrush band sits behind, and the link between the postures takes an angle.</p>`)
+  .replace(/<div class="cand">[\s\S]*<\/div>\n<\/body>/, `${R4.filter(s => s.svg).map(tile).join('')}\n</body>`);
+writeFileSync('C:/projects/_archive/PTApp/branding/2026-08-23-spotset-s-pair-round4.html',
+  html4.replace('</head>', `<style>.sw.dark{--band:#332E24}.sw.light{--band:#CFCBC1}.sw.appicon{--band:#142743}.sw.tiny{--band:#332E24}</style></head>`));
+console.log(`wrote round4 (${R4.filter(s => s.svg).length} studies)`);
