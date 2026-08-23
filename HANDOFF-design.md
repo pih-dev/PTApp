@@ -38,10 +38,15 @@ not ask follow-up questions beyond the one §0 names.
   convention — the convention is older than this app.
 - **Elie's two rulings, do not re-propose:** the compact Home view is gone (detailed only), and the
   session-count edit **stays** in the booking screen.
-- **Open and not started:** swipe-to-change-week on the Schedule strip (agreed in principle — swipe
-  the *week*, not the days; pointer events + `touch-action: pan-y`, never a non-passive
-  preventDefault) · the full `.btn-*` sizing/fill rationalisation beyond the proportion pass · the
-  "S" logo idea · the roles/dev-surface split (brainstorm only, nothing decided).
+- 🟢 **v2.39 SHIPPED (2026-08-23): swipe-to-change-week** — pointer events on `.week-strip`,
+  48px/2:1 thresholds, NO setPointerCapture (tappable children), `touch-action: pan-y`,
+  direction-aware slide keyed on Monday, RTL-mirrored, reduced-motion off, <360px chip-fit guard
+  (mobile-UX review finding). Pages `built`; APK vc17 verified inside and delivered.
+  Detail: `docs/instructions-v2.39.md`.
+- **Open and not started:** the full `.btn-*` sizing/fill rationalisation beyond the proportion
+  pass · the "S" logo idea · the roles/dev-surface split (brainstorm only, nothing decided).
+  Sibling debt noted: v2.38 (figures) has no `changelog-technical.md` entry — a pointer line went
+  in with v2.39's.
 - **The one question to ask on resume:** *"Did the v2.37 type land, and did Elie rule on the teal
   muscles?"*
 
