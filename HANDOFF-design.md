@@ -38,6 +38,11 @@ not ask follow-up questions beyond the one §0 names.
   convention — the convention is older than this app.
 - **Elie's two rulings, do not re-propose:** the compact Home view is gone (detailed only), and the
   session-count edit **stays** in the booking screen.
+- 🟢 **v2.43.1 SHIPPED (2026-08-23): the logo re-frozen from CCHealth's cap-sweep renderer fix**
+  — dark spots at hips/feet/fingers gone; launcher icons regenerated; Pages `built`, APK vc22
+  verified inside + delivered. 🔴 **OPEN, HIS PICK: the S gallery** — 19 candidates in three sets,
+  `_archive/PTApp/branding/2026-08-23-spotset-s-gallery.html` (was served on localhost:8734 in his
+  Chrome; re-serve with `python -m http.server 8734` in that folder). Final, build-on, or drop.
 - 🟢 **v2.43 SHIPPED + SUBMITTED TO PLAY (2026-08-23): THE LOGIN IS LIVE.** The whole auth stack
   existed dark; **`.env` (anon key only, from `_archive/PTApp/supabase-spotset.env`) is now a BUILD
   INPUT** — without it a build is token-only. Email sign-in (accounts PROVISIONED, no self-signup) ·
