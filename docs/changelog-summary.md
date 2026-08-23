@@ -57,7 +57,9 @@ the outstretched throwing hand whenever the grips are apart; hands-together
 holds (rollout, plank, twist) are unchanged. Also in this patch train
 (shipped inside v2.35): the bench-press family finally spins - a gate bug had
 silently excluded it from round 4's 360° drag, which is why the bar never
-moved; six barbell bench movements now turn, raising the 360° count 24 → 30.
+moved; six barbell bench movements now truly spin (the count stayed 24 —
+they were already stamped as turning via the old two-picture drag; v2.36
+raised it).
 
 ---
 

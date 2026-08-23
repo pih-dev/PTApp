@@ -8,5 +8,6 @@ the grip **farther from the head** (the outstretched throwing arm — the near h
 frame top); hands together keeps the centre, so rollout/plank/twist holds are untouched.
 
 Also visible from this train: the bench-press 360° spin (gate fix `d1692e9`, shipped inside
-v2.35's deploy) — six barbell bench movements now turn, 360° stamp count 24 → 30, and
+v2.35's deploy) — six barbell bench movements now truly spin (stamp count unchanged at 24; the
+"24 → 30" first written here was wrong — they were already stamped via the tween), and
 Close/Wide Grip Bench Press now resolve to barbell gear instead of pressing nothing.
