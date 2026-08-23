@@ -327,6 +327,9 @@ if (exportArg !== -1) {
     '--warn': tok('--warn', '#E0A32B'), '--anatomy': tok('--anatomy', '#F2622C'),
     '--muscle': tok('--muscle', '#F03A68'), '--muscle-2': tok('--muscle-2', '#9A7BC8'),
     '--equipment': tok('--equipment', '#2E6BF2'),
+    // v2.43.2: the Spot — without this the flattened icon leaves var(--accent)
+    // unresolved and the dot renders black/invisible in every store asset.
+    '--accent': tok('--accent', '#35B7E8'),
   };
   const chalk = tok('--chalk', '#E9EEF3');
   const id = process.argv[exportArg + 1] || 'pair-off-colour';
