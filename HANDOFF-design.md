@@ -1,92 +1,80 @@
-# SpotSet — The Design Pass (Task B) HANDOFF
+# SpotSet — The Design & Typography Thread HANDOFF
 
-**Last updated:** 2026-08-22 ~00:4x, Beirut. **THIS THREAD IS COMPLETE.**
-**To resume:** Pierre types `continue` or `design`. **Read §0 back to him and stop.**
-Do not investigate, do not re-derive, do not ask follow-up questions.
+**Last updated:** 2026-08-23 ~03:10, Beirut.
+**To resume:** Pierre types `design`, `theme`, `typography`, `skin`, `buttons` — or `continue` right
+after clearing this session. **Read §0 back to him and stop.** Do not investigate, do not draft, do
+not ask follow-up questions beyond the one §0 names.
 
-🔴 **STANDING INSTRUCTION FOR THIS SUBJECT: keep this file current AS YOU GO.** Update §0 and commit
-at each milestone, on the assumption that a restart could end the session at any moment. `/wrap` is
-the safety net, never the trigger.
-
-> 📌 Other threads exist and are NOT this one: **`HANDOFF-figures.md`** (B2, the figures — trigger
-> word `figures`), `HANDOFF.md` (the queued-task overview),
-> `HANDOFF-multi-user-build.md` (Supabase / Task A — waiting out a soak), and
-> `HANDOFF-spotset-publishing.md` (Play + Apple).
+> 📌 Sibling threads, all separate: figures → `HANDOFF-figures.md` (a SECOND SESSION owns it and is
+> active in this tree) · Play/Apple → `HANDOFF-spotset-publishing.md` · Supabase →
+> `HANDOFF-multi-user-build.md` · mark/opening/showcase → `HANDOFF-showcase.md`.
 
 ---
 
 ## 0. Status — read this out
 
-- ✅ **THE DESIGN PASS IS FINISHED — v2.21.1 is live.** Five stages: skins (v2.17), the Dashboard
-  (v2.18), the shell + shared primitives (v2.19), press affordance (v2.19.1), the deep screens
-  (v2.20) and the last fixes (v2.20.1, v2.21.1). **No screen is still in the old idiom.**
-- ✅ **B1, the movement library, shipped in v2.21.** A movement name is tappable in the program
-  viewer; a searchable EN/AR library lives in General → Reference.
-- ➡️ **THE LIVE THREAD IS NOW `HANDOFF-figures.md`** (trigger word `figures`). B2 is next and Pierre
-  has cleared it to start.
-- **The rules this pass produced are in `CLAUDE.md`** (CONVENTIONS + TRAPS), not here: paint from
-  tokens · the accent never touches chrome · outline means off, fill means press · no emoji in the
-  interface · `.card` is a row · one screen per pass · RTL kills uppercase AND letter-spacing ·
-  never style a scrollbar in a touch app · contrast is measured against **both** ends of the ground.
-- **What is left overall:** `docs/design/2026-08-22-what-is-left.md` — A6 (what the four tabs
-  *are*, now that every screen is done), C4 (review finding P3 with a Schedule layout pass), and
-  tracks B (figures, logo, photography) and C (Supabase, Play, Apple).
-- 🔴 **Do not reopen a finished screen for polish without a reason from Pierre.** The pass ended
-  because it was done, not because it ran out of ideas.
+- 🟢 **v2.37 IS THE SHIPPED STATE OF THIS THREAD** — web (gh-pages, Pages reached `built`) and an
+  APK vc15 delivered in-chat. It carries: Big Steps typography, six skins, the Display sheet, and
+  the button-proportion pass.
+- 🔴 **TWO SESSIONS SHARE THIS TREE AND WE COLLIDED. CHECK THE VERSION BEFORE BUMPING — ALWAYS.**
+  The figures session shipped v2.35.1, v2.35.2, v2.36 and vc14 while this thread worked. **Both
+  sessions numbered a release v2.35.1**, and this one overwrote the other's
+  `docs/instructions-v2.35.1.md` (restored from `fb08cd4`; ours is now an addendum on
+  `instructions-v2.35.md`). Probe `git log --oneline -3 origin/master` and the version string in
+  `src/App.jsx` before any bump — the string had already moved, so a blind `replace()` matched
+  nothing and failed silently.
+- 🔴 **THE DESIGN RULING THAT MUST NOT BE RE-LITIGATED: RANK IS SIZE AND WEIGHT, NOT CASE.**
+  v2.35 stripped uppercase + tracking + the condensed face from everything; reading improved and
+  **sorting died** — Pierre's word was *"monotone"*. v2.37 restores rank as a 22px/700 name against
+  a 12.5px label, with caps + `0.06em` on small structural labels ONLY. Never a name, never body.
+- 🔴 **CASE AND TEXT SIZE ARE USER SETTINGS, NOT DESIGN DECISIONS** (`Display.jsx` → `--tt`, `--ts`
+  on `<html>`). No static type choice fits every pair of eyes, and Pierre cannot read the default
+  comfortably. Do not "fix" the default by removing the dials.
+- **Skins are six, in three pairs:** Lume · Midnight · Rally (dark) / Enamel · Steel · Chalkline
+  (daylight). `DEFAULT_SKIN = 'lume'`; a stored pick always wins, so nothing repaints itself.
+- 🔴 **STILL UNRATIFIED AND IT IS ELIE'S CALL: the figures went crimson-fault + TEAL muscles** in
+  Lume/Enamel (and cyan muscles in Rally). Every anatomy chart he teaches from paints working muscle
+  **red**. **Show him a movement figure and ask.** If he refuses, move the ACCENT, not the
+  convention — the convention is older than this app.
+- **Elie's two rulings, do not re-propose:** the compact Home view is gone (detailed only), and the
+  session-count edit **stays** in the booking screen.
+- **Open and not started:** swipe-to-change-week on the Schedule strip (agreed in principle — swipe
+  the *week*, not the days; pointer events + `touch-action: pan-y`, never a non-passive
+  preventDefault) · the full `.btn-*` sizing/fill rationalisation beyond the proportion pass · the
+  "S" logo idea · the roles/dev-surface split (brainstorm only, nothing decided).
+- **The one question to ask on resume:** *"Did the v2.37 type land, and did Elie rule on the teal
+  muscles?"*
 
 ---
 
-## 1. Where everything lives
+## 1. Where the reasoning lives
 
-| What | Where |
+| Subject | File |
 |---|---|
-| The brief — evidence, every decision, both sides of the one reversal | `docs/design/2026-08-21-design-differentiation-brief.md` §1–§7.15 |
-| The spec — approved, with the override applied | `docs/superpowers/specs/2026-08-21-visual-language-dashboard-design.md` |
-| The mockup Pierre approved | Artifact **Plate & Bar**, `https://claude.ai/code/artifact/fc11283b-8402-46f5-8c14-e838bd51b432` |
-| What shipped in stage 1 | `docs/instructions-v2.17.md` |
-| The skin system | `src/skins.js` (list, default, migration) + token blocks in `src/styles.css` |
-| Its gate | `scripts/sanity/sanity-skins.mjs` |
-| Session transcript | `_archive/PTApp/claude-sessions/2026-08-21-design-pass-and-v2.17-FULL-SESSION.txt` |
+| Why Needle beat The Platform | `docs/instructions-v2.34.md` |
+| The legibility pass + why it over-corrected | `docs/instructions-v2.35.md` (incl. the addendum) |
+| Big Steps, the Display sheet, button proportion | `docs/instructions-v2.37.md` |
+| The nav review that produced the Library tab | `docs/design/2026-08-22-fresh-eyes-navigation-review.md` |
+| taste-skill: read, not installed, and what was harvested | `docs/design/2026-08-22-taste-skill-evaluation.md` |
+| Roles / dev-surface split (BRAINSTORM, nothing decided) | `docs/design/2026-08-22-roles-and-the-dev-surface-brainstorm.md` |
+| The token contract and type roles | `docs/design-system.md` |
 
-## 2. What stage 1 actually changed
+**Artifacts Pierre reads (in `/artifacts`):** *The Fourth Tab* (nav verdict, with its correction),
+*The Platform and the Needle* (the two directions), *The Type Lab* (the live tuner he picked Big
+Steps from).
 
-- `src/skins.js` **is new** and is the ONLY home for the skin list, the default and the migration.
-  Adding a skin = one entry there + one token block in `styles.css`. There is no third place.
-- 🔴 **A skin is custom-property VALUES and nothing else.** Identical layout, geometry and type in
-  every skin; only hue changes. One that needs its own rule is a second design and does not ship.
-- `.theme-light` → `[data-skin="steel"]`: **79 selectors renamed, values untouched.** Those
-  per-element overrides are dark/light-era debt and retire screen by screen as each screen is
-  rebuilt on tokens — **starting with the Dashboard in stage 2. Do not add more of them.**
-- `App.jsx` writes `data-skin` on the app container; one setter applies and persists together.
-- **Preference migration, not data migration.** `ptapp-theme === 'light'` → `steel`, else
-  `midnight`, old key removed. It never lived in `data.json`.
+## 2. Two traps this thread earned, both now in `docs/traps.md` / CCHealth
 
-## 3. What stage 2 must not do
+- **A filename is not a feature.** A fresh-eyes brief said "a barbell plate calculator" because
+  nobody opened `Plates.jsx` — it is the package-progress disc row. The reviewer is blind by design,
+  so the brief is the only thing between a wrong premise and a confident finding. **Build the brief
+  from opened files; write anything unreadable as *unknown*, never as a guess.**
+- **Harvesting selectors from an existing rule set misses every COMPOUND one.** The v2.35 list was
+  harvested from the `[dir="rtl"]` rules — complete for simple selectors, and it silently skipped
+  `.srow .inline-type-select` at (0,2,0). Sweep for compound rules separately.
 
-- 🔴 **It is presentation only.** Every handler, dispatch and kernel call stays as it is —
-  `getRenewalDueMap`, `getClientCountedSessions`, `getSessionOrdinal`, `buildSession`, the focus
-  tags, the notes textarea. **If a kernel call or a reducer action has to change, the slice has
-  grown out of scope and it stops.** That is how a restyle becomes a data incident.
-- 🔴 **`styles.css` is shared.** Other screens still render `.card`. Grep every rule across all of
-  `src/` before removing it, or the Dashboard pass silently breaks four other screens.
-- **Both phones, both languages, every skin, before it is called done.** A skin is not shipped until
-  its **Arabic** screenshot has been looked at — Arabic has no uppercase, so that build carries
-  hierarchy through weight and letter-spacing and is judged on its own.
+## 3. The build recipe this thread uses
 
-## 4. Verification standard set this session
-
-Two gates were **made to fail on purpose before being trusted**, and that is now the expectation
-here, not a flourish:
-
-- `sanity-demo-whatsapp.mjs` — guard removed, gate went red naming the leaked number, guard restored.
-- `sanity-skins.mjs` — one token deleted from `steel`, gate went red naming it, token restored.
-
-And v2.17.0 was **verified in a browser against the built bundle**, not inferred from the source: a
-seeded legacy light user migrated to `steel` with the old values intact, the picker flipped to
-`midnight` and persisted, and both names rendered under `dir="rtl"`.
-
-## 5. Commits this session (design thread)
-
-`54db3bd` the Apple/iOS pipeline · `c38bff5` v2.16.1 demo WhatsApp fix · brief §7 → §7.15 across
-five commits · spec written and then approved with the override · `3a6fb22` **v2.17.0**, deployed
-and verified live.
+Standard pipeline (`CLAUDE.md`), plus: **an APK with every version** — `assembleRelease` under
+JDK 21, versionName verified **inside** the `.apk` (gradlew exits 0 on a failed build), archived to
+`_archive/PTApp/releases/`, then sent in chat. 🔴 Stage explicit paths only; never `git add -A`.

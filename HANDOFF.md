@@ -10,6 +10,9 @@ not draft, do not ask follow-up questions.
 ## 0. Status — read this out
 
 - 🔴 **EVERY SUBJECT HAS ITS OWN HANDOFF — route by trigger, newest first:**
+  - **`design` / `theme` / `typography` / `skin` / `buttons` → `HANDOFF-design.md`** — the
+    freshest thread: v2.37 shipped (Big Steps type, six skins, the Display sheet). 🔴 Carries the
+    two-session version-collision warning. **`continue` right after this session's clear means THIS one.**
   - **`showcase` / `logo` / `suite` / `sound` → `HANDOFF-showcase.md`** — the freshest thread
     (this session): v2.32 shipped; vc9 now uploaded to Play; OPEN: Pierre's "S" logo idea.
     **`continue` right after this session's clear means THIS one.**
@@ -19,7 +22,7 @@ not draft, do not ask follow-up questions.
   - **`figures` → `HANDOFF-figures.md`** — the CCHealth session's thread, wrapped end-of-marathon;
     resumes there, not here. 🔴 Two-session git rules in CLAUDE.md KNOWN ISSUES if both run again.
   - **Supabase soak → `HANDOFF-multi-user-build.md`** — daily job `node scripts/soak-day.mjs`.
-- **Current version v2.32** (CLAUDE.md carries the law: suite scripts in step, no svg per frame,
+- **Current version v2.37** (CLAUDE.md carries the law: suite scripts in step, no svg per frame,
   frozen mark, worktree deploys). Design round v2.25 findings parked for Pierre:
   `docs/design/2026-08-22-fresh-eyes-structure-review.md` (money tracking DEFERRED, his word).
 
