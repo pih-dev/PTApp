@@ -4,6 +4,22 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.41 - rounded-rect radii global, the trench, sanity-contrast (2026-08-23)
+
+Pebble verdict: rounded RECTANGLES for all skins (:root radii 7/10/12/14/20,
+--r-tall 12; pebble's pill overrides deleted, palette survives). Separators:
+--trench, a token-derived engraved groove (color-mix of the skin's own ground
+with black/white as darken/lighten OPERATORS - not literals) on .card,
+.srow/.rrow::after, .bar-shaft; capsule ends on load-seg, size-meter, collar,
+week-day underline, load-base, fig-drag-bar. NEW GATE sanity-contrast.mjs after
+Pierre's process ruling ("change everywhere the thing applies, in every theme"):
+measures every token pairing in every skin; fixed midnight --bar (on-bar text
+3.84→4.9), chalkline --ok, enamel --ok/--warn; decorative pairings gate at
+"perceivable" on purpose (lume/enamel quiet shafts are v2.34's ruled design).
+Detail: instructions-v2.41.md.
+
+---
+
 ## v2.40 - Pebble skin + --on-bar + radius tokens (2026-08-23)
 
 Pierre, on a Steel screenshot: "everything is rectangles - smooth them out, make

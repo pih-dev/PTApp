@@ -4,6 +4,18 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.41 - round corners for everyone, and lines become trenches (August 23, 2026)
+
+Pierre's verdict on Pebble: not pills - rectangles with clearly rounded
+corners, in every theme. Done. The flat lines between rows are now engraved
+grooves (a "trench"), the little count dashes and meter bars got rounded
+ends, and a new automatic check measures text contrast in ALL seven themes -
+it caught and fixed four more hard-to-read colours (midnight's buttons,
+green and amber badges in the two daylight themes).
+Full detail: instructions-v2.41.md.
+
+---
+
 ## v2.40 - Pebble, the rounded theme, and a Steel fix (August 23, 2026)
 
 A seventh theme: Pebble. Every button and chip becomes a smooth pill, panels

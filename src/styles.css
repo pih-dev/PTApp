@@ -39,7 +39,10 @@ html, body, #root { height: 100%; overflow: hidden; }
   --chalk-dim: #9DAABB;     /* secondary, and EVERY small label */
   --chalk-faint: #6E7D95;   /* decoration only — never text under 13px */
   --accent: #35B7E8;        /* arc. Load and urgency ONLY. Never #2563EB — that is the generated blue. */
-  --bar: #5A78A8;           /* every divider is a bar shaft, and a shaft has to be visible */
+  /* v2.41 contrast audit: was #5A78A8 — --on-bar text on it sat at 3.84:1, the
+     same class of bug as the steel screenshot, just milder. Deepened until the
+     pair clears 4.5 (now ~4.9) while the shaft keeps ≥3 on the ground. */
+  --bar: #4A6791;
   --ok: #4FC08D;
   --warn: #E0A32B;
   --anatomy: #F2622C;       /* the FAULT marker inside a figure — unused in the UI on purpose */
@@ -70,21 +73,32 @@ html, body, #root { height: 100%; overflow: hidden; }
   --on-bar: #E9EEF3;
 
   /* v2.40: RADIUS TOKENS — Pierre's ruling (2026-08-23): geometry may vary per
-     skin, but ONLY through these four values; everything else stays identical.
-     (Amends the v2.17 "only hue changes" rule — see src/skins.js.) Defaults are
-     the shipped values, so the six existing skins render pixel-identical.
+     skin, but ONLY through these values (amends the v2.17 "only hue changes"
+     rule — see src/skins.js). v2.41: HIS VERDICT ON THE PEBBLE TRIAL — rounded
+     RECTANGLES, not pills: "corners that can be noticed, not something too
+     large to be portrayed as a pebble" — applied to ALL skins, so these
+     defaults ARE the app's geometry and pebble no longer overrides them.
      --r-xs tags · --r-sm chips/small buttons · --r-lg buttons/inputs ·
-     --r-panel panels/textareas · --r-sheet the modal sheet's top corners. */
-  --r-xs: 4px;
-  --r-sm: 6px;
-  --r-lg: 8px;
-  --r-panel: 10px;
-  --r-sheet: 14px;
-  /* Tall boxes (multi-line wells, the day chips, the figure viewport) cannot be
-     pills — a 999px radius eats their first line or clips the art (i18n review,
-     v2.40). They share this token instead; 8px sits within 2px of every
-     pre-v2.40 value, accepted drift. */
-  --r-tall: 8px;
+     --r-panel panels · --r-sheet the modal sheet's top corners. */
+  --r-xs: 7px;
+  --r-sm: 10px;
+  --r-lg: 12px;
+  --r-panel: 14px;
+  --r-sheet: 20px;
+  /* Tall boxes (multi-line wells, the day chips, the figure viewport) take a
+     restrained radius of their own — at pill values it ate their first line or
+     clipped the art (i18n review, v2.40). */
+  --r-tall: 12px;
+
+  /* v2.41: THE TRENCH — Pierre on the row separators: "these plain lines" are
+     the monotone feel; "a line, but as a trench". An engraved groove instead of
+     a flat bar: a channel darker than the ground with a light lower lip.
+     🔴 black/white here are darken/lighten OPERATORS applied to the skin's own
+     ground, not colours of their own — they derive a value for EVERY skin,
+     which is exactly what the "a literal belongs to ONE skin" rule protects. */
+  --trench-dark: color-mix(in srgb, var(--ground) 72%, black);
+  --trench-lip: color-mix(in srgb, var(--ground) 45%, white);
+  --trench: linear-gradient(to bottom, var(--trench-dark) 0 66%, var(--trench-lip) 66% 100%);
 
   /* Type roles (spec §4). Saira Condensed uppercase reads as an instrument
      label and is the fastest exit from the generated look; IBM Plex Mono with
@@ -532,7 +546,14 @@ button:active { transform: scale(0.97); }
 .card {
   background: transparent;
   border: none;
-  border-bottom: 2px solid var(--bar);
+  /* v2.41: the flat 2px bar under every row was Pierre's "monotone lines" —
+     the shaft becomes a trench (see --trench in :root). A background strip,
+     not a border: gradients cannot live in border-color. */
+  border-bottom: none;
+  background-image: var(--trench);
+  background-repeat: no-repeat;
+  background-position: bottom;
+  background-size: 100% 3px;
   border-radius: 0;
   padding: 14px 0 16px;
   margin-bottom: 0;
@@ -978,7 +999,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 /* Every day stands on the shaft; the selected one's shaft goes to chalk. */
 .week-day::after {
   content: ''; position: absolute; inset-inline: 10px; bottom: 0;
-  height: 3px; border-radius: 1px; background: var(--bar);
+  height: 3px; border-radius: 999px; background: var(--bar);
 }
 .week-day.selected {
   background: var(--raised);
@@ -1328,7 +1349,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
    would change the bar's rhythm, and the bar is shared by every tab. */
 .bar > button { min-height: 44px; }
 .bar-collar {
-  flex: 0 0 auto; width: 5px; height: 20px; border-radius: 1px;
+  flex: 0 0 auto; width: 5px; height: 20px; border-radius: 999px;
   background: var(--chalk-faint);
 }
 .bar-label {
@@ -1336,7 +1357,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   font-size: 15px; font-weight: 700; letter-spacing: 0.14em;
   text-transform: uppercase; color: var(--chalk); white-space: nowrap;
 }
-.bar-shaft { flex: 1; height: 3px; border-radius: 2px; background: var(--bar); }
+.bar-shaft { flex: 1; height: 3px; border-radius: 999px; background: var(--trench); }
 .bar-count {
   font-family: var(--font-mono); font-variant-numeric: tabular-nums;
   font-size: 13px; font-weight: 600; color: var(--chalk-dim);
@@ -1369,12 +1390,13 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 /* column-reverse: the stack loads from the bar upward, the way plates go on */
 .load-stack { display: flex; flex-direction: column-reverse; gap: 2px; min-height: 7px; width: 100%; }
 .load-seg {
-  width: 100%; height: 7px; border-radius: 1px;
+  /* v2.41 "round everything": the count dashes were bare squares. */
+  width: 100%; height: 7px; border-radius: 999px;
   background: var(--chalk-faint);
   transform-origin: bottom;
   animation: plateOn 0.22s ease-out both;
 }
-.load-base { width: 100%; height: 3px; border-radius: 1px; background: var(--bar); }
+.load-base { width: 100%; height: 3px; border-radius: 999px; background: var(--bar); }
 .load-day {
   font-family: var(--font-display); font-size: 10px; font-weight: 600;
   letter-spacing: 0.08em; text-transform: uppercase; color: var(--chalk-dim);
@@ -1430,7 +1452,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 /* The divider IS a bar shaft — not a hairline, and not a box around anything. */
 .srow:not(:last-child)::after {
   content: ''; position: absolute; inset-inline: 0; bottom: 0;
-  height: 2px; border-radius: 1px; background: var(--bar);
+  height: 3px; border-radius: 999px; background: var(--trench);
 }
 .srow-tap {
   cursor: pointer;
@@ -1671,7 +1693,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   text-transform: uppercase; color: var(--chalk-dim); flex: none;
 }
 [dir="rtl"] .fig-drag-hint { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
-.fig-drag-bar { position: relative; flex: 1; height: 2px; background: var(--bar); border-radius: 1px; }
+.fig-drag-bar { position: relative; flex: 1; height: 2px; background: var(--bar); border-radius: 999px; }
 .fig-drag-bar i {
   /* translateX, not margin-inline-start: the dot is positioned with a
      deliberately PHYSICAL `left` (it tracks the finger), so its centring must
@@ -1713,7 +1735,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 }
 .rrow:not(:last-child)::after {
   content: ''; position: absolute; inset-inline: 0; bottom: 0;
-  height: 2px; border-radius: 1px; background: var(--bar);
+  height: 3px; border-radius: 999px; background: var(--trench);
 }
 .rrow-main { flex: 1; min-width: 0; }
 .rrow-name {
@@ -1841,7 +1863,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   --bar: #BFBCC9;
   --on-bar: #1A1A26;   /* the bar is LIGHT here — ink text holds on it */
   --accent: #C2185B;
-  --ok: #2E7D4F;
+  --ok: #2A7348;       /* v2.41 audit: was #2E7D4F, 4.23:1 as badge text — darkened to ~4.8 */
   --warn: #8A6100;
   --anatomy: #C1400F;
   --muscle: #0E6B75;
@@ -1910,8 +1932,11 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   --bar: #C6C2B8;
   --on-bar: #26231D;   /* light bar, ink text */
   --accent: #BD5E1E;     /* the same needle, darkened to hold on a pale face */
-  --ok: #3E7A34;
-  --warn: #8F6B00;
+  /* v2.41 audit: both were under 4.5 as badge text on the pale ground (ok 4.17,
+     warn 3.94 — the CANCELLED class of bug from Pierre's steel screenshot,
+     present here too). Darkened until both clear on BOTH ends of the ground. */
+  --ok: #35682C;
+  --warn: #7A5B00;
   /* Same reasoning as lume, deepened for a light ground. Same Elie caveat. */
   --anatomy: #B02E37;
   --muscle: #176158;
@@ -1997,13 +2022,9 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   --muscle-2: #55489B;
   --equipment: #2050B8;
 
-  /* The pill geometry — the whole point of this skin. */
-  --r-xs: 999px;
-  --r-sm: 999px;
-  --r-lg: 999px;
-  --r-panel: 16px;
-  --r-sheet: 24px;
-  --r-tall: 16px;
+  /* v2.41: the pill overrides are GONE — Pierre's verdict on the trial was
+     rounded rectangles for everyone, so the :root radii are the geometry and
+     pebble is a palette like any other skin. */
 }
 
 /* Tall boxes cannot be pills — a 999px radius eats a text well's first line,
@@ -2336,7 +2357,7 @@ textarea.input, .focus-notes, .week-day, .notice, .fig-view { border-radius: var
    ("1.1x") would mean nothing to the person turning it. */
 .size-meter { flex: 1; display: flex; align-items: flex-end; gap: 5px; height: 30px; }
 .size-meter span {
-  flex: 1; border-radius: 2px; background: var(--bar);
+  flex: 1; border-radius: 999px; background: var(--bar);
   height: 40%; transition: height .12s ease, background .12s ease;
 }
 .size-meter span:nth-child(2) { height: 55%; }
