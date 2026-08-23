@@ -916,7 +916,23 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
    idiom the design pass deleted everywhere else. Days now stand on a bar
    shaft (the same grammar as the Dashboard's load columns), and only the
    SELECTED day takes a fill, because it is the one the user is holding. */
-.week-strip { display: flex; gap: 2px; padding: 14px 0 10px; overflow-x: auto; }
+/* v2.39: pan-y hands horizontal pans to the swipe-week pointer handlers while
+   vertical page scroll stays native (never a non-passive preventDefault). It
+   also disables touch-driven horizontal scroll here — accepted: 7×44px + gaps
+   is 320px, which fits every phone this app targets, and a swipe now IS the
+   horizontal navigation. */
+.week-strip { display: flex; gap: 2px; padding: 14px 0 10px; overflow-x: auto; touch-action: pan-y; }
+/* The strip remounts keyed on its Monday; the animation replays from the side
+   the new week came from. RTL mirrors, reduced-motion opts out. */
+.week-strip.slide-next { animation: week-slide-next 0.18s ease; }
+.week-strip.slide-prev { animation: week-slide-prev 0.18s ease; }
+@keyframes week-slide-next { from { transform: translateX(24px); opacity: 0.4; } }
+@keyframes week-slide-prev { from { transform: translateX(-24px); opacity: 0.4; } }
+[dir="rtl"] .week-strip.slide-next { animation-name: week-slide-prev; }
+[dir="rtl"] .week-strip.slide-prev { animation-name: week-slide-next; }
+@media (prefers-reduced-motion: reduce) {
+  .week-strip.slide-next, .week-strip.slide-prev { animation: none; }
+}
 .week-day {
   position: relative;
   flex: 1; min-width: 44px; padding: 8px 2px 10px;

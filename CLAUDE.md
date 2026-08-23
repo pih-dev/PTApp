@@ -44,8 +44,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.37
-**BIG STEPS + six skins + the Display sheet.** 🔴 **RANK IS SIZE AND WEIGHT, NOT CASE** — name 22px/700 vs label 12.5px; caps + `0.06em` return ONLY to small structural labels, **never a name, never body text** (v2.35 stripped all three everywhere and the screen went monotone — readable, unsortable). 🔴 **`--tt` (case) and `--ts` (scale ×0.9–1.3) ARE USER SETTINGS on `<html>`** — `Display.jsx`, guarded localStorage; on `<html>` because Modal portals to `<body>`. RTL's (0,2,0) rules still kill caps, always. Skins: **Lume · Midnight · Rally · Enamel · Steel · Chalkline**; `.skin-swatch` is the ONE sanctioned foreign-skin literal. 🔴 **A TALL BOX AROUND SMALL TEXT READS AS A CELL, NOT A CONTROL** — tighten padding, keep `min-height` for the thumb. → `v2.37`.
+## Current Version: v2.39
+**SWIPE-TO-CHANGE-WEEK on the Schedule strip.** Pointer events on `.week-strip`, thresholds ≥48px AND ≥2× vertical; 🔴 **NO `setPointerCapture` here — the strip has tappable children** (capture retargets `pointerup` off the day chips and kills their tap; the deliberate opposite of the Figure gesture). `touch-action: pan-y`; strip keyed on its Monday for the direction-aware slide-in; RTL mirrors, reduced-motion opts out; buttons + swipe share `changeWeek()`. → `v2.39`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
@@ -71,6 +71,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 ---
 
 ## Version History
+- **v2.37–v2.38** (08-23) — Big Steps type + six skins + the Display sheet (rank is size and weight, not case; `--tt`/`--ts` are USER settings on `<html>`; a tall box around small text reads as a cell); then the figures session's Judging Bench (44/44 fault muscles, 75 movements turn). → `v2.37`, `v2.38`
 - **v2.17–v2.25.3** (08-21/22) — THE DESIGN PASS, the movement library, the figures (all 340 from 44 patterns), then the refinement round. → `v2.17`…`v2.25.3`
 - **v2.35–v2.36** (08-22/23) — the legibility pass (uppercase/tracking/condensed off), then the figures session's medicine ball, stability ball and dumbbells. → `v2.35`…`v2.36`
 - **v2.34** (08-22) — NEEDLE: warm soot + one orange needle, because the app runs in hundreds of gyms so a palette taken from ONE room cannot work, and midnight-and-arc was the palette of the Precor equipment beside it. → `v2.34`

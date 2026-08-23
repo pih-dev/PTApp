@@ -215,6 +215,37 @@ export default function Schedule({ state, dispatch, lang, initialDate }) {
     setCancelPrompt(session);
   };
 
+  // v2.39: swipe-to-change-week on the strip (design thread: swipe the WEEK,
+  // not the days). Pointer events, not touch events — one code path for finger,
+  // mouse and pen — and `touch-action: pan-y` in CSS hands horizontal pans to
+  // us while the page keeps native vertical scroll (never a non-passive
+  // preventDefault; TRAPS). 🔴 NO setPointerCapture here: capturing on the strip
+  // would retarget pointerup away from the day chips and kill their tap.
+  const swipeRef = useRef(null);            // {x, y, id} at pointerdown
+  const [weekSlide, setWeekSlide] = useState(0); // -1 prev / +1 next — picks the slide-in side
+  const changeWeek = (delta) => {
+    const d = new Date(selectedDate + 'T00:00:00');
+    d.setDate(d.getDate() + delta * 7);
+    setSelectedDate(localDateStr(d));
+    setWeekSlide(delta);
+  };
+  const onStripDown = (e) => { swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId }; };
+  const onStripUp = (e) => {
+    const s = swipeRef.current;
+    swipeRef.current = null;
+    if (!s || s.id !== e.pointerId) return;
+    const dx = e.clientX - s.x, dy = e.clientY - s.y;
+    // 48px of travel and clearly horizontal (2:1) — a sloppy day tap or a
+    // vertical scroll must never turn the week under the PT's finger. A real
+    // swipe also exceeds any chip's 44px width, so the browser's click lands on
+    // the strip (the common ancestor), not on a day — no accidental selection.
+    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 2) return;
+    // In RTL "forward in time" is a swipe to the right — mirror the delta.
+    const rtl = document.documentElement.dir === 'rtl';
+    changeWeek((dx < 0 ? 1 : -1) * (rtl ? -1 : 1));
+    haptic();
+  };
+
   // Generate week dates
   const weekDates = [];
   const start = new Date(selectedDate + 'T00:00:00');
@@ -260,8 +291,15 @@ export default function Schedule({ state, dispatch, lang, initialDate }) {
 
   return (
     <div>
-      {/* Week Strip */}
-      <div className="week-strip">
+      {/* Week Strip — keyed on its Monday so a week change remounts it and the
+          slide-in animation replays from the side the week came from. */}
+      <div
+        key={weekDates[0]}
+        className={`week-strip${weekSlide > 0 ? ' slide-next' : weekSlide < 0 ? ' slide-prev' : ''}`}
+        onPointerDown={onStripDown}
+        onPointerUp={onStripUp}
+        onPointerCancel={() => { swipeRef.current = null; }}
+      >
         {weekDates.map(d => {
           const dt = new Date(d + 'T00:00:00');
           const isToday = d === today();
@@ -283,17 +321,9 @@ export default function Schedule({ state, dispatch, lang, initialDate }) {
 
       {/* Week Nav */}
       <div className="week-nav">
-        <button className="btn-secondary" onClick={() => {
-          const d = new Date(selectedDate + 'T00:00:00');
-          d.setDate(d.getDate() - 7);
-          setSelectedDate(localDateStr(d));
-        }}>{t(lang, 'prev')}</button>
+        <button className="btn-secondary" onClick={() => changeWeek(-1)}>{t(lang, 'prev')}</button>
         <span className="week-nav-label">{formatDateLong(selectedDate, lang)}</span>
-        <button className="btn-secondary" onClick={() => {
-          const d = new Date(selectedDate + 'T00:00:00');
-          d.setDate(d.getDate() + 7);
-          setSelectedDate(localDateStr(d));
-        }}>{t(lang, 'next')}</button>
+        <button className="btn-secondary" onClick={() => changeWeek(1)}>{t(lang, 'next')}</button>
       </div>
 
       {/* Day Sessions — the head graduated from `.section-title` to the bar,

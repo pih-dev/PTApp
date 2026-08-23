@@ -4,6 +4,25 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.39 - swipe-to-change-week on the Schedule strip (2026-08-23)
+
+The design thread's agreed-in-principle gesture. Pointer events on `.week-strip`
+(down records, up measures the delta) with thresholds ≥48px horizontal AND ≥2×
+the vertical travel, so a day tap or a page scroll never turns the week. 🔴 No
+`setPointerCapture` - the strip has tappable children (the day chips), and
+capture would retarget `pointerup` away from them and kill the tap; this is the
+deliberate opposite of the Figure gesture. `touch-action: pan-y` on the strip
+hands horizontal pans to the handlers, keeps native vertical scroll, never a
+non-passive `preventDefault` (TRAPS). Trade-off accepted: touch horizontal
+scroll of the strip is gone; its content is 320px and fits every target phone.
+Nav buttons and swipe share one `changeWeek()`. The strip is keyed on its Monday
+so a change remounts it and a 0.18s slide-in replays from the correct side
+(`weekSlide` state); RTL mirrors the animation names, `prefers-reduced-motion`
+disables them. Detail: instructions-v2.39.md. (v2.38 = the figures session's
+Judging Bench round; see instructions-v2.38.md.)
+
+---
+
 ## v2.37 - Big Steps + six skins + the Display sheet (2026-08-23)
 
 **Typography.** Pierre's pick from the type lab. 🔴 The diagnosis was MONOTONE, not

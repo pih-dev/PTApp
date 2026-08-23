@@ -4,6 +4,16 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.39 - swipe the week (August 23, 2026)
+
+The week strip in Schedule now answers a swipe: flick it left to go a week
+forward, right to go back (mirrored in Arabic). The new week slides in from the
+side it came from. The ‹ › buttons still work exactly as before. Tapping a day
+is untouched - a swipe only fires on a clear horizontal flick, never on a tap
+or while scrolling the page. Full detail: instructions-v2.39.md.
+
+---
+
 ## v2.37 - bigger names, six themes, and dials you control (August 23, 2026)
 
 Names are now much bigger and heavier than the labels around them, which is what
