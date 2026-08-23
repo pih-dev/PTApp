@@ -38,6 +38,13 @@ not ask follow-up questions beyond the one §0 names.
   convention — the convention is older than this app.
 - **Elie's two rulings, do not re-propose:** the compact Home view is gone (detailed only), and the
   session-count edit **stays** in the booking screen.
+- 🟢 **v2.42 SHIPPED (2026-08-23): 21 SKINS — 7 families × Light/Optimal/Dark.** 🔴 **The optimal
+  is hand-designed; the flanks are GENERATED (`scripts/gen-skin-variants.mjs`) and auto-corrected
+  against `sanity-contrast` — never hand-edit a generated block, re-run the script.** Pebble →
+  **FLINT** (palette kept, stored picks migrate). Buttons 40px/7px; type strays snapped; logo
+  46px/26px — re-freezing the mark from the corrected library was BYTE-IDENTICAL (its poses were
+  not among the v2.38 fixes). The Dial (Type Lab artifact) has a Desktop shortcut. Pages `built`,
+  APK vc20 verified + delivered.
 - 🟢 **v2.41 SHIPPED (2026-08-23): Pierre's Pebble verdict applied** — rounded RECTANGLES (never
   pills) in ALL skins via the :root radii; separators are TRENCHES (`--trench`, derived from each
   skin's ground); thin marks got capsule ends. 🔴 **HIS PROCESS RULING, now a gate:** a finding on
