@@ -80,10 +80,32 @@ at each milestone. A restart could end the session at any moment.
   deadlifts, three DB presses — those upgrade tween → spin). **360° stamp count measured 24 → 29.**
   Judged on the grid before shipping (bead-chain artifact at HALF=62 caught and compacted to ±40).
   Cable/machine/landmine stay out — world-anchored gear is its own round; kettlebell until judged.
+- 🟢 **2026-08-23 (v2.38): THE JUDGING BENCH ROUND — Pierre judged 51 items on an interactive
+  artifact (https://claude.ai/code/artifact/d0aa2ebf-9aba-4a33-8d0c-09c3f7bb9815) and the results
+  shipped the same day.** ✅ **Fault muscles 44/44** (was 8/44 — OPEN item 1 CLOSED): 33 proposals
+  accepted, squat = quads/glutes (his chip edit was a mis-tap, restored to proposal), lunge +
+  reverse-plank applied after geometry fixes — **he re-judges those two in-app**. ✅ **Five more
+  patterns spin** (row, overhead-press, hip-bridge, lunge, knee-tuck): **75 movements turn, was
+  29**; vocabulary gained `ball` + racked-bar anchors (`shoulders`, `hips`). ✅ **His photo
+  reports fixed**: reverse-plank re-authored (was rendered BELOW the cell since authoring — ground
+  pin moved to the ankle), overhead press re-authored to mid-press (bar was 125 units above the
+  frame — same never-seen class), lunge leans 14° + bar racks on shoulders (was a ball at the
+  thigh), rollout ball clamped in-cell. ✅ Leg-curl re-judge: all six clean (item 8 CLOSED).
+  ✅ Bench rulings recorded: Ball Squat KEEPS its barbell, prone-ball pair LEFT as is, Offset
+  Press LEFT symmetric, weakest-pattern priority = **rotation first**.
+  🔴 **Sequences decided, not built** (his answers): each step keeps its correct/fault pair; step
+  strip navigation; pilot = the overhead press (he named no other movements). NEXT ROUND.
+  🔴 **Front-authored three (rotation, lateral-raise, anti-rotation): his "open the turn" ruling
+  STANDS but waits on the side+depth re-author** — skeleton3 reads poses as sagittal; their θ=0
+  would draw frontal angles in profile. They join the squat family in OPEN item 4.
+  🔴 **Frame audit (new, measured): 10 archetypes have joints past the cell edge** — worst:
+  rotation top 78, push-up/plank right 92, triceps-overhead 51, dip 43, bird-dog, knee-flexion,
+  Body-Saw. One framing round owed; the audit script is in this session's transcript and belongs
+  in `sanity-figures.mjs` as a WARN.
 - 🔴 **OPEN, in rough priority for the next figures session:**
-  1. **Fault muscles content: 36/44 archetypes still share the bank's wash** — judging work with
-     Pierre, not guessing. 2. **spinEquip vocabulary** — cable, machine, landmine, kettlebell
-     remain (world-anchored gear). 3. **More spin patterns** — each needs judging
+  1. **Sequences pilot — overhead press step strip** (decided above, biggest UI piece).
+     1b. **Framing round** — the 10 measured edge-clippers. 2. **spinEquip vocabulary** — cable,
+     machine, landmine, kettlebell remain (world-anchored gear). 3. **More spin patterns** — each needs judging
      through the turn before the gate opens (`SPINS` in `figures/poses.js`). 4. **Front-authored
      poses (squat family) carry baked `fs`** — re-author as side + depth before they can spin.
   5. **Sequences (brief item 6)** — his three open questions still unanswered. 6. **The 3D LOOK:
