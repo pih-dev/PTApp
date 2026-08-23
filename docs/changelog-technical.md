@@ -4,6 +4,21 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.43 - login live: VITE_SUPABASE_* wired, guest button (2026-08-23)
+
+The auth stack (auth.js, the TokenSetup sign-in half, General sign-out,
+identity-keyed storage) shipped dark in earlier releases; the build never
+carried VITE_SUPABASE_URL/ANON_KEY so none of it rendered. v2.43: .env created
+(git-ignored, anon key ONLY - bundle grepped: 0 service_role hits) making
+🔴 .env A BUILD INPUT - a machine without it builds a token-only app; values in
+_archive/PTApp/supabase-spotset.env. "Continue as guest" button = the DEMO path
+behind the same anyLocalDataExists() refusal, with an honest guestBlocked
+message. sanity-rls-matrix ran its LIVE pass clean before ship. Tester accounts
+are PROVISIONED (no self-signup, Apple 4.8) - operational, not code.
+Detail: instructions-v2.43.md.
+
+---
+
 ## v2.42 - 21 skins via gen-skin-variants, Flint, box/type sweep (2026-08-23)
 
 7 families × light/optimal/dark. The optimal IS the hand-designed block;

@@ -58,6 +58,20 @@ export default function TokenSetup({ onConnected, lang }) {
     }
   };
 
+  // v2.43, Pierre: "they can either log in as a guest or with their email."
+  // Guest IS the demo path with a button on it — same seed, same 🔴 refusal
+  // gate (only onto a device with nothing to lose), no typed magic word needed.
+  const handleGuest = () => {
+    if (anyLocalDataExists()) {
+      setError(t(lang, 'guestBlocked'));
+      return;
+    }
+    setLoading(true);
+    saveToken(DEMO_TOKEN);
+    saveData(buildDemoData());
+    boot();
+  };
+
   const handleConnect = async () => {
     const trimmed = token.trim();
     if (!trimmed) return;
@@ -172,6 +186,13 @@ export default function TokenSetup({ onConnected, lang }) {
               <div style={{ flex: 1, height: 1, background: 'var(--sep)' }} />
             </div>
           </>
+        )}
+
+        {showSignIn && (
+          <button onClick={handleGuest} disabled={loading} className="btn-ghost"
+            style={{ width: '100%', marginBottom: 16 }}>
+            {t(lang, 'continueAsGuest')}
+          </button>
         )}
 
         <input

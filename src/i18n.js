@@ -183,6 +183,8 @@ const T = {
     // 🔴 Deleted in the SAME commit that removes DEMO at Phase 4. Without it a
     //    tester facing a login form has no way to know DEMO exists.
     entryHint: 'Type DEMO to try the app, or sign in with your email and password.',
+    continueAsGuest: 'Continue as guest',
+    guestBlocked: 'This device already holds data — guest mode needs an empty device.',
     sessionExpired: 'Session expired — sign in again to sync',
     signOut: 'Sign out',
     signOutConfirm: 'Sign out? Your data stays on this device.',
@@ -570,6 +572,8 @@ const T = {
     // DEMO يبقى بالحروف اللاتينية: هو ما يُكتب حرفياً في الحقل (قاعدة النقل الحرفي
     // لا تنطبق هنا — هذه ليست كلمة تُترجم، بل قيمة تُدخل كما هي).
     entryHint: 'اكتب DEMO لتجربة التطبيق، أو سجّل الدخول ببريدك الإلكتروني وكلمة المرور.',
+    continueAsGuest: 'المتابعة كضيف',
+    guestBlocked: 'هذا الجهاز يحتوي على بيانات — وضع الضيف يحتاج إلى جهاز فارغ.',
     sessionExpired: 'انتهت الجلسة — سجّل الدخول مرة أخرى للمزامنة',
     signOut: 'تسجيل الخروج',
     signOutConfirm: 'تسجيل الخروج؟ ستبقى بياناتك على هذا الجهاز.',

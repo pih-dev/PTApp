@@ -4,6 +4,16 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.43 - the login goes live (August 23, 2026)
+
+The entry screen now offers a real sign-in: email and password for accounts
+Pierre creates, a "Continue as guest" button (the demo, without typing DEMO),
+and the token field stays for now. Everything behind it already existed and
+shipped dark - this release just gave the build its keys. Verified live
+against the real project before shipping. Full detail: instructions-v2.43.md.
+
+---
+
 ## v2.42 - 21 themes, Flint, tighter buttons, bigger logo (August 23, 2026)
 
 Every theme now comes in three strengths - Light, Optimal (the designed one),
