@@ -4,6 +4,15 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.43.1 - the logo cleans up (August 23, 2026)
+
+The dark spots Pierre spotted on the logo's hips, feet and fingers were a
+renderer bug (fixed by the figures session); this release re-freezes the
+logo and regenerates the launcher icons from the fixed renderer.
+Full detail: instructions-v2.43.1.md.
+
+---
+
 ## v2.43 - the login goes live (August 23, 2026)
 
 The entry screen now offers a real sign-in: email and password for accounts

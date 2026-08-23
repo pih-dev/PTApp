@@ -4,6 +4,15 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.43.1 - logo re-frozen post cap-sweep fix (2026-08-23)
+
+CCHealth fixed ribbon()'s ambiguous ~180-degree end-cap sweep (nonzero winding
+cancelled crossed caps to holes - the dark discs at hips/feet/fingers). Design
+thread's half: re-freeze pair-off-colour + pair-off-lines (bytes changed this
+time), make-android-icons, deploy. Detail: instructions-v2.43.1.md.
+
+---
+
 ## v2.43 - login live: VITE_SUPABASE_* wired, guest button (2026-08-23)
 
 The auth stack (auth.js, the TokenSetup sign-in half, General sign-out,
