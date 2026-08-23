@@ -44,8 +44,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.41
-**ROUNDED RECTANGLES EVERYWHERE + THE TRENCH + `sanity-contrast`.** Pierre's Pebble verdict: noticeable round corners, never pills, ALL skins — :root radii (7/10/12/14/20, `--r-tall` 12) ARE the geometry; pebble is a palette again. 🔴 **SEPARATORS ARE TRENCHES, NOT FLAT BARS** — `--trench` derives an engraved groove from the skin's own ground (`color-mix` with black/white as darken/lighten OPERATORS — the literal rule targets absolute colours); thin marks get capsule ends. 🔴 **A CONTRAST FINDING ON ONE SCREEN IS AUDITED IN ALL SEVEN SKINS — `sanity-contrast.mjs` is the gate** (his ruling): text pairings hard 4.5, decorative gate at "perceivable" because lume/enamel's quiet shafts are v2.34's ruled design. → `v2.41`.
+## Current Version: v2.42
+**21 SKINS: 7 FAMILIES × LIGHT/OPTIMAL/DARK.** 🔴 **THE OPTIMAL IS THE HAND-DESIGNED BLOCK; THE FLANKS ARE GENERATED — `scripts/gen-skin-variants.mjs` derives them from the optimals, auto-corrects against `sanity-contrast`, and REWRITES the marker section in styles.css. Never hand-edit a generated block; re-run the script when an optimal changes.** Ids `family` / `family-light` / `family-dark`; **pebble is renamed FLINT** (one-shot `loadSkin` migration). Picker = 7 family cards + a variant row, never a 21-grid. Buttons 40px/7px (tall boxes read as cells); type strays snapped (9→10, 12.5→13, 18→19); logo 46px box / 26px text — the mark re-frozen from the corrected library came out byte-identical. → `v2.42`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
@@ -71,12 +71,12 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 ---
 
 ## Version History
+- **v2.41** (08-23) — rounded rects global, trench separators (`--trench`, derived), `sanity-contrast` gate (a screenshot finding is audited in EVERY skin). → `v2.41`
 - **v2.40** (08-23) — Pebble + `--on-bar` (the Steel fix) + radius tokens. → `v2.40`
 - **v2.39** (08-23) — swipe-to-change-week: pointer events, 48px/2:1, NO setPointerCapture (tappable children), `pan-y`, Monday-keyed slide-in. → `v2.39`
 - **v2.37–v2.38** (08-23) — Big Steps type + six skins + the Display sheet (rank is size and weight, not case; `--tt`/`--ts` are USER settings on `<html>`; a tall box around small text reads as a cell); then the figures session's Judging Bench (44/44 fault muscles, 75 movements turn). → `v2.37`, `v2.38`
 - **v2.17–v2.25.3** (08-21/22) — THE DESIGN PASS, the movement library, the figures (all 340 from 44 patterns), then the refinement round. → `v2.17`…`v2.25.3`
-- **v2.35–v2.36** (08-22/23) — the legibility pass, then the figures session's new equipment. → `v2.35`…`v2.36`
-- **v2.34** (08-22) — NEEDLE: warm soot + one orange needle. → `v2.34`
+- **v2.34–v2.36** (08-22/23) — NEEDLE (warm soot + one orange needle); the legibility pass; the figures session's new equipment. → `v2.34`…`v2.36`
 - **v2.26–v2.33.1** (08-22) — logo, opening + sound, turns; the Library takes slot four; all modals portal to `<body>`; Home drops the compact view. → `v2.26`…`v2.33.1`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 

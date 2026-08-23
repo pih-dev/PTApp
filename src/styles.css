@@ -207,7 +207,8 @@ button:active { transform: scale(0.97); }
 .logo { display: flex; align-items: center; gap: 10px; width: 100%; }
 
 .logo-icon {
-  width: 40px; height: 40px; border-radius: var(--r-sm);
+  /* v2.42: Pierre — "make the logo larger". */
+  width: 46px; height: 46px; border-radius: var(--r-sm);
   background: var(--raised);
   border: 2px solid var(--bar);
   display: flex; align-items: center; justify-content: center;
@@ -216,7 +217,7 @@ button:active { transform: scale(0.97); }
 
 .logo-text {
   font-family: var(--font-display);
-  font-size: 24px; font-weight: 700; letter-spacing: 0.06em;
+  font-size: 26px; font-weight: 700; letter-spacing: 0.06em;
   text-transform: uppercase; color: var(--chalk);
 }
 
@@ -838,7 +839,9 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 }
 .client-name {
   font-family: var(--font-display);
-  font-weight: 700; font-size: 18px;
+  /* v2.42 type sweep: a client name and a session-row name are the same role —
+     both sit at 19px now instead of one at 18. */
+  font-weight: 700; font-size: 19px;
   letter-spacing: 0.05em; text-transform: uppercase;
   color: var(--chalk);
   margin-bottom: 2px;
@@ -1130,7 +1133,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 }
 .time-slot-name {
   font-family: var(--font-body);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 500;
   opacity: 0.8;
   max-width: 100%;
@@ -1483,7 +1486,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 }
 .srow-meta {
   display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
-  margin-top: 6px; font-size: 12.5px; color: var(--chalk-dim);
+  margin-top: 6px; font-size: 13px; color: var(--chalk-dim);
 }
 .srow-mark {
   font-family: var(--font-mono); font-size: 11px; font-weight: 500;
@@ -1494,7 +1497,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   font-size: 12px; color: var(--chalk-dim);
 }
 .srow-load { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-.srow-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.srow-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 .srow-chevron { color: var(--chalk-faint); flex: 0 0 auto; }
 
 /* v2.19: the Dashboard's badge treatment was PROMOTED to `.badge` itself —
@@ -1599,7 +1602,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
    neutral ramp — the accent stays load-and-urgency and the figure tokens stay
    inside the figures. Digits + degree mark, readable in both scripts. */
 .mv-badge {
-  font-size: 9px; font-weight: 700; color: var(--chalk-dim);
+  font-size: 10px; font-weight: 700; color: var(--chalk-dim);
   border: 1px solid var(--bar); border-radius: 7px; padding: 1px 5px;
   margin-inline-start: 6px; vertical-align: 2px; white-space: nowrap;
 }
@@ -1985,16 +1988,14 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   --warn: #583E04;
   --anatomy: #9C3A12;
 }
-/* ─── PEBBLE (v2.40) — the rounded one ──────────────────────────────────────
-   Pierre, 2026-08-23, on the Steel screenshot: "everything is rectangles with
-   corners — smooth them out, make them round, I like the pills idea. Create a
-   seventh theme where we can see it." So Pebble is the testbed for the pill
-   geometry: the same daylight blue-grey family as the screenshot he was
-   holding, with the contrast corrected (light --on-bar on the dark bar), and
-   the four radius tokens turned up to pill. A smooth river stone — the name is
-   the shape thesis. If the pills win, the radii graduate to :root and every
-   skin inherits them; if they lose, deleting this block deletes the experiment. */
-[data-skin="pebble"] {
+/* ─── FLINT (v2.42, né Pebble v2.40) ────────────────────────────────────────
+   Born as the pill-geometry testbed on the Steel screenshot round; the pills
+   retired in v2.41 (rounded rectangles won, globally) and Pierre kept the
+   PALETTE: "similar to steel, but I like it — it has more contrast." Renamed
+   because the pebble name was the shape thesis, and the shape is gone: flint
+   is the same blue-grey stone family, harder and sharper — which is exactly
+   what this skin is relative to steel. */
+[data-skin="flint"] {
   color: var(--chalk);
   --t1: rgba(23,29,41,0.94);
   --t2: rgba(23,29,41,0.76);
@@ -2024,8 +2025,366 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 
   /* v2.41: the pill overrides are GONE — Pierre's verdict on the trial was
      rounded rectangles for everyone, so the :root radii are the geometry and
-     pebble is a palette like any other skin. */
+     this is a palette like any other skin. */
 }
+
+/* ─── GENERATED SKIN VARIANTS (v2.42) — DO NOT HAND-EDIT ────────────────────
+   Every family ships light · optimal · dark (Pierre: "an optimal for a theme
+   might be neither light nor dark — don't constrain to pairs"). The optimal IS
+   the hand-designed block above; these flanks are derived by
+   scripts/gen-skin-variants.mjs, which auto-adjusts every value until
+   sanity-contrast passes, and REPLACES this section on each run. */
+[data-skin="midnight-light"] {
+  color: var(--chalk);
+  --t1: rgba(23,28,33,0.9);
+  --t2: rgba(23,28,33,0.7);
+  --t3: rgba(23,28,33,0.6);
+  --t4: rgba(23,28,33,0.5);
+  --t5: rgba(23,28,33,0.4);
+  --sep: rgba(23,28,33,0.06);
+  --card-bg: rgba(255,255,255,0.5);
+  --ground: #D1D8E0;
+  --ground-lit: #E7EAEE;
+  --raised: rgba(255,255,255,0.6);
+  --chalk: #171C21;
+  --chalk-dim: #3F4D5A;
+  --chalk-faint: #909EAC;
+  --bar: #3E506A;
+  --on-bar: #FFFFFF;
+  --accent: #106889;
+  --ok: #246548;
+  --warn: #775512;
+  --anatomy: #902E09;
+  --muscle: #8E0B2C;
+  --muscle-2: #462D6C;
+  --equipment: #093390;
+}
+[data-skin="midnight-dark"] {
+  color: var(--chalk);
+  --t1: rgba(255,255,255,0.9);
+  --t2: rgba(255,255,255,0.7);
+  --t3: rgba(255,255,255,0.6);
+  --t4: rgba(255,255,255,0.5);
+  --t5: rgba(255,255,255,0.4);
+  --sep: rgba(255,255,255,0.06);
+  --card-bg: rgba(255,255,255,0.04);
+  --ground: #050A12;
+  --ground-lit: #081529;
+  --raised: #0B131E;
+  --chalk: #E9EEF3;
+  --chalk-dim: #9DAABB;
+  --chalk-faint: #6E7D95;
+  --bar: #4A6791;
+  --on-bar: #FFFFFF;
+  --accent: #35B7E8;
+  --ok: #4FC08D;
+  --warn: #E0A32B;
+  --anatomy: #F2622C;
+  --muscle: #F03A68;
+  --muscle-2: #9A7BC8;
+  --equipment: #2E6BF2;
+}
+[data-skin="rally-light"] {
+  color: var(--chalk);
+  --t1: rgba(11,14,45,0.94);
+  --t2: rgba(11,14,45,0.76);
+  --t3: rgba(11,14,45,0.66);
+  --t4: rgba(11,14,45,0.54);
+  --t5: rgba(11,14,45,0.44);
+  --sep: rgba(11,14,45,0.09);
+  --card-bg: rgba(255,255,255,0.5);
+  --ground: #D3D4DF;
+  --ground-lit: #E8E9ED;
+  --raised: rgba(255,255,255,0.6);
+  --chalk: #0B0E2D;
+  --chalk-dim: #1F267A;
+  --chalk-faint: #6E75CF;
+  --bar: #3B426D;
+  --on-bar: #FFFFFF;
+  --accent: #990037;
+  --ok: #17663E;
+  --warn: #715100;
+  --anatomy: #992900;
+  --muscle: #107D89;
+  --muscle-2: #197580;
+  --equipment: #233576;
+}
+[data-skin="rally-dark"] {
+  color: var(--chalk);
+  --t1: rgba(242,243,255,0.94);
+  --t2: rgba(242,243,255,0.76);
+  --t3: rgba(242,243,255,0.66);
+  --t4: rgba(242,243,255,0.54);
+  --t5: rgba(242,243,255,0.44);
+  --sep: rgba(242,243,255,0.09);
+  --card-bg: rgba(242,243,255,0.06);
+  --ground: #0A0C1A;
+  --ground-lit: #12152C;
+  --raised: #161A34;
+  --chalk: #F2F3FF;
+  --chalk-dim: #AEB6E4;
+  --chalk-faint: #6670AE;
+  --bar: #4A55A0;
+  --on-bar: #FFFFFF;
+  --accent: #FF4D8D;
+  --ok: #3DD68C;
+  --warn: #FFC53D;
+  --anatomy: #FF6B35;
+  --muscle: #35D6E8;
+  --muscle-2: #1E8C99;
+  --equipment: #B0BCE8;
+}
+[data-skin="chalkline-light"] {
+  color: var(--chalk);
+  --t1: rgba(26,26,38,0.94);
+  --t2: rgba(26,26,38,0.76);
+  --t3: rgba(26,26,38,0.66);
+  --t4: rgba(26,26,38,0.56);
+  --t5: rgba(26,26,38,0.46);
+  --sep: rgba(26,26,38,0.11);
+  --card-bg: rgba(255,255,255,0.5);
+  --ground: #F7F6F4;
+  --ground-lit: #FBFBF9;
+  --raised: #F1F0ED;
+  --chalk: #1A1A26;
+  --chalk-dim: #55536A;
+  --chalk-faint: #A5A2B0;
+  --bar: #BFBCC9;
+  --on-bar: #14161C;
+  --accent: #C2185B;
+  --ok: #2A7348;
+  --warn: #8A6100;
+  --anatomy: #C1400F;
+  --muscle: #0E6B75;
+  --muscle-2: #47959D;
+  --equipment: #5B6690;
+}
+[data-skin="chalkline-dark"] {
+  color: var(--chalk);
+  --t1: rgba(227,227,232,0.94);
+  --t2: rgba(227,227,232,0.76);
+  --t3: rgba(227,227,232,0.66);
+  --t4: rgba(227,227,232,0.56);
+  --t5: rgba(227,227,232,0.46);
+  --sep: rgba(227,227,232,0.11);
+  --card-bg: rgba(227,227,232,0.5);
+  --ground: #1A1814;
+  --ground-lit: #2B2821;
+  --raised: #37332A;
+  --chalk: #E3E3E8;
+  --chalk-dim: #AAAABB;
+  --chalk-faint: #616175;
+  --bar: #6D697D;
+  --on-bar: #FFFFFF;
+  --accent: #E63379;
+  --ok: #57C283;
+  --warn: #FFBB1A;
+  --anatomy: #EE602A;
+  --muscle: #32D5E6;
+  --muscle-2: #61AFB8;
+  --equipment: #727DA6;
+}
+[data-skin="lume-light"] {
+  color: var(--chalk);
+  --t1: rgba(36,31,20,0.92);
+  --t2: rgba(36,31,20,0.74);
+  --t3: rgba(36,31,20,0.64);
+  --t4: rgba(36,31,20,0.54);
+  --t5: rgba(36,31,20,0.44);
+  --sep: rgba(36,31,20,0.08);
+  --card-bg: rgba(255,255,255,0.5);
+  --ground: #DBD9D7;
+  --ground-lit: #ECEBEA;
+  --raised: rgba(255,255,255,0.6);
+  --chalk: #241F14;
+  --chalk-dim: #625537;
+  --chalk-faint: #AC9F79;
+  --bar: #605949;
+  --on-bar: #FFFFFF;
+  --accent: #844115;
+  --ok: #3A6534;
+  --warn: #705A11;
+  --anatomy: #7B1E23;
+  --muscle: #2C6D64;
+  --muscle-2: #2B6E65;
+  --equipment: #3F4A5A;
+}
+[data-skin="lume-dark"] {
+  color: var(--chalk);
+  --t1: rgba(237,228,206,0.92);
+  --t2: rgba(237,228,206,0.74);
+  --t3: rgba(237,228,206,0.64);
+  --t4: rgba(237,228,206,0.54);
+  --t5: rgba(237,228,206,0.44);
+  --sep: rgba(237,228,206,0.08);
+  --card-bg: rgba(237,228,206,0.05);
+  --ground: #0B0B09;
+  --ground-lit: #12110D;
+  --raised: #171511;
+  --chalk: #EDE4CE;
+  --chalk-dim: #B4AB93;
+  --chalk-faint: #5C5647;
+  --bar: #3A3529;
+  --on-bar: #FFFFFF;
+  --accent: #E07B39;
+  --ok: #74B36A;
+  --warn: #E2B93B;
+  --anatomy: #D2434B;
+  --muscle: #4DB8A8;
+  --muscle-2: #2F7A70;
+  --equipment: #8493A9;
+}
+[data-skin="enamel-light"] {
+  color: var(--chalk);
+  --t1: rgba(38,35,29,0.94);
+  --t2: rgba(38,35,29,0.76);
+  --t3: rgba(38,35,29,0.66);
+  --t4: rgba(38,35,29,0.56);
+  --t5: rgba(38,35,29,0.46);
+  --sep: rgba(38,35,29,0.11);
+  --card-bg: rgba(255,255,255,0.46);
+  --ground: #F5F4F2;
+  --ground-lit: #F9F8F6;
+  --raised: #EFEDEA;
+  --chalk: #26231D;
+  --chalk-dim: #5B564B;
+  --chalk-faint: #A9A498;
+  --bar: #C6C2B8;
+  --on-bar: #14161C;
+  --accent: #BD5E1E;
+  --ok: #35682C;
+  --warn: #7A5B00;
+  --anatomy: #B02E37;
+  --muscle: #176158;
+  --muscle-2: #45877E;
+  --equipment: #5A6B85;
+}
+[data-skin="enamel-dark"] {
+  color: var(--chalk);
+  --t1: rgba(232,230,227,0.94);
+  --t2: rgba(232,230,227,0.76);
+  --t3: rgba(232,230,227,0.66);
+  --t4: rgba(232,230,227,0.56);
+  --t5: rgba(232,230,227,0.46);
+  --sep: rgba(232,230,227,0.11);
+  --card-bg: rgba(232,230,227,0.46);
+  --ground: #191815;
+  --ground-lit: #2A2822;
+  --raised: #36332B;
+  --chalk: #E8E6E3;
+  --chalk-dim: #B9B5AC;
+  --chalk-faint: #726D64;
+  --bar: #797366;
+  --on-bar: #FFFFFF;
+  --accent: #E07C39;
+  --ok: #6CBB5E;
+  --warn: #FFC51A;
+  --anatomy: #CF4952;
+  --muscle: #45D3C2;
+  --muscle-2: #67B1A7;
+  --equipment: #7688A2;
+}
+[data-skin="steel-light"] {
+  color: var(--chalk);
+  --t1: rgba(20,28,51,0.94);
+  --t2: rgba(20,28,51,0.74);
+  --t3: rgba(20,28,51,0.64);
+  --t4: rgba(20,28,51,0.54);
+  --t5: rgba(20,28,51,0.46);
+  --sep: rgba(20,28,51,0.10);
+  --card-bg: rgba(255,255,255,0.42);
+  --ground: #D8E0EB;
+  --ground-lit: #EBF0F6;
+  --raised: rgba(255,255,255,0.55);
+  --chalk: #141C33;
+  --chalk-dim: #3A4767;
+  --chalk-faint: #46546F;
+  --bar: #475A80;
+  --on-bar: #FFFFFF;
+  --accent: #06465F;
+  --ok: #0E5238;
+  --warn: #583E04;
+  --anatomy: #9C3A12;
+  --muscle: #C41A4F;
+  --muscle-2: #5A4C9E;
+  --equipment: #2456C8;
+}
+[data-skin="steel-dark"] {
+  color: var(--chalk);
+  --t1: rgba(223,226,236,0.94);
+  --t2: rgba(223,226,236,0.74);
+  --t3: rgba(223,226,236,0.64);
+  --t4: rgba(223,226,236,0.54);
+  --t5: rgba(223,226,236,0.46);
+  --sep: rgba(223,226,236,0.1);
+  --card-bg: rgba(223,226,236,0.42);
+  --ground: #11161D;
+  --ground-lit: #1D2530;
+  --raised: #242E3D;
+  --chalk: #DFE2EC;
+  --chalk-dim: #9EA9C7;
+  --chalk-faint: #546082;
+  --bar: #586A8D;
+  --on-bar: #FFFFFF;
+  --accent: #27B9F1;
+  --ok: #3BDE9F;
+  --warn: #F5B423;
+  --anatomy: #E76631;
+  --muscle: #E4346B;
+  --muscle-2: #7264B4;
+  --equipment: #3D6DDC;
+}
+[data-skin="flint-light"] {
+  color: var(--chalk);
+  --t1: rgba(23,29,41,0.94);
+  --t2: rgba(23,29,41,0.76);
+  --t3: rgba(23,29,41,0.66);
+  --t4: rgba(23,29,41,0.56);
+  --t5: rgba(23,29,41,0.46);
+  --sep: rgba(23,29,41,0.10);
+  --card-bg: rgba(255,255,255,0.5);
+  --ground: #E8ECF1;
+  --ground-lit: #F5F7FA;
+  --raised: rgba(255,255,255,0.62);
+  --chalk: #171D29;
+  --chalk-dim: #414E63;
+  --chalk-faint: #8A97AA;
+  --bar: #3D5170;
+  --on-bar: #FFFFFF;
+  --accent: #0A5A74;
+  --ok: #14603F;
+  --warn: #6E5303;
+  --anatomy: #A63A10;
+  --muscle: #B01847;
+  --muscle-2: #55489B;
+  --equipment: #2050B8;
+}
+[data-skin="flint-dark"] {
+  color: var(--chalk);
+  --t1: rgba(225,228,234,0.94);
+  --t2: rgba(225,228,234,0.76);
+  --t3: rgba(225,228,234,0.66);
+  --t4: rgba(225,228,234,0.56);
+  --t5: rgba(225,228,234,0.46);
+  --sep: rgba(225,228,234,0.1);
+  --card-bg: rgba(225,228,234,0.5);
+  --ground: #13171B;
+  --ground-lit: #1F262E;
+  --raised: #27303A;
+  --chalk: #E1E4EA;
+  --chalk-dim: #A6AEBF;
+  --chalk-faint: #5C667A;
+  --bar: #586D8E;
+  --on-bar: #FFFFFF;
+  --accent: #2CBDED;
+  --ok: #41D796;
+  --warn: #F9C220;
+  --anatomy: #EB632E;
+  --muscle: #E3356B;
+  --muscle-2: #6F62B6;
+  --equipment: #3C6EDD;
+}
+/* ─── END GENERATED SKIN VARIANTS ─── */
 
 /* Tall boxes cannot be pills — a 999px radius eats a text well's first line,
    curves into the day chips' labels (worst in Arabic, where the short weekday
@@ -2286,7 +2645,10 @@ textarea.input, .focus-notes, .week-day, .notice, .fig-view { border-radius: var
 }
 .focus-tag, .filter-btn { min-height: 38px; display: inline-flex; align-items: center; }
 .btn-primary, .btn-secondary, .btn-sm, .btn-ghost, .btn-confirm, .btn-whatsapp {
-  padding: 9px 13px; line-height: 1.15; min-height: 42px;
+  /* v2.42, Pierre on a cropped screenshot: the boxes were too tall for their
+     text — dead space above and below the label. 40px keeps a real thumb
+     target while giving the rows back their breathing room. */
+  padding: 7px 13px; line-height: 1.15; min-height: 40px;
   display: inline-flex; align-items: center; justify-content: center;
 }
 .btn-whatsapp-lg { padding: 13px 22px; line-height: 1.15; min-height: 50px; }
@@ -2344,8 +2706,8 @@ textarea.input, .focus-notes, .week-day, .notice, .fig-view { border-radius: var
 [data-swatch="steel"]     .skin-swatch::after { background: #06465F; }
 [data-swatch="chalkline"] .skin-swatch { background: #EDEBE6; }
 [data-swatch="chalkline"] .skin-swatch::after { background: #C2185B; }
-[data-swatch="pebble"]    .skin-swatch { background: #CBD4DF; }
-[data-swatch="pebble"]    .skin-swatch::after { background: #3D5170; }
+[data-swatch="flint"]     .skin-swatch { background: #CBD4DF; }
+[data-swatch="flint"]     .skin-swatch::after { background: #3D5170; }
 
 .size-row { display: flex; align-items: center; gap: 12px; }
 .size-step {

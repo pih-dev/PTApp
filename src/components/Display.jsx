@@ -1,6 +1,6 @@
 import React from 'react';
 import Modal from './Modal';
-import { SKINS } from '../skins';
+import { FAMILIES, VARIANTS, skinId, splitSkin } from '../skins';
 import { haptic } from '../utils';
 import { t } from '../i18n';
 
@@ -68,19 +68,38 @@ export default function Display({ lang, skin, setSkin, caps, setCaps, scale, set
   return (
     <Modal title={t(lang, 'display')} onClose={onClose}>
       <div className="subbar">{t(lang, 'theme')}</div>
+      {/* v2.42: 21 skins = 7 families × 3 variants, but the picker stays two
+          small controls — a 21-card grid would be unusable on a phone. Picking
+          a family keeps your variant; the variant row keeps your family. */}
       <div className="skin-grid">
-        {SKINS.map(sk => (
-          <button key={sk.id}
-            className={`skin-card${skin === sk.id ? ' selected' : ''}`}
-            data-swatch={sk.id}
-            onClick={() => { haptic(); setSkin(sk.id); }}>
-            {/* The swatch is the only place a colour that belongs to ANOTHER
-                skin may be painted — a picker has to show what it is not
-                currently wearing. The values live in styles.css, never here. */}
-            <span className="skin-swatch" />
-            <span className="skin-name">{t(lang, sk.labelKey)}</span>
-          </button>
-        ))}
+        {FAMILIES.map(f => {
+          const { family, variant } = splitSkin(skin);
+          return (
+            <button key={f.id}
+              className={`skin-card${family === f.id ? ' selected' : ''}`}
+              data-swatch={f.id}
+              onClick={() => { haptic(); setSkin(skinId(f.id, variant)); }}>
+              {/* The swatch is the only place a colour that belongs to ANOTHER
+                  skin may be painted — a picker has to show what it is not
+                  currently wearing. The values live in styles.css, never here. */}
+              <span className="skin-swatch" />
+              <span className="skin-name">{t(lang, f.labelKey)}</span>
+            </button>
+          );
+        })}
+      </div>
+      {/* Fill means "press me": the active variant is the filled one. */}
+      <div className="flex-row" style={{ marginTop: 10 }}>
+        {VARIANTS.map(v => {
+          const { family, variant } = splitSkin(skin);
+          return (
+            <button key={v.id} style={{ flex: 1 }}
+              className={variant === v.id ? 'btn-primary' : 'btn-ghost'}
+              onClick={() => { haptic(); setSkin(skinId(family, v.id)); }}>
+              {t(lang, v.labelKey)}
+            </button>
+          );
+        })}
       </div>
 
       <div className="subbar" style={{ marginTop: 22 }}>{t(lang, 'textSize')}</div>

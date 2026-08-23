@@ -116,7 +116,10 @@ for (const name of ['App.jsx', 'components/General.jsx', 'components/Dashboard.j
 // ── structural: the skin list has one home ──────────────────────────────────
 console.log('\n[single source] the skin list lives in exactly one place');
 const skins = read('skins.js');
-assert(/export const SKINS = \[/.test(skins), 'SKINS is declared in src/skins.js');
+// v2.42: SKINS is derived (families × variants) but still declared — and only
+// declared — in src/skins.js.
+assert(/export const FAMILIES = \[/.test(skins) && /export const SKINS = /.test(skins),
+  'FAMILIES and SKINS are declared in src/skins.js');
 for (const file of walk(SRC)) {
   const name = file.pathname.split('/').slice(-1)[0];
   if (name === 'skins.js') continue;

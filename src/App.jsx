@@ -328,7 +328,8 @@ export default function App() {
             aria-label={t(lang, 'replay')}
           >
             <div className="logo-icon">
-              <SpotSetMark size={26} />
+              {/* v2.42: box 40→46, mark up with it. */}
+              <SpotSetMark size={31} />
             </div>
           </button>
           <button
@@ -423,7 +424,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.41</div>
+          <div><strong>Version:</strong> v2.42</div>
           <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>

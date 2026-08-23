@@ -4,6 +4,19 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.42 - 21 themes, Flint, tighter buttons, bigger logo (August 23, 2026)
+
+Every theme now comes in three strengths - Light, Optimal (the designed one),
+and Dark - picked with a new row under the theme cards. Pebble is renamed
+Flint and becomes the seventh family, so 21 looks in total, every one
+machine-checked for readable text. Buttons hug their text instead of
+floating in tall boxes, stray font sizes were pulled back onto the scale,
+and the logo grew. The logo was also regenerated from the corrected figure
+library - it came out identical, which means it was already right.
+Full detail: instructions-v2.42.md.
+
+---
+
 ## v2.41 - round corners for everyone, and lines become trenches (August 23, 2026)
 
 Pierre's verdict on Pebble: not pills - rectangles with clearly rounded

@@ -34,17 +34,35 @@
 // away from anyone who already picked one, and reverting is choosing again.
 // v2.37: six, in three pairs — soot, blue, and the vibrant one. Dark first in
 // each pair, because the gym is the dark case.
-export const SKINS = [
+// v2.42, Pierre's structure: every FAMILY ships three variants — light,
+// optimal, dark — where the OPTIMAL is the hand-designed skin ("an optimal for
+// a specific theme might be neither light nor dark; don't constrain yourself
+// to pairs") and the flanks are derived by scripts/gen-skin-variants.mjs.
+// A stored skin id is `family` (optimal) or `family-light` / `family-dark`.
+export const FAMILIES = [
   { id: 'lume', labelKey: 'skinLume' },
   { id: 'midnight', labelKey: 'skinMidnight' },
   { id: 'rally', labelKey: 'skinRally' },
   { id: 'enamel', labelKey: 'skinEnamel' },
   { id: 'steel', labelKey: 'skinSteel' },
   { id: 'chalkline', labelKey: 'skinChalkline' },
-  // v2.40: the rounded testbed (see the PEBBLE block in styles.css). Last in
-  // the picker — it is an experiment on trial, not a member of a pair yet.
-  { id: 'pebble', labelKey: 'skinPebble' },
+  // v2.42: né pebble — the pill testbed of v2.40 whose palette Pierre kept
+  // ("similar to steel, but more contrast") after v2.41 retired the pills.
+  { id: 'flint', labelKey: 'skinFlint' },
 ];
+export const VARIANTS = [
+  { id: 'light', labelKey: 'variantLight' },
+  { id: 'optimal', labelKey: 'variantOptimal' },
+  { id: 'dark', labelKey: 'variantDark' },
+];
+export const skinId = (family, variant) =>
+  variant === 'optimal' ? family : `${family}-${variant}`;
+export const splitSkin = (id) => {
+  const m = /^(.+)-(light|dark)$/.exec(id || '');
+  return m ? { family: m[1], variant: m[2] } : { family: id, variant: 'optimal' };
+};
+export const SKINS = FAMILIES.flatMap(f =>
+  VARIANTS.map(v => ({ id: skinId(f.id, v.id), labelKey: f.labelKey })));
 
 // v2.34: new installs open on Lume. 🔴 An existing phone keeps whatever it saved
 // — loadSkin() returns the stored value — so Pierre and Elie must pick it once
@@ -73,6 +91,12 @@ export const loadSkin = () => {
   try {
     const saved = localStorage.getItem(SKIN_KEY);
     if (isSkin(saved)) return saved;
+    // v2.42: pebble was renamed flint when the pills retired and the palette
+    // stayed. A phone that stored the old id keeps its look under the new name.
+    if (saved === 'pebble') {
+      localStorage.setItem(SKIN_KEY, 'flint');
+      return 'flint';
+    }
 
     const legacy = localStorage.getItem(LEGACY_THEME_KEY);
     if (legacy !== null) {

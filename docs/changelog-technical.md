@@ -4,6 +4,23 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.42 - 21 skins via gen-skin-variants, Flint, box/type sweep (2026-08-23)
+
+7 families × light/optimal/dark. The optimal IS the hand-designed block;
+scripts/gen-skin-variants.mjs derives the 14 flanks (same-polarity = ground
+ramp pushed out; cross-polarity = hue-preserving inversion) and auto-corrects
+every value until the sanity-contrast pairings pass, writing static CSS between
+the GENERATED SKIN VARIANTS markers - never hand-edit them, re-run the script.
+Ids: family / family-light / family-dark, so stored picks survive; pebble→flint
+rename with a one-shot loadSkin migration. Display: 7 family cards + variant
+segmented row (a 21-card grid was rejected). Buttons 42→40px min-height,
+padding 9→7px; srow-actions gap 10/margin 14. Type sweep: 9→10, 12.5→13,
+client-name 18→19. Logo: box 46px, mark 31, text 26; the pair mark re-frozen
+from the corrected library came out BYTE-IDENTICAL (its poses were not among
+the v2.38 corrections). Detail: instructions-v2.42.md.
+
+---
+
 ## v2.41 - rounded-rect radii global, the trench, sanity-contrast (2026-08-23)
 
 Pebble verdict: rounded RECTANGLES for all skins (:root radii 7/10/12/14/20,
