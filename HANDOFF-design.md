@@ -38,6 +38,13 @@ not ask follow-up questions beyond the one §0 names.
   convention — the convention is older than this app.
 - **Elie's two rulings, do not re-propose:** the compact Home view is gone (detailed only), and the
   session-count edit **stays** in the booking screen.
+- 🟢 **v2.40 SHIPPED (2026-08-23): PEBBLE (the rounded skin) + `--on-bar` + radius tokens** —
+  Pierre's "smooth out the boxiness / pills" ask, built as the seventh skin so he can compare.
+  🔴 **His geometry ruling amends "only hue changes": radius may vary per skin ONLY via the six
+  `--r-*` tokens** (`--r-tall` exists because pills ate tall boxes — i18n review). 🔴 **Bar-filled
+  surfaces paint text from `--on-bar`, never `--chalk`** — the Steel dark-on-dark screenshot fix,
+  applied in all seven skins and gated. APK vc18 verified and delivered. **OPEN: Pierre judges
+  Pebble on his phone — win ⇒ pill radii graduate to :root, lose ⇒ delete the block.**
 - 🟢 **v2.39 SHIPPED (2026-08-23): swipe-to-change-week** — pointer events on `.week-strip`,
   48px/2:1 thresholds, NO setPointerCapture (tappable children), `touch-action: pan-y`,
   direction-aware slide keyed on Monday, RTL-mirrored, reduced-motion off, <360px chip-fit guard
