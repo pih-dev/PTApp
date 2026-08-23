@@ -23,9 +23,13 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 
 ## 0. Status — read this out
 
-- 🚀 **vc21 (v2.43) SUBMITTED TO PLAY REVIEW 2026-08-23 ~09:00** — Closed testing – Alpha, full
-  rollout on approval; notes lead with the login + 21 themes. Sent via Publishing overview after
-  Google's quick checks; **probe the console (u/1, account "Calnorm") before quoting its state.**
+- ✅ **vc21 (v2.43) CLEARED REVIEW AND IS LIVE TO TESTERS** — console-verified 2026-08-23 ~09:45:
+  track summary "Latest release: 21 (2.43)", *Available to selected testers · Released on Aug 23
+  8:39 AM*, Publishing overview clean with no changes in review. **Review took ~40 minutes**, not
+  the 7 days Google states — but that is a sample of two same-day updates, not a rule.
+  vc23 (v2.43.2, the clean logo + the Spot) is built and archived, **NOT uploaded** — Pierre's
+  Play permission was per-release; ask before sending it. **Probe the console (u/1, account
+  "Calnorm") before quoting any of this back.**
   The vc20 (v2.42) draft was deliberately discarded UNSENT — v2.43 superseded it before submission
   (Pierre held the submit to land the login first). AAB+APK archived:
   `_archive/PTApp/releases/2026-08-23-spotset-v2.43-vc21.{aab,apk}`.
