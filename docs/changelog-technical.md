@@ -4,6 +4,16 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.43.2 - the Spot in the mark, pm-spot animation (2026-08-23)
+
+pair-off-colour gains spot:true - a var(--accent) circle at (46%,10%),
+r=10.5%H, mark only (backdrop stays figures-only). pmSpot keyframes: wander
+in, settle at 0.7-1.8s, before the pm-line draw; reduced-motion opts out.
+Launcher icons carry it. S-arrangement rounds parked in _archive/branding.
+Detail: instructions-v2.43.2.md.
+
+---
+
 ## v2.43.1 - logo re-frozen post cap-sweep fix (2026-08-23)
 
 CCHealth fixed ribbon()'s ambiguous ~180-degree end-cap sweep (nonzero winding

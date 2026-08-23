@@ -4,6 +4,16 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.43.2 - the Spot joins the logo (August 23, 2026)
+
+From Pierre's own icon mock: a dot now sits above the pair, between the
+heads - the Spot watching the Set. It takes each theme's accent colour,
+and on launch it wanders in and settles at its vantage before the posture
+lines draw. The S-arrangement experiments are archived, not deleted.
+Full detail: instructions-v2.43.2.md.
+
+---
+
 ## v2.43.1 - the logo cleans up (August 23, 2026)
 
 The dark spots Pierre spotted on the logo's hips, feet and fingers were a

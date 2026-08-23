@@ -139,7 +139,7 @@ function pairLayer(pose, { role, treatment }) {
 //   off  — his asked-for play: both slightly smaller, left nudged down,
 //          right nudged up, pulled together so the hips overlap.
 //   lock — the same, tighter, for the interlocked read.
-function pairSvg(treatment, layout) {
+function pairSvg(treatment, layout, spot = false) {
   const fig = figureFor('Deadlift');
   const okL = pairLayer(fig.correct, { role: 'correct', treatment });
   const faR = pairLayer(fig.fault, { role: 'fault', treatment });
@@ -153,22 +153,31 @@ function pairSvg(treatment, layout) {
   const L = { sym: { s: 1, lx: 0, ly: 0, rx: w * 1.04, ry: 0, W: w * 2.04, H: h },
               off: { s: 0.94, lx: 0, ly: h * 0.09, rx: w * 0.80, ry: 0, W: w * 0.80 + w * 0.94, H: h * 0.94 + h * 0.09 },
               lock: { s: 0.94, lx: 0, ly: h * 0.09, rx: w * 0.64, ry: 0, W: w * 0.64 + w * 0.94, H: h * 0.94 + h * 0.09 } }[layout];
+  // THE SPOT (Pierre, 2026-08-23, from his own icon mock): a dot above the
+  // pair, between the heads — "the circle is the SPOT, the S/pair is the SET".
+  // var(--accent) so it rides every skin (his call: theme-handy over fixed
+  // red). pm-spot is the launch-animation hook, sibling of pm-line/pm-ring.
+  // Only the MARK carries it — the faint backdrop stays figures-only.
+  const spotEl = spot
+    ? `<circle class="pm-spot" cx="${rr(L.W * 0.46)}" cy="${rr(L.H * 0.10)}" r="${rr(L.H * 0.105)}" fill="var(--accent)"/>`
+    : '';
   return `<svg viewBox="0 0 ${rr(L.W)} ${rr(L.H)}" xmlns="http://www.w3.org/2000/svg">`
     + half(mirror(okL), L.lx, L.ly, L.s, 'pm-half pm-ok')
     + half(faR, L.rx, L.ry, L.s, 'pm-half pm-fault')
+    + spotEl
     + `</svg>`;
 }
 
 const PAIR_STUDIES = [
   { id: 'pair-sym-colour', layout: 'sym', treatment: 'colour', note: 'his compile, cleaned: symmetric, full colour' },
-  { id: 'pair-off-colour', layout: 'off', treatment: 'colour', note: 'left down, right up, pulled together — coloured' },
+  { id: 'pair-off-colour', layout: 'off', treatment: 'colour', spot: true, note: 'left down, right up, pulled together — coloured, with THE SPOT (v2.43.2)' },
   { id: 'pair-sym-lines', layout: 'sym', treatment: 'lines', note: 'symmetric, mono body — the posture lines carry the whole difference' },
   { id: 'pair-off-lines', layout: 'off', treatment: 'lines', note: 'the "> <" read, mono + lines' },
   { id: 'pair-lock-lines', layout: 'lock', treatment: 'lines', note: 'tighter interlock, mono + lines' },
 ];
 const pairs = {};
 for (const p of PAIR_STUDIES) {
-  pairs[p.id] = { ...p, movement: 'Deadlift pair, facing', svg: pairSvg(p.treatment, p.layout) };
+  pairs[p.id] = { ...p, movement: 'Deadlift pair, facing', svg: pairSvg(p.treatment, p.layout, p.spot) };
   marks[p.id] = pairs[p.id]; // reachable by --freeze once Pierre picks
 }
 
