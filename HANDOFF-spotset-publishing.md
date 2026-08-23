@@ -32,9 +32,12 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 - ✅ **vc9 (v2.32) CLEARED REVIEW AND PUBLISHED Aug 22** (console notification, seen 08-23:
   "App update published"). Review turnaround for updates has been same-evening in practice;
   Google's stated window is up to 7 days.
-- 🔴 **WAITING ON PIERRE: provision tester emails in Supabase console** (Authentication → Users →
-  Add user, email+password) — v2.43's email login answers "wrong credentials" for any email
-  without a row. No self-signup by rule (Apple 4.8). Guest button covers everyone else.
+- 🔴 **TESTER EMAILS STILL NEED PROVISIONING in Supabase console** (Authentication → Users → Add
+  user, email+password) — v2.43's email login answers "wrong credentials" for any email without a
+  row. No self-signup by rule (Apple 4.8). Guest button covers everyone else.
+  ✅ Pierre's own account (`pierreishere@gmail.com`) provisioned + confirmed 08-23.
+  🔴 **`pierreghorra@gmail.com` (UID ea77bf6b…) IS THE MIRROR'S TENANT — app_users "Elie (mirror
+  target)", role pt. NEVER delete or repurpose it; the mirrored live data hangs off it.**
 - 📝 The account name in the console reads **Calnorm** (was Illume in memory — the console wins).
 - 🟢 **THE 12 OPT-INS ARE DONE AND THE 14-DAY CLOCK IS RUNNING** (observed live in the console
   2026-08-22 ~14:45: production checklist shows ✅ closed release · ✅ 12 testers opted in ·
