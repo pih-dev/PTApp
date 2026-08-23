@@ -75,7 +75,7 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 - **v2.41** (08-23) — rounded rects global, trench separators (`--trench`, derived), `sanity-contrast` gate (a screenshot finding is audited in EVERY skin). → `v2.41`
 - **v2.40** (08-23) — Pebble + `--on-bar` (the Steel fix) + radius tokens. → `v2.40`
 - **v2.39** (08-23) — swipe-to-change-week: pointer events, 48px/2:1, NO setPointerCapture (tappable children), `pan-y`, Monday-keyed slide-in. → `v2.39`
-- **v2.37–v2.38** (08-23) — Big Steps type + six skins + the Display sheet (rank is size and weight, not case; `--tt`/`--ts` are USER settings on `<html>`; a tall box around small text reads as a cell); then the figures session's Judging Bench (44/44 fault muscles, 75 movements turn). → `v2.37`, `v2.38`
+- **v2.37–v2.38** (08-23) — Big Steps type + six skins + the Display sheet; the figures session's Judging Bench. → `v2.37`, `v2.38`
 - **v2.17–v2.25.3** (08-21/22) — the design pass, the movement library, the figures (340 from 44 patterns). → `v2.17`…`v2.25.3`
 - **v2.34–v2.36** (08-22/23) — NEEDLE; the legibility pass; new equipment. → `v2.34`…`v2.36`
 - **v2.26–v2.33.1** (08-22) — logo, opening + sound, turns; the Library tab; all modals portal to `<body>`. → `v2.26`…`v2.33.1`
