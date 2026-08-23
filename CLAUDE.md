@@ -45,7 +45,7 @@ word boundary (`trap` misses `traps` — list both). The rule a session can act 
 only the evidence routes.
 
 ## Current Version: v2.42
-**21 SKINS: 7 FAMILIES × LIGHT/OPTIMAL/DARK.** 🔴 **THE OPTIMAL IS THE HAND-DESIGNED BLOCK; THE FLANKS ARE GENERATED — `scripts/gen-skin-variants.mjs` derives them from the optimals, auto-corrects against `sanity-contrast`, and REWRITES the marker section in styles.css. Never hand-edit a generated block; re-run the script when an optimal changes.** Ids `family` / `family-light` / `family-dark`; **pebble is renamed FLINT** (one-shot `loadSkin` migration). Picker = 7 family cards + a variant row, never a 21-grid. Buttons 40px/7px (tall boxes read as cells); type strays snapped (9→10, 12.5→13, 18→19); logo 46px box / 26px text — the mark re-frozen from the corrected library came out byte-identical. → `v2.42`.
+**21 SKINS: 7 FAMILIES × LIGHT/OPTIMAL/DARK.** 🔴 **THE OPTIMAL IS THE HAND-DESIGNED BLOCK; THE FLANKS ARE GENERATED — `scripts/gen-skin-variants.mjs` derives them from the optimals, auto-corrects against `sanity-contrast`, and REWRITES the marker section in styles.css. Never hand-edit a generated block; re-run the script when an optimal changes.** Ids `family` / `family-light` / `family-dark`; **pebble is renamed FLINT** (one-shot `loadSkin` migration). Picker = 7 family cards + a variant row, never a 21-grid. Buttons 40px/7px (tall boxes read as cells); type strays snapped to the scale; logo 46px box / 26px text. → `v2.42`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
