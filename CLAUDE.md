@@ -44,8 +44,8 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.39
-**SWIPE-TO-CHANGE-WEEK on the Schedule strip.** Pointer events on `.week-strip`, thresholds ≥48px AND ≥2× vertical; 🔴 **NO `setPointerCapture` here — the strip has tappable children** (capture retargets `pointerup` off the day chips and kills their tap; the deliberate opposite of the Figure gesture). `touch-action: pan-y`; strip keyed on its Monday for the direction-aware slide-in; RTL mirrors, reduced-motion opts out; buttons + swipe share `changeWeek()`. → `v2.39`.
+## Current Version: v2.40
+**PEBBLE (the rounded skin) + `--on-bar` + radius tokens.** 🔴 **A BAR-FILLED SURFACE PAINTS TEXT FROM `--on-bar`, NEVER `--chalk`** — Steel's dark bar carried dark chalk at ~2.4:1 (Pierre's screenshot); the token is in `sanity-skins` TOKENS. 🔴 **GEOMETRY AMENDMENT (Pierre, 2026-08-23, was "only hue changes"): corner radius may vary per skin ONLY via `--r-xs/--r-sm/--r-lg/--r-panel/--r-sheet`** — :root defaults = shipped values, six skins pixel-identical; radius tokens deliberately NOT per-skin-asserted (omission inherits :root). Textareas take `--r-panel` globally (a pill radius eats a tall box's first line). Pebble = pill testbed, last in picker; win ⇒ radii graduate to :root, lose ⇒ delete the block. → `v2.40`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)
 All 340 movements have the FORM panel. Detail: `docs/instructions-v2.22.md`…`-v2.24.md`.
@@ -71,12 +71,13 @@ Elie may drive app changes in-session on Pierre's conditions (*"since we're usin
 ---
 
 ## Version History
+- **v2.39** (08-23) — swipe-to-change-week: pointer events, 48px/2:1, NO setPointerCapture (tappable children), `pan-y`, Monday-keyed slide-in. → `v2.39`
 - **v2.37–v2.38** (08-23) — Big Steps type + six skins + the Display sheet (rank is size and weight, not case; `--tt`/`--ts` are USER settings on `<html>`; a tall box around small text reads as a cell); then the figures session's Judging Bench (44/44 fault muscles, 75 movements turn). → `v2.37`, `v2.38`
 - **v2.17–v2.25.3** (08-21/22) — THE DESIGN PASS, the movement library, the figures (all 340 from 44 patterns), then the refinement round. → `v2.17`…`v2.25.3`
-- **v2.35–v2.36** (08-22/23) — the legibility pass (uppercase/tracking/condensed off), then the figures session's medicine ball, stability ball and dumbbells. → `v2.35`…`v2.36`
-- **v2.34** (08-22) — NEEDLE: warm soot + one orange needle, because the app runs in hundreds of gyms so a palette taken from ONE room cannot work, and midnight-and-arc was the palette of the Precor equipment beside it. → `v2.34`
+- **v2.35–v2.36** (08-22/23) — the legibility pass, then the figures session's new equipment. → `v2.35`…`v2.36`
+- **v2.34** (08-22) — NEEDLE: warm soot + one orange needle; no ONE room's palette can serve hundreds of gyms. → `v2.34`
 - **v2.33–v2.33.1** (08-22) — the Library takes slot four; all modals portal to `<body>`; Home drops the compact view. → `v2.33`, `v2.33.1`
-- **v2.26–v2.32** (08-22) — the FACING-PAIR logo, backdrop and icons; the opening animation then its SOUND; turns + 360 stamps; header split, showcase, suite, random wall. → `v2.26`…`v2.32`
+- **v2.26–v2.32** (08-22) — the FACING-PAIR logo, opening animation + sound, turns + 360 stamps, showcase wall. → `v2.26`…`v2.32`
 - **v2.15 and earlier** — see `changelog-summary.md`. v3→v4 rollback tag: `snapshot-pre-v2.9.5`.
 
 ---

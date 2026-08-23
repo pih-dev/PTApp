@@ -62,6 +62,30 @@ html, body, #root { height: 100%; overflow: hidden; }
      the green/orange posture lines and the muscle wash in visual priority. */
   --equipment: #2E6BF2;
 
+  /* v2.40: text on a --bar-filled control. Six skins had this equal to --chalk
+     and it was implicit; Steel is a daylight skin with a DARK bar, so its dark
+     chalk sat on the dark slate at ~2.4:1 — Pierre's phone screenshot, PREV/NEXT
+     unreadable. 🔴 Every bar-filled surface paints text from THIS token, never
+     from --chalk. */
+  --on-bar: #E9EEF3;
+
+  /* v2.40: RADIUS TOKENS — Pierre's ruling (2026-08-23): geometry may vary per
+     skin, but ONLY through these four values; everything else stays identical.
+     (Amends the v2.17 "only hue changes" rule — see src/skins.js.) Defaults are
+     the shipped values, so the six existing skins render pixel-identical.
+     --r-xs tags · --r-sm chips/small buttons · --r-lg buttons/inputs ·
+     --r-panel panels/textareas · --r-sheet the modal sheet's top corners. */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-lg: 8px;
+  --r-panel: 10px;
+  --r-sheet: 14px;
+  /* Tall boxes (multi-line wells, the day chips, the figure viewport) cannot be
+     pills — a 999px radius eats their first line or clips the art (i18n review,
+     v2.40). They share this token instead; 8px sits within 2px of every
+     pre-v2.40 value, accepted drift. */
+  --r-tall: 8px;
+
   /* Type roles (spec §4). Saira Condensed uppercase reads as an instrument
      label and is the fastest exit from the generated look; IBM Plex Mono with
      tabular-nums stops every count and time jittering between renders.
@@ -169,7 +193,7 @@ button:active { transform: scale(0.97); }
 .logo { display: flex; align-items: center; gap: 10px; width: 100%; }
 
 .logo-icon {
-  width: 40px; height: 40px; border-radius: 6px;
+  width: 40px; height: 40px; border-radius: var(--r-sm);
   background: var(--raised);
   border: 2px solid var(--bar);
   display: flex; align-items: center; justify-content: center;
@@ -262,7 +286,7 @@ button:active { transform: scale(0.97); }
   background: var(--ground);
   color: var(--chalk);
   border: 2px solid var(--bar);
-  border-radius: 8px;
+  border-radius: var(--r-lg);
   padding: 12px 16px;
   font-size: 11px;
   line-height: 1.7;
@@ -290,7 +314,7 @@ button:active { transform: scale(0.97); }
   margin-inline-start: auto;
   background: var(--raised);
   border: 2px solid var(--bar);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   padding: 2px;
   font-family: var(--font-display);
   font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
@@ -298,13 +322,13 @@ button:active { transform: scale(0.97); }
 .lang-toggle span {
   padding: 5px 0;
   width: 36px; text-align: center;
-  border-radius: 4px;
+  border-radius: var(--r-xs);
   color: var(--chalk-dim);
   transition: all 0.2s;
 }
 .lang-toggle .lang-active {
   background: var(--bar);
-  color: var(--chalk);
+  color: var(--on-bar);
 }
 /* The skin picker is the same control with WORD-length cells. `.lang-toggle`
    hard-codes 36px per cell because "Ar"/"En" are two letters; "Midnight" and
@@ -400,7 +424,7 @@ button:active { transform: scale(0.97); }
 }
 .splash-actions button {
   padding: 12px 18px; min-height: 44px;
-  background: var(--raised); border: 1px solid transparent; border-radius: 6px;
+  background: var(--raised); border: 1px solid transparent; border-radius: var(--r-sm);
   color: var(--chalk-dim);
   font-family: var(--font-display); font-size: 12px; font-weight: 700;
   letter-spacing: 0.1em; text-transform: uppercase;
@@ -523,7 +547,7 @@ button:active { transform: scale(0.97); }
 .panel {
   background: var(--raised);
   border: 2px solid var(--bar);
-  border-radius: 10px;
+  border-radius: var(--r-panel);
   padding: 14px;
   margin-bottom: 12px;
 }
@@ -533,7 +557,7 @@ button:active { transform: scale(0.97); }
    of the generated look, and every one of these used the same #2563EB→#60A5FA
    ramp. 🔴 None of them may use the accent. */
 .btn-primary {
-  padding: 14px 24px; border-radius: 8px; font-size: 14px;
+  padding: 14px 24px; border-radius: var(--r-lg); font-size: 14px;
   font-family: var(--font-display); font-weight: 700;
   letter-spacing: 0.1em; text-transform: uppercase;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -541,34 +565,34 @@ button:active { transform: scale(0.97); }
   width: 100%;
 }
 .btn-sm {
-  padding: 9px 14px; border-radius: 6px; font-size: 12px;
+  padding: 9px 14px; border-radius: var(--r-sm); font-size: 12px;
   font-family: var(--font-display); font-weight: 700;
   letter-spacing: 0.1em; text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 6px;
   background: var(--chalk); color: var(--ground);
 }
 .btn-secondary {
-  padding: 9px 14px; border-radius: 6px; font-size: 12px;
+  padding: 9px 14px; border-radius: var(--r-sm); font-size: 12px;
   font-family: var(--font-display); font-weight: 700;
   letter-spacing: 0.08em; text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 6px;
   /* Filled, not hollow: this is the button the PT taps most (Complete), and an
      outline made it read as a disabled state. */
-  background: var(--bar); color: var(--chalk);
+  background: var(--bar); color: var(--on-bar);
   border: 1px solid var(--bar);
 }
 /* WhatsApp keeps its own green in both skins: it is a third party's identity,
    not our palette, and the PT recognises the button by it. Flattened, not
    re-hued. */
 .btn-whatsapp {
-  padding: 9px 14px; border-radius: 6px; font-size: 12px;
+  padding: 9px 14px; border-radius: var(--r-sm); font-size: 12px;
   font-family: var(--font-display); font-weight: 700;
   letter-spacing: 0.08em; text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 6px;
   background: #128C7E; color: #fff;
 }
 .btn-whatsapp-lg {
-  padding: 14px 24px; border-radius: 8px; font-size: 14px;
+  padding: 14px 24px; border-radius: var(--r-lg); font-size: 14px;
   font-family: var(--font-display); font-weight: 700;
   letter-spacing: 0.1em; text-transform: uppercase;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -582,14 +606,14 @@ button:active { transform: scale(0.97); }
    (the button he taps most), so the only saturated thing in that row is the one
    button that belongs to a third party and is recognised BY its green. */
 .btn-confirm {
-  padding: 7px 12px; border-radius: 6px; font-size: 11px;
+  padding: 7px 12px; border-radius: var(--r-sm); font-size: 11px;
   font-family: var(--font-display); font-weight: 700;
   letter-spacing: 0.08em; text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 4px;
-  background: var(--bar); color: var(--chalk);
+  background: var(--bar); color: var(--on-bar);
 }
 .btn-danger-sm {
-  padding: 8px 10px; border-radius: 6px;
+  padding: 8px 10px; border-radius: var(--r-sm);
   /* Filled like every other action, but red and quiet: destructive, not shouted.
      The hollow red box read as an alarm sitting in every row. */
   background: var(--raised);
@@ -597,7 +621,7 @@ button:active { transform: scale(0.97); }
   color: #EF4444;
 }
 .btn-ghost {
-  padding: 9px 12px; border-radius: 6px;
+  padding: 9px 12px; border-radius: var(--r-sm);
   font-family: var(--font-display); font-weight: 700;
   font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 6px;
@@ -614,7 +638,7 @@ button:active { transform: scale(0.97); }
 
 /* ─── Form ─── */
 .input, .select, textarea.input {
-  width: 100%; padding: 13px 14px; border-radius: 8px;
+  width: 100%; padding: 13px 14px; border-radius: var(--r-lg);
   border: 1px solid var(--bar);
   background: var(--raised); color: var(--chalk); font-size: 15px;
   font-family: var(--font-body);
@@ -663,12 +687,12 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 .badge-class-pro  { background: #F59E0B; color: #0A1524; }
 .badge-class-begA, .badge-class-begB, .badge-class-intA,
 .badge-class-intB, .badge-class-pro {
-  padding: 4px 10px; border-radius: 4px;
+  padding: 4px 10px; border-radius: var(--r-xs);
 }
 
 /* Per-test verdict chips (1 weak → 5 excellent; run maps poor→1, avg→3, good→4, exc→5) */
 .eval-chip {
-  flex: 0 0 auto; padding: 3px 10px; border-radius: 4px;
+  flex: 0 0 auto; padding: 3px 10px; border-radius: var(--r-xs);
   font-family: var(--font-display); letter-spacing: 0.06em;
   font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap;
 }
@@ -681,7 +705,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 /* ─── Evaluation measurement console (v2.11.1) ─── */
 .eval-console {
   border: 2px solid var(--bar);
-  border-radius: 10px;
+  border-radius: var(--r-panel);
   padding: 12px;
   margin-bottom: 14px;
   background: var(--raised);
@@ -703,7 +727,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 }
 .eval-row-flash {
   animation: evalRowFlash 1.5s ease-out;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
 }
 
 /* ─── Modal ─── */
@@ -725,7 +749,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
      across the top instead of a rounded floating card. */
   background: linear-gradient(180deg, var(--ground-lit) 0%, var(--ground) 46%);
   border-top: 3px solid var(--bar);
-  border-radius: 14px 14px 0 0;
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
   padding: 0 20px 16px;
   display: flex; flex-direction: column;
   animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -770,7 +794,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
    edge — tokens only, the old literal green/red pair belonged to no skin. */
 .notice {
   padding: 10px 14px; margin-bottom: 12px;
-  border-radius: 6px; font-size: 13px; font-weight: 500;
+  border-radius: var(--r-sm); font-size: 13px; font-weight: 500;
   background: var(--raised); color: var(--chalk);
   border-inline-start: 3px solid var(--bar);
 }
@@ -833,7 +857,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   padding: 0 2px;
 }
 .count-effective {
-  color: var(--chalk);
+  color: var(--on-bar);
   font-weight: 600;
   font-size: 13px;
   background: var(--bar);
@@ -864,7 +888,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   font-weight: 700;
 }
 .period-count-preview strong.accent {
-  color: var(--chalk);
+  color: var(--on-bar);
   background: var(--bar);
   padding: 1px 5px;
   border-radius: 3px;
@@ -873,7 +897,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   width: 64px;
   padding: 10px;
   border: 2px solid var(--bar);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   background: var(--raised);
   color: var(--chalk);
   font-family: var(--font-mono); font-variant-numeric: tabular-nums;
@@ -944,7 +968,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 .week-day {
   position: relative;
   flex: 1; min-width: 44px; padding: 8px 2px 10px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   border: none;
   background: transparent;
   color: var(--chalk-dim);
@@ -1001,7 +1025,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
    legend — the user is choosing between six named things and the swatch is how
    they tell them apart. On a row it was decoration, which is why it left. */
 .type-btn {
-  padding: 9px 14px; border-radius: 6px;
+  padding: 9px 14px; border-radius: var(--r-sm);
   border: 2px solid var(--bar);
   background: transparent;
   color: var(--chalk-dim);
@@ -1026,11 +1050,13 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 }
 .client-chip {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 7px 10px 7px 12px;
-  border-radius: 6px;
+  /* Logical: the narrower side belongs against the X button in BOTH directions
+     (was physical 7px 10px 7px 12px, which put the wide side on the X in RTL). */
+  padding-block: 7px; padding-inline: 12px 10px;
+  border-radius: var(--r-sm);
   background: var(--bar);
   border: 2px solid var(--bar);
-  color: var(--chalk);
+  color: var(--on-bar);
   font-size: 13px; font-weight: 600;
 }
 .client-chip-x {
@@ -1054,7 +1080,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 }
 .time-slot {
   padding: 8px 4px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   border: 1px solid transparent;
   background: var(--raised);
   color: var(--chalk-dim);
@@ -1069,7 +1095,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 .time-slot.selected {
   border-color: var(--chalk-dim);
   background: var(--bar);
-  color: var(--chalk);
+  color: var(--on-bar);
 }
 /* Occupied is a WARNING about a clash, not an error — it is still a legal pick
    (that is what group bookings are), so it warns rather than shouting danger. */
@@ -1098,7 +1124,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   margin-top: 8px;
 }
 .focus-tag {
-  padding: 6px 10px; border-radius: 4px;
+  padding: 6px 10px; border-radius: var(--r-xs);
   font-family: var(--font-display);
   font-size: 11px; font-weight: 600;
   letter-spacing: 0.06em; text-transform: uppercase;
@@ -1121,7 +1147,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 
 .focus-notes {
   width: 100%; margin-top: 6px;
-  padding: 9px 10px; border-radius: 6px;
+  padding: 9px 10px; border-radius: var(--r-sm);
   border: 1px solid transparent;
   background: var(--raised);
   color: var(--chalk-dim);
@@ -1163,7 +1189,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 .inline-type-select {
   background: var(--raised);
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: var(--r-xs);
   color: inherit;
   font-size: inherit;
   font-family: inherit;
@@ -1176,7 +1202,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 /* ─── Filter Buttons ─── */
 .filter-row { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
 .filter-btn {
-  padding: 9px 14px; border-radius: 6px;
+  padding: 9px 14px; border-radius: var(--r-sm);
   border: 1px solid transparent;
   background: var(--raised);
   color: var(--chalk-dim);
@@ -1378,12 +1404,12 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 .plate.is-used { background: var(--chalk-dim); box-shadow: inset 0 0 0 1.5px var(--chalk-dim); }
 .plate.is-due  { background: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
 .plate-shaft {
-  position: relative; width: 78px; height: 7px; border-radius: 4px;
+  position: relative; width: 78px; height: 7px; border-radius: var(--r-xs);
   background: var(--bar); overflow: hidden;
 }
 .plate-shaft-fill {
   position: absolute; inset-block: 0; inset-inline-start: 0;
-  background: var(--chalk-dim); border-radius: 4px;
+  background: var(--chalk-dim); border-radius: var(--r-xs);
   transition: width 0.3s ease;
 }
 .plate-shaft.is-due .plate-shaft-fill { background: var(--accent); }
@@ -1410,7 +1436,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   cursor: pointer;
   /* Bleed the padding outward so the press state has a shape to fill without
      moving a single pixel of layout. */
-  padding-inline: 12px; margin-inline: -12px; border-radius: 10px;
+  padding-inline: 12px; margin-inline: -12px; border-radius: var(--r-panel);
   transition: transform 0.16s ease, background 0.12s ease;
 }
 .srow-tap:active { transform: scale(0.99); background: var(--raised); }
@@ -1455,7 +1481,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 
 /* The inline type selector loses its box on the Dashboard and reads as a mark. */
 .srow .inline-type-select, .srow-meta .inline-type-select {
-  border: none; background: var(--raised); border-radius: 4px;
+  border: none; background: var(--raised); border-radius: var(--r-xs);
   /* 🔴 A borderless control still needs a finger-sized target — but once it has
      a FILL, the negative margin that used to buy that target paints over its
      neighbours. So the target is real padding and the meta row grows by a few
@@ -1608,7 +1634,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 .logo-btn {
   display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;
   background: none; border: 0; padding: 4px 6px; margin: -4px -6px;
-  border-radius: 8px; color: inherit; font: inherit; text-align: start;
+  border-radius: var(--r-lg); color: inherit; font: inherit; text-align: start;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
 .logo-btn:active { background: var(--raised); }
@@ -1631,7 +1657,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 /* 🔴 THE ZOOM IS CLIPPED BY ITS OWN BOX. Without this the scaled figure paints
    over the caption, the key and the movement's own facts — and on a phone that
    reads as the app breaking, not as a zoom. */
-.fig-view { overflow: hidden; border-radius: 6px; }
+.fig-view { overflow: hidden; border-radius: var(--r-sm); }
 .fig-zoomed { cursor: grab; }
 .fig-zoomed .fig-view { background: var(--raised); }
 .fig-zoom-reset {
@@ -1781,6 +1807,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   --chalk-dim: #AEB6E4;
   --chalk-faint: #6670AE;
   --bar: #4A55A0;
+  --on-bar: #F2F3FF;
   --accent: #FF4D8D;       /* the pink on the rack */
   --ok: #3DD68C;
   --warn: #FFC53D;
@@ -1812,6 +1839,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   --chalk-dim: #55536A;
   --chalk-faint: #A5A2B0;
   --bar: #BFBCC9;
+  --on-bar: #1A1A26;   /* the bar is LIGHT here — ink text holds on it */
   --accent: #C2185B;
   --ok: #2E7D4F;
   --warn: #8A6100;
@@ -1840,6 +1868,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   --chalk-dim: #B4AB93;  /* ~7.9:1 — every small label lives here */
   --chalk-faint: #5C5647;
   --bar: #3A3529;
+  --on-bar: #EDE4CE;
   /* The needle. On every real instrument the moving, urgent element is orange,
      which is exactly what --accent means here: load and urgency, never chrome. */
   --accent: #E07B39;
@@ -1879,6 +1908,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   --chalk-dim: #5B564B;  /* ~5.9:1 */
   --chalk-faint: #A9A498;
   --bar: #C6C2B8;
+  --on-bar: #26231D;   /* light bar, ink text */
   --accent: #BD5E1E;     /* the same needle, darkened to hold on a pale face */
   --ok: #3E7A34;
   --warn: #8F6B00;
@@ -1921,10 +1951,67 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   --equipment: #2456C8;  /* v2.25.3: daylight counterpart of Pierre's pick */
   --accent: #06465F;
   --bar: #475A80;
+  /* 🔴 THE FIX BEHIND --on-bar (v2.40): steel is a daylight skin with a DARK
+     bar, so dark chalk on bar-filled buttons (PREV/NEXT, Restore, selected
+     chips) measured ~2.4:1 — Pierre's screenshot, "dark text on a dark
+     background". Light text on the dark slate: ~9.8:1. */
+  --on-bar: #EFF3FA;
   --ok: #0E5238;
   --warn: #583E04;
   --anatomy: #9C3A12;
 }
+/* ─── PEBBLE (v2.40) — the rounded one ──────────────────────────────────────
+   Pierre, 2026-08-23, on the Steel screenshot: "everything is rectangles with
+   corners — smooth them out, make them round, I like the pills idea. Create a
+   seventh theme where we can see it." So Pebble is the testbed for the pill
+   geometry: the same daylight blue-grey family as the screenshot he was
+   holding, with the contrast corrected (light --on-bar on the dark bar), and
+   the four radius tokens turned up to pill. A smooth river stone — the name is
+   the shape thesis. If the pills win, the radii graduate to :root and every
+   skin inherits them; if they lose, deleting this block deletes the experiment. */
+[data-skin="pebble"] {
+  color: var(--chalk);
+  --t1: rgba(23,29,41,0.94);
+  --t2: rgba(23,29,41,0.76);
+  --t3: rgba(23,29,41,0.66);
+  --t4: rgba(23,29,41,0.56);
+  --t5: rgba(23,29,41,0.46);
+  --sep: rgba(23,29,41,0.10);
+  --card-bg: rgba(255,255,255,0.5);
+
+  /* Lighter ground than steel's — its mid-blue was the reason every small
+     label there needed a rescue once already (v2.18 note). */
+  --ground: #CBD4DF;
+  --ground-lit: #E9EDF3;
+  --raised: rgba(255,255,255,0.62);
+  --chalk: #171D29;      /* ~13.5:1 on --ground */
+  --chalk-dim: #414E63;  /* ~6.3:1 */
+  --chalk-faint: #8A97AA;
+  --bar: #3D5170;        /* the dark slate the pills are cut from */
+  --on-bar: #F2F5FA;     /* ~9.5:1 on --bar — the lesson steel taught */
+  --accent: #0A5A74;
+  --ok: #14603F;
+  --warn: #6E5303;
+  --anatomy: #A63A10;
+  --muscle: #B01847;
+  --muscle-2: #55489B;
+  --equipment: #2050B8;
+
+  /* The pill geometry — the whole point of this skin. */
+  --r-xs: 999px;
+  --r-sm: 999px;
+  --r-lg: 999px;
+  --r-panel: 16px;
+  --r-sheet: 24px;
+  --r-tall: 16px;
+}
+
+/* Tall boxes cannot be pills — a 999px radius eats a text well's first line,
+   curves into the day chips' labels (worst in Arabic, where the short weekday
+   is a full word at the cell edge) and clips the figure viewport's art. They
+   take --r-tall in every skin instead. */
+textarea.input, .focus-notes, .week-day, .notice, .fig-view { border-radius: var(--r-tall); }
+
 /* ─── RTL overrides (Arabic) ─── */
 [dir="rtl"] .logo { direction: ltr; } /* Keep logo LTR — "PTApp" is a brand name */
 [dir="rtl"] .lang-toggle { margin-left: 0; margin-right: auto; }
@@ -1965,7 +2052,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   text-transform: uppercase;
   padding: 9px 14px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -1990,7 +2077,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
   background: var(--raised);
   border-inline-start: 3px solid var(--accent);
   padding: 10px 12px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   font-size: 13px;
   color: var(--chalk);
   margin-bottom: 12px;
@@ -2003,18 +2090,18 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 
 .weekday-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 12px; }
 .weekday-chip {
-  flex: 1 1 auto; min-width: 40px; padding: 8px 4px; border-radius: 8px;
+  flex: 1 1 auto; min-width: 40px; padding: 8px 4px; border-radius: var(--r-lg);
   border: 1px solid transparent; background: var(--raised); color: var(--chalk-dim);
   font-family: var(--font-display); font-size: 13px; font-weight: 600;
   letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
 }
-.weekday-chip.selected { background: var(--bar); border-color: var(--chalk-dim); color: var(--chalk); }
+.weekday-chip.selected { background: var(--bar); border-color: var(--chalk-dim); color: var(--on-bar); }
 [dir="rtl"] .weekday-chip { letter-spacing: 0; text-transform: none; font-family: var(--font-body); }
 
 .recurring-preview { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
 .preview-row {
   display: flex; align-items: center; gap: 10px; padding: 10px 12px;
-  border: 2px solid var(--bar); border-radius: 6px; font-size: 14px; color: var(--chalk-dim);
+  border: 2px solid var(--bar); border-radius: var(--r-sm); font-size: 14px; color: var(--chalk-dim);
 }
 .preview-row input { width: 18px; height: 18px; flex-shrink: 0; }
 .preview-date { flex: 1; }
@@ -2209,7 +2296,7 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 .skin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .skin-card {
   display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px; border-radius: 8px;
+  padding: 10px 12px; border-radius: var(--r-lg);
   background: var(--raised); border: 1px solid transparent;
   color: var(--chalk-dim); font-family: var(--font-body);
   font-size: calc(var(--ts, 1) * 13.5px); font-weight: 600;
@@ -2236,6 +2323,8 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 [data-swatch="steel"]     .skin-swatch::after { background: #06465F; }
 [data-swatch="chalkline"] .skin-swatch { background: #EDEBE6; }
 [data-swatch="chalkline"] .skin-swatch::after { background: #C2185B; }
+[data-swatch="pebble"]    .skin-swatch { background: #CBD4DF; }
+[data-swatch="pebble"]    .skin-swatch::after { background: #3D5170; }
 
 .size-row { display: flex; align-items: center; gap: 12px; }
 .size-step {

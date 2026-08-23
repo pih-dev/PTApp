@@ -9,11 +9,16 @@
 // Design record: docs/superpowers/specs/2026-08-21-visual-language-dashboard-design.md §3.
 //
 // 🔴 THE RULE THAT KEEPS THIS A SKIN SYSTEM AND NOT FOUR DESIGNS: every skin
-//    carries identical layout, geometry and type. ONLY hue changes. If a skin
-//    needs a layout tweak to work, it is not a skin — it is a second design,
-//    and it does not ship. The CSS enforces this by construction: a skin is a
-//    block of custom-property VALUES in styles.css and nothing else. It never
-//    gets its own rules.
+//    carries identical layout and type. If a skin needs a layout tweak to work,
+//    it is not a skin — it is a second design, and it does not ship. The CSS
+//    enforces this by construction: a skin is a block of custom-property VALUES
+//    in styles.css and nothing else. It never gets its own rules.
+//    ── AMENDED by Pierre, 2026-08-23 (was "ONLY hue changes"): corner GEOMETRY
+//    may now vary per skin, but ONLY through the four radius tokens
+//    (--r-xs/--r-sm/--r-lg/--r-panel/--r-sheet) whose :root defaults keep the
+//    six pre-pebble skins pixel-identical. His words: "everything is rectangles
+//    with corners — smooth them out… create a seventh theme where we can see
+//    it." Pebble is that theme. Positions, sizes and type remain off-limits.
 //
 // 🔴 STAGE 1 IS DELIBERATELY INVISIBLE. This ships the mechanism with today's
 //    two looks intact (`midnight` = the current dark, `steel` = the current
@@ -36,6 +41,9 @@ export const SKINS = [
   { id: 'enamel', labelKey: 'skinEnamel' },
   { id: 'steel', labelKey: 'skinSteel' },
   { id: 'chalkline', labelKey: 'skinChalkline' },
+  // v2.40: the rounded testbed (see the PEBBLE block in styles.css). Last in
+  // the picker — it is an experiment on trial, not a member of a pair yet.
+  { id: 'pebble', labelKey: 'skinPebble' },
 ];
 
 // v2.34: new installs open on Lume. 🔴 An existing phone keeps whatever it saved

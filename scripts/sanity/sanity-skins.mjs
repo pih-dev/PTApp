@@ -43,7 +43,14 @@ const TOKENS = ['--t1', '--t2', '--t3', '--t4', '--t5', '--sep', '--card-bg',
   // skin that omits one washes the OTHER skin's hue over a body.
   '--muscle', '--muscle-2',
   // v2.24 — the equipment token (figure-internal, like --anatomy).
-  '--equipment'];
+  '--equipment',
+  // v2.40 — text on a --bar-filled control. Implicitly equal to --chalk in six
+  // skins; steel proved it is its own decision (dark bar on a daylight skin).
+  '--on-bar'];
+// 🔴 The RADIUS tokens (--r-xs/--r-sm/--r-lg/--r-panel/--r-sheet) are NOT in
+// this list ON PURPOSE: a skin that omits them inherits the :root defaults,
+// which is the correct geometry — only pebble overrides them (Pierre's
+// 2026-08-23 geometry amendment, see src/skins.js).
 const skinIds = [...css.matchAll(/\[data-skin="([a-z0-9-]+)"\]\s*\{/g)].map(m => m[1]);
 const declaredSkins = [...new Set(skinIds)];
 assert(declaredSkins.length >= 1, `styles.css declares skin blocks (${declaredSkins.join(', ') || 'none'})`);

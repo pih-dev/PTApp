@@ -4,6 +4,18 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.40 - Pebble, the rounded theme, and a Steel fix (August 23, 2026)
+
+A seventh theme: Pebble. Every button and chip becomes a smooth pill, panels
+get soft corners - Pierre's "smooth out the boxiness" idea, made a theme so
+it can be compared against the six squared ones before deciding.
+
+Also fixed everywhere: in the Steel theme the dark buttons (Prev/Next,
+Restore) had dark text on a dark background and could barely be read. They
+now carry light text. Full detail: instructions-v2.40.md.
+
+---
+
 ## v2.39 - swipe the week (August 23, 2026)
 
 The week strip in Schedule now answers a swipe: flick it left to go a week

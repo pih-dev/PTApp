@@ -392,6 +392,8 @@ Routed here from `CLAUDE.md`, which keeps the RULES and points at this for the i
 | Ground | `--ground`, `--ground-lit`, `--raised` | the floor, its lit end, and the only "above the floor" value |
 | Text | `--chalk`, `--chalk-dim`, `--chalk-faint` | primary · secondary **and every small label** · **decoration only, never text under 13px** |
 | Meaning | `--accent` (arc `#35B7E8`), `--bar`, `--ok`, `--warn`, `--anatomy` | load/urgency · every divider · status · **inside exercise figures only, never the UI** |
+| On-fill (v2.40) | `--on-bar` | **text on any `--bar`-filled control — never `--chalk` there** (Steel's dark bar carried dark chalk at ~2.4:1) |
+| Radius (v2.40, **NOT per-skin-asserted**) | `--r-xs` 4 · `--r-sm` 6 · `--r-lg` 8 · `--r-panel` 10 · `--r-sheet` 14 | tags · chips/small buttons · buttons/inputs · panels/textareas · the sheet's top corners. :root defaults = shipped geometry; **only `pebble` overrides them** (Pierre's 2026-08-23 amendment: geometry varies per skin ONLY via these) |
 
 **Type roles:** `--font-display` = Saira Condensed 600/700 uppercase (names, labels, section heads) ·
 `--font-body` = Saira 400/500 · `--font-mono` = IBM Plex Mono 500/600 `tabular-nums` (**every digit**).

@@ -4,6 +4,25 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.40 - Pebble skin + --on-bar + radius tokens (2026-08-23)
+
+Pierre, on a Steel screenshot: "everything is rectangles - smooth them out, make
+them round… some text cannot be read… create a seventh theme where we can see
+it." Three changes. (1) **`--on-bar`**: eight controls painted text on a
+--bar-filled surface via --chalk; in Steel (daylight skin, DARK bar) that was
+~2.4:1 - now a per-skin token, in sanity-skins' TOKENS list, light #EFF3FA in
+steel. 🔴 Bar-filled surfaces paint text from --on-bar, never --chalk.
+(2) **Radius tokens** --r-xs/--r-sm/--r-lg/--r-panel/--r-sheet with :root
+defaults equal to the shipped values (six skins pixel-identical); Pierre's
+ruling amends the v2.17 "only hue changes" rule - geometry varies ONLY through
+these five. Deliberately NOT per-skin-asserted: omission inherits correct :root
+geometry. One global rule: textareas take --r-panel (a pill radius eats a tall
+box's first line). (3) **Pebble**: seventh skin, pill geometry, daylight
+blue-grey with the contrast fixed relative to steel. Exit paths documented in
+instructions-v2.40.md.
+
+---
+
 ## v2.39 - swipe-to-change-week on the Schedule strip (2026-08-23)
 
 The design thread's agreed-in-principle gesture. Pointer events on `.week-strip`
