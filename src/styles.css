@@ -933,6 +933,14 @@ input[type="date"].input, input[type="time"].input, input[type="number"].input {
 @media (prefers-reduced-motion: reduce) {
   .week-strip.slide-next, .week-strip.slide-prev { animation: none; }
 }
+/* pan-y removed the strip's touch-scroll fallback, so the 7 chips MUST fit:
+   under 360px (mini in Display Zoom, Fold cover screen, split-screen) 44px
+   chips + 16px content padding would clip Sunday with no way to reach it.
+   38px × full chip height is still a real tap target. */
+@media (max-width: 359px) {
+  .week-strip { gap: 1px; }
+  .week-day { min-width: 38px; }
+}
 .week-day {
   position: relative;
   flex: 1; min-width: 44px; padding: 8px 2px 10px;

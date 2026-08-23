@@ -204,6 +204,9 @@ export default function Schedule({ state, dispatch, lang, initialDate }) {
     haptic();
     setShowForm(false);
     resetRepeat();
+    // This jump can cross a week boundary; zero the slide direction or the
+    // keyed strip replays the LAST swipe's animation in an unrelated direction.
+    setWeekSlide(0);
     setSelectedDate(kept[0].date);
   };
 
@@ -236,9 +239,11 @@ export default function Schedule({ state, dispatch, lang, initialDate }) {
     if (!s || s.id !== e.pointerId) return;
     const dx = e.clientX - s.x, dy = e.clientY - s.y;
     // 48px of travel and clearly horizontal (2:1) — a sloppy day tap or a
-    // vertical scroll must never turn the week under the PT's finger. A real
-    // swipe also exceeds any chip's 44px width, so the browser's click lands on
-    // the strip (the common ancestor), not on a day — no accidental selection.
+    // vertical scroll must never turn the week under the PT's finger. No
+    // accidental day selection either: past tap-slop the browser suppresses the
+    // synthetic click, and the keyed remount detaches the old chip anyway (a
+    // 48px swipe CAN fit inside one chip on wide phones — flex:1 makes them
+    // ~53px on a 412dp screen — so don't rely on crossing a chip boundary).
     if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 2) return;
     // In RTL "forward in time" is a swipe to the right — mirror the delta.
     const rtl = document.documentElement.dir === 'rtl';
