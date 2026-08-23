@@ -57,7 +57,7 @@ function boundsOf(markup, margin = 30) {
 // the FAULT half. tilt = whole-mark rotation (negative = counter-clockwise).
 // dot = {pos} adds the Spot: 'center' | 'high' (upper-right vantage) |
 // 'stop' (a full-stop after the S's tail).
-function sMark(movement, { dx = 0.12, dy = 0.5, tilt = 0, dot = null, mirrorAll = false } = {}) {
+function sMark(movement, { dx = 0.12, dy = 0.5, tilt = 0, dot = null, mirrorAll = false, dotR = 0.09, padF = 0.16, padPx = 40 } = {}) {
   const fig = figureFor(movement);
   if (!fig) return null;
   const ok = layer(fig.correct, { role: 'correct' });
@@ -75,18 +75,20 @@ function sMark(movement, { dx = 0.12, dy = 0.5, tilt = 0, dot = null, mirrorAll 
   let maxY = Math.max(top.box.y + top.box.h, bot.box.y + bot.box.h);
   const w0 = maxX - minX, h0 = maxY - minY;
   // room for the tilt and the dot
-  const pad = Math.max(w0, h0) * 0.16 + 40;
+  const pad = Math.max(w0, h0) * padF + padPx;
   const vbX = minX - pad, vbY = minY - pad, vbW = w0 + pad * 2, vbH = h0 + pad * 2;
   const ccx = minX + w0 / 2, ccy = minY + h0 / 2;
   let inner = top.part + bot.part;
   if (mirrorAll) inner = `<g transform="translate(${rr(2 * ccx)} 0) scale(-1 1)">${inner}</g>`;
   if (tilt) inner = `<g transform="rotate(${tilt} ${rr(ccx)} ${rr(ccy)})">${inner}</g>`;
   if (dot) {
-    const r = w0 * 0.09;
+    const r = w0 * dotR;
     const at = {
       center: [ccx, ccy],
       high: [maxX + r * 0.4, minY - r * 0.2],
       stop: [maxX + r * 1.2, maxY - r * 0.6],
+      // Pierre round 3: "centre of the upper-left quadrant", larger.
+      ulq: [minX + w0 * 0.25, minY + h0 * 0.25],
     }[dot.pos];
     // The Spot. pm-spot is the animation hook: launch can wander it, then
     // settle it here — the vantage from which the set is observed.
@@ -159,3 +161,25 @@ ${STUDIES.filter(s => s.svg).map(tile).join('')}
 const out = 'C:/projects/_archive/PTApp/branding/2026-08-23-spotset-s-pair-round2.html';
 writeFileSync(out, html);
 console.log(`wrote ${out} (${STUDIES.filter(s => s.svg).length} studies)`);
+
+// ─── Round 3 (Pierre): 10° tilt · Spot LARGER at the upper-left quadrant's
+// centre · the S itself larger in its box (pad cut). Deadlift and Barbell Row
+// side by side since the movement wasn't named — plus two dot sizes each.
+const R3 = [];
+for (const m of ['Deadlift', 'Barbell Row']) {
+  const slug = m.toLowerCase().replace(/ /g, '-');
+  R3.push(
+    { id: `${slug}-r3`, title: `${m} — round 3`, note: '10° CCW, Spot ×1.6 at the upper-left quadrant centre, S filling its box.',
+      svg: sMark(m, { tilt: -10, dot: { pos: 'ulq' }, dotR: 0.14, padF: 0.05, padPx: 14 }) },
+    { id: `${slug}-r3-bigdot`, title: `${m} — round 3, bigger Spot`, note: 'Same, Spot ×2.',
+      svg: sMark(m, { tilt: -10, dot: { pos: 'ulq' }, dotR: 0.18, padF: 0.05, padPx: 14 }) },
+  );
+}
+const html3 = html
+  .replace(/<h1>[\s\S]*?<\/p>/, `<h1>SpotSet — the Spot and the Set, round 3</h1>
+<p class="sub">Pierre's cut: 10° counter-clockwise, the Spot larger and centred on the upper-left
+quadrant, the S filling its box. Two movements, two Spot sizes.</p>`)
+  .replace(/<div class="cand">[\s\S]*<\/div>\n<\/body>/, `${R3.filter(s => s.svg).map(tile).join('')}\n</body>`);
+const out3 = 'C:/projects/_archive/PTApp/branding/2026-08-23-spotset-s-pair-round3.html';
+writeFileSync(out3, html3);
+console.log(`wrote ${out3} (${R3.filter(s => s.svg).length} studies)`);
