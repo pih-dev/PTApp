@@ -1,6 +1,9 @@
 # SpotSet — The Design & Typography Thread HANDOFF
 
-**Last updated:** 2026-08-23 ~03:10, Beirut.
+**Last updated:** 2026-08-23 ~09:55, Beirut — end of the v2.39→v2.43.2 marathon, wrapped for a
+`/clear`. Raw dump (uncontaminated, written before this handoff):
+`_archive/PTApp/claude-incidents/2026-08-23-design-marathon-v239-v2432-FULL-SESSION.txt`
+(1,271 records, 624 KB).
 **To resume:** Pierre types `design`, `theme`, `typography`, `skin`, `buttons` — or `continue` right
 after clearing this session. **Read §0 back to him and stop.** Do not investigate, do not draft, do
 not ask follow-up questions beyond the one §0 names.
@@ -38,7 +41,13 @@ not ask follow-up questions beyond the one §0 names.
   convention — the convention is older than this app.
 - **Elie's two rulings, do not re-propose:** the compact Home view is gone (detailed only), and the
   session-count edit **stays** in the booking screen.
-- 🟢 **v2.43.2 SHIPPED (2026-08-23): THE SPOT IS IN THE MARK** — from Pierre's own launcher-icon
+- 🔴 **WHAT IS ACTUALLY WAITING, IN ORDER:** (1) **provision the remaining tester emails** in the
+  Supabase console (Auth → Users → Add user) — without a row, email login answers "wrong
+  credentials"; (2) **Play → Data safety** still declares no account data, but v2.43 collects
+  email + user IDs — add *Email address* and *User IDs*, flip account creation to Yes, keep
+  login-with-outside-accounts No (appendix §7); (3) Elie's ruling on the **teal muscles**;
+  (4) the parked **S** rounds, if he returns to them. Nothing here blocks a `/clear`.
+- 🟢 **v2.43.2 SHIPPED + SUBMITTED TO PLAY (vc23, 2026-08-23 ~09:50): THE SPOT IS IN THE MARK** — from Pierre's own launcher-icon
   mock: a `var(--accent)` dot above the pair, between the heads ("the circle is the SPOT, the pair
   is the SET"), with `pm-spot`/`pmSpot` so it wanders in and settles before the lines draw.
   🔴 **THE ICON PIPELINE FLATTENS COLOURS THROUGH A LITERAL MAP in `logo-candidates.mjs --export`

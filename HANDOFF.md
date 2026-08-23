@@ -26,8 +26,10 @@ not draft, do not ask follow-up questions.
   - **`figures` → `HANDOFF-figures.md`** — the CCHealth session's thread, wrapped end-of-marathon;
     resumes there, not here. 🔴 Two-session git rules in CLAUDE.md KNOWN ISSUES if both run again.
   - **Supabase soak → `HANDOFF-multi-user-build.md`** — daily job `node scripts/soak-day.mjs`.
-- **Current version v2.37** (CLAUDE.md carries the law: suite scripts in step, no svg per frame,
-  frozen mark, worktree deploys). Design round v2.25 findings parked for Pierre:
+- **Current version v2.43.2** — shipped 2026-08-23; **vc23 is in Play review, vc21 (v2.43) is
+  already live to testers**. The day's arc: v2.39 swipe-week → v2.40–v2.42 the design round
+  (rounded rects, trenches, 21 skins, the contrast gate) → v2.43 the login went live → v2.43.1/.2
+  the logo cleaned and gained the Spot. Design round v2.25 findings still parked:
   `docs/design/2026-08-22-fresh-eyes-structure-review.md` (money tracking DEFERRED, his word).
 
 ---

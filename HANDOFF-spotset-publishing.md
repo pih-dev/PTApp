@@ -27,8 +27,13 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   track summary "Latest release: 21 (2.43)", *Available to selected testers · Released on Aug 23
   8:39 AM*, Publishing overview clean with no changes in review. **Review took ~40 minutes**, not
   the 7 days Google states — but that is a sample of two same-day updates, not a rule.
-  vc23 (v2.43.2, the clean logo + the Spot) is built and archived, **NOT uploaded** — Pierre's
-  Play permission was per-release; ask before sending it. **Probe the console (u/1, account
+- 🚀 **vc23 (v2.43.2) SUBMITTED 2026-08-23 ~09:50** on Pierre's explicit go ("deploy it to the
+  Play Store… this is a very good milestone"). Closed testing – Alpha, full rollout on approval;
+  notes lead with the login, the 21 themes and the clean logo. Console showed *Changes in review ·
+  23 (2.43.2) · Start full rollout* with quick checks running. Only warning: the routine
+  "no deobfuscation file", same on every release. AAB+APK archived as
+  `_archive/PTApp/releases/2026-08-23-spotset-v2.43.2-vc23.{aab,apk}`; live-data snapshot taken
+  first (`v2.43.2-pre-play-upload`, 173,578 B byte-verified). **Probe the console (u/1, account
   "Calnorm") before quoting any of this back.**
   The vc20 (v2.42) draft was deliberately discarded UNSENT — v2.43 superseded it before submission
   (Pierre held the submit to land the login first). AAB+APK archived:

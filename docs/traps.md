@@ -629,3 +629,58 @@ This is `Probe Before You Assert` on a new surface: a component name is a plan, 
 showing a button his app has never had, and a published artifact that had to be corrected.
 Write-up: `docs/design/2026-08-22-fresh-eyes-navigation-review.md` §8c. Logged for all projects in
 CCHealth's `project_todo_list.md`.
+
+---
+
+## TRAP: `gradlew` without `npx cap sync` ships the PREVIOUS web bundle (2026-08-23, v2.43)
+
+The known half of this trap says *"`gradlew` exits 0 on a FAILED build — verify the versionName
+INSIDE the artifact, never the exit code."* v2.43 found the other half, and it is nastier because
+**everything you normally check passes.**
+
+Running `./gradlew assembleRelease` (or `bundleRelease`) **without `npx cap sync android` first**
+produces an artifact whose `AndroidManifest.xml` carries the NEW versionCode and versionName —
+because those come from `build.gradle`, which you just edited — while `assets/public/` still holds
+the **previous release's web bundle**, because Capacitor never copied `dist/` in. So:
+
+- `aapt dump badging` says `versionCode='21' versionName='2.43'` ✅
+- the APK installs and runs ✅
+- and the app it runs is **v2.42**.
+
+Caught on vc21 only because the check was run one level deeper:
+
+```bash
+unzip -p app-release.apk assets/public/index.html | grep -o "v2\.43\.1"   # the REAL check
+unzip -p app-release.aab base/assets/public/index.html | grep -o "v2\.43\.1"
+```
+
+🔴 **THE RULE: the version check is INSIDE `assets/public/index.html`, not in the manifest.** The
+manifest proves what you typed in `build.gradle`; only the payload proves what the tester will
+actually see. Always `npx cap sync android` immediately before the gradle build, and verify both.
+
+---
+
+## TRAP: A new colour token is invisible to the icon pipeline until it is added to the flatten map (2026-08-23, v2.43.2)
+
+`scripts/logo-candidates.mjs --export` renders the store/launcher icons by **flattening every
+`var(--token)` to a literal through a hardcoded map** (`LIT`), because an SVG handed to `sharp` has
+no CSS custom properties to resolve. The map lists the tokens the mark used *when it was written*.
+
+v2.43.2 added the Spot as `var(--accent)` — a token the mark had never used. The app rendered it
+correctly (real CSS, real skins), so every visual check passed. But `--accent` was not in `LIT`, so
+in the exported SVGs it fell through to the `chalk` default: the dot would have shipped as a
+near-invisible blob in the Play listing icon, the adaptive launcher icon, the iOS icon and the PWA
+icons — on every device, while looking perfect in the browser.
+
+🔴 **THE RULE: a token that enters the MARK must be added to `LIT` in the same commit.** And the
+verification is a pixel count, not a look:
+
+```bash
+node -e "const s=require('sharp');s('public/icon-512.png').raw().toBuffer({resolveWithObject:true})
+  .then(({data,info})=>{let h=0;for(let i=0;i<data.length;i+=info.channels)
+  if(Math.abs(data[i]-0x35)<26&&Math.abs(data[i+1]-0xB7)<26&&Math.abs(data[i+2]-0xE8)<26)h++;
+  console.log('accent pixels:',h)})"   # 4581 — the Spot is really there
+```
+
+The generalisable shape: **a rendering path that re-implements the app's colour resolution will
+silently disagree with it the moment a new token appears.** Same family as "author-site drift".
