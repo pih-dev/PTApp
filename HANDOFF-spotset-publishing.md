@@ -1,7 +1,6 @@
 # SpotSet — Store Publishing HANDOFF
 
-**Last updated:** 2026-08-21 ~07:10, Beirut — the Calnorm identity pass + backend-platform decision.
-Next session opens on a **major task**, not on this thread — Pierre wrapped deliberately to start one.
+**Last updated:** 2026-08-23 ~09:05, Beirut — vc21 (v2.43) submitted to Play review.
 **To resume:** Pierre types `spotset`, `publish`, `illume` or `continue`. **Read §0 back to him
 and stop.** Do not investigate, do not draft, do not ask follow-up questions beyond the one §0 names.
 
@@ -24,6 +23,19 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 
 ## 0. Status — read this out
 
+- 🚀 **vc21 (v2.43) SUBMITTED TO PLAY REVIEW 2026-08-23 ~09:00** — Closed testing – Alpha, full
+  rollout on approval; notes lead with the login + 21 themes. Sent via Publishing overview after
+  Google's quick checks; **probe the console (u/1, account "Calnorm") before quoting its state.**
+  The vc20 (v2.42) draft was deliberately discarded UNSENT — v2.43 superseded it before submission
+  (Pierre held the submit to land the login first). AAB+APK archived:
+  `_archive/PTApp/releases/2026-08-23-spotset-v2.43-vc21.{aab,apk}`.
+- ✅ **vc9 (v2.32) CLEARED REVIEW AND PUBLISHED Aug 22** (console notification, seen 08-23:
+  "App update published"). Review turnaround for updates has been same-evening in practice;
+  Google's stated window is up to 7 days.
+- 🔴 **WAITING ON PIERRE: provision tester emails in Supabase console** (Authentication → Users →
+  Add user, email+password) — v2.43's email login answers "wrong credentials" for any email
+  without a row. No self-signup by rule (Apple 4.8). Guest button covers everyone else.
+- 📝 The account name in the console reads **Calnorm** (was Illume in memory — the console wins).
 - 🟢 **THE 12 OPT-INS ARE DONE AND THE 14-DAY CLOCK IS RUNNING** (observed live in the console
   2026-08-22 ~14:45: production checklist shows ✅ closed release · ✅ 12 testers opted in ·
   ⭕ run the test 14 days). The opt-in link stays `https://play.google.com/apps/testing/com.spotset.app`

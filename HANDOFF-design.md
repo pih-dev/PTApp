@@ -38,6 +38,16 @@ not ask follow-up questions beyond the one §0 names.
   convention — the convention is older than this app.
 - **Elie's two rulings, do not re-propose:** the compact Home view is gone (detailed only), and the
   session-count edit **stays** in the booking screen.
+- 🟢 **v2.43 SHIPPED + SUBMITTED TO PLAY (2026-08-23): THE LOGIN IS LIVE.** The whole auth stack
+  existed dark; **`.env` (anon key only, from `_archive/PTApp/supabase-spotset.env`) is now a BUILD
+  INPUT** — without it a build is token-only. Email sign-in (accounts PROVISIONED, no self-signup) ·
+  "Continue as guest" button (the DEMO path + refusal gate) · token until the parallel run ends.
+  Live RLS matrix passed pre-ship; security review clean. **vc21 (2.43) submitted to the Alpha
+  track 08-23 ~09:00 — probe the console before quoting its state.** vc9 (2.32) published Aug 22.
+  🔴 **OPERATIONAL, WAITING ON PIERRE: provision tester emails in Supabase console** (Auth → Users
+  → Add user) — without a row, email login = "wrong credentials".
+  🔴 **vc21 trap re-earned: `gradlew` without `npx cap sync` shipped the PREVIOUS web bundle inside
+  a correctly-numbered APK** — caught by grepping the version INSIDE `assets/public/index.html`.
 - 🟢 **v2.42 SHIPPED (2026-08-23): 21 SKINS — 7 families × Light/Optimal/Dark.** 🔴 **The optimal
   is hand-designed; the flanks are GENERATED (`scripts/gen-skin-variants.mjs`) and auto-corrected
   against `sanity-contrast` — never hand-edit a generated block, re-run the script.** Pebble →

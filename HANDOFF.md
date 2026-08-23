@@ -10,9 +10,13 @@ not draft, do not ask follow-up questions.
 ## 0. Status — read this out
 
 - 🔴 **EVERY SUBJECT HAS ITS OWN HANDOFF — route by trigger, newest first:**
-  - **`design` / `theme` / `typography` / `skin` / `buttons` → `HANDOFF-design.md`** — the
-    freshest thread: v2.37 shipped (Big Steps type, six skins, the Display sheet). 🔴 Carries the
-    two-session version-collision warning. **`continue` right after this session's clear means THIS one.**
+  - **`design` / `theme` / `typography` / `skin` / `buttons` / `login` → `HANDOFF-design.md`** —
+    the freshest thread (2026-08-23 marathon): **v2.39→v2.43 shipped in one session** — swipe-week,
+    Pebble→rounded-rects everywhere, trench separators, the contrast gate, 21 skins (7 families ×
+    Light/Optimal/Dark, flanks GENERATED), Flint, and **the login went live (.env is a build
+    input)**. vc21/2.43 submitted to Play. Dump:
+    `_archive/PTApp/claude-incidents/2026-08-23-design-marathon-v239-v243-FULL-SESSION.txt`.
+    **`continue` right after this session's clear means THIS one.**
   - **`showcase` / `logo` / `suite` / `sound` → `HANDOFF-showcase.md`** — the freshest thread
     (this session): v2.32 shipped; vc9 now uploaded to Play; OPEN: Pierre's "S" logo idea.
     **`continue` right after this session's clear means THIS one.**
