@@ -162,7 +162,10 @@ function equipment(sk, anchor, gear, view) {
         const at = !apart ? centre
           : (Math.hypot(g.x - sk.head.x, g.y - sk.head.y)
              >= Math.hypot(gF.x - sk.head.x, gF.y - sk.head.y) ? g : gF);
-        out.push(disc(at.x, at.y, 46));
+        // Clamped to the cell (Pierre's Bench call, 2026-08-23): the rollout
+        // fault's reach put the ball 20 units past the right edge, rendering
+        // it flat-sided. The cell is x −450..450; keep the whole disc inside.
+        out.push(disc(Math.max(-402, Math.min(402, at.x)), at.y, 46));
         break;
       }
       case 'cable': {
@@ -205,6 +208,9 @@ function equipment(sk, anchor, gear, view) {
     case 'shoulders': {
       if (gear === 'dumbbell' || gear === 'kettlebell' || gear === 'none') { handHeld(); break; }
       const c = { x: sk.neckBase.x, y: sk.neckBase.y + 26 };
+      // Side view: a racked bar points at the camera — a plate disc at the
+      // shoulders, exactly like the hand-held barbell's side-view rule.
+      if (!across) { out.push(disc(c.x, c.y, PLATE)); break; }
       out.push(bar({ x: c.x - 330, y: c.y }, { x: c.x + 330, y: c.y }, 10));
       out.push(disc(c.x - 330 + PLATE * 0.4, c.y), disc(c.x + 330 - PLATE * 0.4, c.y));
       break;
@@ -359,7 +365,14 @@ const ROTATES = {
 // draw (barbell, or nothing), and a pattern a human has judged through the
 // turn. Everything else keeps its authored view until its own judging
 // round — a control that renders an unjudged angle is worse than no control.
-const SPINS = new Set(['curl', 'hinge', 'bench-press']);
+// 2026-08-23, from the Judging Bench: Pierre opened the turn on eight more
+// patterns. The five SIDE-authored ones enter here after full-size frame
+// judging; rotation, lateral-raise and anti-rotation are FRONT-authored —
+// skeleton3 reads a pose as sagittal, so their θ=0 would draw the frontal
+// angles in profile. They wait with the squat family for the side+depth
+// re-author (OPEN item 4), not because the ruling is in doubt.
+const SPINS = new Set(['curl', 'hinge', 'bench-press',
+  'row', 'overhead-press', 'hip-bridge', 'lunge', 'knee-tuck']);
 
 // 🔴 THE GATE NO LONGER TESTS FOR BAKED `fs`, and that removal IS the
 //    2026-08-22 fix for "the bench-press bar never moves". The old
@@ -377,7 +390,7 @@ const SPINS = new Set(['curl', 'hinge', 'bench-press']);
 // spinEquip) — 8 more movements turn. Cable/machine/landmine stay out:
 // their gear anchors to WORLD objects (a stack, a frame, a floor pivot),
 // which is its own modelling round, not a gear-at-the-hand variant.
-const SPIN_GEAR = new Set(['barbell', 'dumbbell', 'none']);
+const SPIN_GEAR = new Set(['barbell', 'dumbbell', 'ball', 'none']);
 const spinsFor = (id, gear) => SPINS.has(id) && SPIN_GEAR.has(gear);
 
 // v2.30: what the LIBRARY needs to badge a row without composing two full

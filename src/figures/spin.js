@@ -146,9 +146,14 @@ export function spinEquip(pose, theta, gear, anchor, pitchDeg = 0) {
   const pr = (p) => { const q = raw(p); return { x: q.x + gdx, y: q.y + gdy, z: q.z }; };
 
   if (gear === 'barbell') {
-    const grip = {
-      x: (sk.wristN.x + sk.handN.x) / 2, y: (sk.wristN.y + sk.handN.y) / 2, z: 0,
-    };
+    // Where the bar crosses the body depends on the pattern's anchor: in the
+    // hands (press, deadlift), racked on the shoulders (lunge, split squat)
+    // or across the hips (hip thrust). All three are the same 3D object.
+    const grip = anchor === 'shoulders'
+      ? { x: sk.neckBase.x, y: sk.neckBase.y + 26, z: 0 }
+      : anchor === 'hips'
+        ? { x: sk.pelvis.x, y: sk.pelvis.y - 44, z: 0 }
+        : { x: (sk.wristN.x + sk.handN.x) / 2, y: (sk.wristN.y + sk.handN.y) / 2, z: 0 };
     // Pierre's model of the object (voice note, 08-22): "it's a bar — an axis,
     // and there are bells at the ends, like SPHERES." A sphere projects to a
     // circle from every angle, which solves two judged defects at once: the
@@ -168,6 +173,23 @@ export function spinEquip(pose, theta, gear, anchor, pitchDeg = 0) {
     // anyway showed through the body's translucent fill as a dark hole
     // (the 180° artifact). One bell is what the eye would see.
     out.push(...(endOn ? [bells.reduce((m, x) => (x.z > m.z ? x : m))] : bells));
+  }
+
+  if (gear === 'ball') {
+    // A sphere is the one shape a turn cannot break: same disc from every
+    // angle, riding its grip's true 3D point. Grip choice mirrors the 2D
+    // rule (2026-08-23): hands together hold it between them; split grips
+    // put it in the hand FARTHER from the head (the throwing arm).
+    const gN = { x: (sk.wristN.x + sk.handN.x) / 2, y: (sk.wristN.y + sk.handN.y) / 2, z: ((sk.wristN.z || 0) + (sk.handN.z || 0)) / 2 };
+    const gF2 = { x: (sk.wristF.x + sk.handF.x) / 2, y: (sk.wristF.y + sk.handF.y) / 2, z: ((sk.wristF.z || 0) + (sk.handF.z || 0)) / 2 };
+    const gap = Math.hypot(gN.x - gF2.x, gN.y - gF2.y);
+    const level = Math.abs(gN.y - gF2.y) <= 60;
+    const at = (gap <= 120 || level)
+      ? { x: (gN.x + gF2.x) / 2, y: (gN.y + gF2.y) / 2, z: (gN.z + gF2.z) / 2 }
+      : (Math.hypot(gN.x - sk.head.x, gN.y - sk.head.y)
+         >= Math.hypot(gF2.x - sk.head.x, gF2.y - sk.head.y) ? gN : gF2);
+    const c = pr(at);
+    out.push({ k: 'circle', x: c.x, y: c.y, r: 46, z: c.z });
   }
 
   if (gear === 'dumbbell') {

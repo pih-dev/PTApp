@@ -21,6 +21,22 @@ instructions-v2.37.md.
 
 ---
 
+## v2.38 - the Judging Bench lands (August 23, 2026)
+
+Pierre judged 51 items on an interactive page and this release ships the
+results. Every one of the 44 patterns now marks what its FAULT stresses
+(the wash on the wrong figure shows the muscles the error loads). Five
+more patterns turn in 360° - rows, overhead presses, hip thrusts, lunges
+and the plank knee-tuck family - so 75 movements spin, up from 29. Three
+figures he photographed as broken were re-drawn: the reverse plank (was
+entirely below the frame), the overhead press (bar and arms were above
+the frame), and the lunge (the trunk now leans so the side view reads as
+a side view, and the barbell racks on the shoulders instead of floating
+at the thigh). Ten more patterns have parts touching the frame edge -
+measured and queued as one framing round.
+
+---
+
 ## v2.36 - dumbbells join the 3D vocabulary (August 23, 2026)
 
 The 360° spin could only draw a barbell or nothing, so every dumbbell

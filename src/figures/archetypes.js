@@ -89,6 +89,8 @@ export const ARCHETYPES = {
   // ══ LOWER ══════════════════════════════════════════════════════════════════
 
   squat: {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['quads'], secondary: ['glutes'] },
     base: {
       view: 'front', root: { x: 0, y: 455 }, ground: G, spine: [0, 0, 0], head: 0,
       fs: { thigh: 0.75, shin: 0.95, foot: 0.45, upperArm: 0.83, forearm: 0.77, hand: 0.7 },
@@ -102,6 +104,8 @@ export const ARCHETYPES = {
   },
 
   'squat-machine': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['glutes'] },
     // Back against a pad on rails: the knee cannot cave the way a free squat's
     // does, so the fault this one teaches is the pelvis tucking at depth.
     // Back against a rail-mounted pad, torso near-upright, knees deep.
@@ -114,7 +118,14 @@ export const ARCHETYPES = {
   },
 
   lunge: {
-    base: { ...STAND, root: { x: -30, y: 470 }, spine: [6, -4, 2], head: -4 },
+    // Proposal applied 2026-08-23 after the geometry fix - the Bench card
+    // could not be judged while the figure was wrong. Re-judge in-app.
+    faultMuscles: { primary: ['quads'], secondary: ['calves'] },
+    // Trunk lean raised 6° → 14° (Pierre's Judging Bench photo, 2026-08-23):
+    // with a vertical trunk and hanging arms the side view read as a FRONT
+    // view, which made the fault's forward shin read as a knee bending
+    // sideways. A split squat carries a slight forward lean anyway.
+    base: { ...STAND, root: { x: -30, y: 470 }, spine: [14, 0, 2], head: -6 },
     // Front leg forward and bent, back leg trailing with the knee low.
     correct: {
       legs: { near: [34, -36, 92], far: [-40, 74, 44] },
@@ -127,7 +138,10 @@ export const ARCHETYPES = {
     },
     guide: { joints: ['hipN', 'kneeN', 'ankleN'] },
     faultJoint: { joints: ['kneeN'], r: 40 },
-    anchor: 'hands',
+    // 'hands', until the Judging Bench photo: a hand-held barbell in side
+    // view is a disc at the GRIP, which put a ball on the thigh of every
+    // barbell lunge. The bar is racked on the shoulders in these lifts.
+    anchor: 'shoulders',
   },
 
   hinge: {
@@ -144,6 +158,8 @@ export const ARCHETYPES = {
   },
 
   'hip-bridge': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['glutes'] },
     // Supine, hips driven up: shoulders and feet down, a straight line between.
     base: {
       view: 'side', root: { x: 130, y: 590 },
@@ -160,6 +176,8 @@ export const ARCHETYPES = {
   },
 
   'knee-extension': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['quads'], secondary: ['hamstrings'] },
     base: { ...SEATED, arms: arms([-16, 40, 8], [-12, 36, 8]) },
     correct: { legs: { near: [64, -50, 92], far: [60, -46, 92] } },
     fault: { legs: { near: [60, -66, 92], far: [56, -62, 92] } },
@@ -169,6 +187,8 @@ export const ARCHETYPES = {
   },
 
   'knee-flexion': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['glutes'] },
     // Face down, heel curled toward the glute.
     // Face down on a pad, heel curling toward the glute.
     base: { view: 'side', root: { x: 150, y: 700 }, spine: [-90, 2, -2], head: 4, arms: arms([-100, 8, 6], [-103, 10, 6]) },
@@ -181,6 +201,8 @@ export const ARCHETYPES = {
   },
 
   'calf-raise': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['calves'], secondary: ['quads'] },
     base: { ...STAND, arms: arms([4, 2, 6], [2, 4, 6]) },
     // Up on the toes: the whole body rises, the ankle is fully extended.
     correct: { root: { x: 0, y: 340 }, ground: { joint: 'toeN', y: FLOOR }, legs: { near: [2, -2, 40], far: [-2, 2, 40] } },
@@ -192,6 +214,8 @@ export const ARCHETYPES = {
   },
 
   'hip-abduction': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
     base: { ...STAND_FRONT, arms: front([8, 6, 4]) },
     correct: { legs: { near: [28, -6, 118], far: [-3, 3, -118] } },
     // The trunk has leaned away to throw the leg out instead of the hip lifting it.
@@ -202,6 +226,8 @@ export const ARCHETYPES = {
   },
 
   'hip-adduction': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
     base: { ...STAND_FRONT, arms: front([8, 6, 4]) },
     correct: { legs: { near: [-16, 6, 118], far: [-3, 3, -118] } },
     fault: { spine: [14, -4, -4], legs: { near: [-30, 10, 118], far: [-4, 4, -118] } },
@@ -211,6 +237,8 @@ export const ARCHETYPES = {
   },
 
   'back-extension': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['glutes'] },
     // Face down over a pad, rising to horizontal — no further.
     base: { view: 'side', root: { x: -60, y: 500 }, arms: arms([-150, 20, 6], [-146, 24, 6]), legs: { near: [12, -6, 84], far: [9, -3, 84] }, ground: G },
     correct: { spine: [64, -6, -6], head: -8 },
@@ -236,6 +264,8 @@ export const ARCHETYPES = {
   },
 
   'leg-press': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['quads'], secondary: ['hamstrings'] },
     base: {
       view: 'side', root: { x: 0, y: 560 }, spine: [-50, 4, -6], head: 8,
       arms: arms([-38, 62, 10], [-34, 58, 10]),
@@ -268,6 +298,8 @@ export const ARCHETYPES = {
   },
 
   'chest-press': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['delts'], secondary: ['chest'] },
     base: { ...SEATED, spine: [-8, 2, 3], head: 4 },
     correct: { arms: arms([-81, 161, -10], [-77, 157, -10]) },
     fault: { arms: arms([-110, 180, -12], [-106, 176, -12]) },
@@ -290,6 +322,8 @@ export const ARCHETYPES = {
   },
 
   dip: {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['delts'], secondary: ['chest'] },
     base: { view: 'side', root: { x: 0, y: 430 }, spine: [8, -4, -2], head: -4, legs: { near: [-28, -46, 92], far: [-24, -50, 92] } },
     correct: { arms: arms([174, 34, 4], [170, 38, 4]) },
     // Dropped too deep — the shoulder is now below the elbow.
@@ -300,6 +334,8 @@ export const ARCHETYPES = {
   },
 
   fly: {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['chest'], secondary: ['biceps'] },
     base: { ...STAND_FRONT, spine: [0, 0, 0] },
     correct: { arms: front([104, 14, 6]) },
     // Opened too far with straight arms: the whole stretch is on the joint.
@@ -311,9 +347,13 @@ export const ARCHETYPES = {
 
   'overhead-press': {
     base: { ...STAND },
-    correct: { spine: [2, -2, 2], head: -2, arms: arms([172, 10, 4], [168, 12, 4]) },
+    // Mid-press, bar just above the forehead (2026-08-23): the lockout the
+    // pose used to draw put the bar 125 units above the frame - the shipped
+    // card was a headless column with no arms. The lean-back fault lives in
+    // the press-out anyway, so this is also the truer teaching moment.
+    correct: { spine: [2, -2, 2], head: -2, arms: arms([95, 105, 4], [91, 107, 4]) },
     // Leaned back under the bar — the press comes from the lower back.
-    fault: { spine: [-22, 6, 8], head: 10, arms: arms([158, 16, 6], [154, 18, 6]) },
+    fault: { spine: [-22, 6, 8], head: 10, arms: arms([95, 90, 6], [91, 92, 6]) },
     guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 46, offset: { x: -26, y: 6 } },
     // Pierre's other case (brief §5): leaned back, the press is an incline —
@@ -350,6 +390,8 @@ export const ARCHETYPES = {
   },
 
   shrug: {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['traps'], secondary: ['biceps'] },
     base: { ...STAND_FRONT },
     // The rig cannot shrug — the shoulder is fixed to the neck — so the fault
     // this pattern teaches is the one that actually changes the shape: bending
@@ -362,6 +404,8 @@ export const ARCHETYPES = {
   },
 
   'external-rotation': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['delts'], secondary: ['traps'] },
     base: { ...STAND, spine: [2, -2, 2] },
     correct: { arms: arms([8, 84, 6], [6, 86, 6]) },
     // The elbow has come off the ribs and the shoulder is doing the rotating.
@@ -372,6 +416,8 @@ export const ARCHETYPES = {
   },
 
   'front-raise': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['delts'] },
     base: { ...STAND },
     correct: { arms: arms([84, 4, 4], [80, 6, 4]) },
     // Swung up with a backward lean instead of lifted.
@@ -382,6 +428,8 @@ export const ARCHETYPES = {
   },
 
   'lateral-raise': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['traps'], secondary: ['delts'] },
     base: { ...STAND_FRONT },
     correct: { arms: front([86, 8, 4]) },
     // Taken well above the shoulder line, where the joint has nothing left.
@@ -394,6 +442,8 @@ export const ARCHETYPES = {
   // ══ PULL ═══════════════════════════════════════════════════════════════════
 
   'vertical-pull': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['delts'], secondary: ['biceps'] },
     base: {
       view: 'front', root: { x: 0, y: 500 }, ground: { joint: 'wristN', x: 118, y: 62 },
       legs: { near: [-30, -70, 100], far: [-26, -74, 100] },
@@ -410,6 +460,8 @@ export const ARCHETYPES = {
   },
 
   row: {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['lats'] },
     base: { ...HINGED, root: { x: -120, y: 440 } },
     correct: { spine: [52, -4, -4], head: -6, arms: arms([16, 66, 8], [14, 68, 8]) },
     // The back has rounded and the rep is being jerked with the trunk.
@@ -420,6 +472,8 @@ export const ARCHETYPES = {
   },
 
   'upright-row': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['delts'], secondary: ['traps'] },
     base: { ...STAND_FRONT },
     correct: { arms: front([28, 108, 10]) },
     // Pulled up to the collarbone, which is where the shoulder runs out of room.
@@ -430,6 +484,8 @@ export const ARCHETYPES = {
   },
 
   pullover: {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['delts'] },
     base: { ...SUPINE, root: { x: 120, y: 610 } },
     correct: { spine: [-88, 2, -2], head: 6, arms: arms([-146, 12, 4], [-142, 14, 4]) },
     // The ribs have flared and the back has come off the bench to reach further.
@@ -440,6 +496,8 @@ export const ARCHETYPES = {
   },
 
   curl: {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['delts'] },
     base: { ...STAND, root: { x: 0, y: 375 } },
     correct: { spine: [2, -2, 2], head: -4, arms: arms([5, 115, 12], [2, 118, 12]) },
     fault: { spine: [-18, 6, 8], head: 12, legs: { near: [5, -8, 88], far: [0, -3, 88] }, arms: arms([28, 98, 14], [25, 101, 14]) },
@@ -449,6 +507,8 @@ export const ARCHETYPES = {
   },
 
   'wrist-curl': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['biceps'], secondary: ['forearms'] },
     base: { ...SEATED, spine: [16, -6, -4], head: -8 },
     correct: { arms: arms([54, 34, -46], [50, 38, -46]) },
     // The whole arm is moving, so the forearm never does the work.
@@ -459,6 +519,8 @@ export const ARCHETYPES = {
   },
 
   carry: {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
     base: { ...STAND_FRONT },
     correct: { arms: front([6, 4, 4]) },
     // Leaning away from the load instead of bracing against it.
@@ -471,6 +533,8 @@ export const ARCHETYPES = {
   // ══ CORE ═══════════════════════════════════════════════════════════════════
 
   plank: {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
     base: { ...PRONE, ground: { joint: 'toeN', y: FLOOR } },
     correct: { spine: [-71, 2, -2], head: 4, arms: arms([0, -90, -8], [-3, -87, -8]) },
     // The hips have dropped: the body is a sag, not a line.
@@ -481,6 +545,8 @@ export const ARCHETYPES = {
   },
 
   'side-plank': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['delts'] },
     // Drawn front-on: the body lies along −x and the fault is the hip dropping,
     // which is a change in the line of the trunk seen from the side of the mat.
     base: {
@@ -496,15 +562,24 @@ export const ARCHETYPES = {
   },
 
   'reverse-plank': {
-    base: { view: 'side', root: { x: 120, y: 560 }, arms: arms([-152, 8, 6], [-149, 10, 6]), legs: { near: [96, -4, 96], far: [93, -1, 96] }, ground: { joint: 'toeN', y: FLOOR - 6 } },
-    correct: { spine: [-104, 3, -3], head: 6 },
-    fault: { root: { x: 120, y: 606 }, spine: [-88, -12, 6], head: 14 },
+    // Proposal applied 2026-08-23 after the re-author - the Bench card was
+    // out of frame and could not be judged. Re-judge in-app.
+    faultMuscles: { primary: ['delts'], secondary: ['erectors'] },
+    // Re-authored 2026-08-23: the original spine (-104°) tipped the trunk
+    // PAST horizontal, and with the toe pinned to the floor line the whole
+    // body computed below the cell — Pierre's Judging Bench photo shows
+    // just a limb sliver in the corner. Nobody had ever seen this pair.
+    base: { view: 'side', root: { x: 40, y: 600 }, arms: arms([-4, -86, 0], [-1, -84, 0]), legs: { near: [76, -2, 92], far: [73, 1, 92] }, ground: { joint: 'ankleN', y: FLOOR - 6 } },
+    correct: { spine: [-76, 2, 6], head: 22 },
+    fault: { spine: [-66, -6, 10], head: 28, legs: { near: [82, -2, 92], far: [79, 1, 92] } },
     guide: { joints: ['ankleN', 'kneeN', 'pelvis', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 42, offset: { x: 0, y: 30 } },
     anchor: 'none',
   },
 
   crunch: {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['traps'], secondary: ['quads'] },
     base: { ...SUPINE },
     // The trunk curls: going up the chain each segment lifts a little further
     // off the floor. That IS a crunch — the ribs travel toward the pelvis.
@@ -531,6 +606,8 @@ export const ARCHETYPES = {
   },
 
   'knee-tuck': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['delts'], secondary: ['abs'] },
     base: { ...PRONE, arms: arms([0, -90, -8], [-3, -87, -8]), ground: { joint: 'handN', y: FLOOR } },
     correct: { spine: [-71, 2, -2], head: 4, legs: { near: [46, 54, -40], far: [76, 1, -39] } },
     // The hips have piked up and the trunk has stopped holding anything.
@@ -541,6 +618,8 @@ export const ARCHETYPES = {
   },
 
   rollout: {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
     // Kneeling, arms reaching away along the floor.
     base: { view: 'side', root: { x: -40, y: 500 }, legs: { near: [-14, -92, 84], far: [-17, -89, 84] }, ground: { joint: 'kneeN', y: FLOOR - 18 } },
     correct: { spine: [58, -4, -6], head: -10, arms: arms([44, 26, 8], [40, 30, 8]) },
@@ -552,6 +631,8 @@ export const ARCHETYPES = {
   },
 
   'anti-rotation': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
     base: { ...STAND_FRONT },
     correct: { arms: front([104, 62, 6]), spine: [0, 0, 0] },
     // The whole point of the drill is not to turn — and the trunk has turned.
@@ -562,6 +643,8 @@ export const ARCHETYPES = {
   },
 
   rotation: {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
     base: { ...STAND_FRONT },
     correct: { arms: { near: [128, 34, 6], far: [-58, -40, -6] }, legs: { near: [14, -8, 118], far: [-10, 6, -118] } },
     // Turned from the lower back with the feet planted, instead of from the hips.
@@ -572,6 +655,8 @@ export const ARCHETYPES = {
   },
 
   'side-bend': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
     base: { ...STAND_FRONT },
     correct: { spine: [-14, 2, 2], arms: { near: [8, 4, 4], far: [-6, -4, -4] } },
     // Bent past the point where the trunk is controlling it.
@@ -582,6 +667,8 @@ export const ARCHETYPES = {
   },
 
   'bird-dog': {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['glutes'] },
     base: { ...QUAD },
     correct: { spine: [-86, 2, -2], head: 4, legs: { near: [100, 0, 80], far: [4, -96, 88] }, arms: arms([-100, 0, -6], [0, 4, 6]) },
     // The back has sagged and the leg has gone higher than the trunk can hold.
@@ -592,6 +679,8 @@ export const ARCHETYPES = {
   },
 
   sled: {
+    // Judged by Pierre on the Judging Bench, 2026-08-23.
+    faultMuscles: { primary: ['erectors'], secondary: ['quads'] },
     base: { ...STAND, root: { x: -60, y: 430 } },
     correct: { spine: [34, -4, -4], head: -6, legs: { near: [26, -16, 78], far: [-16, 10, 88] }, arms: arms([46, 10, 6], [42, 14, 6]) },
     fault: { spine: [22, 16, 12], head: -14, legs: { near: [24, -14, 78], far: [-14, 8, 88] }, arms: arms([42, 12, 6], [38, 16, 6]) },
