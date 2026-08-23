@@ -38,6 +38,21 @@ not ask follow-up questions beyond the one §0 names.
   convention — the convention is older than this app.
 - **Elie's two rulings, do not re-propose:** the compact Home view is gone (detailed only), and the
   session-count edit **stays** in the booking screen.
+- 🟢 **v2.43.2 SHIPPED (2026-08-23): THE SPOT IS IN THE MARK** — from Pierre's own launcher-icon
+  mock: a `var(--accent)` dot above the pair, between the heads ("the circle is the SPOT, the pair
+  is the SET"), with `pm-spot`/`pmSpot` so it wanders in and settles before the lines draw.
+  🔴 **THE ICON PIPELINE FLATTENS COLOURS THROUGH A LITERAL MAP in `logo-candidates.mjs --export`
+  — a NEW token must be added there or every store/launcher asset renders it unresolved-black.**
+  `--accent` added; launcher + PWA icons regenerated and pixel-verified. Pages `built`, APK vc23
+  verified inside + delivered.
+- ⏸️ **THE "S" EXPLORATION IS PARKED, NOT DEAD** (his call: *"not going anywhere with this, just
+  archive them, we can get to them later"*). Four sheets in `_archive/PTApp/branding/`:
+  `2026-08-23-spotset-s-gallery.html` (letterforms) · `…-s-pair-gallery.html` (the pair as an S) ·
+  `…-s-pair-round2.html` (correct/fault + tilt + Spot, five hinge movements) · `…-round3/4.html`
+  (10° tilt, Spot at 20/20, brush band, angled link). Generators: `scripts/s-pair-studies.mjs`,
+  `scripts/s-pair-round2.mjs` — both read `src/figures` and edit nothing there. **His geometry
+  finding, worth keeping: the ~90° hinge (Barbell Row) makes a rounder S than the deadlift's ~130°.**
+  Serve any sheet with `python -m http.server 8734` in that folder.
 - 🟢 **v2.43.1 SHIPPED (2026-08-23): the logo re-frozen from CCHealth's cap-sweep renderer fix**
   — dark spots at hips/feet/fingers gone; launcher icons regenerated; Pages `built`, APK vc22
   verified inside + delivered. 🔴 **OPEN, HIS PICK: the S gallery** — 19 candidates in three sets,
