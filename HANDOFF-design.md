@@ -38,6 +38,13 @@ not ask follow-up questions beyond the one §0 names.
   convention — the convention is older than this app.
 - **Elie's two rulings, do not re-propose:** the compact Home view is gone (detailed only), and the
   session-count edit **stays** in the booking screen.
+- 🟢 **v2.41 SHIPPED (2026-08-23): Pierre's Pebble verdict applied** — rounded RECTANGLES (never
+  pills) in ALL skins via the :root radii; separators are TRENCHES (`--trench`, derived from each
+  skin's ground); thin marks got capsule ends. 🔴 **HIS PROCESS RULING, now a gate:** a finding on
+  one screenshot is audited everywhere it applies, in every skin — `sanity-contrast.mjs` measures
+  every token pairing per skin (text hard 4.5; decorative gates at "perceivable" because
+  lume/enamel's quiet shafts are ruled design). It caught 4 more unreadable pairings on day one.
+  Pages `built`, APK vc19 verified + delivered. Pebble stays as a palette.
 - 🟢 **v2.40 SHIPPED (2026-08-23): PEBBLE (the rounded skin) + `--on-bar` + radius tokens** —
   Pierre's "smooth out the boxiness / pills" ask, built as the seventh skin so he can compare.
   🔴 **His geometry ruling amends "only hue changes": radius may vary per skin ONLY via the six
