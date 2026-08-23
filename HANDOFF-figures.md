@@ -23,6 +23,18 @@ list, in order. Verify the live version yourself before quoting one.
 🔴 **STANDING INSTRUCTION FOR THIS SUBJECT: keep this file current AS YOU GO.** Update §0 and commit
 at each milestone. A restart could end the session at any moment.
 
+> 🔴 **QUEUED FROM THE DESIGN SESSION, 2026-08-23 (Pierre, on two phone screenshots): THE `mark`
+> RENDER PATH DRAWS DARK SPOTS — hips, feet, fingers.** Visible on the showcase's hero pair and in
+> the frozen logo (`src/spotsetMark.js`); the library's full-detail Deadlift render is clean, so
+> the artifact is specific to the solid-silhouette `mark` detail (joint capsules / contact points
+> painting dark inside the fill; there is also a black wedge at the left figure's elbow/hip
+> junction). **This is renderer work → CCHealth fixes it in `src/figures/` (mark detail path).**
+> When fixed, the RE-FREEZE is the design thread's job (B3):
+> `node scripts/logo-candidates.mjs --freeze pair-off-colour --freeze-bg pair-off-lines`, then
+> `node scripts/make-android-icons.mjs`, then the deploy pipeline. A re-freeze was run 2026-08-23
+> BEFORE this finding and came out byte-identical — i.e. the spots are in the current generator
+> output, not a stale freeze. Screenshots: `_archive/PTApp/session-images/2026-08-23-logo-dark-spots-*.jpg`.
+
 > 📌 Other threads that are NOT this one: `HANDOFF-design.md` (the visual-language pass, stages 1–5,
 > **finished**), `HANDOFF-multi-user-build.md` (Supabase / Task A), `HANDOFF-spotset-publishing.md`
 > (Play + Apple), `HANDOFF.md` (the queued-task overview).
