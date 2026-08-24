@@ -4,6 +4,31 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.45 - second anatomy pass: mirrored signs, frame, floor (2026-08-24)
+
+A head-at--x prone body is a MIRRORED figure: every relative joint sign
+flips. 14 patterns re-authored in src/figures/poses.js (knee-flexion feet,
+bird-dog trunk slope closing the v2.44 floor violation, dip re-gripped at hip
+height, triceps-overhead fold, hip machines grounded on the support leg,
+9 patterns recentred/re-grounded). New FRAME gate (joint outside cell warns);
+ROM gate skips lying bodies (24 noise warnings down to 2 deliberate).
+Detail: instructions-v2.45.md. Packaged as vc25 same day; AAB to Play Alpha.
+
+---
+
+## v2.44 - anatomy pass: knee, pelvis girths, neck, 3 gates (2026-08-23)
+
+lunge re-authored as split squat (rear shin +74 was anterior = backward
+knee). Global girth re-cut: front.hip 48->narrower, flanks trimmed (156-wide
+hips vs 110 ribcage was the defect); side depths matched. Torso ribbon now
+reaches the head (neck added - the 15-unit gap showed in side poses).
+hip-extension grounds on the standing leg; prone knee-flexion sign fixed;
+sled knee. Gates: KNEE (fail >+20 hyperext, upright side views only), FLOOR
+(contact joints under baseline), ROM stops judging front-view lateral angles
+sagittally. All 680 figures re-rendered. Detail: instructions-v2.44.md.
+
+---
+
 ## v2.43.2 - the Spot in the mark, pm-spot animation (2026-08-23)
 
 pair-off-colour gains spot:true - a var(--accent) circle at (46%,10%),

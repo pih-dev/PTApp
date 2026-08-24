@@ -24,6 +24,19 @@ just the leg press's two deliberate ones.
 
 ---
 
+## v2.44 - the anatomy pass: the knee, the pelvis, and the neck (August 23, 2026)
+
+Pierre circled figures on the showcase wall: a lunge knee bending backwards,
+hips wider than the ribcage. Both were real. The lunge became a proper split
+squat; the pelvis proportions were re-cut (the old ones printed 156-wide hips
+over a 78 waist - a cartoon pear); the head, which had always floated 15 units
+off the torso, is now joined by a neck; and figures that kicked or curled
+their support limbs under the floor stand on the ground. Three build gates
+(knee hyperextension, floor contact, an honest range-of-motion check) keep
+those classes of mistake from shipping silently again.
+
+---
+
 ## v2.43.2 - the Spot joins the logo (August 23, 2026)
 
 From Pierre's own icon mock: a dot now sits above the pair, between the

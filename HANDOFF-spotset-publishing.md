@@ -1,6 +1,6 @@
 # SpotSet — Store Publishing HANDOFF
 
-**Last updated:** 2026-08-23 ~09:05, Beirut — vc21 (v2.43) submitted to Play review.
+**Last updated:** 2026-08-24 ~10:45, Beirut — vc25 (v2.45) submitted to Play review (Elie-driven session).
 **To resume:** Pierre types `spotset`, `publish`, `illume` or `continue`. **Read §0 back to him
 and stop.** Do not investigate, do not draft, do not ask follow-up questions beyond the one §0 names.
 
@@ -27,6 +27,17 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   track summary "Latest release: 21 (2.43)", *Available to selected testers · Released on Aug 23
   8:39 AM*, Publishing overview clean with no changes in review. **Review took ~40 minutes**, not
   the 7 days Google states — but that is a sample of two same-day updates, not a rule.
+- 🚀 **vc25 (v2.45) SUBMITTED 2026-08-24 ~10:40** on Elie's ask in-session (standing authority;
+  he wanted the latest build + Play deploy + the APK). vc24 (v2.44) was never submitted to Play —
+  APK-only, no AAB built that round; vc25 carries both anatomy passes (v2.44+v2.45) to testers.
+  Console parsed the AAB as versionCode 25 and showed *Changes in review · 25 (2.45) · Start full
+  rollout* with quick checks running; only the routine "no deobfuscation file" warning. Release
+  notes: the movement-figure anatomy pass. AAB+APK archived as
+  `_archive/PTApp/releases/2026-08-24-spotset-v2.45-vc25.{aab,apk}`; live-data snapshot taken
+  first (`pre-v2.45-play-upload`, 179,833 B byte-verified). Elie got the APK by SendUserFile.
+  **Probe the console before quoting any of this back.**
+- ✅ **vc23 (v2.43.2) CLEARED REVIEW AND PUBLISHED Aug 23** (console notification "App update
+  published", seen 08-24; track summary read *Release: 23 (2.43.2)* before the vc25 submit).
 - 🚀 **vc23 (v2.43.2) SUBMITTED 2026-08-23 ~09:50** on Pierre's explicit go ("deploy it to the
   Play Store… this is a very good milestone"). Closed testing – Alpha, full rollout on approval;
   notes lead with the login, the 21 themes and the clean logo. Console showed *Changes in review ·
