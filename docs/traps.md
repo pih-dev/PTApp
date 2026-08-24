@@ -770,3 +770,51 @@ holds by construction rather than by luck, whatever the source material does.
 **The general rule.** "It should average out" is not a property you get for free from correlated
 inputs. If two outputs must match, build them from mirrored structure — and measure, because this
 one was inaudible in a file listing and obvious the moment it was plotted.
+
+## TRAP: An absolute range cannot catch a gate's own subject — assert the CLAIM (2026-08-24, suite 3)
+
+**Symptom.** The brass model's entire claim is that **brightness tracks dynamic**: a softly blown
+horn is nearly a sine, the same horn at fortissimo blazes. `check-orchestra` measured spectral
+centroid against a range per instrument — and a brass voice with a *static* filter passes every one
+of those ranges. The gate could not fail on the thing the model exists to do.
+
+**Fix.** Assert the claim comparatively, where it can actually break:
+
+```
+a softly played horn is darker than a loud one     cen['horn-soft'] < cen.horn * 0.85
+a trumpet is brighter than a horn                  cen.trumpet     > cen.horn * 1.15
+a tuba is darker than a trombone                   cen.tuba        < cen.trombone * 0.85
+every modelled voice is less periodic than a sine  per[v] < per['REF-sine']  for all v
+a struck bar is brighter than a struck drumhead    cen.glock       > cen.timpani * 3
+```
+
+Five lines, and each one fails the moment a model stops doing what it says it does. The absolute
+ranges stay — they catch a model that broke outright — but they are the *floor* of the gate, not
+the gate.
+
+**The general rule.** Write down what the thing under test **claims**, in a sentence, before writing
+the assertion. If the assertion would still pass when the claim is false, it is testing a proxy.
+Ranges catch breakage; comparisons catch *wrongness*. This is the same lesson as the ROM gate that
+judged front-view leg angles against a sagittal range — a gate measuring the wrong quantity is worse
+than no gate, because it reports success.
+
+## TRAP: Autocorrelation has no pitch to find in a drum or a bell (2026-08-24, suite 3)
+
+**Symptom.** The voice checks reported a timpano at 2004 Hz and a glockenspiel struck at 880 Hz as
+110 Hz. Both models were correct; the *metric* was being asked an impossible question.
+
+**Root cause.** Autocorrelation finds a repeating waveform. A timpano's modes run
+1 : 1.504 : 1.742 : 2 and a glockenspiel bar's run 1 : 2.76 : 5.40 — **not integer ratios**, so the
+waveform never repeats and there is no lag at which it correlates with itself. The detector returns
+whichever spurious lag scores highest.
+
+**Fix.** Do not assert pitch on an inharmonic source; assert centroid and decay instead. Where pitch
+*does* matter but the source is formant-rich (a choir), accept the octave — a subharmonic reading is
+the metric's failure, not the model's.
+
+**The general rule worth carrying:** when a measurement contradicts a model you have reason to trust,
+check that the measurement is *applicable* before changing the model. Half the "failures" in this
+suite's first gate run were the metric, not the music — a bin-counting noise ratio that missed
+harmonics falling between bins, a decay reading that measured a pick transient instead of a string,
+a centroid computed over a window that was silent. Each one would have produced a "fix" that made
+the sound worse.
