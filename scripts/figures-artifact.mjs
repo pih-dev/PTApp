@@ -17,9 +17,11 @@
 //    supposed to rule on them was cut.
 
 import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { PATTERN_SAMPLES } from '../src/figures/poses.js';
 const FIGURES = PATTERN_SAMPLES();
 import { figureSvg } from '../src/figures/svg.js';
+import { archetypeFor } from '../src/figures/classify.js';
 import { figureText } from '../src/figureText.js';
 import { exNameAr } from '../src/exerciseNamesAr.js';
 
@@ -61,12 +63,81 @@ const FAULT = {
 
 const NAMES = Object.keys(FIGURES);
 
+// ── the geometry gate, joined onto the figures ───────────────────────────────
+// Pierre, 2026-08-24: "they usually show to spot anomalies also, it's useful
+// for me." The sanity gate already finds the anomalies and prints them by
+// pattern id; the sheet already shows the figures. They were just never joined,
+// so reading one meant scrolling the other looking for the right drawing.
+//
+// This RUNS the gate rather than duplicating its rules — the gate stays the
+// single source of what counts as wrong, and this page can never disagree with
+// the build about it.
+function readFlags() {
+  // 🔴 BOTH STREAMS. The gate prints its warnings to stderr and only its PASS
+  // line to stdout, so capturing stdout alone returned an empty flag list and
+  // the panel rendered "0 worth your eye" over a sheet with six real flags on
+  // it — a confident, wrong all-clear, which is worse than no panel at all.
+  const run = spawnSync(process.execPath, ['scripts/sanity/sanity-figures.mjs'],
+    { encoding: 'utf8', cwd: process.cwd(), maxBuffer: 16 << 20 });
+  const out = String(run.stdout || '') + String(run.stderr || '');
+  const byPattern = {};
+  for (const line of out.split(String.fromCharCode(10))) {
+    const m = /^([A-Z]+): "([^"]+)" (.*)$/.exec(line.trim());
+    if (!m) continue;
+    const [, kind, pattern, detail] = m;
+    (byPattern[pattern] ||= []).push({ kind, detail });
+  }
+  return byPattern;
+}
+
+// 🔴 NOT EVERY WARNING IS A DEFECT, and printing 26 of them as if they were
+//    wastes the one thing this page is for — Pierre's eye. A plank's arms
+//    SHOULD measure -90°: that is a straight arm holding bodyweight, and the
+//    ROM gate is measuring a quantity that does not apply to a support pose.
+//    So the flags are split, and the reason each is expected is stated. The
+//    ones left in the first group are the ones actually worth looking at.
+const EXPECTED = {
+  'plank': 'a straight support arm reads −90° by definition',
+  'reverse-plank': 'a straight support arm reads −90° by definition',
+  'push-up': 'the arm is loaded and straight at the top — that is the position',
+  'knee-flexion': 'a leg curl is a deep knee bend; 126–145° is the movement',
+  'triceps-overhead': 'the elbow is fully overhead — the range is the exercise',
+};
+
+const FLAGS = readFlags();
+// pattern id → the sample name drawn on this sheet, so a flag can point at a figure
+const NAME_OF = {};
+for (const n of NAMES) NAME_OF[archetypeFor(n)] = n;
+const FLAGGED = Object.keys(FLAGS).filter((p) => !EXPECTED[p]);
+const flaggedNames = new Set(FLAGGED.map((p) => NAME_OF[p]).filter(Boolean));
+
+const flagPanel = () => {
+  const row = (pat) => {
+    const nm = NAME_OF[pat];
+    const fig = nm ? `<span class="fmk">${figureSvg(FIGURES[nm].correct, { detail: 'mark' })}</span>` : '';
+    return `<li>${fig}<b>${pat}</b>${nm ? ` <span class="fnm">${nm}</span>` : ''}
+      <ul>${FLAGS[pat].map((f) => `<li><span class="kind">${f.kind}</span> ${f.detail}</li>`).join('')}</ul></li>`;
+  };
+  const expected = Object.keys(FLAGS).filter((p) => EXPECTED[p]);
+  return `<div class="flags">
+    <h3>Geometry flags &mdash; ${FLAGGED.length} worth your eye</h3>
+    <p class="sub">Straight from the build gate, joined to the drawings. Nothing here fails the
+      build; these are the places the geometry is doing something a human should rule on.</p>
+    <ul class="flist" style="${skinVars('midnight')}">${FLAGGED.map(row).join('')}</ul>
+    ${expected.length ? `<h3 class="quiet">And ${expected.length} the gate reports that are correct</h3>
+    <p class="sub">Listed so nobody re-investigates them. In each case the gate is measuring a
+      quantity that does not apply to the pose.</p>
+    <ul class="fexp">${expected.map((p) => `<li><b>${p}</b> &mdash; ${EXPECTED[p]}</li>`).join('')}</ul>` : ''}
+  </div>`;
+};
+
 // ── screen one: the contact sheet ────────────────────────────────────────────
 const contact = (skinId) => `
   <div class="sheet" style="${skinVars(skinId)}">
     <div class="sheet-tag">${skinId}</div>
     <div class="grid">
-      ${NAMES.map(n => `<figure><div class="art">${figureSvg(FIGURES[n].correct)}</div>
+      ${NAMES.map(n => `<figure${flaggedNames.has(n) ? ' class="flagged"' : ''}>
+        <div class="art">${figureSvg(FIGURES[n].correct)}</div>
         <figcaption>${n}</figcaption></figure>`).join('')}
     </div>
   </div>`;
@@ -231,6 +302,33 @@ const html = `<meta charset="utf-8">
   .txt .cue { color: var(--ink); }
   .txt .arline { font-size: 15px; color: var(--ink); }
 
+  /* the geometry flags — a working surface, so it is denser and plainer than
+     the judging screens above it and deliberately does not compete with them */
+  .flags { border: 2px solid var(--flag); border-radius: 10px; padding: 14px 16px; }
+  .flags h3 { font-family: var(--display); text-transform: uppercase; letter-spacing: 0.1em;
+    font-size: 13px; margin: 0 0 6px; color: var(--flag); }
+  .flags h3.quiet { color: var(--ink-dim); margin-top: 18px; }
+  .flist { list-style: none; margin: 12px 0 0; padding: 12px 14px; border-radius: 8px;
+    background: var(--ground); }
+  .flist > li { margin-bottom: 12px; color: var(--chalk); font-size: 14px; }
+  .flist > li:last-child { margin-bottom: 0; }
+  .flist b { font-family: var(--display); text-transform: uppercase; letter-spacing: 0.06em;
+    font-size: 13px; }
+  .flist ul { margin: 4px 0 0; padding-inline-start: 18px; }
+  .flist ul li { color: var(--chalk-dim); font-size: 12.5px; line-height: 1.5;
+    font-family: var(--mono, 'IBM Plex Mono', monospace); }
+  .flist .kind { color: var(--anatomy); font-weight: 500; }
+  .fmk { display: inline-block; width: 26px; height: 26px; vertical-align: -8px;
+    margin-inline-end: 8px; }
+  .fnm { color: var(--chalk-dim); font-size: 12.5px; }
+  .fexp { margin: 8px 0 0; padding-inline-start: 20px; }
+  .fexp li { color: var(--ink-dim); font-size: 13.5px; margin-bottom: 4px; }
+  .fexp b { color: var(--ink); font-family: var(--display); text-transform: uppercase;
+    letter-spacing: 0.05em; font-size: 12.5px; }
+  /* a flagged figure on the contact sheet: found by eye, not by reading a list */
+  .grid figure.flagged { outline: 2px solid var(--anatomy); outline-offset: 3px;
+    border-radius: 4px; }
+  .grid figure.flagged figcaption::after { content: ' ▲'; color: var(--anatomy); }
   .open { border-top: 2px solid var(--hair); padding-top: 14px; }
   .open h3 { font-family: var(--display); text-transform: uppercase; letter-spacing: 0.08em;
              font-size: 14px; margin: 0 0 8px; }
@@ -248,6 +346,8 @@ const html = `<meta charset="utf-8">
 
   ${contact('midnight')}
   ${contact('steel')}
+
+  ${flagPanel()}
 
   <p class="sub">And the second half of the question &mdash; do they belong to <em>this</em> app?
     These are real Movement-library rows at the size the mark will actually appear.</p>
@@ -272,16 +372,21 @@ const html = `<meta charset="utf-8">
 
   <div class="open">
     <h3>What is still open</h3>
-    <p><b>Three patterns read weakest</b>, judged on the contact sheet: <b>leg raise</b> (the legs
-      read flatter than they are), <b>wrist curl</b> (the plate is drawn at barbell scale) and
-      <b>rotation</b> (a twist is hard to show without a second camera). They are the first place to
-      spend time, and none of them is broken — just weaker than the other 41.</p>
+    <p><b>The anatomy pass landed (v2.44).</b> A knee that bent backwards and a pelvis wider than
+      the ribcage were the two structural errors; both are fixed, and the end caps now sweep outward
+      so the dark discs at the hips are gone. The gate passes: 340 movements over 44 patterns,
+      44 text entries, canon intact.</p>
+    <p><b>Bird-dog is the one known break.</b> Its support arm passes through the floor, and the
+      cause is structural rather than a typo &mdash; the arm is longer than the thigh, so a level
+      trunk cannot put both a hand and a knee on the ground. It needs a re-authored trunk slope.
+      The flags panel above shows it, along with the other five poses with a joint under the
+      baseline.</p>
     <p><b>The Leg Press fault may be the wrong one.</b> It currently draws the knee snapped into
-      lockout. A biomechanics review argues the more common and more serious error is going too deep
-      &mdash; the pelvis peeling off the seat pad and the lower back rounding under the sled.
-      Changing it is one pose; your call, and Elie's.</p>
+      lockout &mdash; which the gate also flags as past straight. A biomechanics review argues the
+      more common and more serious error is going too deep: the pelvis peeling off the seat pad and
+      the lower back rounding under the sled. Changing it is one pose; your call, and Elie's.</p>
     <p><b>The coaching text is not reviewed.</b> Every entry ships flagged
-      <span class="flag">not yet reviewed by Elie</span>, and the app now says so on screen. An
+      <span class="flag">not yet reviewed by Elie</span>, and the app says so on screen. An
       adversarial review already forced a rewrite: the first version named a diagnosis per movement
       and one of them was factually backwards. Injury text now says what the position <em>does</em>,
       never what it <em>causes</em>, and the build fails on any entry that slips back.</p>
