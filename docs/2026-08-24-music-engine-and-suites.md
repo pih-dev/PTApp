@@ -1,30 +1,52 @@
-# The music engine, and two suites
+# The music engine, and three shelved suites
 
-**2026-08-24.** Two rounds, because the first one answered the wrong question.
+**2026-08-24. THE MUSIC THREAD IS SHELVED — Pierre's instruction. All three attempts were
+rejected; the v2.31 synthetic five that ship in the app are still the best music anyone has made
+here, and the app is untouched.** This is the record of what was built, what he said about each, and
+what is worth keeping. Resume state: `HANDOFF-music.md`.
 
-**Round one.** Pierre, after the v2.31 showcase suite:
+### The three attempts, and his verdict on each
 
-> "Can you compose a few more, like another five? I like the flute. I like the saxophone… not
-> necessarily. Saxophone if used sparingly, and guitars. I like guitars… Can you compose one with
-> the piano? And try not to make them sound synthesized… high quality Dolby 5.1 or Atmos 7.1, and it
-> has to be catchy… you can make them fifty seconds or a minute each."
-
-I built seven acoustic chamber pieces — `scripts/suite2/` — in which a flute or a guitar led every
-one. His verdict:
+**Round one — `scripts/suite2/`, seven acoustic chamber pieces.** From: *"I like the flute… sax if
+used sparingly, and guitars… can you compose one with the piano? Try not to make them sound
+synthesized."* A flute or a guitar led every one.
 
 > "They're very bad. When I told you I like guitars and flute, you just did everything with those.
 > **The only difference from the original ones should be real instruments instead of synthetic.**"
 
-🔴 **That last sentence was the specification all along, and I under-weighted it.** The reference was
-never a genre; it was the work already approved — the v2.31 showcase suite, which is punchy,
-cinematic, trailer music. His instrument list was a note about the *palette*, not a brief. A stated
-preference belongs in one or two pieces of a set, where it earns its place; spreading it across all
-seven threw away the much stronger signal. (Recorded as a standing lesson in memory:
+🔴 That last sentence was the specification all along and it was under-weighted. The reference was
+never a genre — it was the work already approved, the v2.31 showcase suite. A named preference
+constrains the *palette*; it does not specify the deliverable. (Standing lesson in memory:
 `feedback_preference_is_not_a_spec`.)
 
-**Round two** — `scripts/suite3/` — is that same showcase music, played by an orchestra.
+**Round two — `scripts/suite3/`, seven orchestral showcase pieces.** The v2.31 pieces re-scored for
+an orchestra, six of them composed by Fable 5 agents at max effort. Instrument variety was fixed —
+the flute led exactly one piece and the guitar one.
 
-Both suites run on one engine, and the engine is what round one was actually for.
+> "None of them are enjoyable to listen to. There's no harmony. They're not catchy. I felt bleakness
+> listening to them… The only one I could listen to is `engine`. It's okay. It's fine. It's not
+> good. It's not great."
+
+**Round three — `scripts/make-suite1-real.mjs`, the shipped five re-voiced.** From: *"the five that
+are in the app are really good actually, compared to this. Preserve them as they are, but do a pass
+on them so they wouldn't sound synthetic."* The notes were frozen in a shared score and only the
+instruments changed — provably, see §3.
+
+> "There's something not right about them. Certain bits of them are good, but there are things that
+> are majorly wrong. They're not usable. So just shelf them, we'll get back to the music later."
+
+### What that means for whoever picks this up
+
+- **The engine is not the problem, and it is proven.** Round one's own brief — *"try not to make them
+  sound synthesized"* — was met: he confirmed round two "sound more realistic than synthesized". The
+  failures after that were **musical**, and in round three timbral-detail, not synthesis quality.
+- **Do not start by writing new compositions.** Two rounds of new music were rejected and the pieces
+  he rates highest are the ones that already ship.
+- **Round three is the closest thing to a live lead**: same music he likes, and he could hear
+  specific things wrong rather than disliking it wholesale. Nobody has yet found out *which* things —
+  that is the first question to ask him, and it needs one concrete example, not a general re-do.
+- **Nothing shipped changed.** `public/opening-*.m4a` are byte-identical to what they always were,
+  and that is verified rather than assumed (§3).
 
 ---
 
@@ -126,7 +148,7 @@ failed build` taught this project not to trust an exit code.
 
 ---
 
-## 5. Suite 3 — the showcase suite (the one that counts)
+## 5. Suite 3 — the orchestral showcase set (rejected: "not enjoyable… bleakness")
 
 The v2.31 pieces re-scored for a real orchestra: same names, same job, same shapes. Voices added for
 it, each modelling the thing that actually identifies the instrument rather than approximating its
@@ -157,7 +179,7 @@ fold.
 
 ---
 
-## 6. Suite 2 — the acoustic set (superseded)
+## 6. Suite 2 — the acoustic chamber set (rejected: "very bad")
 
 Rejected as a set, kept because it is where the engine and both gates came from — every finding in
 sections 1 to 4 above was made building it.
@@ -176,6 +198,41 @@ sections 1 to 4 above was made building it.
 changing underneath each time; a four-chord loop it never leaves for more than one section; and an
 arch shape with a single high point on a strong beat. Restating a hook identically is a loop, not
 an arrangement — so no piece does.
+
+---
+
+## 6b. Round three — the shipped five, re-voiced
+
+`scripts/make-suite1-real.mjs`. Not a new composition: **the notes are frozen and only the
+instruments move.** `lib/suite1-score.mjs` holds the eight v2.31 compositions with their bodies
+unchanged, and BOTH renderers run it — `make-opening-suite.mjs` with the oscillators,
+`make-suite1-real.mjs` with the modelled instruments. There is one copy of the music, so a note
+cannot drift between them.
+
+Substitutions: filtered white noise → a cymbal roll where the score builds and high string tremolo
+where it shimmers (the most synthetic sound in the originals, and gone entirely) · saw stacks →
+brass, short calls as section stabs and long ones as swelling braams · the square chip voice →
+bowed marcato with a glockenspiel giving back the edge · plucks → harp with pizzicato doubling ·
+bells → glockenspiel (their 1 : 2.76 : 5.4 partials were already the bar series) · kicks → a concert
+bass drum plus a timpano tuned to the kick's own landing pitch, so the drum can never disagree with
+harmony the score already set.
+
+**Three guards, because "the music did not change" is a claim that has to be measurable:**
+
+1. the synthetic renderer still produces **md5-identical** output to the five shipped `m4a` files —
+   run it with `OUT_DIR=tmp/verify` so verification can never overwrite the assets it verifies;
+2. `make-suite1-real.mjs` **throws** if any raw oscillator escapes the voice table into L/R;
+3. `scripts/check-arrangement.mjs` compares the two renders' energy envelopes in 250 ms windows —
+   all five correlate 0.72–0.86.
+
+🔴 **The kick's tail is tuned by MEASUREMENT, not derivation.** Matching the score's decay *rate*
+(the obvious move) correlates worse than the empirical value — 0.66 against 0.76 on `engine` —
+because the two envelopes multiply different spectra, so a matched rate is not a matched audible
+tail. Factors 6, 9, 14, 20, 27 and 34 were rendered and measured; 34 ships. Do not "correct" it.
+
+Everything shipped is preserved with checksums in
+`_archive/PTApp/branding/2026-08-24-suite1-preserved/`; the re-voiced files are in
+`-suite1-real/`. Rejected as not usable — see the header.
 
 ---
 
