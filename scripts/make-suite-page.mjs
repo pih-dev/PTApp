@@ -1,4 +1,4 @@
-// ─── make-suite2-page.mjs — the audition page ────────────────────────────────
+// ─── make-suite-page.mjs — the audition page ─────────────────────────────────
 //
 // One self-contained HTML page holding all seven pieces, so Pierre can play
 // them one after another and pick, on his phone, without downloading anything.
@@ -21,14 +21,20 @@ import { dirname, join } from 'node:path';
 import * as O from './lib/orchestra.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const SRC = 'C:/projects/_archive/PTApp/branding/2026-08-23-suite2';
-const TMP = join(HERE, '..', 'tmp', 'suite2-page');
+const setArg = process.argv.find((a) => a.startsWith('--set='));
+const SET = setArg ? setArg.slice(6) : 'suite3';
+const OUT_DIRS = { suite2: '2026-08-23-suite2', suite3: '2026-08-24-suite3' };
+const SRC = `C:/projects/_archive/PTApp/branding/${OUT_DIRS[SET] || SET}`;
+const WAVS = join(HERE, '..', 'tmp', SET);
+const TMP = join(HERE, '..', 'tmp', `${SET}-page`);
 const OUT = process.env.PAGE_OUT || join(TMP, 'suite.html');
 mkdirSync(TMP, { recursive: true });
 
 // The running order is a listening order, not the alphabet: open wide, drop to
 // quiet, pick up, hit hardest, then the two duets, then land on the piano.
-const ORDER = ['ridge', 'lantern', 'harbour', 'drive', 'weave', 'boulevard', 'ivory'];
+const ORDER = process.env.ORDER ? process.env.ORDER.split(',')
+  : SET === 'suite2' ? ['ridge', 'lantern', 'harbour', 'drive', 'weave', 'boulevard', 'ivory']
+    : ['anthem', 'engine', 'forge', 'pulse', 'cascade', 'orbit', 'beacon'];
 
 // ── read each rendered 7.1 file back and measure it ─────────────────────────
 const CH = ['FL', 'FR', 'C', 'LFE', 'SL', 'SR', 'BL', 'BR'];
@@ -57,63 +63,36 @@ function measure(path) {
   throw new Error(`${path}: no data chunk`);
 }
 
-// ── the programme notes ─────────────────────────────────────────────────────
-const NOTES = {
-  ridge: {
-    lead: 'Flute', key: 'D dorian', tempo: 84,
-    line: 'Wide and unhurried, like standing somewhere high with a long view.',
-    why: 'Dorian rather than plain minor for one note — the B natural in the G chord. That single major chord inside a minor key is what stops it sounding sad and makes it sound like open air.',
-    form: 'Guitar and bass alone · flute states the hook · strings arrive · a bridge a register up · everything, with the only cymbal in the piece · one long D left to decay.',
-  },
-  lantern: {
-    lead: 'Flute', key: 'A minor', tempo: 66,
-    line: 'The quiet one. A small warm room at night, everything close.',
-    why: 'A quiet flute is not just a softer flute — it is an airier one. The breath is turned up while the level comes down, which is what makes it sound near you rather than far away.',
-    form: 'Guitar alone · flute barely above it · bass and one shaker · strings, and the flute lifts · it all falls away quieter than it began.',
-  },
-  harbour: {
-    lead: 'Nylon guitar', key: 'E minor', tempo: 100,
-    line: 'The sunniest one. Two guitars, brushes, a walking bass.',
-    why: 'The hook lands on the offbeats, not the beat. That is where a foot-tap comes from — written on the beat it would be correct and inert.',
-    form: 'Strum alone · lead states the hook · bass and brushes · a bridge up a register · everything, strings underneath · one last ringing chord.',
-  },
-  drive: {
-    lead: 'Steel guitar', key: 'A mixolydian', tempo: 118,
-    line: 'The loud one. A riff, a full kit, and a break that resets it.',
-    why: 'Most of the riff is palm-muted dead notes and only the accents ring. That contrast is the groove — every note sustaining would just be a chord.',
-    form: 'Kick and bass · the riff · full band · the answer higher up the neck · two bars of guitar alone · everything back, harder · a hard stop on a downbeat.',
-  },
-  weave: {
-    lead: 'Flute and guitar', key: 'G major', tempo: 96,
-    line: 'The duet. They take turns for most of it, then finally play together.',
-    why: 'The two never sound the same notes at the same time until the last eight bars. That restraint is the piece — taking turns is what makes playing together an event.',
-    form: 'Guitar asks · flute answers a third up · they swap · they trade two-bar phrases · together at last, flute a sixth above the guitar.',
-  },
-  boulevard: {
-    lead: 'Guitar, and a sax', key: 'G minor', tempo: 92,
-    line: 'Late night. A jazz box, a walking bass, and a saxophone that shows up twice.',
-    why: 'You asked for the sax used sparingly, so it is a guest: it plays seven bars out of twenty-two and is silent for the rest. An instrument that never stops has no entrances.',
-    form: 'Comping and the walk · guitar states it · the ride joins · the sax arrives and takes the tune · new changes, no sax · the sax takes it out.',
-  },
-  ivory: {
-    lead: 'Piano', key: 'C minor', tempo: 92,
-    line: 'Solo piano — one four-bar hook, stated four ways.',
-    why: 'The pedal lifts at every bar line, so each note is cut at the chord change instead of ringing into the next one. That one detail is the difference between pedalled piano and mud.',
-    form: 'Left hand alone · the hook bare · doubled at the octave · a bridge · everything, with the low octave it has been holding back · the last chord in the hall.',
-  },
-};
-
+// ── the programme notes come from each piece's own meta ─────────────────────
+// NOT from a table kept beside them: a second copy of the same facts is the
+// keep-these-in-step-by-hand trap this project has already been bitten by
+// (docs/traps.md, 2026-08-24). A piece describes itself in its meta block:
+//   blurb  one sentence, what a listener hears        (required)
+//   lead   the instrument carrying it                 (optional)
+//   key    'D minor'                                  (optional)
+//   why    one paragraph — the musical reason it is written the way it is
+//   form   the sections, separated by ' · '
 // ── build ───────────────────────────────────────────────────────────────────
 const pieces = [];
 for (const name of ORDER) {
-  const wav = join(HERE, '..', 'tmp', 'suite2', `${name}-71.wav`);
-  const m = measure(wav);
-  const mp3 = join(TMP, `${name}.m4a`);
+  const mod = await import(new URL(`./${SET}/${name}.mjs`, import.meta.url).href);
+  const meta = mod.meta || {};
+  const m = measure(join(WAVS, `${name}-71.wav`));
+  const small = join(TMP, `${name}.m4a`);
   execFileSync(O.FFMPEG, ['-y', '-hide_banner', '-loglevel', 'error',
-    '-i', join(SRC, `SpotSet-${name}.m4a`), '-c:a', 'aac', '-b:a', '112k', mp3], { stdio: 'pipe' });
-  const b64 = readFileSync(mp3).toString('base64');
-  pieces.push({ name, ...NOTES[name], db: m.db, secs: m.secs, b64, kb: Math.round(statSync(mp3).size / 1024) });
-  console.log(`${name}: ${Math.round(statSync(mp3).size / 1024)} KB`);
+    '-i', join(SRC, `SpotSet-${name}.m4a`), '-c:a', 'aac', '-b:a', '112k', small], { stdio: 'pipe' });
+  pieces.push({
+    name,
+    lead: meta.lead || '—',
+    key: meta.key || '—',
+    tempo: meta.tempo,
+    line: meta.blurb || '',
+    why: meta.why || '',
+    form: meta.form || '',
+    db: m.db, secs: m.secs,
+    b64: readFileSync(small).toString('base64'),
+  });
+  console.log(`${name}: ${Math.round(statSync(small).size / 1024)} KB`);
 }
 
 // Speaker positions for the surround glyph, in the real 7.1 azimuths.
@@ -148,6 +127,28 @@ function field(db) {
   return `<svg viewBox="-44 -44 88 88" aria-hidden="true"><circle class="head" cx="0" cy="0" r="3.2"/>${dots}</svg>`;
 }
 
+// The masthead differs per set because the two sets exist for different
+// reasons, and a page that does not say why it exists is a list of files.
+const HEADS = {
+  suite3: {
+    eyebrow: 'SpotSet · the showcase suite · 2026-08-24',
+    title: 'Played, not generated',
+    stand: [
+      'Seven showcase pieces — the same job as the first suite, and the same energy, but performed by an orchestra instead of built out of oscillators. Horns whose brightness opens up as they are blown harder, a timpano tuned by the modes of its own skin, bowed strings that bite before they sing, a choir where every singer drifts on their own, and a real hall around all of it.',
+      'Play them in this order if you can. Each is 52–58 seconds and they are loudness-matched, so you should not need the volume between tracks.',
+    ],
+  },
+  suite2: {
+    eyebrow: 'SpotSet · the acoustic set · 2026-08-24',
+    title: 'The acoustic suite',
+    stand: [
+      'Seven chamber pieces on the same instrument engine — flute, guitars, piano, a saxophone. Superseded by the showcase suite, and kept because it is where the engine and both of its gates came from.',
+      'They are loudness-matched, so you should not need the volume between tracks.',
+    ],
+  },
+};
+const HEAD = HEADS[SET] || HEADS.suite3;
+
 const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
 
 const rows = pieces.map((p, i) => `
@@ -173,8 +174,8 @@ const rows = pieces.map((p, i) => `
   </div>
   <div class="rail"><span class="fill"></span></div>
   <div class="notes">
-    <p class="why">${p.why}</p>
-    <p class="form"><span class="lbl">Form</span> ${p.form}</p>
+    ${p.why ? `<p class="why">${p.why}</p>` : ''}
+    ${p.form ? `<p class="form"><span class="lbl">Form</span> ${p.form}</p>` : ''}
   </div>
   <audio preload="none" src="data:audio/mp4;base64,${p.b64}"></audio>
 </article>`).join('');
@@ -335,10 +336,9 @@ td{color:var(--ink-2)}
 
 <div class="wrap">
 <header>
-  <p class="eyebrow">SpotSet · seven pieces · 2026-08-24</p>
-  <h1>The acoustic suite</h1>
-  <p class="stand">Seven compositions on a new instrument engine. The last set was built from sine and saw oscillators, which is <strong>why</strong> it sounded synthesized — a real instrument is noise, inharmonicity, a body and a room, and an oscillator has none of the four. These have all four: breath and a tongued attack on the flute, a plucked string with a body behind it, a piano with two strings per note beating against each other, a reed shaped by formants, and a real hall around all of it.</p>
-  <p class="stand">Play them in this order if you can — it opens wide, drops to quiet, picks up, hits hardest, and lands on the piano. They are loudness-matched, so you should not need the volume between tracks.</p>
+  <p class="eyebrow">${HEAD.eyebrow}</p>
+  <h1>${HEAD.title}</h1>
+  ${HEAD.stand.map((x) => `<p class="stand">${x}</p>`).join('')}
 </header>
 
 ${rows}

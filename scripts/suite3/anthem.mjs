@@ -33,7 +33,11 @@ export const meta = {
   dur: 58,
   tempo: 88,
   seed: 0xA17E1,
-  blurb: 'The heroic one — a horn theme in D minor over strings, timpani and choir.',
+  blurb: 'The heroic one — a horn theme over strings, timpani and choir.',
+  lead: 'Horns',
+  key: 'D minor',
+  why: 'A horn only sounds like a horn when its brightness moves with how hard it is blown, so the theme is played at bite 0.8 alone, 1.0 by the section and 1.25 at the climax — the same notes, opened further each time. Changing only the volume would give you one patch turned up.',
+  form: 'Timpani roll and two hits · the theme on a solo horn · the section takes it and the cellos start driving · the brass steps out and the choir carries a bridge · everything, full brass and choir · the theme thinning · one last hit into the hall.',
   reverb: { rt60: 2.9, damp: 0.30, preDelay: 0.030, width: 1.25 },
   master: { drive: 1.20, lfeGain: 0.52 },
 };
