@@ -1,9 +1,17 @@
-// ─── make-suite2.mjs — render the acoustic suite ─────────────────────────────
+// ─── make-suite.mjs — render a suite ─────────────────────────────────────────
 //
-// Seven compositions, ~50–60 s each, played on the modelled instruments in
-// scripts/lib/orchestra.mjs. Pierre's brief: flute, guitars, one with both,
-// one piano, sax used SPARINGLY with guitars, "try not to make them sound
-// synthesized", "high quality Dolby 5.1 or Atmos 7.1", "it has to be catchy".
+// Compositions of ~50–60 s each, played on the modelled instruments in
+// scripts/lib/orchestra.mjs.
+//
+//   --set=suite3   (default)  the SHOWCASE suite — the v2.31 pieces re-scored
+//                             for a real orchestra. Pierre, 2026-08-24: "the
+//                             only difference from the original ones should be
+//                             real instruments instead of synthetic."
+//   --set=suite2              the acoustic chamber set. Superseded — Pierre
+//                             on it: "they're very bad… when I told you I like
+//                             guitars and flute, you just did everything with
+//                             those." Kept because it is where the engine and
+//                             both gates came from.
 //
 // 🔴 ONE ARRANGEMENT, THREE FILES. A piece is composed once into positioned
 //    mono tracks. This script renders 7.1, then FOLDS DOWN to 5.1 and stereo.
@@ -14,7 +22,12 @@
 //   SpotSet-<name>.m4a                       AAC stereo 256k — phone, PC, app
 //   SpotSet-<name>-DolbyDigital-5.1.mp4      AC-3 640k    — every soundbar
 //   SpotSet-<name>-DolbyDigitalPlus-5.1.mp4  E-AC-3 448k  — better, DD+ badge
-//   SpotSet-<name>-7.1.mp4                   AAC 7.1 512k — true 8 channels
+//
+// 5.1 ONLY from 2026-08-24 — Pierre: "you don't have to do seven point one,
+// just five point one. And if I like them, you can generate the two channels
+// for the app." The mixer still renders 7.1 internally and check-mix still
+// reads all eight channels, because 5.1 is a FOLD-DOWN of 7.1 here and a rear
+// imbalance is only visible before the fold.
 //
 // ⚠️ WHAT DOLBY WE CAN ACTUALLY SHIP. Verified against this ffmpeg 9.0 build,
 //    not assumed: `ffmpeg -h encoder=eac3` lists its supported layouts and
@@ -36,13 +49,16 @@ import { dirname, join } from 'node:path';
 import * as O from './lib/orchestra.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const OUT = 'C:/projects/_archive/PTApp/branding/2026-08-23-suite2';
-const TMP = join(HERE, '..', 'tmp', 'suite2');
+const setArg = process.argv.find((a) => a.startsWith('--set='));
+const SET = setArg ? setArg.slice(6) : 'suite3';
+const OUT_DIRS = { suite2: '2026-08-23-suite2', suite3: '2026-08-24-suite3' };
+const OUT = `C:/projects/_archive/PTApp/branding/${OUT_DIRS[SET] || SET}`;
+const TMP = join(HERE, '..', 'tmp', SET);
 const ICON = join(HERE, '..', 'public', 'icon-512.png');
 const FFPROBE = O.FFMPEG.replace(/ffmpeg\.exe$/, 'ffprobe.exe');
 
 const only = process.argv.slice(2).filter((a) => !a.startsWith('-'));
-const pieceDir = join(HERE, 'suite2');
+const pieceDir = join(HERE, SET);
 const files = readdirSync(pieceDir).filter((f) => f.endsWith('.mjs')).sort();
 
 mkdirSync(OUT, { recursive: true });
@@ -56,7 +72,7 @@ const probe = (path, stream) => JSON.parse(execFileSync(FFPROBE,
 
 const results = [];
 for (const file of files) {
-  const mod = await import(new URL(`./suite2/${file}`, import.meta.url).href);
+  const mod = await import(new URL(`./${SET}/${file}`, import.meta.url).href);
   const { meta, compose } = mod;
   if (!meta || !compose) { console.log(`skip ${file}: no meta/compose export`); continue; }
   if (only.length && !only.includes(meta.name)) continue;
@@ -74,7 +90,7 @@ for (const file of files) {
   if (!Number.isFinite(peak) || peak < 0.05) throw new Error(`${meta.name}: render is silent (peak ${peak})`);
   if (rms < 0.008) throw new Error(`${meta.name}: render is nearly silent (rms ${rms.toFixed(5)})`);
 
-  const w71 = join(TMP, `${meta.name}-71.wav`);
+  const w71 = join(TMP, `${meta.name}-71.wav`);   // kept: check-mix reads it
   const w51 = join(TMP, `${meta.name}-51.wav`);
   const w2 = join(TMP, `${meta.name}-stereo.wav`);
   O.writeWav(w71, ch8);
@@ -91,7 +107,6 @@ for (const file of files) {
   const m4a = `${OUT}/SpotSet-${meta.name}.m4a`;
   const dd = `${OUT}/SpotSet-${meta.name}-DolbyDigital-5.1.mp4`;
   const ddp = `${OUT}/SpotSet-${meta.name}-DolbyDigitalPlus-5.1.mp4`;
-  const s71 = `${OUT}/SpotSet-${meta.name}-7.1.mp4`;
 
   ff(['-i', w2, '-c:a', 'aac', '-b:a', '256k', m4a]);
   // The TV files carry the mark as a still so a media player has a video
@@ -103,12 +118,11 @@ for (const file of files) {
   ]);
   tv(w51, ['-c:a', 'ac3', '-b:a', '640k', '-channel_layout:a', '5.1'], dd);
   tv(w51, ['-c:a', 'eac3', '-b:a', '448k', '-channel_layout:a', '5.1'], ddp);
-  tv(w71, ['-c:a', 'aac', '-b:a', '512k', '-channel_layout:a', '7.1'], s71);
 
   // Verify what actually landed in the container. `gradlew exits 0 on a failed
   // build` taught this project not to trust an exit code (CLAUDE.md TRAPS):
   // read the stream back and assert the channel count.
-  const checks = [[m4a, 2], [dd, 6], [ddp, 6], [s71, 8]];
+  const checks = [[m4a, 2], [dd, 6], [ddp, 6]];
   const bad = [];
   for (const [path, want] of checks) {
     const p = probe(path, 'a:0');
@@ -121,8 +135,8 @@ for (const file of files) {
 
   const sz = (p) => (statSync(p).size / 1048576).toFixed(1) + 'MB';
   console.log(`${meta.name}  ${meta.dur}s ${meta.tempo}bpm  render ${secs}s  peak ${peak.toFixed(3)}`
-    + `  →  stereo ${sz(m4a)} · DD 5.1 ${sz(dd)} · DD+ 5.1 ${sz(ddp)} · 7.1 ${sz(s71)}`);
-  results.push({ name: meta.name, title: meta.title, blurb: meta.blurb, m4a, dd, ddp, s71 });
+    + `  →  stereo ${sz(m4a)} · DD 5.1 ${sz(dd)} · DD+ 5.1 ${sz(ddp)}`);
+  results.push({ name: meta.name, title: meta.title, blurb: meta.blurb, m4a, dd, ddp });
 }
 
 console.log(`\n${results.length} piece(s) → ${OUT}`);

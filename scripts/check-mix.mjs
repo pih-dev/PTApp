@@ -45,9 +45,11 @@ function readWav(path) {
   throw new Error(`${path}: no data chunk`);
 }
 
-const args = process.argv.slice(2);
+const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const setArg = process.argv.find((a) => a.startsWith('--set='));
+const dir = join('tmp', setArg ? setArg.slice(6) : 'suite3');
 const files = args.length ? args
-  : readdirSync('tmp/suite2').filter((f) => f.endsWith('-71.wav')).map((f) => join('tmp/suite2', f));
+  : readdirSync(dir).filter((f) => f.endsWith('-71.wav')).map((f) => join(dir, f));
 
 let fails = 0;
 for (const file of files) {

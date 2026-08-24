@@ -11,6 +11,7 @@ import { mkdirSync } from 'node:fs';
 import {
   SR, n, makeRng, flute, sax, nylon, steel, bass, piano, strings,
   kick, snare, hat, shaker, cymbal, biquad, runBiquad, runBody, BODY, writeWav,
+  brass, timpani, taiko, pizz, stringHit, tubular, glock, harp, choir,
 } from './lib/orchestra.mjs';
 
 const WAV = process.argv.includes('--wav');
@@ -120,6 +121,20 @@ const VOICES = {
   hat: (b, r) => hat(b, 0.05, 0.5, r),
   shaker: (b, r) => shaker(b, 0.05, 0.6, r),
   cymbal: (b, r) => cymbal(b, 0.05, 0.4, r),
+  // ── the orchestra ─────────────────────────────────────────────────────────
+  horn: (b, r) => brass(b, 0.05, 2.0, n('D4'), 0.6, r, { kind: 'horn' }),
+  'horn-soft': (b, r) => brass(b, 0.05, 2.0, n('D4'), 0.6, r, { kind: 'horn', bite: 0.35 }),
+  trumpet: (b, r) => brass(b, 0.05, 2.0, n('A4'), 0.6, r, { kind: 'trumpet' }),
+  trombone: (b, r) => brass(b, 0.05, 2.0, n('D3'), 0.6, r, { kind: 'trombone' }),
+  tuba: (b, r) => brass(b, 0.05, 2.0, n('D2'), 0.6, r, { kind: 'tuba' }),
+  timpani: (b, r) => timpani(b, 0.05, n('A1'), 0.7, r),
+  taiko: (b, r) => taiko(b, 0.05, 0.8, r),
+  pizz: (b, r) => { pizz(b, 0.05, n('A3'), 0.7, r); runBody(b, BODY.upright, 0.6); },
+  stringHit: (b, r) => stringHit(b, 0.05, 0.30, n('A2'), 0.7, r),
+  tubular: (b, r) => tubular(b, 0.05, F, 0.5, r),
+  glock: (b, r) => glock(b, 0.05, n('A5'), 0.5, r),
+  harp: (b, r) => { harp(b, 0.05, F, 0.7, r); runBody(b, BODY.nylon, 0.6); },
+  choir: (b, r) => choir(b, 0.05, 2.0, n('A3'), 0.5, r),
 };
 
 // Expectations. Ranges, not exact values — this catches a MODEL that broke,
@@ -140,6 +155,23 @@ const EXPECT = {
   hat: { cent: [4000, 16000] },
   shaker: { cent: [2500, 12000] },
   cymbal: { cent: [700, 9000] },
+  // Brass: the model's whole claim is that BRIGHTNESS TRACKS DYNAMIC, so the
+  // gate is comparative — a soft horn must measure darker than a loud one, and
+  // a trumpet brighter than a tuba. Absolute numbers alone would not catch a
+  // static filter, which is the failure mode being guarded against.
+  horn: { pitch: [288, 300], cent: [250, 2600], period: [0.55, 0.998] },
+  'horn-soft': { pitch: [288, 300], cent: [150, 1800], period: [0.55, 0.999] },
+  trumpet: { pitch: [430, 450], cent: [500, 4200], period: [0.55, 0.998] },
+  trombone: { pitch: [144, 150], cent: [180, 2400], period: [0.55, 0.998] },
+  tuba: { pitch: [71, 76], cent: [60, 1100], period: [0.55, 0.999] },
+  timpani: { cent: [30, 900], decay: [0.4, 4.0] },
+  taiko: { cent: [20, 800], decay: [0.2, 3.0] },
+  pizz: { pitch: [216, 224], cent: [150, 3000], decay: [0.08, 1.2] },
+  stringHit: { pitch: [108, 113], cent: [150, 3000], decay: [0.05, 1.0] },
+  tubular: { cent: [400, 5000], decay: [1.0, 8.0] },
+  glock: { cent: [700, 6000], decay: [0.2, 3.0] },
+  harp: { pitch: [430, 450], cent: [200, 3500], decay: [0.5, 5.0] },
+  choir: { pitch: [108, 226], cent: [200, 2600], period: [0.55, 0.99] },
 };
 
 let fails = 0;

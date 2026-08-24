@@ -166,6 +166,9 @@ export const BODY = {
 const TRIM = {
   flute: 0.78, sax: 1.45, pluck: 1.85, bass: 1.60, piano: 0.68, strings: 3.20,
   kick: 0.79, snare: 0.71, hat: 0.67, shaker: 0.58, cymbal: 0.65,
+  // the orchestra, measured 2026-08-24
+  brass: 1.02, timpani: 0.56, taiko: 0.74, stringHit: 1.31, tubular: 0.37,
+  glock: 0.71, choir: 3.40,
 };
 
 /**
@@ -604,6 +607,362 @@ export function cymbal(buf, t0, amp, rng, opts = {}) {
       const y = c.b0 * nz + c.b1 * x1 + c.b2 * x2 - c.a1 * y1 - c.a2 * y2;
       x2 = x1; x1 = nz; y2 = y1; y1 = y;
       buf[i] += y * e * TRIM.cymbal;
+    }
+  }
+}
+
+// ─── the orchestra ──────────────────────────────────────────────────────────
+// Added 2026-08-24. Pierre, on the seven acoustic pieces: "they're very bad…
+// when I told you I like guitars and flute, you just did everything with those.
+// The only difference from the original ones should be REAL INSTRUMENTS instead
+// of synthetic."
+//
+// So the reference is the v2.31 showcase suite — punchy, cinematic, catchy —
+// and the job is to play THAT on real instruments. A flute and a guitar cannot
+// do it. These are the voices that can.
+
+/**
+ * BRASS — horn, trombone, trumpet, tuba.
+ * The defining behaviour is not the waveform, it is that BRIGHTNESS TRACKS
+ * DYNAMIC: a horn played softly is nearly a sine, and the same horn played
+ * fortissimo is a blaze of upper harmonics. That is why the lowpass cutoff here
+ * is driven by the envelope rather than fixed — a brass voice with a static
+ * filter sounds like a synth-brass preset no matter how good its spectrum is.
+ * opts: { kind, bite, vib, vibDelay, air, atk, rel, swellTo, human }
+ */
+export function brass(buf, t0, dur, f, amp, rng, opts = {}) {
+  const {
+    kind = 'horn', bite = 1, vib = 0.004, vibDelay = 0.5, vibRate = 5.2,
+    air = 0.14, atk = 0.055, rel = Math.min(0.34, dur * 0.5), human = 1,
+    swellTo = 1,          // >1 = a crescendo across the note (a trailer swell)
+  } = opts;
+  // Bell resonance, and how far the filter can open. A tuba's bell never gets
+  // as bright as a trumpet's however hard it is blown.
+  const V = {
+    horn: { bell: [820, 1.6, 0.55], open: 2600, floor: 420, warm: 1.0 },
+    trombone: { bell: [620, 1.5, 0.60], open: 3200, floor: 340, warm: 0.9 },
+    trumpet: { bell: [1180, 1.8, 0.65], open: 4600, floor: 620, warm: 0.75 },
+    tuba: { bell: [420, 1.4, 0.55], open: 1500, floor: 190, warm: 1.15 },
+  }[kind];
+  const N = buf.length;
+  const start = Math.max(0, Math.floor(t0 * SR));
+  const end = Math.min(N, Math.floor((t0 + dur + rel) * SR));
+  if (end <= start) return;
+
+  const env = swell(atk, Math.max(0, dur - atk), rel);
+  const len = end - start;
+  const raw = new Float64Array(len);
+  const d1 = rng() * TAU, d2 = rng() * TAU, a1 = rng() * TAU;
+  let ph = rng() * Math.PI;
+  let lp = 0, lp2 = 0;
+  for (let i = 0; i < len; i++) {
+    const t = i / SR;
+    let e = env(t);
+    if (e <= 0 && t > dur) break;
+    if (swellTo !== 1) e *= 1 + (swellTo - 1) * Math.min(1, t / Math.max(0.2, dur));
+    // the lip settles UP into the note, and no player is dead steady
+    let fr = f * (1 - 0.012 * Math.exp(-t * 30));
+    const vd = t > vibDelay ? Math.min(1, (t - vibDelay) / 0.4) : 0;
+    fr *= 1 + vib * vd * Math.sin(TAU * vibRate * t);
+    fr *= 1 + 0.0018 * human * ((Math.sin(TAU * 0.41 * t + d1) + 0.6 * Math.sin(TAU * 1.17 * t + d2)) / 1.6);
+    ph += TAU * fr / SR;
+    if (ph > TAU) ph -= TAU;
+    const u = ph / TAU;
+    let s = 2 * u - 1;
+    s = s - 0.35 * s * s * s;                     // soften the corner
+    s += rng() * air * (0.35 + 0.65 * e) * 0.4;   // air through the tube
+    // THE model: cutoff rides the envelope.
+    const cut = V.floor + (V.open - V.floor) * Math.pow(Math.min(1, e * bite), 1.35);
+    const k = Math.min(0.99, TAU * cut / SR);
+    lp += k * (s - lp);
+    lp2 += k * (lp - lp2);                        // 2-pole, 12 dB/oct
+    raw[i] = lp2 * e * (1 + 0.035 * human * Math.sin(TAU * 0.67 * t + a1));
+  }
+  const [bf, bq, bg] = V.bell;
+  const c = biquad('bp', bf, bq);
+  const airHz = Math.min(V.open * 1.2, f * 6) * (0.45 + 0.55 * Math.min(1, bite));
+  const ac = biquad('bp', Math.max(f * 3, airHz), 0.7);
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0, n1 = 0, n2 = 0, m1 = 0, m2 = 0;
+  for (let i = 0; i < len; i++) {
+    const x = raw[i];
+    const y = c.b0 * x + c.b1 * x1 + c.b2 * x2 - c.a1 * y1 - c.a2 * y2;
+    x2 = x1; x1 = x; y2 = y1; y1 = y;
+    const nz = rng();
+    const a = ac.b0 * nz + ac.b1 * n1 + ac.b2 * n2 - ac.a1 * m1 - ac.a2 * m2;
+    n2 = n1; n1 = nz; m2 = m1; m1 = a;
+    const t = i / SR;
+    const e = env(t);
+    // extra breath on the attack, where a player's lips are still finding it
+    const puff = 1 + 2.2 * Math.exp(-t * 26);
+    const dyn = Math.pow(Math.min(1, e * bite), 0.8);
+    buf[start + i] += (x * V.warm + y * bg + a * air * 1.6 * puff * dyn * e)
+      * amp * TRIM.brass;
+  }
+}
+
+/** A brass SECTION — one line, several players, none of them together. The
+ *  spread of attacks and tunings is what makes it a section rather than one
+ *  loud player, and it is most of the difference between "orchestra" and
+ *  "patch". */
+export function brassSection(buf, t0, dur, f, amp, rng, opts = {}) {
+  const { players = 3, spreadMs = 0.022, detune = 0.0035, ...rest } = opts;
+  for (let p = 0; p < players; p++) {
+    const dt = p === 0 ? 0 : Math.abs(rng()) * spreadMs;
+    brass(buf, t0 + dt, dur - dt, f * (1 + detune * rng()),
+      amp / Math.sqrt(players) * (1 + 0.12 * rng()), rng, rest);
+  }
+}
+
+/**
+ * TIMPANI — a tuned drum. Its modes are NOT harmonic: the kettle's air loading
+ * pulls the circular-membrane modes towards a near 1 : 1.5 : 2 : 2.5 series,
+ * and that is the entire reason a timpano has a pitch while a snare does not.
+ * Pass `roll` (seconds) for a crescendo roll.
+ */
+export function timpani(buf, t0, f, amp, rng, opts = {}) {
+  const { decay = 2.6, hit = 0.5, roll = 0 } = opts;
+  if (roll > 0) {
+    // A roll is many separate strokes, not a tremolo of one. The unevenness is
+    // audible — a perfectly regular roll reads as a modulated tone.
+    let t = t0, k = 0;
+    while (t < t0 + roll && k < 400) {
+      const u = (t - t0) / roll;
+      timpani(buf, t, f, amp * (0.20 + 0.80 * u) * (0.75 + 0.25 * Math.abs(rng())), rng,
+        { decay: 0.9, hit: 0.3 });
+      t += 0.048 + 0.020 * Math.abs(rng()) - 0.014 * u;   // and it speeds up
+      k++;
+    }
+    return;
+  }
+  const N = buf.length, start = Math.max(0, Math.floor(t0 * SR));
+  const MODES = [[1, 1], [1.504, 0.55], [1.742, 0.32], [2.0, 0.22], [2.245, 0.14], [2.494, 0.09]];
+  for (const [m, a] of MODES) {
+    let ph = rng() * TAU;
+    const dm = decay / (1 + (m - 1) * 1.6);
+    const step = TAU * f * m / SR;
+    for (let i = start; i < N; i++) {
+      const t = (i - start) / SR;
+      const e = Math.exp(-t / dm) * a;
+      if (e < 0.0004) break;
+      ph += step;
+      buf[i] += Math.sin(ph) * e * amp * TRIM.timpani;
+    }
+  }
+  const c = biquad('bp', 2200, 0.7);
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+  const hn = Math.floor(0.05 * SR);
+  for (let i = 0; i < hn && start + i < N; i++) {
+    const nz = rng();
+    const y = c.b0 * nz + c.b1 * x1 + c.b2 * x2 - c.a1 * y1 - c.a2 * y2;
+    x2 = x1; x1 = nz; y2 = y1; y1 = y;
+    buf[start + i] += y * Math.exp(-i / SR * 90) * amp * hit * TRIM.timpani * 0.5;
+  }
+}
+
+/** TAIKO / concert bass drum — the big one. Low, wide, mostly body and air. */
+export function taiko(buf, t0, amp, rng, opts = {}) {
+  const { f0 = 92, f1 = 44, decay = 4.2, skin = 0.55, drop = 12 } = opts;
+  const N = buf.length, start = Math.max(0, Math.floor(t0 * SR));
+  let ph = 0, ph2 = 0;
+  const c = biquad('bp', 260, 0.5);
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+  for (let i = start; i < N; i++) {
+    const t = (i - start) / SR;
+    const e = Math.exp(-t * (6 / decay)) * Math.exp(-t * 1.1);
+    if (e < 0.0003) break;
+    const f = f1 + (f0 - f1) * Math.exp(-t * drop);
+    ph += TAU * f / SR;
+    ph2 += TAU * f * 1.58 / SR;
+    const nz = rng();
+    const y = c.b0 * nz + c.b1 * x1 + c.b2 * x2 - c.a1 * y1 - c.a2 * y2;
+    x2 = x1; x1 = nz; y2 = y1; y1 = y;
+    buf[i] += ((Math.sin(ph) + 0.34 * Math.sin(ph2)) * e
+      + y * Math.exp(-t * 26) * skin) * amp * TRIM.taiko;
+  }
+}
+
+/** PIZZICATO strings — a very short, hard-damped string with a body on the
+ *  track. This is the acoustic answer to the synth pluck that carried `orbit`
+ *  in the first suite. */
+export function pizz(buf, t0, f, amp, rng, opts = {}) {
+  const { decay = 0.55, damp = 0.46, bright = 0.55, ...rest } = opts;
+  pluck(buf, t0, f, amp * 0.90, rng, { decay, damp, pick: 0.12, bright, ...rest });
+}
+
+/**
+ * MARCATO / STACCATO bowed strings — the short, biting note an ostinato is
+ * built from. A bow BITES at the start and then settles; that rosin noise is
+ * what separates it from a filtered sawtooth, and an ostinato without it is
+ * the most synthetic thing in cinematic music.
+ */
+export function stringHit(buf, t0, dur, f, amp, rng, opts = {}) {
+  const { voices = 5, bite = 0.5, bright = 0.6, spread = 0.006 } = opts;
+  const N = buf.length;
+  const start = Math.max(0, Math.floor(t0 * SR));
+  const end = Math.min(N, Math.floor((t0 + dur + 0.10) * SR));
+  if (end <= start) return;
+  const env = (t) => t < 0.014 ? t / 0.014
+    : t < dur ? 0.82 + 0.18 * Math.exp(-(t - 0.014) * 26)
+      : Math.max(0, 1 - (t - dur) / 0.09);
+  const H = [1, 0.62, 0.42, 0.30, 0.20, 0.13, 0.09, 0.06]
+    .map((h, i) => h * Math.pow(bright + 0.55, i * 0.35));
+  for (let v = 0; v < voices; v++) {
+    const dt = v === 0 ? 0 : Math.abs(rng()) * 0.014;   // players are not together
+    const det = 1 + spread * rng();
+    const ph = new Float64Array(H.length);
+    for (let k = 0; k < H.length; k++) ph[k] = rng() * Math.PI;
+    const s0 = start + Math.floor(dt * SR);
+    for (let i = s0; i < end; i++) {
+      const t = (i - s0) / SR;
+      const e = env(t);
+      if (e <= 0 && t > dur) break;
+      let s = 0;
+      for (let k = 0; k < H.length; k++) {
+        ph[k] += TAU * f * det * (k + 1) / SR;
+        s += H[k] * Math.sin(ph[k]);
+      }
+      const rosin = t < 0.03 ? rng() * bite * Math.exp(-t * 90) * 0.8 : 0;
+      buf[i] += (s * 0.32 + rosin) * e * amp / Math.sqrt(voices) * TRIM.stringHit;
+    }
+  }
+}
+
+/** TUBULAR BELL — its partials run 2:3:4…, so the pitch you hear is a MISSING
+ *  fundamental the ear reconstructs. That is why a bell can sound an octave
+ *  below anything actually present, and why a sine cannot fake one. `f` is the
+ *  pitch you want to HEAR. */
+export function tubular(buf, t0, f, amp, rng, opts = {}) {
+  const { decay = 5.5 } = opts;
+  const N = buf.length, start = Math.max(0, Math.floor(t0 * SR));
+  for (const [m, a] of [[2, 1], [3, 0.72], [4, 0.55], [5.4, 0.36], [6.8, 0.22], [8.2, 0.14], [10.5, 0.08]]) {
+    let ph = rng() * TAU;
+    const dm = decay / (1 + (m - 2) * 0.30);
+    const step = TAU * (f / 2) * m / SR;
+    for (let i = start; i < N; i++) {
+      const t = (i - start) / SR;
+      const e = Math.exp(-t / dm) * a;
+      if (e < 0.0003) break;
+      ph += step;
+      buf[i] += Math.sin(ph) * e * amp * TRIM.tubular;
+    }
+  }
+}
+
+/** GLOCKENSPIEL — a struck metal BAR, so the bar series 1 : 2.76 : 5.40 : 8.93.
+ *  Bright, short, and the top of an orchestral texture. */
+export function glock(buf, t0, f, amp, rng, opts = {}) {
+  const { decay = 1.5 } = opts;
+  const N = buf.length, start = Math.max(0, Math.floor(t0 * SR));
+  for (const [m, a] of [[1, 1], [2.76, 0.30], [5.40, 0.12], [8.93, 0.05]]) {
+    let ph = rng() * TAU;
+    const dm = decay / (1 + (m - 1) * 0.55);
+    const step = TAU * f * m / SR;
+    for (let i = start; i < N; i++) {
+      const t = (i - start) / SR;
+      const e = Math.exp(-t / dm) * a;
+      if (e < 0.0004) break;
+      ph += step;
+      buf[i] += Math.sin(ph) * e * amp * TRIM.glock;
+    }
+  }
+}
+
+/** HARP — a long, bright, softly plucked string. */
+export function harp(buf, t0, f, amp, rng, opts = {}) {
+  pluck(buf, t0, f, amp, rng, { decay: 3.6, damp: 0.34, pick: 0.24, bright: 0.5, ...opts });
+}
+/** A run up (or down) a chord — the harp gesture, or a piano/guitar sweep. */
+export function gliss(buf, t0, freqs, amp, rng, opts = {}) {
+  const { step = 0.045, accel = 1, voice = harp } = opts;
+  let t = t0, gap = step;
+  freqs.forEach((f, i) => {
+    voice(buf, t + Math.abs(rng()) * 0.004, f, amp * (0.75 + 0.25 * (i / freqs.length)), rng, {});
+    gap *= accel;
+    t += gap;
+  });
+}
+
+/**
+ * CHOIR — formant vowels over a detuned unison. The point is the SECTION, not
+ * a soloist, so every singer gets an independent slow pitch drift; that drift
+ * is what makes it a choir rather than a chorus effect on one voice.
+ */
+export function choir(buf, t0, dur, f, amp, rng, opts = {}) {
+  const { vowel = 'ah', voices = 6, atk = 0.75, rel = 1.3, breath = 0.06 } = opts;
+  const F = {
+    ah: [[720, 1.9, 1.0], [1180, 2.0, 0.55], [2600, 2.4, 0.20]],
+    oo: [[320, 2.2, 1.0], [780, 2.4, 0.30], [2400, 2.6, 0.08]],
+    eh: [[540, 2.0, 1.0], [1760, 2.2, 0.50], [2500, 2.6, 0.18]],
+  }[vowel];
+  const N = buf.length;
+  const start = Math.max(0, Math.floor(t0 * SR));
+  const end = Math.min(N, Math.floor((t0 + dur + rel) * SR));
+  if (end <= start) return;
+  const len = end - start;
+  const env = swell(atk, Math.max(0, dur - atk), rel);
+  const raw = new Float64Array(len);
+  for (let v = 0; v < voices; v++) {
+    const det = 1 + 0.0055 * rng();
+    const dr = 0.11 + 0.07 * v, dp = rng() * TAU;
+    let ph = rng() * TAU;
+    for (let i = 0; i < len; i++) {
+      const t = i / SR;
+      const e = env(t);
+      if (e <= 0 && t > dur) break;
+      const fr = f * det * (1 + 0.0035 * Math.sin(TAU * dr * t + dp));
+      ph += TAU * fr / SR;
+      if (ph > TAU) ph -= TAU;
+      const u = ph / TAU;
+      const pulse = u < 0.42 ? 1 - 2 * (u / 0.42) : -1 + 2 * ((u - 0.42) / 0.58);
+      raw[i] += (pulse - 0.30 * pulse * pulse * pulse) * e / voices;
+    }
+  }
+  const out = new Float64Array(len);
+  for (const [ff, Q, g] of F) {
+    const c = biquad('bp', ff, Q);
+    let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    for (let i = 0; i < len; i++) {
+      const x = raw[i];
+      const y = c.b0 * x + c.b1 * x1 + c.b2 * x2 - c.a1 * y1 - c.a2 * y2;
+      x2 = x1; x1 = x; y2 = y1; y1 = y;
+      out[i] += y * g;
+    }
+  }
+  // A voice has no energy above ~4 kHz to speak of; without this the formants'
+  // own skirts keep the sawtooth's top harmonics and it reads as a synth pad.
+  runBiquad(out, biquad('lp', 2600, 0.7));
+  runBiquad(out, biquad('lp', 3600, 0.7));
+  // The breath is band-limited: singers' breath is a low rush, not hiss, and
+  // full-band noise here read as a 4 kHz spectral centroid on a choir pad.
+  const bc = biquad('bp', 900, 0.6);
+  let p1 = 0, p2 = 0, q1 = 0, q2 = 0;
+  for (let i = 0; i < len; i++) {
+    const nz = rng();
+    const b = bc.b0 * nz + bc.b1 * p1 + bc.b2 * p2 - bc.a1 * q1 - bc.a2 * q2;
+    p2 = p1; p1 = nz; q2 = q1; q1 = b;
+    buf[start + i] += (out[i] * 1.9 + b * breath * env(i / SR)) * amp * TRIM.choir;
+  }
+}
+
+/** A RISER played by PLAYERS — a string section climbing and swelling, with an
+ *  optional tremolo. The acoustic answer to a synth riser: the same job, done
+ *  by bows that do not all arrive at once. */
+export function riser(buf, t0, t1, fLo, fHi, amp, rng, opts = {}) {
+  const { voices = 6, trem = 0 } = opts;
+  const N = buf.length;
+  const start = Math.max(0, Math.floor(t0 * SR)), end = Math.min(N, Math.floor(t1 * SR));
+  if (end <= start) return;
+  for (let v = 0; v < voices; v++) {
+    const vt0 = start + Math.floor(Math.abs(rng()) * 0.25 * SR);
+    const det = 1 + 0.005 * rng();
+    let ph = rng() * TAU;
+    for (let i = vt0; i < end; i++) {
+      const u = (i - start) / (end - start);
+      const f = fLo * Math.pow(fHi / fLo, Math.pow(u, 1.25)) * det;
+      ph += TAU * f / SR;
+      let e = Math.pow(u, 1.7) * amp / Math.sqrt(voices);
+      if (trem) e *= 0.72 + 0.28 * Math.sin(TAU * (18 + 22 * u) * (i - start) / SR);
+      buf[i] += (Math.sin(ph) + 0.4 * Math.sin(2 * ph) + 0.18 * Math.sin(3 * ph)) * e * 0.5;
     }
   }
 }
