@@ -51,7 +51,7 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   `_archive/PTApp/releases/2026-08-23-spotset-v2.43-vc21.{aab,apk}`.
 - ✅ **vc9 (v2.32) CLEARED REVIEW AND PUBLISHED Aug 22** (console notification, seen 08-23:
   "App update published"). Review turnaround for updates has been same-evening in practice;
-  Google's stated window is up to 7 days.
+  Google's published policy allows up to 7 days (policy text, not a reading).
 - 🔴 **TESTER EMAILS STILL NEED PROVISIONING in Supabase console** (Authentication → Users → Add
   user, email+password) — v2.43's email login answers "wrong credentials" for any email without a
   row. No self-signup by rule (Apple 4.8). Guest button covers everyone else.
