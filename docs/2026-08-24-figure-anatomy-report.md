@@ -1,4 +1,32 @@
-# Figure anatomy report — handed to the CCHealth session, 2026-08-24
+# Figure anatomy report — reported, and CLOSED in v2.45
+
+> ✅ **ALL OF THIS IS FIXED.** The CCHealth session shipped **v2.45** the same day (`65afb51`, Pages
+> built on `eb4ca08`) and closed handoff items 1b and 1c. Verified independently from this session:
+> the prone foot sign is inverted on both patterns, **zero** poses now fall outside the frame
+> (was 17), the floor sinks are gone (6 → 0), and the ROM noise is gone (24 warnings → the 2
+> deliberate leg-press ones). The `FRAME:` gate proposed in §2 exists —
+> `sanity-figures.mjs` §5f, WARN, same shape as `FLOOR:`, `CELL` imported from `svg.js`.
+>
+> **The document below is kept as the diagnosis, not as an open list.** It is why the fix was
+> possible, and the measuring technique is reusable. Nothing in it is waiting on anyone.
+>
+> 🔴 **One thing is open and it is a JUDGEMENT, not a defect:** the gate still flags `leg-press`,
+> both shins past straight (+7°/+9°). That is the unresolved question of whether the Leg Press
+> *fault* pose should be the knee snapped into lockout or the pelvis peeling off the pad under
+> too much depth. **Pierre's and Elie's call.** And Pierre is asked to re-judge the 14 changed
+> patterns in-app.
+>
+> **What the fix turned out to be, and it was bigger than the foot:** a head-at-−x prone body is a
+> **mirrored figure**, so *every* relative joint sign flips — not just the ankle. That one
+> convention explained the leg curl's feet, bird-dog's folded-under kneeling shin, its
+> sky-pointing raised foot and its floor-stabbing far foot at once. Two more defects fell out of the
+> frame gate that nobody had ever seen: `dip` had its arms pointing straight **up** with hands and
+> bars clipped 43px above the cell since it was authored, and `triceps-overhead` carried 52° of
+> elbow **hyperextension**.
+
+---
+
+## The report as sent, 2026-08-24
 
 Pierre, after reading the rebuilt judging sheet:
 
@@ -63,8 +91,9 @@ node -e "Promise.all([import('./src/figures/poses.js'),import('./src/figures/can
 
 ## 2. Parts of the body outside the frame
 
-🔴 **There is no gate for this.** `sanity-figures.mjs` has a `FLOOR:` check for joints under the
-baseline, but nothing checks the **viewBox** — which is `-450 -40 900 830`. Seventeen poses across
+~~🔴 **There is no gate for this.**~~ **(Fixed in v2.45 — the gate now exists.)** At the time of
+the report `sanity-figures.mjs` had a `FLOOR:` check for joints under the baseline, but nothing
+checked the **viewBox** — which is `-450 -40 900 830`. Seventeen poses across
 eleven patterns put a **joint centre** outside it, and the real overflow is worse because limbs have
 girth.
 
@@ -82,7 +111,7 @@ girth.
 | `hip-abduction` | fault B+3 |
 | `lateral-raise` | fault T+0 |
 
-**Suggested (the figures thread's call): a `FRAME:` check in `sanity-figures.mjs` beside `FLOOR:`.**
+**Suggested, and SHIPPED: a `FRAME:` check in `sanity-figures.mjs` beside `FLOOR:`.**
 Same shape, and it would have found all seventeen without anyone looking — which is the point, since
 the FLOOR gate itself exists because the last pose of this kind was found by scanning coordinates
 and never by eye.

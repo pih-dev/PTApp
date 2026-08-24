@@ -34,7 +34,7 @@ session-start weight to list as router rows.
 | `apple-testflight-checklist.md` | The forward Apple list: what `codemagic.yaml` already does, what is blocked on the enrolment, and the App Store listing / privacy / review-notes answers, drafted |
 | `stage2-publishing-guide.md` | Capacitor build, App Store / Play Store requirements, whether a company is needed, liability |
 | `2026-08-24-music-engine-and-suites.md` | 🔴 **THE MUSIC THREAD IS SHELVED (2026-08-24)** — all three attempts rejected; the v2.31 synthetic five still ship and Pierre still rates them highest. **Do not start by writing new compositions.** What the instrument engine, the frozen-score trick and the Dolby/ffmpeg findings are still worth. Resume: `HANDOFF-music.md` |
-| `2026-08-24-figure-anatomy-report.md` | The report handed to the CCHealth session (it owns figures). 🔴 A prone foot carries the UPRIGHT sign convention (`knee-flexion`, `bird-dog`); 🔴 **no gate checks the viewBox** — 17 poses across 11 patterns put a joint outside the frame |
+| `2026-08-24-figure-anatomy-report.md` | ✅ **CLOSED in v2.45** — the report that found it, kept as the diagnosis. A head-at-−x prone body is a MIRRORED figure so every relative joint sign flips (explained the leg curl's feet, bird-dog's shin and both its feet); the proposed `FRAME:` gate shipped and out-of-frame poses went 17 → 0. 🔴 Open and a JUDGEMENT not a defect: the `leg-press` fault pose — lockout, or too deep? Pierre + Elie |
 | `marketing-deck.md` | Elie's client-facing PPTX (EN + AR, lives in `_archive`, never committed here) and the **puppeteer screenshot harness** that regenerates it — incl. the invalid-token rule that stops a capture run pushing to live data |
 
 ---
