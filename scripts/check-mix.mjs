@@ -47,6 +47,7 @@ function readWav(path) {
 
 const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const setArg = process.argv.find((a) => a.startsWith('--set='));
+const NO_RANGE = process.argv.includes('--no-range');
 const dir = join('tmp', setArg ? setArg.slice(6) : 'suite3');
 const files = args.length ? args
   : readdirSync(dir).filter((f) => f.endsWith('-71.wav')).map((f) => join(dir, f));
@@ -79,7 +80,13 @@ for (const file of files) {
     env.push(dB(Math.sqrt(s / w)));
   }
   const range = env.length ? Math.max(...env) - Math.min(...env) : 0;
-  if (range < 4) bad.push(`dynamic range ${range.toFixed(1)} dB — the piece does not build`);
+  // 🔴 --no-range: the build gate exists to catch a NEW composition that never
+  // goes anywhere. It does NOT apply to a re-voicing of an existing piece,
+  // where the correct reference is that piece's own range and not a threshold:
+  // the original `engine` measures 3.6 dB and `cascade` 1.0 dB, so this gate
+  // would demand the pass make them MORE dynamic than the music Pierre
+  // approved. For those, scripts/check-arrangement.mjs is the authority.
+  if (!NO_RANGE && range < 4) bad.push(`dynamic range ${range.toFixed(1)} dB — the piece does not build`);
   // 5. clipping and dead channels
   chs.forEach((c, i) => {
     if (pk[i] > 0.999) bad.push(`${NAMES[i]} clips`);
