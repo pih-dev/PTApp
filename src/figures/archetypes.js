@@ -53,13 +53,26 @@ const PRONE = {
   spine: [-71, 2, -2], head: 4,
   legs: { near: [79, -2, -39], far: [76, 1, -39] },
 };
-// On all fours, head at −x: trunk level, the supporting knee and hand down.
-// Grounded on the FAR knee, because the near limbs are the ones that move.
+// On all fours, head at −x. Grounded on the FAR knee, because the near limbs
+// are the ones that move.
+// 🔴 RE-AUTHORED 2026-08-23 (OPEN item 1c + the mirrored-sign sweep). Three
+//    defects lived here, all found by scanning, none by looking:
+//    · The trunk was LEVEL (−86), but the arm (300) is longer than the thigh
+//      (187) — a level trunk cannot put a hand and a knee on the same floor,
+//      so the support hand passed 76 units THROUGH it. On real all-fours the
+//      shoulders sit higher than the hips for exactly this reason: the trunk
+//      now slopes up toward the head (−70) and the hand lands flat.
+//    · A head-at-−x prone body is a MIRRORED figure (see knee-flexion), so the
+//      kneeling shin was folded UNDER the belly (−96, the upright sign) and
+//      its toe stabbed the floor. Flexion is positive here: +86 lays the shin
+//      flat behind the knee, foot −8 trails it flat.
+//    · The raised leg's foot pointed at the sky (+80); −18 is the mirrored
+//      pointed foot, same value hip-extension uses upright as +18.
 const QUAD = {
-  view: 'side', root: { x: 140, y: 560 }, ground: { joint: 'kneeF', y: FLOOR - 16 },
-  spine: [-86, 2, -2], head: 4,
-  legs: { near: [100, 0, 80], far: [4, -96, 88] },
-  arms: { near: [-100, 0, -6], far: [0, 4, 6] },
+  view: 'side', root: { x: 44, y: 560 }, ground: { joint: 'kneeF', y: FLOOR - 16 },
+  spine: [-73, 2, -2], head: 4,
+  legs: { near: [100, 0, -18], far: [4, 86, -8] },
+  arms: { near: [-100, 0, -6], far: [0, 4, -86] },
 };
 // Seated on a bench or a machine: hips low, knees forward, feet down.
 const SEATED = {
@@ -213,10 +226,16 @@ export const ARCHETYPES = {
     //    so flexion here is POSITIVE: +129 lifts the heel toward the glute,
     //    which is the movement. The `FLOOR:` gate in sanity-figures.mjs exists
     //    because this was found by scanning coordinates, never by looking.
+    // 🔴 AND THE FOOT INVERTS TOO (2026-08-23, Pierre's report relayed via the
+    //    PTApp session: "the feet are pointing towards the head — anatomically
+    //    impossible"). The 08-23 fix flipped the shin but left the foot at the
+    //    upright +88, which hooked the toes back DOWN toward the head — a
+    //    head-at-−x prone body is a MIRRORED figure, so every relative joint
+    //    sign flips, the ankle included. −88 is the same neutral ankle.
     base: { view: 'side', root: { x: 150, y: 700 }, spine: [-90, 2, -2], head: 4, arms: arms([-100, 8, 6], [-103, 10, 6]) },
-    correct: { legs: { near: [92, 129, 88], far: [89, 126, 88] } },
+    correct: { legs: { near: [92, 129, -88], far: [89, 126, -88] } },
     // The hips have lifted off the pad to help the heel come up.
-    fault: { root: { x: 150, y: 666 }, spine: [-78, -12, 4], legs: { near: [86, 145, 88], far: [83, 142, 88] } },
+    fault: { root: { x: 150, y: 666 }, spine: [-78, -12, 4], legs: { near: [86, 145, -88], far: [83, 142, -88] } },
     guide: { joints: ['thorax', 'pelvis', 'kneeN', 'ankleN'] },
     faultJoint: { joints: ['lumbar'], r: 40, offset: { x: 0, y: -26 } },
     anchor: 'feet',
@@ -238,7 +257,10 @@ export const ARCHETYPES = {
   'hip-abduction': {
     // Judged by Pierre on the Judging Bench, 2026-08-23.
     faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
-    base: { ...STAND_FRONT, arms: front([8, 6, 4]) },
+    // 🔴 Grounded on the SUPPORT leg (the hip-extension rule, applied 2026-08-23):
+    //    STAND_FRONT's default pins the NEAR ankle — the lifted one — so the
+    //    fault's higher lift pushed the standing leg 43 units through the floor.
+    base: { ...STAND_FRONT, ground: { joint: 'ankleF', y: FLOOR - 43 }, arms: front([8, 6, 4]) },
     correct: { legs: { near: [28, -6, 118], far: [-3, 3, -118] } },
     // The trunk has leaned away to throw the leg out instead of the hip lifting it.
     fault: { spine: [-16, 4, 4], legs: { near: [40, -8, 118], far: [-4, 4, -118] } },
@@ -250,7 +272,8 @@ export const ARCHETYPES = {
   'hip-adduction': {
     // Judged by Pierre on the Judging Bench, 2026-08-23.
     faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
-    base: { ...STAND_FRONT, arms: front([8, 6, 4]) },
+    // Same grounding rule as hip-abduction: the near leg is the working one.
+    base: { ...STAND_FRONT, ground: { joint: 'ankleF', y: FLOOR - 43 }, arms: front([8, 6, 4]) },
     correct: { legs: { near: [-16, 6, 118], far: [-3, 3, -118] } },
     fault: { spine: [14, -4, -4], legs: { near: [-30, 10, 118], far: [-4, 4, -118] } },
     guide: { joints: ['neckBase', 'pelvis', 'kneeN', 'ankleN'] },
@@ -348,10 +371,13 @@ export const ARCHETYPES = {
   },
 
   'push-up': {
-    base: { ...PRONE, root: { x: 170, y: 600 }, ground: { joint: 'toeN', y: FLOOR } },
+    // root.x 170 → 65 (framing round, 2026-08-23): the trailing toes sat 92
+    // units past the cell's right edge — a full plank body is ~800 wide, so it
+    // only fits the 900 cell when actually centred.
+    base: { ...PRONE, root: { x: 65, y: 600 }, ground: { joint: 'toeN', y: FLOOR } },
     correct: { spine: [-71, 2, -2], head: 4, arms: arms([-16, -58, -10], [-19, -55, -10]) },
     // The hips have dropped: the body is a sag, not a plank.
-    fault: { root: { x: 170, y: 648 }, spine: [-58, -16, -6], head: 10, arms: arms([-16, -58, -10], [-19, -55, -10]) },
+    fault: { root: { x: 65, y: 648 }, spine: [-58, -16, -6], head: 10, arms: arms([-16, -58, -10], [-19, -55, -10]) },
     guide: { joints: ['ankleN', 'kneeN', 'pelvis', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 44, offset: { x: 0, y: 30 } },
     // A sagging push-up hangs on the lumbar spine — the core that should carry
@@ -363,10 +389,16 @@ export const ARCHETYPES = {
   dip: {
     // Judged by Pierre on the Judging Bench, 2026-08-23.
     faultMuscles: { primary: ['delts'], secondary: ['chest'] },
+    // 🔴 RE-AUTHORED 2026-08-23 (the frame audit): the arms were [174, 34] —
+    //    upper arm pointing straight UP, hands 43 units above the cell's top
+    //    edge, clipped out of every render. A dip's upper arm points down and
+    //    BACK (shoulder extension), forearm down to the bar at hip height —
+    //    which also brings the drawn bars down to where dip bars are.
     base: { view: 'side', root: { x: 0, y: 430 }, spine: [8, -4, -2], head: -4, legs: { near: [-28, -46, 92], far: [-24, -50, 92] } },
-    correct: { arms: arms([174, 34, 4], [170, 38, 4]) },
-    // Dropped too deep — the shoulder is now below the elbow.
-    fault: { root: { x: 0, y: 490 }, arms: arms([166, 56, 6], [162, 60, 6]) },
+    correct: { arms: arms([-35, 45, 0], [-38, 48, 0]) },
+    // Dropped too deep — the shoulder is now below the elbow, which has flared
+    // up behind the back. The feet tuck a little further so they clear the floor.
+    fault: { root: { x: 0, y: 490 }, arms: arms([-108, 118, 0], [-111, 121, 0]), legs: { near: [-28, -54, 92], far: [-24, -58, 92] } },
     guide: { joints: ['wristN', 'elbowN', 'shoulderN', 'thorax'] },
     faultJoint: { joints: ['shoulderN'], r: 38 },
     anchor: 'bars',
@@ -417,9 +449,14 @@ export const ARCHETYPES = {
 
   'triceps-overhead': {
     base: { ...STAND },
-    correct: { spine: [2, -2, 2], arms: arms([176, -52, -8], [172, -48, -8]) },
+    // 🔴 RE-AUTHORED 2026-08-23 (the frame audit): the forearm was −52 — from
+    //    an overhead upper arm that is 52° of hyperextension, an elbow no human
+    //    has, and it put the hands 51 units above the cell's top edge. The
+    //    honest moment is the deep stretch: elbow overhead, forearm FOLDED
+    //    behind the head (+134 is elbow flexion, the same sign as a curl).
+    correct: { spine: [2, -2, 2], arms: arms([176, 134, -8], [172, 130, -8]) },
     // The ribs flare and the back arches to get the elbow overhead.
-    fault: { spine: [-20, 6, 8], head: 8, arms: arms([164, -70, -10], [160, -66, -10]) },
+    fault: { spine: [-20, 6, 8], head: 8, arms: arms([164, 140, -10], [160, 136, -10]) },
     guide: { joints: ['pelvis', 'lumbar', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 44, offset: { x: -26, y: 6 } },
     // The arch that gets the elbow overhead is held by the lower back, not the
@@ -472,7 +509,8 @@ export const ARCHETYPES = {
     base: { ...STAND_FRONT },
     correct: { arms: front([86, 8, 4]) },
     // Taken well above the shoulder line, where the joint has nothing left.
-    fault: { arms: front([124, 8, 4]) },
+    // (124 → 118, framing round 2026-08-23: the hands kissed the cell's top edge.)
+    fault: { arms: front([118, 8, 4]) },
     guide: { joints: ['wristN', 'elbowN', 'shoulderN', 'thorax'], mirror: true },
     faultJoint: { joints: ['shoulderN', 'shoulderF'], r: 36 },
     anchor: 'hands',
@@ -574,10 +612,11 @@ export const ARCHETYPES = {
   plank: {
     // Judged by Pierre on the Judging Bench, 2026-08-23.
     faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
-    base: { ...PRONE, ground: { joint: 'toeN', y: FLOOR } },
+    // root.x 170 → 65: same framing shift as push-up, same reason.
+    base: { ...PRONE, root: { x: 65, y: 640 }, ground: { joint: 'toeN', y: FLOOR } },
     correct: { spine: [-71, 2, -2], head: 4, arms: arms([0, -90, -8], [-3, -87, -8]) },
     // The hips have dropped: the body is a sag, not a line.
-    fault: { root: { x: 170, y: 686 }, spine: [-58, -16, -6], head: 10, arms: arms([0, -90, -8], [-3, -87, -8]) },
+    fault: { root: { x: 65, y: 686 }, spine: [-58, -16, -6], head: 10, arms: arms([0, -90, -8], [-3, -87, -8]) },
     guide: { joints: ['ankleN', 'kneeN', 'pelvis', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 44, offset: { x: 0, y: 30 } },
     anchor: 'none',
@@ -593,8 +632,11 @@ export const ARCHETYPES = {
       fs: { thigh: 0.9, shin: 0.9, foot: 0.5 },
       legs: { near: [96, 2, 84], far: [92, 6, 84] },
     },
-    correct: { spine: [-92, 2, -2], head: 4, arms: arms([-4, 4, 6], [176, 8, 4]) },
-    fault: { root: { x: 90, y: 604 }, spine: [-78, 14, 6], head: 10, arms: arms([-6, 6, 6], [172, 10, 4]) },
+    // Support hand FLAT (6 → −86, floor pass 2026-08-23): the hand segment
+    // used to continue straight down and its fingers ran 38 units into the
+    // floor. The wrist was already at floor height — only the palm turns.
+    correct: { spine: [-92, 2, -2], head: 4, arms: arms([-4, 4, -86], [176, 8, 4]) },
+    fault: { root: { x: 90, y: 604 }, spine: [-78, 14, 6], head: 10, arms: arms([-6, 6, -84], [172, 10, 4]) },
     guide: { joints: ['ankleN', 'kneeN', 'pelvis', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 42 },
     anchor: 'none',
@@ -647,10 +689,17 @@ export const ARCHETYPES = {
   'knee-tuck': {
     // Judged by Pierre on the Judging Bench, 2026-08-23.
     faultMuscles: { primary: ['delts'], secondary: ['abs'] },
-    base: { ...PRONE, arms: arms([0, -90, -8], [-3, -87, -8]), ground: { joint: 'handN', y: FLOOR } },
-    correct: { spine: [-71, 2, -2], head: 4, legs: { near: [46, 54, -40], far: [76, 1, -39] } },
+    // Framing + floor pass 2026-08-23: root.x 170 → 90 (trailing toes were 70
+    // past the right edge), and the tucked thigh raised 46 → 78 — at 46 the
+    // drawn knee finished 71 units UNDER the floor, drawn as a smear. A tucked
+    // knee drives toward the chest, above the floor, not through it.
+    base: { ...PRONE, root: { x: 86, y: 640 }, arms: arms([0, -90, -8], [-3, -87, -8]), ground: { joint: 'handN', y: FLOOR } },
+    // The trailing thigh runs at 84, not PRONE's 76: this pattern grounds on
+    // the HAND, and from there the old angles overshot the floor — the
+    // trailing toe finished 52 units under it.
+    correct: { spine: [-71, 2, -2], head: 4, legs: { near: [78, 54, -50], far: [84, 1, -39] } },
     // The hips have piked up and the trunk has stopped holding anything.
-    fault: { root: { x: 170, y: 596 }, spine: [-94, 8, 4], head: 6, legs: { near: [40, 60, -40], far: [74, 2, -39] } },
+    fault: { root: { x: 86, y: 596 }, spine: [-94, 8, 4], head: 6, legs: { near: [72, 60, -50], far: [74, 2, -39] } },
     guide: { joints: ['ankleF', 'kneeF', 'pelvis', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 42, offset: { x: 0, y: -26 } },
     anchor: 'none',
@@ -659,8 +708,9 @@ export const ARCHETYPES = {
   rollout: {
     // Judged by Pierre on the Judging Bench, 2026-08-23.
     faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
-    // Kneeling, arms reaching away along the floor.
-    base: { view: 'side', root: { x: -40, y: 500 }, legs: { near: [-14, -92, 84], far: [-17, -89, 84] }, ground: { joint: 'kneeN', y: FLOOR - 18 } },
+    // Kneeling, arms reaching away along the floor. root.x −40 → −60
+    // (framing round, 2026-08-23): the fault's reaching hand left the cell.
+    base: { view: 'side', root: { x: -60, y: 500 }, legs: { near: [-14, -92, 84], far: [-17, -89, 84] }, ground: { joint: 'kneeN', y: FLOOR - 18 } },
     correct: { spine: [58, -4, -6], head: -10, arms: arms([44, 26, 8], [40, 30, 8]) },
     // Reached past what the trunk can hold: the hips drop and the back sags.
     fault: { spine: [76, -14, -12], head: -18, arms: arms([62, 22, 8], [58, 26, 8]) },
@@ -673,9 +723,11 @@ export const ARCHETYPES = {
     // Judged by Pierre on the Judging Bench, 2026-08-23.
     faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
     base: { ...STAND_FRONT },
-    correct: { arms: front([104, 62, 6]), spine: [0, 0, 0] },
+    // Press-out trimmed 104/122 → 100/102 (framing round, 2026-08-23): the
+    // fault's hand was 40 units above the cell's top edge.
+    correct: { arms: front([100, 52, 6]), spine: [0, 0, 0] },
     // The whole point of the drill is not to turn — and the trunk has turned.
-    fault: { arms: { near: [122, 50, 8], far: [-86, -70, -6] }, spine: [-12, 4, 4] },
+    fault: { arms: { near: [102, 44, 8], far: [-86, -70, -6] }, spine: [-12, 4, 4] },
     guide: { joints: ['neckBase', 'thorax', 'pelvis'] },
     faultJoint: { joints: ['lumbar'], r: 42 },
     anchor: 'cable-mid',
@@ -685,9 +737,13 @@ export const ARCHETYPES = {
     // Judged by Pierre on the Judging Bench, 2026-08-23.
     faultMuscles: { primary: ['erectors'], secondary: ['abs'] },
     base: { ...STAND_FRONT },
-    correct: { arms: { near: [128, 34, 6], far: [-58, -40, -6] }, legs: { near: [14, -8, 118], far: [-10, 6, -118] } },
+    // Arm swing trimmed 128/148 → 110/116 (framing round, 2026-08-23): the
+    // fault's raised hand was 80 units above the cell's top edge. The pair
+    // still reads high-to-low across the body; the fault's marker is the
+    // trunk lean with planted feet, not extra arm height nobody could see.
+    correct: { arms: { near: [110, 28, 6], far: [-58, -40, -6] }, legs: { near: [14, -8, 118], far: [-10, 6, -118] } },
     // Turned from the lower back with the feet planted, instead of from the hips.
-    fault: { spine: [-16, 6, 6], arms: { near: [148, 26, 8], far: [-40, -34, -6] }, legs: { near: [4, -2, 118], far: [-4, 2, -118] } },
+    fault: { spine: [-16, 6, 6], arms: { near: [116, 20, 8], far: [-40, -34, -6] }, legs: { near: [4, -2, 118], far: [-4, 2, -118] } },
     guide: { joints: ['neckBase', 'thorax', 'pelvis', 'kneeN'] },
     faultJoint: { joints: ['lumbar'], r: 42 },
     anchor: 'hands',
@@ -709,9 +765,17 @@ export const ARCHETYPES = {
     // Judged by Pierre on the Judging Bench, 2026-08-23.
     faultMuscles: { primary: ['erectors'], secondary: ['glutes'] },
     base: { ...QUAD },
-    correct: { spine: [-86, 2, -2], head: 4, legs: { near: [100, 0, 80], far: [4, -96, 88] }, arms: arms([-100, 0, -6], [0, 4, 6]) },
-    // The back has sagged and the leg has gone higher than the trunk can hold.
-    fault: { spine: [-74, -12, -6], head: 12, legs: { near: [118, -4, 80], far: [4, -96, 88] }, arms: arms([-116, -4, -6], [0, 4, 6]) },
+    // The reaching arm continues the trunk's own line (spine −73 ⇒ arm −107).
+    correct: { spine: [-73, 2, -2], head: 4, legs: { near: [100, 0, -18], far: [4, 86, -8] }, arms: arms([-107, 0, -6], [0, 4, -86]) },
+    // The back has hollowed to send the leg higher than the trunk can hold:
+    // the lumbar segment drops toward horizontal and the thorax folds back up,
+    // so BOTH ends stay planted and the swayback is the difference. (A sag
+    // authored as a whole-trunk tilt lifted the support hand off the floor —
+    // and a lumbar shallower than −60 walks into the KNEE gate's upright
+    // scope, where the kneeling shin's mirrored +86 reads as a backward knee.)
+    // The support limbs are IDENTICAL between the halves (the hip-extension
+    // rule), so the hollow and the over-raised leg are the only differences.
+    fault: { spine: [-80, 14, -6], head: 12, legs: { near: [118, 4, -18], far: [4, 86, -8] }, arms: arms([-116, -4, -6], [0, 4, -86]) },
     guide: { joints: ['kneeF', 'pelvis', 'thorax', 'neckBase'] },
     faultJoint: { joints: ['lumbar'], r: 42, offset: { x: 0, y: 26 } },
     anchor: 'none',

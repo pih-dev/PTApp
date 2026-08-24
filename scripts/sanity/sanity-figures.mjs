@@ -153,6 +153,19 @@ for (const id of ids) {
       if (!inR(p.spine[1], ROM.thoraxRel)) { console.warn(`ROM: "${id}" ${kind} thorax ${p.spine[1]}°`); romWarn++; }
       if (!inR(p.spine[2], ROM.neckRel)) { console.warn(`ROM: "${id}" ${kind} neck ${p.spine[2]}°`); romWarn++; }
     }
+    // 🔴 A LYING BODY CARRIES MIRRORED JOINT SIGNS. A head-at-−x prone pattern
+    //    is a mirrored figure, so knee and elbow flexion are POSITIVE there and
+    //    a range written for the upright sign warns on every healthy joint —
+    //    24 of the 24 warnings this gate printed on 2026-08-23 were that noise
+    //    (plank/push-up support elbows at −90, bird-dog's kneeling shin). The
+    //    PATTERN's base orientation decides the convention (a fault never tips
+    //    a body from standing to lying), so lying patterns skip the limb checks
+    //    and stay a human judgement — the same honesty rule as the KNEE gate
+    //    below. Narrowed scope, NOT a widened tolerance.
+    //    (Orientation reads from the base, falling back to the correct pose —
+    //    reverse-plank keeps its spine in the halves, not the base.)
+    const oSpine = a.base.spine || (a.correct && a.correct.spine);
+    const lyingBase = Math.abs((oSpine && oSpine[0]) || 0) > 60;
     for (const [limb, key, range] of [['legs', 1, ROM.knee], ['arms', 1, ROM.elbow]]) {
       // 🔴 A FRONT VIEW CARRIES NO KNEE ANGLE. legs[1] there is a LATERAL angle
       //    — the mirrored pair that brings a splayed shin back under the body —
@@ -162,6 +175,7 @@ for (const id of ids) {
       //    the noise from the day the gate was written until Pierre spotted the
       //    backward knee himself on 2026-08-23.
       if (front && limb === 'legs') continue;
+      if (lyingBase) continue;
       for (const side of ['near', 'far']) {
         const seg = p[limb] && p[limb][side];
         if (!seg) continue;
@@ -228,6 +242,34 @@ for (const id of ids) {
   }
 }
 if (sunk) console.warn(`FLOOR: ${sunk} pose(s) with a joint under the baseline`);
+
+// 5f. 🔴 A FIGURE STAYS IN ITS CELL. Same shape as FLOOR, other three edges:
+//     the SVG clips at the viewBox, so a joint past it is a body part the
+//     reader never sees — and it fails SILENTLY, which is how a dip shipped
+//     with its hands (and the bars they grip) 43 units above the frame from
+//     the day it was authored until Pierre asked for parts outside the frame
+//     (2026-08-24, relayed via the PTApp session, which measured 17 poses out
+//     of frame). Joint CENTRES only — flesh girth makes real overflow worse —
+//     and warn-only, matching FLOOR, until a framing decision closes item 1b.
+import { CELL } from '../../src/figures/svg.js';
+const EDGE_R = CELL.x + CELL.w, EDGE_B = CELL.y + CELL.h;
+let outOfCell = 0;
+for (const id of ids) {
+  const a = ARCHETYPES[id];
+  for (const kind of ['correct', 'fault']) {
+    const sk = skeleton({ ...a.base, ...a[kind] });
+    const out = [];
+    for (const [j, v] of Object.entries(sk)) {
+      if (!v || typeof v !== 'object' || typeof v.x !== 'number') continue;
+      if (v.x < CELL.x) out.push(`${j} L+${Math.round(CELL.x - v.x)}`);
+      if (v.x > EDGE_R) out.push(`${j} R+${Math.round(v.x - EDGE_R)}`);
+      if (v.y < CELL.y) out.push(`${j} T+${Math.round(CELL.y - v.y)}`);
+      if (v.y > EDGE_B) out.push(`${j} B+${Math.round(v.y - EDGE_B)}`);
+    }
+    if (out.length) { console.warn(`FRAME: "${id}" ${kind} outside the cell — ${out.join(', ')}`); outOfCell++; }
+  }
+}
+if (outOfCell) console.warn(`FRAME: ${outOfCell} pose(s) with a joint outside the cell`);
 
 // 6. The canon is the canon: the hip at half standing height is the ratio that
 //    was wrong first time round and the one a careless edit would break again.

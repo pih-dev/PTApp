@@ -4,6 +4,26 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.45 - the second anatomy pass: signs, frames and floors (August 24, 2026)
+
+Pierre asked for a pass over the figures: anatomically impossible details and
+body parts drawn outside the picture. Fourteen patterns fixed: the lying leg
+curl's feet no longer hook toward the head (a face-down body mirrors every
+joint sign — the 08-23 fix flipped the shin but not the ankle); the bird-dog
+was rebuilt (trunk now slopes so the support hand reaches the floor instead of
+passing through it, kneeling shin lies flat, feet point the right way); the
+dip was redrawn (its arms pointed straight up with the hands clipped above the
+frame — now they grip bars at hip height); the overhead triceps stretch folds
+its forearm behind the head instead of hyperextending the elbow; and push-up,
+plank, body-saw, rotation, Pallof press, lateral raise, rollout, side plank
+and both hip machines were recentred or re-grounded so nothing leaves the cell
+or sinks under the floor. Two new build gates keep it that way: FRAME warns on
+any joint outside the cell, and the range-of-motion check now skips lying
+bodies it cannot honestly judge — its warning list went from 24 noise lines to
+just the leg press's two deliberate ones.
+
+---
+
 ## v2.43.2 - the Spot joins the logo (August 23, 2026)
 
 From Pierre's own icon mock: a dot now sits above the pair, between the
