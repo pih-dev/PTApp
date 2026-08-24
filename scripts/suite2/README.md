@@ -48,7 +48,15 @@ const gtr = S.track('guitar', { az: -22, centre: 0.2, spread: 14, send: 0.30, ga
 | `hp` / `lp` | corrective filtering in Hz. |
 | `gain` | track fader. |
 
-**Placement rules that matter.** Lead front and near centre. Bass near centre, `az` within ±15
+🔴 **THE FRONT SPEAKERS ARE AT ±30°, AND `spread` MOVES A TWIN OUTWARD FROM `az`.** So anything
+meant to be on the front stage needs **`|az| + spread ≤ 30`**. A track at `az: -34, spread: 17` puts
+a twin at −51°, which is 52 % of the way from FL to SL — over half its amplitude arrives from behind
+the listener's left shoulder. That is a real bug, not a taste question: it measured as an 8.7 dB
+front-pair imbalance on `weave` (the guitar bleeding rear-left while the flute sat squarely in FR).
+Going past ±30 is fine when you *mean* it — stabs, ambience, a wash — but never for a lead or a
+rhythm part that should sound like it is in front of you.
+
+**Other placement rules that matter.** Lead front and near centre. Bass near centre, `az` within ±15
 (low frequency has no image anyway, and a hard-panned bass unbalances the room). Rhythm parts to
 the sides. Anything atmospheric goes behind with `pair: true` and a high `send`. Never put two
 important voices at the same azimuth — they fight for one image.
@@ -57,6 +65,13 @@ important voices at the same azimuth — they fight for one image.
 
 All write **additively** into `track.buf`. Signature is always `(buf, t0, …, amp, rng, opts)`.
 `amp: 1` peaks at ~1.0 for every voice, so levels mean the same thing across instruments.
+
+🔴 **But PEAK is not LOUDNESS.** A sustained voice (flute, sax, strings) carries energy for the whole
+length of a note; a plucked or struck one (guitar, piano, drums) is a spike that decays. Write them
+at the same `amp` and the sustained one measures ~10 dB hotter — which is exactly what threw
+`weave`'s front pair 7 dB out of balance before its track gains were set. **When two voices are
+meant to be equal partners, set `gain` until their TRACKS measure the same, not until their numbers
+look the same.** Print per-track RMS to check; do not eyeball the amps.
 
 ```js
 O.flute(buf, t0, dur, f, amp, rng, { vib, vibDelay, breath, chiff, scoop, legatoFrom, atk, rel, human })

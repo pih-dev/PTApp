@@ -45,7 +45,7 @@ export function compose(S, O) {
   // well left of it and the beds surround — nothing shares an azimuth with the
   // flute, because two voices in one place is one voice you cannot hear.
   const fl = S.track('flute', { az: 5, centre: 0.44, spread: 8, send: 0.34, gain: 1.0 });
-  const gt = S.track('guitar', { az: -31, spread: 13, send: 0.30, gain: 0.72, body: BODY.nylon });
+  const gt = S.track('guitar', { az: -22, spread: 8, send: 0.30, gain: 0.72, body: BODY.nylon });
   const bs = S.track('bass', { az: -7, centre: 0.14, send: 0.12, gain: 0.85, body: BODY.upright, lp: 2000 });
   const stF = S.track('strings-front', { az: 46, pair: true, spread: 18, send: 0.56, gain: 0.46, hp: 130 });
   const stB = S.track('strings-room', { az: 132, pair: true, spread: 30, send: 0.74, gain: 0.30, hp: 190 });

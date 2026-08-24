@@ -4,7 +4,7 @@
 //
 // G major, 96 bpm. This is the only piece where the flute and the guitar share
 // the front of the room, so they are placed far enough apart to be told apart:
-// guitar at −28°, flute at +24°, both lightly centre-anchored so neither
+// guitar at −22°, flute at +21°, both lightly centre-anchored so neither
 // wanders. The listener should be able to point at each one.
 //
 // The whole piece is call and response, and its one rule is that THE TWO
@@ -44,10 +44,20 @@ export function compose(S, O) {
   const J = () => rng() * 0.006;
 
   // ── the room — the two leads deliberately far apart ───────────────────────
-  const gt = S.track('guitar', { az: -28, centre: 0.22, spread: 10, send: 0.28, gain: 0.92, body: BODY.nylon });
-  const fl = S.track('flute', { az: 24, centre: 0.26, spread: 7, send: 0.32, gain: 1.0 });
+  //
+  // 🔴 THE GAINS ARE NOT COSMETIC. Written at the same nominal amp, the flute
+  // measured 10 dB hotter than the guitar and threw the front pair 7 dB out of
+  // balance. A sustained note carries energy for its whole length; a plucked
+  // one is a spike that decays. `amp: 1` is normalised so every voice PEAKS at
+  // about 1.0, which is what makes levels comparable across instruments — but
+  // peak is not loudness, and in a duet the two voices have to be equal. So the
+  // guitar is lifted and the flute pulled back until both tracks measure the
+  // same RMS. In `ridge` the guitar is accompaniment and is meant to sit under
+  // the flute; here they are partners.
+  const gt = S.track('guitar', { az: -22, centre: 0.22, spread: 8, send: 0.28, gain: 2.30, body: BODY.nylon });
+  const fl = S.track('flute', { az: 21, centre: 0.26, spread: 7, send: 0.32, gain: 0.62 });
   const bs = S.track('bass', { az: -4, centre: 0.16, send: 0.11, gain: 0.84, body: BODY.upright, lp: 1900 });
-  const sh = S.track('shaker', { az: 50, pair: true, spread: 14, send: 0.34, gain: 0.32 });
+  const sh = S.track('shaker', { az: 40, pair: true, spread: 10, send: 0.34, gain: 0.55 });
   const st = S.track('strings', { az: 124, pair: true, spread: 30, send: 0.70, gain: 0.30, hp: 160 });
 
   const G = { arp: ['G2', 'D3', 'G3', 'B3'], ch: ['G2', 'B2', 'D3', 'G3'], pad: ['G3', 'B3', 'D4', 'G4'], root: 'G1' };

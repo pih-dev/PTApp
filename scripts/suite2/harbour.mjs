@@ -43,11 +43,11 @@ export function compose(S, O) {
 
   // ── the room ──────────────────────────────────────────────────────────────
   const ld = S.track('guitar-lead', { az: 6, centre: 0.40, spread: 9, send: 0.26, gain: 0.95, body: BODY.nylon });
-  const cp = S.track('guitar-comp', { az: -34, spread: 17, send: 0.30, gain: 0.62, body: BODY.nylon });
+  const cp = S.track('guitar-comp', { az: -22, spread: 8, send: 0.30, gain: 0.62, body: BODY.nylon });
   const bs = S.track('bass', { az: -8, centre: 0.14, send: 0.11, gain: 0.88, body: BODY.upright, lp: 1900 });
   const dk = S.track('kit', { az: 14, centre: 0.20, spread: 10, send: 0.20, gain: 0.70 });
-  const sh = S.track('shaker', { az: 44, pair: true, spread: 14, send: 0.34, gain: 0.34 });
-  const st = S.track('strings', { az: 118, pair: true, spread: 28, send: 0.66, gain: 0.28, hp: 170 });
+  const sh = S.track('shaker', { az: 36, pair: true, spread: 9, send: 0.26, gain: 0.32 });
+  const st = S.track('strings', { az: 122, pair: true, spread: 24, send: 0.58, gain: 0.26, hp: 170 });
 
   const Em = { ch: ['E2', 'B2', 'E3', 'G3', 'B3'], pad: ['E3', 'G3', 'B3', 'E4'], root: 'E1', walk: ['E1', 'G1', 'A1', 'B1'] };
   const C = { ch: ['C2', 'G2', 'C3', 'E3', 'G3'], pad: ['C3', 'E3', 'G3', 'C4'], root: 'C2', walk: ['C2', 'E2', 'G2', 'B1'] };

@@ -45,7 +45,7 @@ export function compose(S, O) {
   // Everything sits close and slightly in front. Low sends — this piece must
   // sound like it is in the room with you, not down a corridor.
   const fl = S.track('flute', { az: 8, centre: 0.40, spread: 6, send: 0.26, gain: 1.0 });
-  const gt = S.track('guitar', { az: -26, spread: 11, send: 0.22, gain: 0.80, body: BODY.nylon });
+  const gt = S.track('guitar', { az: -21, spread: 8, send: 0.22, gain: 0.80, body: BODY.nylon });
   const bs = S.track('bass', { az: -6, centre: 0.16, send: 0.10, gain: 0.78, body: BODY.upright, lp: 1700 });
   const stF = S.track('strings-front', { az: 42, pair: true, spread: 16, send: 0.48, gain: 0.34, hp: 150 });
   const stB = S.track('strings-room', { az: 126, pair: true, spread: 26, send: 0.62, gain: 0.22, hp: 200 });
