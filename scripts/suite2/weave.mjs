@@ -179,7 +179,7 @@ export function compose(S, O) {
   PROG.forEach((ch, i) => {
     flLine(10 + i, HOOK[i], 0.52, 0.30);
     chords(10 + i, ch, 0.20, [0]);
-    if (i % 2 === 1) gtLine(10 + i, [[3, ch.arp[1] ? 'D4' : 'D4', 0.5, 0.7], [3.5, 'G4', 0.5, 0.6]], 0.30);
+    if (i % 2 === 1) gtLine(10 + i, [[3, 'D4', 0.5, 0.7], [3.5, 'G4', 0.5, 0.6]], 0.30);
     low(10 + i, ch, 0.42, [0, 1.5, 2.5]);
     ticks(10 + i, 0.22);
   });

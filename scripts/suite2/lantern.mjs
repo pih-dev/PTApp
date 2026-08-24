@@ -31,7 +31,7 @@ export const meta = {
   blurb: 'The quiet one — breathy flute and fingerpicked nylon in A minor, a small room at night.',
   // Small, dark, close. Short tail so nothing washes; this room has walls.
   reverb: { rt60: 1.6, damp: 0.46, preDelay: 0.014, width: 0.95 },
-  master: { drive: 1.05, lfeGain: 0.34 },
+  master: { drive: 1.05, lfeGain: 0.34, loudness: -20 },
 };
 
 export function compose(S, O) {

@@ -684,3 +684,89 @@ node -e "const s=require('sharp');s('public/icon-512.png').raw().toBuffer({resol
 
 The generalisable shape: **a rendering path that re-implements the app's colour resolution will
 silently disagree with it the moment a new token appears.** Same family as "author-site drift".
+
+## TRAP: Two outputs kept in step by hand will drift — derive one from the other (2026-08-24, suite 2)
+
+**Symptom.** `make-opening-suite.mjs` (stereo) and `make-opening-suite-51.mjs` (5.1) contain the
+same five arrangements written twice, and the file says so: *"🔴 KEPT IN STEP WITH … BY HAND.
+Change a piece there, change it here."* A comment is not a mechanism. Every future edit is one
+forgotten paste away from a 5.1 mix that no longer matches the stereo one, and nothing would fail —
+both files render, both encode, both play.
+
+**Root cause.** The two formats were treated as two deliverables, so each got its own source. But
+they are not two things: 5.1 is a *view* of the same arrangement.
+
+**The fix is structural, not disciplinary.** In `scripts/make-suite2.mjs` a piece is composed once
+into positioned mono tracks; `mix()` renders 7.1, and `fold51()` and `fold2()` derive 5.1 and stereo
+from that. There is no second arrangement that *can* drift, so nobody has to remember anything.
+
+**The general rule.** When you catch yourself writing "keep these in step by hand", that is the bug
+report. Ask which of the two is derivable from the other and delete the copy. If neither derives
+from the other, add a test that fails when they disagree — but derivation beats a test, because a
+test only tells you afterwards.
+
+## TRAP: A codec name does not tell you its channel layouts — ask the encoder (2026-08-24, suite 2)
+
+**Symptom.** "Dolby Digital Plus supports 7.1" is true of the *format* and false of the *encoder you
+have*. Encoding a 7.1 master with ffmpeg's `eac3` fails outright:
+`Channel layout '7.1' is not supported by the eac3 encoder`.
+
+**What is actually true of this ffmpeg 9.0 build**, read from `ffmpeg -h encoder=<name>`:
+
+| encoder | supported layouts stop at |
+|---|---|
+| `ac3` | 5.1 |
+| `eac3` | 5.1 |
+| `truehd` | 5.1(side) |
+| `aac` | 7.1 (and beyond) |
+| `flac` | 8 channels |
+
+And **Dolby Atmos cannot be produced at all** — it needs JOC object metadata (or TrueHD+Atmos),
+which only the licensed Dolby encoder emits. No ffmpeg build makes an Atmos file.
+
+**So the honest deliverable split** is Dolby-branded at 5.1 (AC-3 and E-AC-3) plus a *true* eight
+-channel 7.1 in AAC that carries no Dolby badge — and the filenames say exactly that. Naming a file
+`-DolbyDigitalPlus-7.1` when no such thing exists is the failure; a soundbar that lights the wrong
+lamp is a bug report from the user six months later.
+
+**The rule.** Before promising a container/codec/layout combination, run `-h encoder=<name>` and read
+the "Supported channel layouts" line. Format specs describe what is *possible*; the encoder in front
+of you describes what is *available*.
+
+## TRAP: Peak-normalising a set of tracks does NOT make them equally loud (2026-08-24, suite 2)
+
+**Symptom.** Seven pieces all mastered to the same 0.92 peak. Played back to back, `harbour` and
+`drive` sounded roughly 8 dB weaker than `ridge` and `ivory` — the listener reaches for the volume
+between tracks.
+
+**Root cause: crest factor.** A strummed, drum-heavy arrangement has tall transients and a low
+average; a sustained flute-and-strings arrangement has almost no transients and a high average.
+Normalise both to the same *peak* and the transient-heavy one ends up far quieter in *RMS*, which is
+what the ear hears.
+
+**Fix.** Master to a target RMS, soft-limit whatever that pushes over a 0.70 knee, and peak-normalise
+only afterwards. `mix()` takes `master.loudness` in dBFS (default −17) so one piece can still be set
+deliberately below the rest — `lantern` is the quiet one at −20 and keeps its own 28 dB of internal
+dynamics either way.
+
+**The general rule.** Peak is a safety limit; RMS is loudness. Never use the safety limit as the
+loudness target across a set of things that will be played in sequence.
+
+## TRAP: A diffuse reverb tail is only symmetric if you make it symmetric (2026-08-24, suite 2)
+
+**Symptom.** `check-mix` flagged an 8.3 dB gap between the two rear channels of `boulevard`, whose
+sources all sit left of centre. Every other piece measured within 1 dB.
+
+**Root cause.** The FDN reverb's eight delay lines all receive the *same* mono send and are coupled
+by the Householder matrix, so they are far from independent. Each output channel was a different
+hand-picked ±1 combination of those eight correlated signals — and two different sign patterns over
+correlated inputs have genuinely different magnitudes. The tail was diffuse in intention only.
+
+**Fix.** Give the lines different injection signs so they decorrelate at the source, then pair the
+output rows *structurally*: lines are paired by length, and every left channel uses the same sign
+pattern over one member of three pairs that its right partner uses over the other. Balance then
+holds by construction rather than by luck, whatever the source material does.
+
+**The general rule.** "It should average out" is not a property you get for free from correlated
+inputs. If two outputs must match, build them from mirrored structure — and measure, because this
+one was inaudible in a file listing and obvious the moment it was plotted.

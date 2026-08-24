@@ -614,14 +614,30 @@ export function cymbal(buf, t0, amp, rng, opts = {}) {
 // lines, so the tail is genuinely decorrelated around the room instead of one
 // stereo reverb copied to six speakers.
 const FDN_LEN = [1123, 1291, 1523, 1787, 2003, 2311, 2683, 3079];
-const FDN_MIX = [ // 7 output channels × 8 lines, ±1 signs chosen for decorrelation
-  [1, -1, 1, 1, -1, 1, -1, -1],  // FL
-  [1, 1, -1, 1, 1, -1, -1, 1],   // FR
-  [1, 1, 1, -1, -1, -1, 1, 1],   // C
-  [-1, 1, 1, 1, 1, -1, 1, -1],   // SL
-  [1, -1, -1, 1, -1, 1, 1, 1],   // SR
-  [-1, -1, 1, -1, 1, 1, 1, -1],  // BL
-  [-1, 1, -1, -1, 1, 1, -1, 1],  // BR
+// Injection signs — each line is fed the same send bus, so without this they
+// start life perfectly correlated and only the differing lengths pull them
+// apart.
+const FDN_IN = [1, -1, 1, -1, 1, -1, 1, -1];
+// Output taps: 7 channels x 8 lines.
+//
+// 🔴 THESE ARE STRUCTURALLY MIRRORED, NOT ARBITRARY. The lines are paired by
+// length — (0,1) (2,3) (4,5) (6,7) — and every LEFT channel uses the same sign
+// pattern over the even member of three pairs that its RIGHT partner uses over
+// the odd member. That is what makes the tail balanced.
+//
+// The first version used hand-picked sign patterns and measured an 8.3 dB gap
+// between BL and BR on `boulevard`, whose sources all sit left of centre. The
+// lines are NOT independent — they share an input and the Householder couples
+// them — so two different ±1 combinations of them have genuinely different
+// magnitudes. Pairing the rows structurally removes the question.
+const FDN_MIX = [
+  [1, 0, -1, 0, 1, 0, 0, 0],   // FL  — lines 0,2,4
+  [0, 1, 0, -1, 0, 1, 0, 0],   // FR  — lines 1,3,5   (mirror of FL)
+  [0.87, 0.87, 0, 0, 0, 0, 0.87, 0.87], // C — 0,1,6,7, both sides, scaled to match
+  [0, 0, 1, 0, 1, 0, -1, 0],   // SL  — lines 2,4,6
+  [0, 0, 0, 1, 0, 1, 0, -1],   // SR  — lines 3,5,7   (mirror of SL)
+  [1, 0, 0, 0, -1, 0, 1, 0],   // BL  — lines 4,6,0
+  [0, 1, 0, 0, 0, -1, 0, 1],   // BR  — lines 5,7,1   (mirror of BL)
 ];
 /** Render a mono send bus into 7 decorrelated channel tails. */
 export function reverb(send, opts = {}) {
@@ -653,7 +669,7 @@ export function reverb(send, opts = {}) {
     for (let k = 0; k < 8; k++) {
       let w = v[k] - h;
       lpS[k] += (1 - damp) * (w - lpS[k]);
-      w = lpS[k] * g[k] + x * 0.30;
+      w = lpS[k] * g[k] + x * 0.30 * FDN_IN[k];
       lines[k][idx[k]] = w;
       idx[k] = idx[k] + 1 >= FDN_LEN[k] ? 0 : idx[k] + 1;
     }
@@ -748,7 +764,7 @@ export function createSession({ dur, tempo = 100, seed = 1, reverb: rv = {} }) {
 
 /** Render every track into 7 channels + LFE. Returns [FL,FR,C,LFE,SL,SR,BL,BR]. */
 export function mix(S, opts = {}) {
-  const { drive = 1.25, peakTarget = 0.92, lfeGain = 0.5, lfeCut = 85 } = opts;
+  const { drive = 1.25, peakTarget = 0.94, lfeGain = 0.5, lfeCut = 85, loudness = -17 } = opts;
   const N = S.N;
   const ch = Array.from({ length: 7 }, () => new Float64Array(N));
   const send = new Float64Array(N);
@@ -809,20 +825,50 @@ export function mix(S, opts = {}) {
   runBiquad(lfe, lc1); runBiquad(lfe, lc2);
   for (let i = 0; i < N; i++) lfe[i] *= lfeGain;
 
-  // Master: gentle saturation, top-and-tail fade, shared normalisation so the
-  // channel BALANCE survives (per-channel normalising would move the image).
+  // Master: gentle saturation, top-and-tail fade, then LOUDNESS MATCHING.
   const all = [ch[0], ch[1], ch[2], lfe, ch[3], ch[4], ch[5], ch[6]];
-  let peak = 0;
   for (const c of all) {
     for (let i = 0; i < N; i++) {
       const t = i / SR;
       const fade = Math.min(1, t / 0.03) * Math.min(1, (S.dur - t) / 0.45);
       c[i] = Math.tanh(c[i] * drive) * fade;
+    }
+  }
+
+  // 🔴 MATCH ON RMS, NOT ON PEAK. Peak-normalising every piece to the same
+  // ceiling makes a transient-heavy arrangement quiet: `harbour` (strums and
+  // drum hits) measured 8 dB below `ridge` (sustained flute) with both peaking
+  // at 0.92, because its crest factor is far higher. Played one after another
+  // that is the listener reaching for the volume knob between tracks.
+  // So: scale to a target RMS, soft-limit whatever that pushes over, and only
+  // then peak-normalise. `master.loudness` shifts one piece deliberately —
+  // `lantern` is meant to sit below the rest.
+  let sum = 0;
+  for (const c of all) for (let i = 0; i < N; i++) sum += c[i] * c[i];
+  const cur = Math.sqrt(sum / (all.length * N));
+  const want = Math.pow(10, loudness / 20);
+  const lift = cur > 1e-6 ? want / cur : 1;
+
+  // A soft knee above 0.70: below it nothing is touched, above it the curve
+  // bends so a peak can never reach 1.0 however hard it is driven.
+  const KNEE = 0.70;
+  const limit = (x) => {
+    const a = Math.abs(x);
+    if (a <= KNEE) return x;
+    const over = (a - KNEE) / (1 - KNEE);
+    return Math.sign(x) * (KNEE + (1 - KNEE) * Math.tanh(over));
+  };
+  let peak = 0;
+  for (const c of all) {
+    for (let i = 0; i < N; i++) {
+      c[i] = limit(c[i] * lift);
       const a = Math.abs(c[i]);
       if (a > peak) peak = a;
     }
   }
-  const g = peak > 0 ? peakTarget / peak : 1;
+  // Shared gain so the channel BALANCE survives — per-channel normalising
+  // would move the image.
+  const g = peak > 0 ? Math.min(peakTarget / peak, 1 / Math.max(peak, 1e-9)) : 1;
   for (const c of all) for (let i = 0; i < N; i++) c[i] *= g;
   return all;   // FL FR C LFE SL SR BL BR  (WAV 7.1 channel order)
 }

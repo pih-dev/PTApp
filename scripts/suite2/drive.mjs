@@ -29,7 +29,7 @@ export const meta = {
   tempo: 118,
   seed: 0xD214E,
   blurb: 'A steel-string riff in A mixolydian — palm-muted, full kit, and a two-bar break that resets it.',
-  reverb: { rt60: 1.25, damp: 0.30, preDelay: 0.011, width: 0.85 },
+  reverb: { rt60: 1.35, damp: 0.30, preDelay: 0.011, width: 1.0 },
   master: { drive: 1.30, lfeGain: 0.55 },
 };
 
@@ -45,8 +45,8 @@ export function compose(S, O) {
   const sb = S.track('guitar-stabs', { az: 42, pair: true, spread: 16, send: 0.20, gain: 0.46, body: BODY.steel });
   const bs = S.track('bass', { az: 0, centre: 0.22, send: 0.09, gain: 1.0, body: BODY.upright, lp: 2600 });
   const dk = S.track('kit', { az: 8, centre: 0.26, spread: 12, send: 0.16, gain: 0.82 });
-  const hh = S.track('hats', { az: -46, pair: true, spread: 12, send: 0.22, gain: 0.36 });
-  const cy = S.track('crash', { az: -70, pair: true, spread: 26, send: 0.42, gain: 0.40 });
+  const hh = S.track('hats', { az: -46, pair: true, spread: 12, send: 0.30, gain: 0.36 });
+  const cy = S.track('crash', { az: -70, pair: true, spread: 26, send: 0.52, gain: 0.40 });
 
   // ── the riff ──────────────────────────────────────────────────────────────
   // Rows: [beat, note, accent]. accent true = struck hard and left to ring;
