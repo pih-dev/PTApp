@@ -51,9 +51,31 @@ at each milestone. A restart could end the session at any moment.
 
 ## 0. Status — read this out
 
-- 🟢 **LIVE ON THE PWA: v2.44 — the anatomy pass, 2026-08-23 (Pages `built` on `f8e9fdc`,
-  verified). APK vc24 archived and sent.** History below is v2.32 onward; verify the live version
-  yourself before quoting one.
+- 🟢 **LIVE ON THE PWA: v2.45 — the SECOND anatomy pass (mirrored signs, frame, floor),
+  2026-08-24. APK not rebuilt this round (PWA-only deploy).** History below is v2.32 onward;
+  verify the live version yourself before quoting one.
+- 🟢 **2026-08-24 (v2.45): THE SECOND ANATOMY PASS — Pierre's ask relayed via the PTApp session
+  (whose report named the root cause correctly): anatomically impossible details + body parts
+  outside the frame.** The unifying defect: **a head-at-−x prone body is a MIRRORED figure, so
+  every relative joint sign flips** — the 08-23 pass flipped knee-flexion's shin but not its
+  ankle (his named defect: "feet pointing towards the head"), and bird-dog's whole support leg
+  still carried upright signs. 14 patterns fixed, 295 figure-halves changed (measured; the other
+  385 byte-identical): knee-flexion feet mirrored · **bird-dog re-authored — item 1c CLOSED**
+  (trunk slopes −73 so the 300 arm and 187 thigh both reach the floor; kneeling shin flat; palm
+  flat; pointed feet; fault re-authored as a both-ends-planted swayback, spine [−80, 14, −6] —
+  a shallower lumbar walks into the KNEE gate's upright scope) · **dip re-authored** (arms
+  pointed straight UP with hands+bars 43 above the cell top, clipped since authoring — now
+  shoulder-extension arms to bars at hip height) · **triceps-overhead re-authored** (forearm
+  −52 was 52° elbow hyperextension; now folds +134 behind the head) · hip-abduction/adduction
+  grounded on the SUPPORT leg (hip-extension rule) · push-up/plank/knee-tuck/rollout recentred,
+  knee-tuck's tucked knee raised out of the floor, its spin re-judged 0–180° · rotation/
+  anti-rotation trimmed into frame, lateral-raise fault 124→118 · side-plank support palm flat.
+  **Item 1b (framing round) CLOSED: 17 poses had joints outside the cell, now 0** — and a new
+  **FRAME warn gate** in sanity-figures.mjs keeps it that way (same shape as FLOOR). The **ROM
+  gate now skips lying bodies** whose mirrored signs it cannot read (pattern base orientation,
+  |lumbar| > 60): warning list went 24 → the 2 deliberate leg-press ones. Blast radius verified
+  by byte-diff over all 680; all sanity gates pass; mobile-ux review clean. Judging harnesses:
+  `tmp/pass2-sheet.mjs` (before/after, all 14) and `tmp/pass2-kneetuck-spin.mjs`.
 - 🟢 **v2.32 at the 08-22 wrap** (gh-pages; the PTApp session's v2.32 — final suite +
   randomized showcase wall — landed on top of the figures work minutes after this §0 was first
   written. Verify the live version yourself before quoting one; the figures state below is all IN
@@ -158,23 +180,23 @@ at each milestone. A restart could end the session at any moment.
   how the one real violation sat in the noise from the day the gate was written.
   ⚠️ **Blast radius is all 680 authored figures, deliberately** — the girths are global. Sanity
   figures / movement-library / skins pass; turntable spin re-judged at 0–180° on four patterns.
-  🔴 **NOT fixed, and now caught by the FLOOR gate instead of being silent: `bird-dog`'s support
-  arm passes 76 units through the floor.** The arm (300) is longer than the thigh (187), so a
-  level trunk cannot put both a hand and a knee on the ground — it needs a re-authored trunk
-  slope (QUAD is used by bird-dog alone, so the change is contained) plus a judging round. Its
-  far foot also points straight down into the floor. **New OPEN item 1c.**
+  🔴 ~~NOT fixed: `bird-dog`'s support arm passes 76 units through the floor~~ **→ CLOSED in
+  v2.45 (item 1c): trunk re-authored, hand flat on the floor, far foot flat.**
 - 🔴 **OPEN, in rough priority for the next figures session:**
   1. **Sequences pilot — overhead press step strip** (decided above, biggest UI piece).
-     1c. **bird-dog re-author** — trunk slope so hand and knee both reach the floor, far foot flat.
-     1b. **Framing round** — the 10 measured edge-clippers. 2. **spinEquip vocabulary** — cable,
+  2. **spinEquip vocabulary** — cable,
      machine, landmine, kettlebell remain (world-anchored gear). 3. **More spin patterns** — each needs judging
      through the turn before the gate opens (`SPINS` in `figures/poses.js`). 4. **Front-authored
      poses (squat family) carry baked `fs`** — re-author as side + depth before they can spin.
   5. **Sequences (brief item 6)** — his three open questions still unanswered. 6. **The 3D LOOK:
      my depth-tint attempt was NOT what he meant** ("I'm talking about gradient… even gradient
      won't work — we'll sort this out later") — parked by his ruling; `bodyZ` stays exported for
-     it. 7. ROM gate stays warn-only until it computes angles from skeleton geometry. 8. The
+     it. 7. ROM gate stays warn-only until it computes angles from skeleton geometry (its scope
+     is honest since v2.45: lying bodies skipped, list = leg-press's 2 deliberate warns). 8. The
      leg-curl family (24 authored figures) re-judged with the normal-continuity fix on.
+     9. **Pierre re-judges the 14 v2.45 patterns in-app** — dip, triceps-overhead and bird-dog
+     changed the most; the judging sheet shows before/after.
+     (1b framing round + 1c bird-dog: CLOSED in v2.45.)
 - **Non-figure threads (PTApp session's): design refinement round + the logo/name (B3) — done to
   v2.31 by the PTApp session; splash/opening + publishing are its subjects too.**
 - 🔴 **MODEL POLICY (Pierre's ruling, 2026-08-22 — best result FIRST, quota second, enforce):**
@@ -195,10 +217,10 @@ at each milestone. A restart could end the session at any moment.
   - Full audit behind this: `CCHealth/docs/sessions/2026-08-22-ptapp-figures-audit.md`.
 - **Weakest three patterns, unchanged:** `leg-raise`, `wrist-curl`, `rotation`.
   `node scripts/figures-contact.mjs` builds the judging sheet.
-- 🟡 **ROM check added to `sanity-figures.mjs` (§5c), WARN-ONLY — 24 warnings, most look like
-  sign-convention artifacts** (elbow flexion sign flips when the arm loads overhead/prone: push-up,
-  plank, triceps-overhead, knee-tuck). Before it may FAIL builds it must compute joint angles from
-  the skeleton geometry, not the raw pose numbers. Until then the warning list is a judging aid.
+- 🟡 **ROM check (`sanity-figures.mjs` §5c), WARN-ONLY — scope narrowed in v2.45:** lying-base
+  patterns are skipped (mirrored signs it cannot read), so the list is now ONLY leg-press's two
+  deliberate lockout warns. Before it may FAIL builds it must compute joint angles from the
+  skeleton geometry, not the raw pose numbers.
 
 - 📜 **Round-4 history, compressed (all resolved above):** round 3 skipped by his ruling (push-up
   poses parked at `_archive/PTApp/figures/2026-08-22-pushup-above-poses-round3-parked.diff`);
