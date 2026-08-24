@@ -5,6 +5,21 @@
 identity on trust as before). **All items on this sheet are CLOSED.**
 **Updated:** 2026-08-03 — two sections that still read as pending were rewritten
 as settled fact, and the release-discipline rules for Elie-driven sessions added.
+**Updated:** 2026-08-24 — Elie reported program-generation defects (open item below).
+
+## OPEN — 2026-08-24, reported by Elie in-session
+
+1. **Program generation quality (Elie, 2026-08-24, verbatim intent):** generated
+   programs contain **a lot of duplicate exercises**, and **the important major
+   compounds are missing from some programs**. Both point at `fillBucket` /
+   exercise-fill in `programKernel.js` (dedup across days/blocks; anchor-lift
+   guarantees). Not yet reproduced or diagnosed — next session on this topic:
+   generate against live client evals, capture which duplicates and which
+   missing compounds, then fix in the kernel and bump `PROGRAM_RULES_VERSION`
+   (stored programs stay frozen; only new generations change).
+2. Standing items still open from 2026-08-24: FORM-panel text review
+   (`reviewed: false` prints in the panel until Elie approves entries) and the
+   Arabic name correction loop.
 **Purpose:** the record of the July 17–18 work, plus the standing rules any
 Elie-driven session must follow. Read it at session start when either of them
 mentions that work.
