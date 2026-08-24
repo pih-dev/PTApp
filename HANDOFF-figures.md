@@ -62,11 +62,12 @@ at each milestone. A restart could end the session at any moment.
   bells and bench rotating as ONE object. The library stamps 360° movements and filters for them;
   a `2+` stamp is wired for future multi-picture movements. Body paints **full white** (his
   ruling), colours settled: **green = held posture line, orange = stress, blue = equipment**.
-- 🟢 **PLAY STORE: v2.28 submitted to Closed testing – Alpha with the synthesised opening sound**
-  (native-only; the PWA cannot autoplay). All 12 tester opt-ins done — the 14-day production clock
-  is running. **Apple stays pending.** AAB archived:
-  `_archive/PTApp/releases/2026-08-22-spotset-v2.28-vc4.aab`. Publishing is the PTApp session's
-  thread (`HANDOFF-spotset-publishing.md`).
+- 🟢 **PLAY STORE — ⚠️ THIS BULLET IS A DECISION RECORD, NOT LIVE STATE. Never read the clock or
+  the review status out as current; `HANDOFF-spotset-publishing.md` owns it, and the live answer
+  comes from the Play console.** As of 2026-08-22: v2.28 submitted to Closed testing – Alpha with
+  the synthesised opening sound (native-only; the PWA cannot autoplay), all 12 tester opt-ins done,
+  the 14-day production clock started then. **Apple stays pending.** AAB archived:
+  `_archive/PTApp/releases/2026-08-22-spotset-v2.28-vc4.aab`.
 - 🟢 **SHIPPED THIS SESSION (CCHealth/Fable, v2.24→v2.31.1)** — brief items 1 (fault-anchored
   zoom), 2 (pinch + direct drag), 4 (equipment token/blue), 5 mechanism + 8/44 fault-muscle
   declarations; implicit-equipment rules (Deadlift/Front Squat etc. draw their bar — was 145
