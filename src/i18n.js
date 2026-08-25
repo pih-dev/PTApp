@@ -374,6 +374,7 @@ const T = {
     filterAll: 'All',
     swapExercise: 'Swap exercise',
     swap: 'Swap',
+    noSwapAlternatives: 'No alternatives left — every exercise of this type is already in the day',
     regenerateProgram: 'Regenerate',
     regenerateNote: 'Creates a new program; the old one stays in history.',
     deleteProgram: 'Delete program',
@@ -763,6 +764,7 @@ const T = {
     filterAll: 'الكل',
     swapExercise: 'تبديل التمرين',
     swap: 'تبديل',
+    noSwapAlternatives: 'لا بدائل متبقية — كل تمارين هذا النوع موجودة في اليوم',
     regenerateProgram: 'إعادة الإنشاء',
     regenerateNote: 'ينشئ برنامجاً جديداً؛ يبقى القديم في السجل.',
     deleteProgram: 'حذف البرنامج',
@@ -811,6 +813,9 @@ const MUSCLE_AR = {
   'Glutes': 'الغلوتس',
   'Hamstrings': 'الهامسترينغ',
   'Lats': 'اللاتس',
+  // v2.46: MUSCLE_GROUPS.legs.major is the literal 'Legs' — with no entry here
+  // the Arabic movement sheet printed English "Legs" on every legs-slot movement.
+  'Legs': 'الأرجل',
   'Middle Back': 'وسط الظهر',
   'Obliques': 'العضلات المائلة',
   'Psoas': 'البسواس',

@@ -4,6 +4,22 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.46 - the review fixes: sync keeps every phone's records, programs without duplicates (August 25, 2026)
+
+An ultracode review of the whole app found 12 confirmed bugs; Pierre said fix
+everything (settings excluded). The big ones: when two phones wrote at the same
+moment, the conflict merge was computed, pushed - and then silently undone by
+the very next push, so the other phone's session could vanish from the cloud;
+a brand-new or reset phone could wipe the customized WhatsApp templates for
+everyone; and a signed-in test account on a phone holding the sync token could
+reach the live client data it must never see. All closed, in both sync drivers.
+For Elie: program generation (rules v4) no longer prints impossible
+prescriptions like "7 sets of a 4-step pyramid", anchor days keep their
+compounds, the swap picker stops offering exercises already in the day (and
+Deadlift), and Arnold Press finally draws as an overhead press. A figure
+gesture no longer drags the movement sheet closed, and the Arabic sheet says
+"الأرجل" where it used to say "Legs".
+
 ## v2.45 - the second anatomy pass: signs, frames and floors (August 24, 2026)
 
 Pierre asked for a pass over the figures: anatomically impossible details and

@@ -818,3 +818,37 @@ suite's first gate run were the metric, not the music — a bin-counting noise r
 harmonics falling between bins, a decay reading that measured a pick transient instead of a string,
 a centroid computed over a window that was silent. Each one would have produced a "fix" that made
 the sound worse.
+
+## TRAP: A whole-blob-timestamp collection treats `{}` as data (v2.46 review D1, 2026-08-25)
+`mergeData` resolved `messageTemplates` by blob `_lastModified` — and a fresh/reset device stamps
+its EMPTY state `now`, out-recenting every real edit, so `{}` (truthy!) won the merge and the wipe
+propagated to every device. **Empty is absence, not newer data**: the non-empty side always wins
+(`pickTemplates`); recency only breaks ties between two non-empty sides. Corollary: a UI "reset to
+empty" now collides with empty-is-absence — a deliberate reset must write a non-empty sentinel
+(`{ _reset: ts }`) or it gets resurrected by the next merge. Grep for other `x || y` merges of
+collections where `x` can be a truthy-but-empty container: `live.messageTemplates ||` in
+mergeBackup was the same dead branch.
+
+## TRAP: A driver-internal retry-merge that never reaches app state is reverted by the next push (v2.46 review S1, 2026-08-25)
+The 409 retry merged the other device's records into what it PUSHED, but the caller never received
+the merge — so the next debounced push (armed with the fresh sha/version the retry cached) sent
+local state without those records and blind-overwrote the merge. Contract now: `pushRemoteData`
+resolves with the merged blob **only when a retry actually merged** (null on plain success), and
+App folds it into state via REPLACE_ALL union. 🔴 **Never fold a plain success back into state**:
+`mergeById` has no tombstones, so folding every pushed blob union-resurrects anything deleted
+locally while the push was in flight. Both drivers carry the contract; `sanity-backend-split`
+asserts it.
+
+## TRAP: In an ordered classifier, a keyword in a LATER rule is dead if an EARLIER regex substring-matches the name (v2.46 review U1, 2026-08-25)
+"Arnold Dumbbell Press" hit the bench rule's `/dumbbell press/` before the overhead rule's
+dedicated `arnold` keyword ever ran — the keyword was dead code and the app silently drew a supine
+bench pair for a seated overhead movement. When adding a keyword for a SPECIFIC movement, place it
+ABOVE every generic rule whose regex substring-matches that movement's name — and after any
+classifier edit, diff the mapping across all 340 (`archetypeFor` old vs new), never eyeball it.
+
+## TRAP: A gesture-owning element must join the modal dismiss-exclusion list (v2.46 review U2, 2026-08-25)
+Touch events bubble to `.modal-content` regardless of the child's pointer capture and
+`touch-action: none` — so a vertical figure tilt/pan at `scrollTop 0` matched the
+swipe-down-to-dismiss gesture and closed the sheet under the PT's finger. Any element that owns
+its own drag gestures inside a modal must be added to the touchstart exclusion list next to
+input/textarea/button (Modal.jsx), or its gestures fight the sheet's.

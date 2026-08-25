@@ -4,6 +4,41 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.46 - review fixes: S1/D1/D2/D3/A1/K1/K3/U1/U2/I1 + rules v4 (2026-08-25)
+
+From docs/reviews/2026-08-25-full-app-review.md (12 confirmed findings, 0 refuted).
+- S1: pushRemoteData (BOTH drivers) resolves with the merged blob when a
+  409/version retry actually merged, null on plain success (no tombstones -
+  folding every blob would resurrect in-flight deletes; data-integrity
+  reviewer). App.jsx folds it via REPLACE_ALL union, deliberately without
+  skipSync so the follow-up superset push terminates the loop. reconcile()'s
+  own push captures the same return. sanity-backend-split normalises the new
+  return line and asserts the contract explicitly.
+- D1/D2: mergeData + mergeBackup route messageTemplates through pickTemplates -
+  {} is absence, non-empty side wins, recency only breaks non-empty ties. The
+  reset button writes a { _reset: ts } sentinel so a deliberate reset still
+  propagates (a bare {} would be resurrected).
+- D3: loadData quarantines an unparseable blob under <key>-corrupt-<ts>
+  (pruning older parks) before returning empty state.
+- A1: isSignedIn() joins every PAT gate - reconcile, initial-load effect, save
+  effect, retry tap, update-token button, cloud backup/restore buttons. The
+  PAT path belongs to the signed-out legacy store until cutover.
+- K1: swap picker excludes same-day names + Deadlift; empty-pool message
+  (noSwapAlternatives, EN+AR).
+- K3 (rules v4): sliceSets caps entries at per (+1 orphan rule); fitSets
+  slices/extends repsPerSet + setPcts to the real set count; two-tier pool
+  exhaustion (widen fresh entries to per+1 then 2*per-1 before reusing an
+  excluded name). PROGRAM_RULES_VERSION 3 -> 4; frozen programs untouched.
+  Measured: pyramid mismatches 61->0, same-week repeats 15->12.
+  sanity-programs' D2 sweep now asserts the fallback contract (reuse only when
+  no fresh name remains) instead of a hand-pinned exception.
+- U1: /arnold/ rule hoisted above the bench-press rule in classify.js; diffed
+  all 340 - exactly Arnold Dumbbell Press changed.
+- U2: .fig-interactive joins Modal's touchstart exclusion list.
+- I1: Clients badge guards null frozen.classification.
+- i18n: MUSCLE_AR 'Legs' -> الأرجل; DOCS.instructions unpinned from v2.43.
+- Deferred: D4 (packages client-granularity LWW) needs per-package stamps.
+
 ## v2.45 - second anatomy pass: mirrored signs, frame, floor (2026-08-24)
 
 A head-at--x prone body is a MIRRORED figure: every relative joint sign

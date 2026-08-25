@@ -100,9 +100,21 @@ try {
     .replace(/export const DEMO_TOKEN = 'DEMO';\n/, '')
     .replace(/export const isDemo = \(\)[^\n]*\n/, '')
     .replace(/export \{ DEMO_TOKEN, isDemo \};\n/, '')
+    // v2.46 (review S1): pushRemoteData now RESOLVES with the merged blob when a
+    // 409 retry actually merged (and null on a plain success). A deliberate change
+    // to the moved file, normalised away here and re-asserted below as its own
+    // property — per this gate's own rule.
+    .replace(/return _retries > 0 \? data : null;\n/, '')
     .replace(/\s+/g, ' ').trim();
   assert(norm(gh) === norm(old),
-    'githubDriver.js is byte-identical to the previous sync.js (comments and the utils path aside)');
+    'githubDriver.js is byte-identical to the previous sync.js (comments, the utils path and the S1 return contract aside)');
+  // The property the normalisation above stops covering (S1): a plain success
+  // returns null; only a retry that merged returns the blob — folding every
+  // pushed blob would union-resurrect in-flight local deletes (no tombstones).
+  assert(/return _retries > 0 \? data : null;/.test(gh),
+    'S1 contract: push resolves with the merged blob only when a retry merged');
+  assert(/return pushRemoteData\(token, merged, _retries \+ 1\);/.test(gh),
+    'S1 contract: the 409 path still recurses with the merged blob');
 } catch (e) {
   console.error('  ✗ could not read the pinned pre-split sync.js blob: ' + e.message);
   failures++;

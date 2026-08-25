@@ -19,12 +19,20 @@ import { loadSkin, saveSkin } from './skins';
 // dispatches fire in quick succession (e.g. auto-completing several sessions).
 // Status callback surfaces sync state to the UI instead of swallowing errors.
 let syncTimer = null;
-const debouncedSync = (token, data, onStatus, onTokenExpired) => {
+const debouncedSync = (token, data, onStatus, onTokenExpired, onMerged) => {
   clearTimeout(syncTimer);
   if (onStatus) onStatus('syncing');
   syncTimer = setTimeout(() => {
     pushRemoteData(token, data)
-      .then(() => { if (onStatus) onStatus('synced'); })
+      .then((pushed) => {
+        if (onStatus) onStatus('synced');
+        // v2.46 (review S1): a 409 retry inside the driver merges the other
+        // device's records into what it PUSHES — hand that result back so App
+        // can fold it into state. Without this, the next debounced push (armed
+        // with the fresh concurrency token) re-overwrites the merge and the
+        // other phone's record silently vanishes from remote.
+        if (onMerged && pushed) onMerged(pushed);
+      })
       .catch((err) => {
         console.error('Sync push failed:', err.message);
         if (onStatus) onStatus('failed');
@@ -142,7 +150,13 @@ export default function App() {
     // isDemo() before the token check is the single choke point for the review
     // credential: no fetch, no push, syncReady stays false, so the save effect
     // below can never reach GitHub either.
-    if (!token || isDemo()) return;
+    // v2.46 (review A1): isSignedIn() joins the gate. The PAT is device-global
+    // while data keys are identity-namespaced — without this, any signed-in
+    // account on a device holding the PAT (Pierre's or a provisioned tester's)
+    // reconciles its own namespace against the PT's live data.json: the "empty
+    // workspace, never live data" invariant breaks in BOTH directions. The PAT
+    // path belongs to the signed-out legacy store only, until cutover.
+    if (!token || isDemo() || isSignedIn()) return;
     try {
       const remote = await fetchRemoteData(token);
       syncReady.current = true;
@@ -160,7 +174,13 @@ export default function App() {
         dispatch({ type: 'REPLACE_ALL', payload: merged });
       }
       if (remoteDiffers) {
-        await pushRemoteData(token, merged);
+        // v2.46 (review S1): the push can itself 409-merge — fold what actually
+        // landed on remote back into state, or the next push reverts it.
+        const pushed = await pushRemoteData(token, merged);
+        if (pushed && !dataEquals(pushed, merged)) {
+          skipSync.current = true;
+          dispatch({ type: 'REPLACE_ALL', payload: mergeData(stateRef.current, pushed) });
+        }
       }
       setSyncStatus('synced');
     } catch (err) {
@@ -179,7 +199,9 @@ export default function App() {
     const token = getToken();
     // Demo takes the same exit as "no token" — the app runs purely on localStorage,
     // and the sync dot stays idle instead of hanging on 'syncing' forever.
-    if (!token || isDemo()) { setInitialLoad(false); return; }
+    // isSignedIn() exits the same way (v2.46, review A1) — mirrors reconcile()'s
+    // gate so the dot never latches on 'syncing' for a signed-in workspace.
+    if (!token || isDemo() || isSignedIn()) { setInitialLoad(false); return; }
     setSyncStatus('syncing');
     reconcile().finally(() => {
       setInitialLoad(false);
@@ -224,8 +246,21 @@ export default function App() {
     const token = getToken();
     // Belt to syncReady's braces: demo data must never leave the device even if a
     // future change lets syncReady flip true on a path that skipped reconcile().
-    if (token && !isDemo()) {
-      debouncedSync(token, state, setSyncStatus, () => setTokenExpired(true));
+    // !isSignedIn() for the same reason as reconcile()'s gate (v2.46, review A1).
+    if (token && !isDemo() && !isSignedIn()) {
+      debouncedSync(token, state, setSyncStatus, () => setTokenExpired(true), (pushed) => {
+        // The driver 409-merged another device's records into what it pushed.
+        // Union them into CURRENT state (per-record LWW protects edits made while
+        // the push was in flight) — deliberately WITHOUT skipSync: the follow-up
+        // debounced push of the union is a superset write that terminates the
+        // loop (next resolve compares equal), never a blind overwrite.
+        if (!dataEquals(pushed, stateRef.current)) {
+          const union = mergeData(stateRef.current, pushed);
+          if (!dataEquals(union, stateRef.current)) {
+            dispatch({ type: 'REPLACE_ALL', payload: union });
+          }
+        }
+      });
     }
   }, [state, initialLoad]);
 
@@ -258,8 +293,9 @@ export default function App() {
   // Uses the same reconcile() path as initial load — merge not overwrite.
   const handleRetrySync = () => {
     // isDemo() too: 'DEMO' is a truthy token, so without this the dot latches on
-    // 'syncing' forever the moment a reviewer taps it.
-    if (!getToken() || isDemo()) return;
+    // 'syncing' forever the moment a reviewer taps it. isSignedIn(): same gate
+    // as reconcile() (v2.46, review A1).
+    if (!getToken() || isDemo() || isSignedIn()) return;
     setSyncStatus('syncing');
     reconcile();
   };
@@ -424,7 +460,7 @@ export default function App() {
       {showDebug && (
         <div className="debug-panel">
           <button className="debug-close" onClick={() => setShowDebug(false)}>×</button>
-          <div><strong>Version:</strong> v2.45</div>
+          <div><strong>Version:</strong> v2.46</div>
           <div><strong>Sync:</strong> {syncStatus}{tokenExpired ? ' (token expired)' : ''}</div>
           <div><strong>Ready:</strong> {syncReady.current ? 'yes' : 'no'}</div>
           <div><strong>Sessions:</strong> {state.sessions?.length || 0}</div>

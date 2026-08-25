@@ -109,6 +109,11 @@ const RULES = [
   [/squat/i, 'squat'],
 
   // ── pressing ──
+  // Arnold BEFORE the bench rule (v2.46, review U1): "Arnold Dumbbell Press"
+  // matches /dumbbell press/, so the overhead rule's own 'arnold' keyword four
+  // lines down was dead code and the app silently drew a supine bench pair for
+  // a seated overhead movement. Order IS the logic in this file.
+  [/arnold/i, 'overhead-press'],
   [/bench press|barbell press|dumbbell press|dumbbell chest press/i, 'bench-press'],
   [/push-?up/i, 'push-up'],
   [/\bdip\b/i, 'dip'],

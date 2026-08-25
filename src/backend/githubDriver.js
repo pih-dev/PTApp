@@ -120,6 +120,15 @@ export async function pushRemoteData(token, data, _retries = 0) {
 
   const json = await res.json();
   currentSha = json.content.sha;
+  // v2.46 (review S1): resolve with the merged blob ONLY when this push actually
+  // merged (the 409 retry lands here with _retries ≥ 1) — the caller folds it
+  // back into app state, or the very next debounced push (armed with the fresh
+  // sha above) would blind-overwrite the merge this retry just performed. The
+  // 2026-04-13 spec had the caller dispatch the conflict merge; the v2.6
+  // driver-side rewrite dropped that half. A plain success returns null: folding
+  // EVERY pushed blob would union-resurrect anything deleted locally while the
+  // push was in flight (mergeById has no tombstones — data-integrity review).
+  return _retries > 0 ? data : null;
 }
 
 // ─── Snapshots ───

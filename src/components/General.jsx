@@ -12,7 +12,7 @@ import { SKINS } from '../skins';
 // the in-app "App Instructions" button silently served stale docs. Bumping this
 // is now an explicit step in the CLAUDE.md deploy checklist.
 const DOCS = {
-  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.43.md',
+  instructions: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/instructions-v2.46.md',
   changelog: 'https://raw.githubusercontent.com/pih-dev/PTApp/master/docs/changelog-summary.md',
 };
 
@@ -251,7 +251,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
             onClick={() => exportBackup(state)}>
             {t(lang, 'backup')}
           </button>
-          {getToken() && !isDemo() && (
+          {getToken() && !isDemo() && !isSignedIn() && (
             <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
               disabled={snapshotLoading}
               onClick={async () => {
@@ -289,7 +289,10 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
               }}>
               Exit demo
             </button>
-          ) : (
+          ) : !isSignedIn() && (
+            /* v2.46 (review A1): hidden for signed-in identities — the PAT path
+               belongs to the signed-out legacy store only. Rendering it here was
+               the one-tap door welding a Supabase identity to the shared PAT. */
             <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
               onClick={onUpdateToken}>
               {t(lang, 'updateToken')}
@@ -346,7 +349,7 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
             }}>
             {t(lang, 'restoreBtn')}
           </button>
-          {getToken() && !isDemo() && (
+          {getToken() && !isDemo() && !isSignedIn() && (
             <button className="btn-secondary" style={{ fontSize: 12, padding: '8px 14px' }}
               disabled={snapshotLoading}
               onClick={async () => {
@@ -434,7 +437,12 @@ export default function General({ state, dispatch, onClose, lang, setLang, skin,
 
         <button className="btn-ghost" style={{ fontSize: 11, padding: '6px 10px' }}
           onClick={() => {
-            dispatch({ type: 'SET_TEMPLATES', payload: {} });
+            // v2.46 (review D1 follow-up): a bare {} is now "absence" to mergeData,
+            // so a reset pushed as {} would be resurrected by the next merge against
+            // any device still holding customs. The sentinel is non-empty (it
+            // propagates and wins by recency) while matching no template kind, so
+            // every reader falls through to DEFAULT_TEMPLATES per language.
+            dispatch({ type: 'SET_TEMPLATES', payload: { _reset: new Date().toISOString() } });
             setNotification({ text: t(lang, 'templatesReset'), type: 'success' });
           }}>
           {t(lang, 'resetDefaults')}

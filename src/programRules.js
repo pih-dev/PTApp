@@ -4,7 +4,12 @@
 // the version they were generated with (CHARTS_VERSION precedent).
 // v2: Deadlift excluded from all accessory/circuit pools — Pull-day anchor only (Elie, 2026-07-14).
 // v3: multi-day split — trainer-selectable 3-6 days/week, duplicated slots (Elie, 2026-07-14).
-export const PROGRAM_RULES_VERSION = 3;
+// v4: set distribution fixed (2026-08-25 review K3, after Elie's 2026-08-24 defect
+//     report): an exercise never exceeds setsPerExercise (+1 only to absorb a lone
+//     orphan set); shorter entries slice the reps/pct pyramid to their real set
+//     count. Kills the 5-7-set entries with 4-value pyramids and restores 3+
+//     movements to halved-quota anchor days.
+export const PROGRAM_RULES_VERSION = 4;
 
 // Sets per MAJOR muscle per week, by eval classification (spec §3).
 export const TIERS = { begA: [9, 11], begB: [11, 13], intA: [14, 17], intB: [18, 21], pro: [21, 24] };

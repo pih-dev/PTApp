@@ -237,7 +237,11 @@ export default function Clients({ state, dispatch, lang }) {
                   const latest = (state.evaluations || [])
                     .filter(ev => ev.clientId === c.id)
                     .sort((a, b) => b.date.localeCompare(a.date))[0];
-                  return latest ? (
+                  // v2.46 (review I1): classification can legitimately be null —
+                  // both kernels emit it when a chart key fails to resolve, and
+                  // EvalSection guards it. Unguarded .charAt(0) here threw on one
+                  // such record and took the whole Clients tab down with it.
+                  return latest && latest.frozen.classification ? (
                     <span className={`badge badge-class-${latest.frozen.classification}`}
                       style={{ fontSize: 10, marginBottom: 2, display: 'inline-block' }}>
                       {t(lang, 'class' + latest.frozen.classification.charAt(0).toUpperCase() + latest.frozen.classification.slice(1))}

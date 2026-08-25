@@ -67,6 +67,15 @@ export default function Modal({ onClose, title, children, action }) {
         dragging = false;
         return;
       }
+      // The figure block owns its gestures (v2.46, review U2): tilt/pan/pinch on
+      // a spin pair is a vertical drag at scrollTop 0 — exactly this dismiss
+      // gesture. Touch events bubble here regardless of the figure's pointer
+      // capture and touch-action, so without this the movement sheet dismissed
+      // itself mid-gesture under the PT's finger.
+      if (e.target.closest('.fig-interactive')) {
+        dragging = false;
+        return;
+      }
       // Only start drag if content is scrolled to the top — so normal
       // scrolling inside the modal still works.
       const body = bodyRef.current;

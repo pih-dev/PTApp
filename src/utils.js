@@ -980,6 +980,22 @@ export const loadData = () => {
     if (raw) return migrateData(JSON.parse(raw));
   } catch (e) {
     console.error('Failed to load data:', e);
+    // v2.46 (review D3): park the unparseable blob before falling back to empty
+    // state — App's mount save-effect overwrites this key immediately, and on a
+    // token-less or DEMO device that blob was the ONLY copy. Quarantining costs
+    // one key; losing it is unrecoverable (PREAUTH_BACKUP_KEY precedent).
+    // Older parks are pruned first: each is data.json-sized, and repeat incidents
+    // would walk a ~5MB localStorage cap into quota failures on the MAIN key.
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith(`${key}-corrupt-`)) localStorage.removeItem(k);
+        }
+        localStorage.setItem(`${key}-corrupt-${Date.now()}`, raw);
+      }
+    } catch (e2) { /* storage unreadable — nothing to park */ }
   }
   return migrateData({ clients: [], sessions: [] });
 };
@@ -1053,6 +1069,16 @@ export const anyLocalDataExists = () => {
 // by a stale-device push — bulletproofs the 3-device setup (PT iPhone, Pierre
 // Android, mother iPhone) against the unstable Beirut internet. Apr 19 incident:
 // Hala Mouzanar's Apr 17 session lost because a stale device overwrote remote.
+// Shared by mergeData and mergeBackup: the non-empty template set beats an empty
+// one; `preferA` only decides between two non-empty sets. {} is absence, not data.
+const pickTemplates = (a, b, preferA) => {
+  const aT = a || {}, bT = b || {};
+  const aHas = Object.keys(aT).length > 0;
+  const bHas = Object.keys(bT).length > 0;
+  if (aHas && bHas) return preferA ? aT : bT;
+  return aHas ? aT : bT;
+};
+
 const mergeById = (localArr, remoteArr) => {
   const map = new Map();
   for (const r of (remoteArr || [])) map.set(r.id, r);
@@ -1095,10 +1121,13 @@ export function mergeData(local, remote) {
     programs: mergeById(local.programs, remote.programs),
     // auditLog entries are append-only and have IDs — union-merge like sessions/todos
     auditLog: mergeById(local.auditLog, remote.auditLog),
-    // Templates don't have per-record timestamps — prefer side with newer _lastModified
-    messageTemplates: preferLocal
-      ? (local.messageTemplates || remote.messageTemplates || {})
-      : (remote.messageTemplates || local.messageTemplates || {}),
+    // Templates don't have per-record timestamps — whole-blob recency picks the side.
+    // v2.46 (2026-08-25 review D1): an EMPTY {} is "no data", never "newer data". A
+    // fresh/reset device stamps its empty state _lastModified=now (migrateData), which
+    // out-recents every real edit — preferring it deterministically wiped the PT's
+    // customized templates from remote and then from every device. The non-empty side
+    // always wins; recency only breaks the tie when BOTH sides hold templates.
+    messageTemplates: pickTemplates(local.messageTemplates, remote.messageTemplates, preferLocal),
     _dataVersion: Math.max(local._dataVersion || 0, remote._dataVersion || 0),
     _lastModified: preferLocal ? localTs : remoteTs,
   };
@@ -1610,7 +1639,10 @@ export const mergeBackup = (live, backup) => {
   const liveProgramIds = new Set((live.programs || []).map(p => p.id));
   const restoredPrograms = (backup.programs || []).filter(p => !liveProgramIds.has(p.id));
   merged.programs = [...(live.programs || []), ...restoredPrograms];
-  // Keep whichever has custom templates (live wins if both have them)
-  merged.messageTemplates = live.messageTemplates || backup.messageTemplates || {};
+  // Keep whichever has custom templates (live wins if both have them).
+  // v2.46 (review D2): `live.messageTemplates || …` was a dead branch — live's is
+  // always at least a truthy {}, so a backup's customized templates were silently
+  // unreachable on exactly the restore-onto-fresh-device path this exists for.
+  merged.messageTemplates = pickTemplates(live.messageTemplates, backup.messageTemplates, true);
   return migrateData(merged);
 };

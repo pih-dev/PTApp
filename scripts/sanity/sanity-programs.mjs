@@ -31,7 +31,7 @@ const { TIERS, METHODS, DEFAULT_SEQUENCE, FAT_THRESHOLD, PROGRAM_RULES_VERSION,
         rankGroups, majorQuotas, minorQuota, dayOrder,
         suggestedDaysPerWeek, suggestedDuplicates } = await import(rulesUrl);
 
-assert(PROGRAM_RULES_VERSION === 3, 'PROGRAM_RULES_VERSION is 3 (v3: multi-day split)');
+assert(PROGRAM_RULES_VERSION === 4, 'PROGRAM_RULES_VERSION is 4 (v4: set distribution fix)');
 assert(JSON.stringify(TIERS.intA) === '[14,17]' && JSON.stringify(TIERS.pro) === '[21,24]', 'tier table matches spec §3');
 assert(DEFAULT_SEQUENCE.join() === 'progLoad,descPyramid,fiveOfFive,doOrDie,statoDynamic,endurance', 'default block sequence = Client X');
 assert(FAT_THRESHOLD.male === 18 && FAT_THRESHOLD.female === 25, 'fat-loss thresholds 18/25');
@@ -92,7 +92,7 @@ const args = {
 };
 const prog = generateProgram(args);
 
-assert(prog.blocks.length === 6 && prog.rulesVersion === 3 && prog.bankVersion === 1, '6 blocks, versions stamped');
+assert(prog.blocks.length === 6 && prog.rulesVersion === 4 && prog.bankVersion === 1, '6 blocks, versions stamped');
 assert(prog.classification === 'intA' && prog.ranks.weak === 'legs', 'class + weak point derived from eval');
 assert(prog.blocks[0].strategy === 'top' && prog.blocks[1].strategy === 'steal' && prog.blocks[2].strategy === 'top',
   'strategies alternate by block parity');
@@ -245,26 +245,28 @@ threw = false;
 try { generateProgram({ ...args, daysPerWeek: 4, duplicatedSlots: ['glutes'] }); } catch (e) { threw = true; }
 assert(threw, 'kernel throws on unknown slot name');
 
-// D2: a duplicated day uses different variants — zero name overlap per slot/block.
-// EXCEPTION verified by hand (see task-3-report.md): block 5 (endurance week,
-// 'steal' strategy) legs/Calves. Legs is the weak group here so major=19 ⇒
-// minorQuota(19)=10 sets/day against a 5-exercise Calves bank; excluding rep-1's
-// 3 picks leaves only 2, which cover 6 sets before the pool-exhaustion fallback
-// (D2) must reuse one rep-1 name to reach the full 10-set quota — mathematically
-// unavoidable with this bank size, and the ONLY (block,slot,bucket) triple this
-// fixture hits. D2's own text sanctions exactly this: "except when a bucket's
-// pool is too small — then volume wins." Both days still land on the full
-// 10-set quota (checked below) — this is pure variety loss on one exercise, not
-// a starved quota.
+// D2: a duplicated day uses different variants — but exclusion is BEST-EFFORT
+// (spec D2: "when a bucket's pool is too small, volume wins"). Rules v4 note: the
+// old zero-overlap-with-one-hand-pinned-exception form broke the moment the set
+// distribution changed (v4 spreads sets over MORE distinct exercises, so tight
+// pools hit the fallback in different triples). Assert the fallback's actual
+// CONTRACT instead: a rep-2 day may reuse a rep-1 name only when every other
+// available exercise of that bucket is already placed on one of the two days —
+// i.e. nothing fresh was left unused. (Main loop exhausts the excluded pool
+// before the fallback runs; the fallback skips names already on the day.)
 for (const b of p5.blocks) {
   for (const slot of ['pull', 'legs']) {
     const d1 = b.days.find(d => d.slot === slot && d.rep === 1);
     const d2 = b.days.find(d => d.slot === slot && d.rep === 2);
     if (!d1 || !d2) continue;
     const names1 = new Set(d1.exercises.map(e => e.name));
-    const overlap = d2.exercises.filter(e =>
-      names1.has(e.name) && !(b.index === 5 && slot === 'legs' && e.bucket === 'Calves'));
-    assert(overlap.length === 0, `no variant overlap (block ${b.index} ${slot}: ${overlap.map(e => e.name)})`);
+    const names2 = new Set(d2.exercises.map(e => e.name));
+    for (const e of d2.exercises.filter(x => names1.has(x.name))) {
+      const pool = bankForBucket(e.bucket).map(x => x.name).filter(n => n !== 'Deadlift');
+      const unusedFresh = pool.filter(n => !names1.has(n) && !names2.has(n));
+      assert(unusedFresh.length === 0,
+        `overlap '${e.name}' (block ${b.index} ${slot} ${e.bucket}) only when pool exhausted — fresh left: ${unusedFresh}`);
+    }
   }
 }
 {

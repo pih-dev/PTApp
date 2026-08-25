@@ -88,32 +88,75 @@ function fillBucket({ bucket, target, method, blockIndex, isBeginner, anchor, an
   }
   const pool = candidates(bucket, blockIndex, isBeginner, anchor ? anchor.name : null, exclude);
   for (let i = 0; remaining > 0 && i < pool.length; i++) {
-    const sets = remaining >= per * 2 ? per : remaining;     // last exercise absorbs the remainder exactly
-    out.push(exerciseEntry(pool[i], Math.min(sets, remaining), method, null));
-    remaining -= Math.min(sets, remaining);
+    const sets = sliceSets(remaining, per);
+    out.push(exerciseEntry(pool[i], sets, method, null));
+    remaining -= sets;
   }
-  // Pool-exhaustion rule (spec D2): exclusion is best-effort. If the excluded
-  // pool couldn't fill the quota (small minor buckets — Rear Delts has 4
-  // exercises; beginner filter shrinks pools further), refill from the
-  // UNEXCLUDED pool: weekly volume is guaranteed, variety only when possible.
+  // Pool-exhaustion, tier 1 (rules v4, review K2): before reusing any excluded
+  // name, absorb the deficit one set at a time onto the exercises already placed
+  // (cap per+1 — the same orphan rule as sliceSets; the anchor's kg pyramid is
+  // never inflated). A rep-2 day whose small pool ran dry now widens its own
+  // fresh picks instead of mirroring the rep-1 day's list — Elie's "a lot of
+  // duplicate exercises" was largely this fallback firing at intB/pro quotas.
+  // Two caps, in preference order: first every fresh entry may take one orphan
+  // set (per+1); if the deficit persists, fresh entries extend up to per*2-1 —
+  // the bound the old absorb-the-remainder rule already considered tolerable on
+  // one movement — with the pyramid EXTENDED to match (fitSets repeats the final
+  // value), never a 4-value text on a 7-set entry. Extra sets on a fresh variant
+  // beat repeating the rep-1 day's movement.
+  for (const cap of [per + 1, per * 2 - 1]) {
+    while (remaining > 0) {
+      const grew = out.find(e => !e.setKg && e.sets < cap);
+      if (!grew) break;
+      grew.sets += 1;
+      grew.repsText = method.repsPerSet ? fitSets(method.repsPerSet, grew.sets).join('/') : method.repsText;
+      grew.pctText = method.setPcts ? fitSets(method.setPcts, grew.sets).map(p => p + '%').join('/') : method.pctText;
+      remaining -= 1;
+    }
+  }
+  // Tier 2 (spec D2): exclusion is best-effort. If the quota STILL isn't met,
+  // refill from the UNEXCLUDED pool: weekly volume is guaranteed, variety only
+  // when possible.
   if (remaining > 0 && exclude.size > 0) {
     const fallback = candidates(bucket, blockIndex, isBeginner, anchor ? anchor.name : null)
       .filter(e => !out.some(o => o.name === e.name));
     for (let i = 0; remaining > 0 && i < fallback.length; i++) {
-      const sets = remaining >= per * 2 ? per : remaining;
-      out.push(exerciseEntry(fallback[i], Math.min(sets, remaining), method, null));
-      remaining -= Math.min(sets, remaining);
+      const sets = sliceSets(remaining, per);
+      out.push(exerciseEntry(fallback[i], sets, method, null));
+      remaining -= sets;
     }
   }
   return out;
 }
 const anchorStub = (anchor, bucket) =>
   EXERCISES.find(e => e.name === anchor.name) || { name: anchor.name, bucket, type: 'compound', advanced: true };
+
+// v2.46 / rules v4 (review K3). The old rule — "last exercise absorbs the remainder
+// exactly" (`remaining >= per*2 ? per : remaining`) — let one exercise carry up to
+// per*2-1 sets while its reps/pct text still described `per` sets: "7×10/10/10/8-10
+// · 55/60/70/80%" is 7 sets against a 4-step pyramid the PT cannot execute as
+// written. Worse, on a halved-quota rep-1 day it collapsed the major to anchor +
+// ONE oversized exercise — Elie's "missing major compounds" (2026-08-24). Now every
+// exercise takes at most `per` sets (the remainder becomes another movement, its
+// pyramid SLICED to its real set count, anchor precedent), with one exception: a
+// single orphan set (remainder per+1) rides the previous exercise rather than
+// standing alone as a 1-set movement nobody would program.
+const sliceSets = (remaining, per) => {
+  if (remaining <= per) return remaining;
+  if (remaining === per + 1) return per + 1;   // absorb the lone orphan set
+  return per;
+};
+// Fit a per-set array (reps or pcts) to the actual set count: slice when shorter,
+// repeat the final value when longer (only ever by the one orphan set above).
+const fitSets = (arr, sets) =>
+  sets <= arr.length ? arr.slice(0, sets)
+    : [...arr, ...Array(sets - arr.length).fill(arr[arr.length - 1])];
+
 const exerciseEntry = (ex, sets, method, setKg) => ({
   name: ex.name, bucket: ex.bucket, type: ex.type, advanced: !!ex.advanced,
   sets,
-  repsText: method.repsPerSet ? method.repsPerSet.join('/') : method.repsText,
-  pctText: method.setPcts ? method.setPcts.map(p => p + '%').join('/') : method.pctText,
+  repsText: method.repsPerSet ? fitSets(method.repsPerSet, sets).join('/') : method.repsText,
+  pctText: method.setPcts ? fitSets(method.setPcts, sets).map(p => p + '%').join('/') : method.pctText,
   setKg, restSec: method.restSec,
 });
 

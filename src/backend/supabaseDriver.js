@@ -114,6 +114,10 @@ export async function fetchRemoteData() {
 export async function pushRemoteData(_token, data, _retries = 0) {
   const uid = getUserId();
   if (!uid) throw new Error('TOKEN_EXPIRED');
+  // v2.46 (review S1): tracks whether this call folded remote records into `data`
+  // (cold-cache pre-merge below, or arriving via a conflict retry). Only then is
+  // the blob returned for the caller to fold into state — see the GitHub driver.
+  let didMerge = _retries > 0;
 
   if (currentTenantId === null || currentVersion === null) {
     // 🔴 A COLD CACHE IS THE DANGEROUS STATE, NOT THE SAFE ONE — AND THE FIX IS
@@ -135,7 +139,7 @@ export async function pushRemoteData(_token, data, _retries = 0) {
     //    window; it does not close it, and a timing mitigation is not an
     //    invariant.
     const remote = await fetchRemoteData();
-    if (remote) data = mergeData(data, remote);
+    if (remote) { data = mergeData(data, remote); didMerge = true; }
   }
 
   if (currentTenantId === null) {
@@ -162,7 +166,11 @@ export async function pushRemoteData(_token, data, _retries = 0) {
     if (!created?.length) throw new Error('Sync failed (insert returned no row)');
     currentTenantId = created[0].id;
     currentVersion = created[0].version;
-    return;
+    // v2.46 (review S1): same contract as the GitHub driver — resolve with the
+    // blob ONLY when it actually merged remote records, so the caller can fold
+    // it into app state; a plain success returns null (no tombstones in
+    // mergeById — folding every blob would resurrect in-flight local deletes).
+    return didMerge ? data : null;
   }
 
   const updated = await rest(
@@ -178,6 +186,7 @@ export async function pushRemoteData(_token, data, _retries = 0) {
   }
 
   currentVersion = updated[0].version;
+  return didMerge ? data : null;  // v2.46 (review S1): see the create branch above
 }
 
 // Phase 3 keeps GitHub as the shadow, so the _archive/snapshot surface the

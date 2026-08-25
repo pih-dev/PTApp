@@ -4,6 +4,7 @@ import { formatDate, haptic } from '../utils';
 import { t } from '../i18n';
 import MovementSheet from './MovementSheet';
 import { bankForBucket } from '../exerciseBank';
+import { ANCHORS } from '../programKernel';
 import { exNameAr } from '../exerciseNamesAr';
 
 const methodLabel = (lang, id) => t(lang, 'method' + id.charAt(0).toUpperCase() + id.slice(1));
@@ -124,12 +125,29 @@ export default function ProgramViewer({ program, dispatch, lang, onClose }) {
 
       {swap && swapTarget && (
         <Modal title={t(lang, 'swapExercise')} onClose={() => setSwap(null)}>
-          {bankForBucket(swapTarget.bucket)
-            .filter(x => x.type === swapTarget.type && x.name !== swapTarget.name)
-            .map(x => (
+          {/* v2.46 (review K1): the picker must honor the kernel's own pool rules.
+              (a) exclude every name ALREADY in this day — offering them created exact
+              within-day duplicates one tap away (Elie's duplicate report, 2026-08-24);
+              (b) exclude Deadlift — it is the Pull-day anchor ONLY (rules v2), and the
+              Legs bucket offered it as an accessory, programming it twice a week. */}
+          {(() => {
+            const dayNames = new Set(
+              program.blocks[swap.blockIdx][swap.dayKey][swap.dayIdx].exercises.map(e => e.name));
+            const picks = bankForBucket(swapTarget.bucket)
+              .filter(x => x.type === swapTarget.type && !dayNames.has(x.name)
+                && x.name !== ANCHORS.pull.name);
+            // Small buckets can filter down to nothing (Rear Delts has 4 same-type
+            // entries and a day may hold 3) — an empty sheet reads as broken.
+            if (picks.length === 0) {
+              return <div style={{ color: 'var(--t4)', fontSize: 13, padding: '12px 4px' }}>
+                {t(lang, 'noSwapAlternatives')}
+              </div>;
+            }
+            return picks.map(x => (
               <button key={x.name} className="exrow-pick"
                 onClick={() => doSwap(x.name)}>{exLabel(lang, x.name)}</button>
-            ))}
+            ));
+          })()}
         </Modal>
       )}
     </Modal>
