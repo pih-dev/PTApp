@@ -25,6 +25,7 @@ session-start weight to list as router rows.
 | `elie-next-visit.md` | Elie's pickup sheet, the 2026-07-18 standing-authority grant, rules for Elie-driven sessions |
 | `health-check-2026-08-03.md` | Latest workspace health check: stale instructions found, sanity-suite state, `data.json` growth rate, the un-gitignored `tmp/` risk |
 | `reviews/2026-06-10-fable5-codebase-review.md` | The standing work order. C1–C4 and M1–M16 are shipped; **P3 (SessionCard refactor) and P6 (ordinal at booking time) are still open** |
+| `reviews/2026-08-25-full-app-review.md` | Ultracode whole-app review: **12 confirmed findings, 0 fixed yet** — sync data-loss paths (409-merge overwrite, template wipe), the kernel mechanisms behind Elie's duplicate/missing-compound report, PAT-vs-identity gating; +18 unverified candidates |
 | `screenshots/CATALOG.md` | Dated visual history, v1.x → v2.9, with the device each shot came from |
 | `2026-07-14-app-name-research.md` | Store-name screening round 1. "PTApp" is weak, "PTAssist" is dead; PT-prefixed candidates ranked |
 | `2026-08-20-app-name-brainstorm.md` | Round 2 — PT prefix dropped. **Also the current product definition**: the owner→coach→client three-role platform, the evaluation→norms→program pipeline as the real value, the future AI direction, and who Elie actually is. Name candidates re-ranked and screened; **DECIDED: Elie chose PTAssyst** (Play is fine, Apple confusable-name risk vs the live "PT Assist" is unresolved) |
