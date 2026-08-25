@@ -1,7 +1,7 @@
 # PTApp / SpotSet — HANDOFF
 
-**Last updated:** 2026-08-22 ~19:30, Beirut — after the v2.25→v2.32 marathon (design round, logo,
-opening + sound suite, showcase wall, Play vc4 submitted).
+**Last updated:** 2026-08-25 ~14:30, Beirut — after the ultracode review session (v2.46 shipped,
+repo exposure closed, phone-number history purge).
 **To resume:** Pierre types `continue`. **Read §0 back to him and stop.** Do not investigate, do
 not draft, do not ask follow-up questions.
 
@@ -10,27 +10,48 @@ not draft, do not ask follow-up questions.
 ## 0. Status — read this out
 
 - 🔴 **EVERY SUBJECT HAS ITS OWN HANDOFF — route by trigger, newest first:**
+  - **`review` / `v2.46` / `purge` / `leak` / `private` → THIS FILE, §0c** — the freshest thread
+    (2026-08-25). **`continue` right after this session's clear means THIS one.**
   - **`design` / `theme` / `typography` / `skin` / `buttons` / `login` → `HANDOFF-design.md`** —
-    the freshest thread (2026-08-23 marathon): **v2.39→v2.43 shipped in one session** — swipe-week,
-    Pebble→rounded-rects everywhere, trench separators, the contrast gate, 21 skins (7 families ×
-    Light/Optimal/Dark, flanks GENERATED), Flint, and **the login went live (.env is a build
-    input)**. vc21/2.43 submitted to Play. Dump:
+    the 2026-08-23 marathon: v2.39→v2.43 in one session (swipe-week, rounded rects, trenches,
+    contrast gate, 21 skins, Flint, the login live — .env is a build input). Dump:
     `_archive/PTApp/claude-incidents/2026-08-23-design-marathon-v239-v243-FULL-SESSION.txt`.
-    **`continue` right after this session's clear means THIS one.**
-  - **`showcase` / `logo` / `suite` / `sound` → `HANDOFF-showcase.md`** — the freshest thread
-    (this session): v2.32 shipped; vc9 now uploaded to Play; OPEN: Pierre's "S" logo idea.
-    **`continue` right after this session's clear means THIS one.**
-  - **`spotset` / `publish` / `illume` → `HANDOFF-spotset-publishing.md`** — vc4 approved and
-    LIVE to testers; **vc9/v2.32 uploaded and in review 08-22 ~19:35** (probe before quoting),
-    Apple activation pending on Apple.
-  - **`figures` → `HANDOFF-figures.md`** — the CCHealth session's thread, wrapped end-of-marathon;
-    resumes there, not here. 🔴 Two-session git rules in CLAUDE.md KNOWN ISSUES if both run again.
+  - **`showcase` / `logo` / `suite` / `sound` → `HANDOFF-showcase.md`** — v2.32 era; OPEN:
+    Pierre's "S" logo idea.
+  - **`spotset` / `publish` / `illume` → `HANDOFF-spotset-publishing.md`** — Play/Apple state
+    lives THERE; probe the console before quoting any review/rollout status.
+  - **`figures` → `HANDOFF-figures.md`** — 🔴 two-session git rules in CLAUDE.md KNOWN ISSUES
+    if both run again.
   - **Supabase soak → `HANDOFF-multi-user-build.md`** — daily job `node scripts/soak-day.mjs`.
-- **Current version v2.43.2** — shipped 2026-08-23; **vc23 is in Play review, vc21 (v2.43) is
-  already live to testers**. The day's arc: v2.39 swipe-week → v2.40–v2.42 the design round
-  (rounded rects, trenches, 21 skins, the contrast gate) → v2.43 the login went live → v2.43.1/.2
-  the logo cleaned and gained the Spot. Design round v2.25 findings still parked:
+- **Current version v2.46** — shipped 2026-08-25 (master + gh-pages, Pages verified `built`);
+  the review-fixes release, detail in `docs/instructions-v2.46.md`. Last Play upload was vc25
+  (v2.45) — v2.46 is NOT on Play yet. Design round v2.25 findings still parked:
   `docs/design/2026-08-22-fresh-eyes-structure-review.md` (money tracking DEFERRED, his word).
+
+## 0c. The 2026-08-25 session (review → v2.46 → purge) — state and next steps
+
+- **v2.46 = 11 of 12 review findings fixed** (`docs/reviews/2026-08-25-full-app-review.md`
+  carries outcomes; `docs/instructions-v2.46.md` the how). **D4 deferred** — packages[]
+  client-granularity LWW needs per-package `_modified` stamps (schema design). 18 unverified
+  candidates listed in the review doc, mostly untriaged.
+- **Elie must REGENERATE a program to see rules v4** (frozen records keep v3); his gym
+  confirmation of the duplicate/missing-compound fixes is the open loop
+  (`docs/elie-next-visit.md` item 1). Growing the small minor banks (Rear Delts 4, Calves 5)
+  with him is the real end of same-week repeats.
+- **Repo exposure closed:** `.claude/settings.local.json` untracked, wip branch deleted, the four
+  real demo phone numbers purged from ALL history (rewritten + force-pushed; pre-purge bundle at
+  `_archive/PTApp/git-backups/`). Old SHAs remain fetchable on GitHub until their internal GC —
+  a GitHub support ticket is the only total erasure, offered, not requested.
+- **Roadmap ruling (Pierre):** GitHub's data role ends at the SUPABASE CUTOVER, not the store
+  launches; the gh-pages PWA is the rollback surface until native is proven; repo flips private
+  (free) only after the PWA retires. Milestones one-pager:
+  `_archive/PTApp/2026-08-25-spotset-milestones.html`.
+- 🔴 **Model/effort settings are Pierre's EXPERIMENT — do not touch or re-propose** (memory
+  `feedback_model_effort_experiment`; findings archived in
+  `_archive/PTApp/reviews/2026-08-25-settings-review-findings.md`).
+- **v2.46 APK** built, version-verified, at `_archive/PTApp/releases/2026-08-25-spotset-v2.46.apk`
+  (chat upload timed out ×3 — hand it to him from disk).
+- **Resume question:** package v2.46 for Play (vc26), or triage the 18 unverified candidates first?
 
 ---
 
