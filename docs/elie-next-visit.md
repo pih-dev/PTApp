@@ -9,14 +9,19 @@ as settled fact, and the release-discipline rules for Elie-driven sessions added
 
 ## OPEN — 2026-08-24, reported by Elie in-session
 
-1. **Program generation quality (Elie, 2026-08-24, verbatim intent):** generated
-   programs contain **a lot of duplicate exercises**, and **the important major
-   compounds are missing from some programs**. Both point at `fillBucket` /
-   exercise-fill in `programKernel.js` (dedup across days/blocks; anchor-lift
-   guarantees). Not yet reproduced or diagnosed — next session on this topic:
-   generate against live client evals, capture which duplicates and which
-   missing compounds, then fix in the kernel and bump `PROGRAM_RULES_VERSION`
-   (stored programs stay frozen; only new generations change).
+1. **Program generation quality (Elie, 2026-08-24) — FIX SHIPPED in v2.46
+   (2026-08-25), awaiting Elie's confirmation in the gym.** The 2026-08-25
+   review found three mechanisms and all are fixed (`PROGRAM_RULES_VERSION` 4):
+   the swap picker offered exercises already in the day and Deadlift (exact
+   duplicates one tap away); the set-distribution rule printed 5–7-set entries
+   against 4-value pyramids and collapsed halved-quota anchor days to anchor +
+   one oversized movement ("missing major compounds"); small muscle banks made
+   the paired day repeat the first day's picks (now widened onto fresh variants
+   first). Measured: broken prescriptions 61→0, same-week repeats 15→12.
+   ⚠️ Stored programs are FROZEN — Elie must REGENERATE a program to see v4.
+   Remaining repeats trace to bank size (Rear Delts 4, Calves 5 exercises):
+   growing those banks with Elie is the real end of them. Detail:
+   `docs/instructions-v2.46.md`.
 2. Standing items still open from 2026-08-24: FORM-panel text review
    (`reviewed: false` prints in the panel until Elie approves entries) and the
    Arabic name correction loop.

@@ -8,7 +8,16 @@ adversarial agent against the real code; **12 verified findings survived, 0 were
 **Highlights for Pierre:** three kernel findings (K1–K3) are the mechanism behind **Elie's
 2026-08-24 report** (duplicate exercises + missing major compounds — `docs/elie-next-visit.md`
 OPEN item 1). Two sync findings (S1–S2) are real multi-device data-loss paths in the layer that
-has already lost data twice. Nothing here is fixed yet — this doc is the record; triage next.
+has already lost data twice.
+
+**OUTCOME (same day, v2.46):** 11 of 12 confirmed findings FIXED and shipped — see
+`docs/instructions-v2.46.md` for how each fix is shaped (including the three reviewer-subagent
+blockers folded in: delete-resurrection via the S1 fold, cloud-snapshot buttons missing the A1
+gate, reset-templates vs {}-is-absence). **D4 (packages client-granularity LWW) is DEFERRED** —
+needs per-package `_modified` stamps, a schema design. The 18 unverified candidates below remain
+untriaged except: supabaseDriver S1-twin (fixed with S1), General update-token + cloud buttons
+(fixed with A1), MUSCLE_AR 'Legs' (fixed), DOCS.instructions pin (fixed), swap-picker empty state
+(fixed).
 
 ---
 
