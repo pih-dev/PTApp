@@ -1,0 +1,83 @@
+# Keeps the SpotSet Supabase project (trflnwrusbbbihelovkh) out of the free-tier
+# inactivity pause.
+#
+# Why this exists: Supabase pauses a Free-plan project after ~7 days of low activity.
+# On 2026-08-30 SpotSet was flagged for pausing because the app is still on a parallel
+# run and nobody is hitting the database. Activity is measured in REQUESTS, not rows —
+# "a few user requests to the database each day over the previous week" is enough — so
+# inserting dummy data would not have helped. One cheap read a day does.
+#
+# A paused project can be restored from the dashboard, but the app would be down until
+# someone noticed. This is the cheaper insurance. The permanent fix is the Pro plan,
+# which is never paused.
+#
+# ⚠️ GitHub disables scheduled workflows in a repository with no commits for 60 days.
+# That would stop the pings silently, which is worse than no keep-alive at all, so the
+# second job below commits a timestamp on the 1st of each month purely to reset that
+# clock. Twelve trivial commits a year is the price of not having to remember.
+
+name: Supabase keep-alive
+
+on:
+  schedule:
+    # 06:17 UTC daily. Odd minute on purpose: GitHub sheds load on the hour, so jobs
+    # scheduled at :00 are the ones that get delayed or dropped.
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping the REST API
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_ANON_KEY:-}" ]; then
+            echo "::error::SUPABASE_URL or SUPABASE_ANON_KEY secret is missing — the project will pause."
+            exit 1
+          fi
+
+          # A tiny authenticated read. RLS may legitimately return an empty array for
+          # the anon role; that is fine — the request itself is what resets the timer.
+          code=$(curl -sS -o /tmp/body -w '%{http_code}' \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "${SUPABASE_URL}/rest/v1/tenants?select=id&limit=1")
+
+          echo "HTTP ${code}"
+
+          # 2xx = healthy. 401/403 still counts as activity but means the anon key is
+          # wrong or rotated, so fail loudly rather than pretend the ping worked.
+          case "$code" in
+            2*) echo "Keep-alive OK." ;;
+            401|403) echo "::error::Reached the project but was rejected (${code}). Either SUPABASE_ANON_KEY was rotated, or the anon role lost access to 'tenants' (RLS policy or GRANT changed). Check both."; exit 1 ;;
+            *) echo "::error::Unexpected response ${code}:"; head -c 500 /tmp/body; exit 1 ;;
+          esac
+
+  # Keeps GitHub itself from disabling the schedule above. Runs on the 1st of the month
+  # only; every other day this is a no-op that costs a few seconds.
+  keep-schedule-enabled:
+    runs-on: ubuntu-latest
+    needs: ping
+    if: github.event_name == 'schedule'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Touch the heartbeat file on the 1st
+        run: |
+          set -euo pipefail
+          if [ "$(date -u +%d)" != "01" ]; then
+            echo "Not the 1st — nothing to do."
+            exit 0
+          fi
+          date -u +'%Y-%m-%dT%H:%M:%SZ' > .github/keepalive-heartbeat.txt
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .github/keepalive-heartbeat.txt
+          git diff --staged --quiet || git commit -m 'chore: keep-alive heartbeat (resets GitHub 60-day schedule disable)'
+          git push
