@@ -30,6 +30,7 @@ on these keywords — don't open them yourself, and never answer from recollecti
 | deploy, gh-pages, pages build, release hygiene, review discipline | `docs/release-hygiene.md` — the 7-step pipeline, the Jun 11 Pages race, the spent gates |
 | review findings, P3, P6, SessionCard, refactor backlog | `docs/reviews/2026-06-10-fable5-codebase-review.md`, `docs/superpowers/specs/2026-04-21-session-card-refactor-brainstorm.md` |
 | app name, store, publish, capacitor, native app, stage 2 | `docs/2026-07-14-app-name-research.md`, `docs/stage2-publishing-guide.md` |
+| paused, pause, inactivity, keep-alive, keepalive, free tier, free plan, Supabase email, project paused, Apple, enrolment, enrollment, activation, developer program | `HANDOFF-spotset-publishing.md`, `.github/workflows/supabase-keepalive.yml` |
 | changelog, what changed in, release notes | `docs/changelog-summary.md` — every version in plain English, newest first |
 | program, exercise bank, volume, weak point, generation rules | `docs/superpowers/specs/2026-07-13-program-generation-design.md`, `docs/instructions-v2.13.md` |
 | 1RM, one rep max, norms, standards, evaluate, evaluation | `docs/superpowers/specs/2026-07-06-1rm-battery-replaces-mass-design.md`, `docs/instructions-v2.12.md` |

@@ -1,6 +1,6 @@
 # SpotSet — Store Publishing HANDOFF
 
-**Last updated:** 2026-08-24 ~10:45, Beirut — vc25 (v2.45) submitted to Play review (Elie-driven session).
+**Last updated:** 2026-08-31 ~12:20, Beirut — Supabase pause averted; Apple enrolment probed and is overdue.
 **To resume:** Pierre types `spotset`, `publish`, `illume` or `continue`. **Read §0 back to him
 and stop.** Do not investigate, do not draft, do not ask follow-up questions beyond the one §0 names.
 
@@ -22,6 +22,32 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 ---
 
 ## 0. Status — read this out
+
+- 🔴 **APPLE ENROLMENT IS OVERDUE AND NEEDS CHASING.** Probed `pierreishere@gmail.com`
+  **2026-08-31 ~12:15** (`in:anywhere`, so spam included): the **only** Apple mail is from
+  2026-08-21 — Order Acknowledgement, "Agreement signed: Apple Developer Agreement", and
+  "Your Apple Account information has been updated". **No activation, no rejection, nothing
+  since.** That is **10 days against Apple's quoted 2 business days**.
+  **Next action is Pierre's, not Apple's any more:** contact Apple Developer Support quoting
+  enrolment **696HYTRB7F**. Worth checking `developer.apple.com/account` first — a stalled
+  Individual enrolment often sits behind an unread identity-verification step rather than a queue.
+  ⚠️ This supersedes the older "next action is Apple's" line further down this section.
+- ✅ **SUPABASE PAUSE AVERTED (2026-08-31).** Supabase emailed on 08-30 that the project
+  (`trflnwrusbbbihelovkh`, org **Calnorm**) was scheduled to pause — Free plan pauses after ~7 days
+  of low activity, and the parallel run generates almost none. Fixed with a daily GitHub Actions
+  keep-alive in this repo, `.github/workflows/supabase-keepalive.yml`, **verified green**.
+  Two things a future session must not get wrong:
+  **(a) Activity is REQUESTS, not rows** — seeding dummy data would not have helped, and the
+  workflow only ever READS.
+  **(b) `anon` has no SELECT grant on `tenants` or `app_users`** (SQLSTATE 42501) and that is
+  correct — the app authenticates first. So the ping treats 2xx **and** 42501 as healthy, because
+  a permission denial still means Postgres ran the query. A 401 *without* 42501 means the key was
+  rotated; a 404 means the table was renamed. Repo secrets `SUPABASE_URL` and `SUPABASE_ANON_KEY`
+  are set. A second job writes a heartbeat file monthly, because GitHub disables cron in a repo
+  with no commits for 60 days and that would stop the pings silently.
+  The permanent fix is the **Pro plan**, which is never paused. Pierre's decision on 08-31 was to
+  stay on Free and keep the parallel run — if the project ever does pause, the app is not yet
+  carrying real users, and the pause email gives 90 days to unpause from the dashboard.
 
 - ✅ **vc21 (v2.43) CLEARED REVIEW AND IS LIVE TO TESTERS** — console-verified 2026-08-23 ~09:45:
   track summary "Latest release: 21 (2.43)", *Available to selected testers · Released on Aug 23
