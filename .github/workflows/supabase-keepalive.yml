@@ -30,32 +30,53 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Ping the REST API
+      - name: Ping the project
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           set -euo pipefail
           if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_ANON_KEY:-}" ]; then
-            echo "::error::SUPABASE_URL or SUPABASE_ANON_KEY secret is missing — the project will pause."
+            echo "::error::SUPABASE_URL or SUPABASE_ANON_KEY secret is missing - the project will pause."
             exit 1
           fi
 
-          # A tiny authenticated read. RLS may legitimately return an empty array for
-          # the anon role; that is fine — the request itself is what resets the timer.
-          code=$(curl -sS -o /tmp/body -w '%{http_code}' \
-            -H "apikey: ${SUPABASE_ANON_KEY}" \
-            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
-            "${SUPABASE_URL}/rest/v1/tenants?select=id&limit=1")
+          # ---- 1. Is the project awake at all? -------------------------------
+          # GoTrue's health endpoint is the one thing the anon key can always read
+          # cleanly, so this is the unambiguous reachability signal.
+          auth_code=$(curl -sS -o /tmp/auth -w '%{http_code}'             -H "apikey: ${SUPABASE_ANON_KEY}"             "${SUPABASE_URL}/auth/v1/health")
+          echo "auth/v1/health -> ${auth_code}"
+          if [ "${auth_code}" != "200" ]; then
+            echo "::error::Project unreachable (${auth_code}):"; head -c 500 /tmp/auth; exit 1
+          fi
 
-          echo "HTTP ${code}"
+          # ---- 2. Did Postgres actually do work? -----------------------------
+          # anon deliberately has no SELECT grant on the app's tables - the app
+          # authenticates users first - so this returns 401 / SQLSTATE 42501 and
+          # ALWAYS will. That is still a real database query: PostgREST reached
+          # Postgres and Postgres evaluated permissions. So 2xx and 42501 are both
+          # healthy, and anything else is not.
+          #   A 404 means 'tenants' was renamed or dropped.
+          #   A 401 WITHOUT 42501 means the key itself was rejected.
+          rest_code=$(curl -sS -o /tmp/rest -w '%{http_code}'             -H "apikey: ${SUPABASE_ANON_KEY}"             -H "Authorization: Bearer ${SUPABASE_ANON_KEY}"             "${SUPABASE_URL}/rest/v1/tenants?select=id&limit=1")
+          echo "rest/v1/tenants -> ${rest_code}"
 
-          # 2xx = healthy. 401/403 still counts as activity but means the anon key is
-          # wrong or rotated, so fail loudly rather than pretend the ping worked.
-          case "$code" in
-            2*) echo "Keep-alive OK." ;;
-            401|403) echo "::error::Reached the project but was rejected (${code}). Either SUPABASE_ANON_KEY was rotated, or the anon role lost access to 'tenants' (RLS policy or GRANT changed). Check both."; exit 1 ;;
-            *) echo "::error::Unexpected response ${code}:"; head -c 500 /tmp/body; exit 1 ;;
+          case "${rest_code}" in
+            2*)
+              echo "Keep-alive OK (anon can read tenants)."
+              ;;
+            401|403)
+              if grep -q '42501' /tmp/rest; then
+                echo "Keep-alive OK (permission denied by Postgres, which means Postgres ran the query)."
+              else
+                echo "::error::Key rejected, not a permission error - SUPABASE_ANON_KEY was probably rotated:"
+                head -c 500 /tmp/rest; exit 1
+              fi
+              ;;
+            *)
+              echo "::error::Unexpected response ${rest_code} - 'tenants' may have been renamed or dropped:"
+              head -c 500 /tmp/rest; exit 1
+              ;;
           esac
 
   # Keeps GitHub itself from disabling the schedule above. Runs on the 1st of the month
