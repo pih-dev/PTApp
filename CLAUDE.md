@@ -183,7 +183,7 @@ After every commit: **bug fix** → root cause + pattern into `docs/traps.md`, t
 ---
 
 ## How to Build, Verify, and Deploy
-Dev: `npm install && npm run dev`. Every change goes through this pipeline — **never skip steps**:
+Dev: `npm run dev`. Every change goes through this pipeline — **never skip steps**:
 ```bash
 # 1. Build
 npm run build
@@ -210,7 +210,7 @@ git -C C:/projects/PTApp-ghpages add -A && git -C C:/projects/PTApp-ghpages comm
 #    the .apk, archive to _archive/PTApp/releases/, then SendUserFile it.
 ```
 
-**Critical notes** (the incidents behind these: `docs/release-hygiene.md`):
+**Critical notes** (incidents: `docs/release-hygiene.md`):
 - Pushing to `master` does NOT deploy, and pushing to `gh-pages` does not guarantee it either — **verify `gh api repos/pih-dev/PTApp/pages/builds/latest --jq .status` reaches `built`.** Stuck on `building`? `gh api -X POST repos/pih-dev/PTApp/pages/builds`, then re-verify. Never push `gh-pages` twice in quick succession.
 - **A schema change needs a live-data byte-diff gate; all three shipped gates are SPENT by design** (each asserts a snapshot the archive moved past ⇒ "DO NOT DEPLOY"). **v6→v7 needs a NEW `sanity-live-v7-diff.mjs`, copied from v6.**
 - Run the whole suite before every deploy — **check exit codes, don't eyeball output**: `for f in scripts/sanity/*.mjs; do node "$f" || echo "FAIL $f"; done`. `sanity-rls-matrix` exits **2** = live RLS skipped. **Exit 2 is not a pass.** 🔴 **`sanity-live-supabase-diff` run BARE is EXPECTED to fail in Phase 1** (no dual-write, so the mirror is stale the moment anyone touches a phone). The daily job is **`node scripts/soak-day.mjs`**; only its runs count toward the streak. Do not 'fix' the bare failure.
