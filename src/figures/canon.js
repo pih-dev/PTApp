@@ -222,20 +222,28 @@ export function skeleton(pose) {
 //    so it is drawn as a band down that bone, clipped to the silhouette. That
 //    single change is the difference between "highlighted anatomy" and
 //    "measles". Each entry returns the two ends of the band and its width.
+// v2.46.1 (Elie's reference app, 2026-09-01): a lit muscle fills the SECTION
+// of the body it lives in — the whole visible thigh, the whole upper arm — not
+// a fixed-width sausage floating inside the limb. Each band therefore names
+// the GIRTH keys of its two ends (`gks`) and the renderer draws it at the
+// limb's own drawn width (× `fill`), so the wash and the silhouette agree at
+// every view and every spin angle by construction. Trunk muscles sit a little
+// inside the outline (fill < 1) so the chalk edge survives and the region
+// still reads as tissue, not as a recoloured torso.
 export const MUSCLE_ANCHORS = {
-  quads: (s, S) => band(s['hip' + S], s['knee' + S], 0.16, 0.9, 26),
-  hamstrings: (s, S) => band(s['hip' + S], s['knee' + S], 0.16, 0.86, 24),
-  glutes: (s, S) => band(s.lumbar, s['hip' + S], 0.55, 1.05, 30),
-  calves: (s, S) => band(s['knee' + S], s['ankle' + S], 0.12, 0.6, 18),
-  erectors: (s) => band(s.pelvis, s.thorax, 0.15, 0.95, 22),
-  lats: (s) => band(s.thorax, s.lumbar, 0.1, 0.75, 27),
-  chest: (s, S) => band(s['shoulder' + S], s.thorax, 0.15, 0.85, 28),
-  delts: (s, S) => band(s['shoulder' + S], s['elbow' + S], -0.1, 0.26, 24),
-  triceps: (s, S) => band(s['shoulder' + S], s['elbow' + S], 0.28, 0.9, 20),
-  biceps: (s, S) => band(s['shoulder' + S], s['elbow' + S], 0.28, 0.9, 20),
-  forearms: (s, S) => band(s['elbow' + S], s['wrist' + S], 0.18, 0.82, 15),
-  abs: (s) => band(s.pelvis, s.lumbar, 0.1, 0.95, 26),
-  traps: (s, S) => band(s.neckBase, s['shoulder' + S], -0.1, 0.8, 21),
+  quads: (s, S) => band(s['hip' + S], s['knee' + S], 0.12, 0.94, 26, ['hip', 'knee']),
+  hamstrings: (s, S) => band(s['hip' + S], s['knee' + S], 0.14, 0.9, 24, ['hip', 'knee'], 0.92),
+  glutes: (s, S) => band(s.lumbar, s['hip' + S], 0.55, 1.1, 30, ['pelvis', 'hip']),
+  calves: (s, S) => band(s['knee' + S], s['ankle' + S], 0.12, 0.75, 18, ['knee', 'ankle']),
+  erectors: (s) => band(s.pelvis, s.thorax, 0.1, 0.95, 22, ['lumbar', 'thorax'], 0.8),
+  lats: (s) => band(s.thorax, s.lumbar, 0.05, 0.8, 27, ['thorax', 'lumbar'], 0.88),
+  chest: (s, S) => band(s['shoulder' + S], s.thorax, 0.15, 0.85, 28, ['deltoid', 'thorax'], 0.88),
+  delts: (s, S) => band(s['shoulder' + S], s['elbow' + S], -0.14, 0.28, 24, ['deltoid', 'elbow']),
+  triceps: (s, S) => band(s['shoulder' + S], s['elbow' + S], 0.26, 0.94, 20, ['shoulder', 'elbow']),
+  biceps: (s, S) => band(s['shoulder' + S], s['elbow' + S], 0.26, 0.94, 20, ['shoulder', 'elbow']),
+  forearms: (s, S) => band(s['elbow' + S], s['wrist' + S], 0.14, 0.88, 15, ['elbow', 'wrist']),
+  abs: (s) => band(s.pelvis, s.lumbar, 0.05, 1.0, 26, ['pelvis', 'lumbar'], 0.8),
+  traps: (s, S) => band(s.neckBase, s['shoulder' + S], -0.1, 0.85, 21, ['neckBase', 'deltoid']),
 };
 
 // 🔴 A LIMB MUSCLE IS PAINTED ON BOTH SIDES IN A FRONT VIEW. A squat with one
@@ -246,7 +254,9 @@ export const MUSCLE_ANCHORS = {
 //    one argument.
 export const MUSCLE_SIDES = (view) => (view === 'front' ? ['N', 'F'] : ['N']);
 
-function band(a, b, t0, t1, w) {
+// `w` survives as the fallback width for a band with no girth keys; `gks`
+// names [startJoint, endJoint] in the GIRTH table and `fill` scales inside it.
+function band(a, b, t0, t1, w, gks, fill = 1) {
   const at = (t) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
-  return { pts: [at(t0), at((t0 + t1) / 2), at(t1)], w };
+  return { pts: [at(t0), at((t0 + t1) / 2), at(t1)], w, gks, fill };
 }

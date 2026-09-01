@@ -387,7 +387,18 @@ export function buildFigure(pose, mix, skIn) {
   const anchor = (list) => (list || [])
     .flatMap(k => (MUSCLE_ANCHORS[k] ? sides.map(S => MUSCLE_ANCHORS[k](sk, S)) : []))
     .filter(Boolean)
-    .map(m => ribbon(m.pts, m.pts.map(() => m.w), spun));
+    .map(m => {
+      // v2.46.1: the wash fills the body SECTION the muscle lives in (Elie's
+      // reference app) — width follows the limb's own drawn girth end-to-end,
+      // and `g` is already view- and turn-blended, so the lit region can never
+      // disagree with the silhouette it sits on. Bands without girth keys keep
+      // their authored fixed width.
+      const n = m.pts.length - 1;
+      const ws = m.gks
+        ? m.pts.map((_, i) => lerp(g[m.gks[0]], g[m.gks[1]], i / n) * m.fill)
+        : m.pts.map(() => m.w);
+      return ribbon(m.pts, ws, spun);
+    });
   const muscles = { primary: anchor(ms.primary), secondary: anchor(ms.secondary) };
 
   // 🔴 THE POSTURE LINE — brief §7.9: "the spine is the hero line, drawn in the
@@ -411,11 +422,11 @@ export function buildFigure(pose, mix, skIn) {
   // `offset` nudges the marker off the joint CENTRE onto the tissue that
   // actually takes the load — a lumbar disc is at the BACK of the trunk, not on
   // its axis, and a ring drawn on the navel teaches the wrong place.
-  const off = (pose.fault && pose.fault.offset) || { x: 0, y: 0 };
+  const off = spinOffset((pose.fault && pose.fault.offset) || {}, sk);
   const fault = (pose.fault ? pose.fault.joints : [])
     .map(j => {
       const p = jointAt(sk, j);
-      return { x: p.x + (off.x || 0), y: p.y + (off.y || 0), r: pose.fault.r || 46 };
+      return { x: p.x + off.x, y: p.y + off.y, r: pose.fault.r || 46 };
     });
 
   // 🔴 THE EQUIPMENT SWAPS AT THE HALFWAY POINT RATHER THAN TWEENING. A bench
@@ -428,6 +439,22 @@ export function buildFigure(pose, mix, skIn) {
   const equip = typeof equipPose.equip === 'function' ? equipPose.equip(sk).filter(Boolean) : [];
 
   return { sk, body, bodyZ, deltoids, head: headPath(sk), muscles, guide, fault, equip, view: sk.view };
+}
+
+// 🔴 A FAULT OFFSET IS AUTHORED IN THE θ=0 CAMERA'S SCREEN SPACE — "-26 in x"
+//    means "at the BACK of the trunk" only while the back faces that way. On a
+//    spun figure the joints ride the turntable but a raw screen nudge does not,
+//    so by 90° the ring slid off the spine onto the oblique and by 180° it sat
+//    on the BELLY — Elie's hammer-curl screenshots, 2026-09-01. The x component
+//    is really a 3D vector in the body's sagittal plane: rotate it through the
+//    same yaw + pitch the joints get, then project. Unspun figures pass through
+//    untouched (theta is absent), so authored art keeps its exact bytes.
+function spinOffset(off, sk) {
+  const x = off.x || 0, y = off.y || 0;
+  if (typeof sk.theta !== 'number') return { x, y };
+  const th = sk.theta * Math.PI / 180, pt = (sk.pitchDeg || 0) * Math.PI / 180;
+  const z = x * Math.sin(th);                       // the nudge's depth after the yaw
+  return { x: x * Math.cos(th), y: y * Math.cos(pt) - z * Math.sin(pt) };
 }
 
 // A bilateral fault (both knees, both shoulders) needs the line on both sides,
@@ -488,10 +515,11 @@ export function zoomAnchor(pose, mix = 0, skIn) {
   if (!chain || !chain.length) return null;
   const pts = chain.map(j => jointAt(sk, j));
   // The marker's `offset` nudge is part of the teaching point (a lumbar disc
-  // is at the BACK of the trunk) — the anchor follows it for the same reason.
-  const off = (pose.fault && pose.fault.offset) || { x: 0, y: 0 };
+  // is at the BACK of the trunk) — the anchor follows it for the same reason,
+  // rotated with the spin exactly as the marker itself is.
+  const off = spinOffset((pose.fault && pose.fault.offset) || {}, sk);
   return {
-    x: pts.reduce((s, p) => s + p.x, 0) / pts.length + (off.x || 0),
-    y: pts.reduce((s, p) => s + p.y, 0) / pts.length + (off.y || 0),
+    x: pts.reduce((s, p) => s + p.x, 0) / pts.length + off.x,
+    y: pts.reduce((s, p) => s + p.y, 0) / pts.length + off.y,
   };
 }

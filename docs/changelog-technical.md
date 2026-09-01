@@ -4,6 +4,18 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.46.1 - spun fault-offset rotation + girth-width muscle wash (2026-09-01)
+
+Both Elie-driven (WhatsApp screenshots, 2026-09-01). docs/instructions-v2.46.1.md.
+- spinOffset() (render.js): a fault marker's authored offset is θ=0 camera
+  screen space; on a spun skeleton it now rotates through the same yaw+pitch as
+  the joints (spunSkeleton exports pitchDeg beside theta). Applied to the
+  marker AND zoomAnchor. Unspun poses byte-identical (theta absent).
+- MUSCLE_ANCHORS bands carry gks:[startGirthKey,endGirthKey] + fill; buildFigure
+  draws the wash at lerp(g[gk0],g[gk1]) * fill per point instead of fixed w, so
+  the wash fills the limb/trunk section and tracks the view/turn girth blend.
+  w kept as fallback for keyless bands.
+
 ## v2.46 - review fixes: S1/D1/D2/D3/A1/K1/K3/U1/U2/I1 + rules v4 (2026-08-25)
 
 From docs/reviews/2026-08-25-full-app-review.md (12 confirmed findings, 0 refuted).

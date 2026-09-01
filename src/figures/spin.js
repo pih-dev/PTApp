@@ -277,5 +277,9 @@ export const spunSkeleton = (pose, theta, pitch = 0) => {
   // The renderer needs the turn angle for two blends it cannot infer from
   // joints alone: girth (a body is wider than it is deep) and muscle sides.
   sk.theta = theta;
+  // …and the pitch, because the fault marker's authored offset is a 3D nudge
+  // off the joint ("the disc is at the BACK of the trunk") that must ride the
+  // same yaw+pitch as the joints do — see spinOffset() in render.js.
+  sk.pitchDeg = pitch;
   return sk;
 };

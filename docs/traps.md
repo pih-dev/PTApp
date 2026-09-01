@@ -852,3 +852,26 @@ Touch events bubble to `.modal-content` regardless of the child's pointer captur
 swipe-down-to-dismiss gesture and closed the sheet under the PT's finger. Any element that owns
 its own drag gestures inside a modal must be added to the touchstart exclusion list next to
 input/textarea/button (Modal.jsx), or its gestures fight the sheet's.
+
+## TRAP: A screen-space nudge authored for one camera is wrong for every other camera (v2.46.1, 2026-09-01)
+
+**What happened:** Each fault marker carries an `offset` nudging the ring off the
+joint centre onto the tissue that takes the load — "`x: -26`" meaning "at the
+BACK of the trunk" in the authored θ=0 side view. On a spun pair the joints ride
+the turntable but the raw nudge stayed glued to the screen: at 90° the ring sat
+26 units beside the spine (on the oblique), at 180° on the BELLY. Elie caught it
+on the Hammer Curl sheet and screenshotted it — the app was teaching the wrong
+tissue at every angle but the authored one.
+
+**Root cause:** the offset is not screen decoration, it is a vector in the
+body's sagittal plane. Anything positioned relative to a rotating body must ride
+the SAME transform chain the joints do (yaw, then pitch, then reground), or it
+silently detaches. The `equip` closures learned this earlier (spinEquip's `raw()`
+applies yaw + pitch + reground); the fault offset was the last body-relative
+datum still in screen space.
+
+**The rule:** when a new datum is positioned relative to a figure — a marker, a
+label anchor, a zoom origin — ask "is this authored in a camera's screen space?"
+If yes, it must be rotated by `spinOffset()` (render.js) or the equivalent full
+transform before use. `zoomAnchor` had the same bug for the same reason and was
+fixed in the same commit. Verified by `off.x·cosθ` tracking at 0/45/90/135/180°.

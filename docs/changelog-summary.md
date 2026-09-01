@@ -4,6 +4,16 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.46.1 - the injury ring turns with the body, muscles light whole sections (September 1, 2026)
+
+Two fixes from Elie's screenshots. Spinning a figure used to leave the orange
+injury ring behind — by half a turn it sat on the belly instead of the lower
+back, teaching the wrong tissue. The ring (and the pinch-zoom centre) now
+rotates with the body, for every movement. And the muscle highlight now fills
+the whole section of the body the muscle lives in — the visible thigh, the
+upper arm — the way his reference app does, instead of a thin stripe floating
+inside the limb.
+
 ## v2.46 - the review fixes: sync keeps every phone's records, programs without duplicates (August 25, 2026)
 
 An ultracode review of the whole app found 12 confirmed bugs; Pierre said fix
