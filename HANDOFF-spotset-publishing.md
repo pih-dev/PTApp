@@ -47,7 +47,18 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   enrolment **696HYTRB7F**. Worth checking `developer.apple.com/account` first — a stalled
   Individual enrolment often sits behind an unread identity-verification step rather than a queue.
   ⚠️ This supersedes the older "next action is Apple's" line further down this section.
-- ✅ **SUPABASE PAUSE AVERTED (2026-08-31).** Supabase emailed on 08-30 that the project
+- 🟡 **SUPABASE PAUSED ANYWAY 2026-09-01 ~09:14, RESUMED FROM THE DASHBOARD ~17:55.** The 08-31
+  keep-alive did NOT avert it: the pause executed at 09:14 Beirut, five hours BEFORE the cron's
+  first scheduled tick (14:36 Beirut, which then failed against the dead endpoint). The pause was
+  already queued when the workflow landed — a keep-alive prevents the NEXT inactivity window, it
+  cannot cancel a pause already scheduled. Lesson for the record: **a paused project's DNS is
+  withdrawn**, so from outside it looks exactly like a network outage — this session's 12:15
+  "Supabase unreachable, Beirut network" diagnosis (and the rls-matrix "fetch failed") was in fact
+  the pause; measure-before-diagnose applies to clouds too. Resume clicked (data restored to
+  pause point; our data is mirror-only, master is GitHub), restoration verified back by REST probe;
+  keep-alive re-run green after resume. If it pauses AGAIN with the workflow green daily, the ping
+  does not count as activity for Supabase's heuristic → the answer is Pro or accepting the cycle.
+- ~~✅ **SUPABASE PAUSE AVERTED (2026-08-31).**~~ (superseded above) Supabase emailed on 08-30 that the project
   (`trflnwrusbbbihelovkh`, org **Calnorm**) was scheduled to pause — Free plan pauses after ~7 days
   of low activity, and the parallel run generates almost none. Fixed with a daily GitHub Actions
   keep-alive in this repo, `.github/workflows/supabase-keepalive.yml`, **verified green**.
