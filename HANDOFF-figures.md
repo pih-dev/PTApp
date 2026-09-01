@@ -23,6 +23,15 @@ list, in order. Verify the live version yourself before quoting one.
 🔴 **STANDING INSTRUCTION FOR THIS SUBJECT: keep this file current AS YOU GO.** Update §0 and commit
 at each milestone. A restart could end the session at any moment.
 
+> ✅ **v2.46.1 (2026-09-01, PTApp session, Elie's WhatsApp findings):** (1) a spun figure's fault
+> marker drifted off the tissue — the authored `offset` is θ=0 camera screen space and never rode
+> the turn; `spinOffset()` (render.js) now rotates it through the same yaw+pitch as the joints,
+> `zoomAnchor` included, `spunSkeleton` exports `pitchDeg`. (2) The muscle wash fills the body
+> SECTION at the limb's own girth — `MUSCLE_ANCHORS` bands carry `gks:[startKey,endKey]` + `fill`
+> into the view/turn-blended GIRTH tables. Trap recorded (`docs/traps.md`, camera-space nudges);
+> spec `docs/instructions-v2.46.1.md`; shipped to gh-pages + Play vc26. Elie was due at Pierre's
+> ~5:15 pm that day — whether he judged the new wash is NOT recorded; ask before building on it.
+
 > ✅ **THE DARK-SPOTS DEFECT IS FIXED IN THE RENDERER (CCHealth, 2026-08-23 ~09:40). RE-FREEZE IS
 > NOW THE DESIGN THREAD'S TURN (B3):**
 > `node scripts/logo-candidates.mjs --freeze pair-off-colour --freeze-bg pair-off-lines`, then
