@@ -23,15 +23,20 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 
 ## 0. Status — read this out
 
-- 🟡 **ANDROID DEVELOPER VERIFICATION — STATUS UNCONFIRMED.** Google emailed the Calnorm Play
-  Console account on **2026-08-31** about the new Android developer verification requirement.
-  Established from Google's FAQ: **distributing through Play satisfies the requirement** (Play
-  Console is the single place to manage verification, even for apps distributed outside Play), and
-  apps using **Play App Signing** — which SpotSet does — are **auto-registered**. So the mail is
-  most likely a blanket reminder, not an action item. **What was never confirmed** is whether this
-  account actually shows as registered; the session died before Pierre reported back.
-  **Next action, 30 seconds:** click the button inside that email — it deep-links to this account's
-  verification page and says registered or not. Do not guess a Play Console menu path.
+- 🚀 **vc26 (v2.46.1) SUBMITTED 2026-09-01 ~12:55** on Pierre's ask ("deploy to google store").
+  Closed testing – Alpha, *Changes in review · 26 (2.46.1) · Start full rollout*, quick checks
+  running at close; only the routine "no deobfuscation" warning. Release notes: the injury marker
+  stays on the correct body part through rotation + full-section muscle highlight (Elie's two
+  findings, `docs/instructions-v2.46.1.md`). AAB+APK archived
+  `_archive/PTApp/releases/2026-09-01-spotset-v2.46.1{-vc26.aab,.apk}`; snapshot
+  `pre-v2.46.1 play upload` byte-verified first. ⚠️ The APK could NOT be SendUserFile'd — four
+  attempts died at the tool's fixed 30 s upload window (6.8 MiB is more than the uplink pushes in
+  30 s; the Play browser upload of the same bytes took ~2 min and succeeded). Path given instead.
+  **Probe the console before quoting any of this back.**
+- ✅ **ANDROID DEVELOPER VERIFICATION — CONFIRMED REGISTERED 2026-09-01.** The Play Console home
+  banner (account Calnorm, u/1) reads *"All of your apps have been successfully registered to meet
+  Android developer verification requirements."* Console-read, not inferred — the 2026-08-31 email
+  was the blanket reminder the FAQ implied. Closes the 🟡 loop; nothing to do.
 
 - 🔴 **APPLE ENROLMENT IS OVERDUE AND NEEDS CHASING.** Probed `pierreishere@gmail.com`
   **2026-08-31 ~12:15** (`in:anywhere`, so spam included): the **only** Apple mail is from
