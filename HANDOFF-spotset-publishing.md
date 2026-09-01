@@ -1,6 +1,6 @@
 # SpotSet — Store Publishing HANDOFF
 
-**Last updated:** 2026-08-31 ~12:20, Beirut — Supabase pause averted; Apple enrolment probed and is overdue.
+**Last updated:** 2026-09-01 ~09:35, Beirut — Android developer verification added as an open item (recovered from a session whose `/wrap` died on API errors).
 **To resume:** Pierre types `spotset`, `publish`, `illume` or `continue`. **Read §0 back to him
 and stop.** Do not investigate, do not draft, do not ask follow-up questions beyond the one §0 names.
 
@@ -22,6 +22,16 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
 ---
 
 ## 0. Status — read this out
+
+- 🟡 **ANDROID DEVELOPER VERIFICATION — STATUS UNCONFIRMED.** Google emailed the Calnorm Play
+  Console account on **2026-08-31** about the new Android developer verification requirement.
+  Established from Google's FAQ: **distributing through Play satisfies the requirement** (Play
+  Console is the single place to manage verification, even for apps distributed outside Play), and
+  apps using **Play App Signing** — which SpotSet does — are **auto-registered**. So the mail is
+  most likely a blanket reminder, not an action item. **What was never confirmed** is whether this
+  account actually shows as registered; the session died before Pierre reported back.
+  **Next action, 30 seconds:** click the button inside that email — it deep-links to this account's
+  verification page and says registered or not. Do not guess a Play Console menu path.
 
 - 🔴 **APPLE ENROLMENT IS OVERDUE AND NEEDS CHASING.** Probed `pierreishere@gmail.com`
   **2026-08-31 ~12:15** (`in:anywhere`, so spam included): the **only** Apple mail is from
