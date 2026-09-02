@@ -15,6 +15,11 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   listing complete, 1,036 messages, 350 KB.
 - `2026-08-21-apple-developer-enrollment-FULL-SESSION.txt` — this session (Apple Developer Program
   enrolment, order placed), 456 messages, 178 KB.
+- 🔎 **Filed under Career, not PTApp:**
+  `C:/projects/_archive/Career/claude-incidents/2026-08-29-2026-09-01-lost-wrap/` — the 08-30 → 09-01
+  Supabase / Apple / Android-verification threads came up in the **Career** tab, so Claude Code filed
+  the transcript there. Why, and what is in it:
+  `C:/projects/_archive/PTApp/claude-incidents/2026-09-01-spotset-threads-live-in-a-career-dump.md`.
 
 > Subject-scoped. The general PTApp handoff (`HANDOFF.md`, app features, P3/P6) is a *different*
 > thread — do not merge them.
