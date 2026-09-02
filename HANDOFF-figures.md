@@ -7,7 +7,14 @@
 **To resume:** Pierre types `figures`. **Read §0 back to him and stop.** Next work = §0's OPEN
 list, in order. Verify the live version yourself before quoting one.
 
-> 🔴 **OWNERSHIP HANDOVER 2026-08-22 (Pierre's instruction): the CCHealth session (Fable 5) now
+> 🔴 **OWNERSHIP HANDOVER 2026-09-02 (Pierre's instruction, via CCHealth): the figures thread is
+> PTApp's again, fully.** CCHealth hands it back as-is: do NOT undo the 2026-09-01 v2.46.1 fixes or
+> any instruction Pierre gave PTApp since; CCHealth's record of its passes stays in
+> `CCHealth/docs/sessions/2026-08-2{2,3,4}-ptapp-figures-*.md` (prone = mirrored figure, the FRAME
+> gate, a noisy gate is broken). Refinement continues one figure per tick from `STANDING-LOOPS.md`.
+> The two-session git rules below still apply whenever two sessions share this repo.
+>
+> *(superseded)* 🔴 **OWNERSHIP HANDOVER 2026-08-22 (Pierre's instruction): the CCHealth session (Fable 5) now
 > RUNS the figures thread** — the six queued items and the spatial rounds. The PTApp session keeps
 > the **UI redesign and the logo/name (B3) only**. PTApp session: do NOT touch `src/figures/*`,
 > `src/components/Figure.jsx`, `src/components/MovementSheet.jsx` or `src/figureText.js` while

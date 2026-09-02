@@ -9,6 +9,12 @@ not draft, do not ask follow-up questions.
 
 ## 0. Status — read this out
 
+- 🔴 **2026-09-02 (from CCHealth, Pierre's words): a STANDING LOOP now exists — `STANDING-LOOPS.md`.**
+  On `continue`: run it once, then arm it. Every 2 h: app health, **Supabase (it was PAUSED on 09-01 —
+  verify it is awake)**, Play vc26 state, **Apple review — silent ~10–14 days against a promised 2:
+  take the action, contact App Review**; then refine ONE figure from `HANDOFF-figures.md` §0.
+  The figures thread is PTApp's again in full (handover note at the top of `HANDOFF-figures.md`).
+
 - 🔴 **EVERY SUBJECT HAS ITS OWN HANDOFF — route by trigger, newest first:**
   - **`review` / `v2.46` / `purge` / `leak` / `private` → THIS FILE, §0c** — the freshest thread
     (2026-08-25). **`continue` right after this session's clear means THIS one.**
