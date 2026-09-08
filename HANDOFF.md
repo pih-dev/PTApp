@@ -29,7 +29,9 @@ not draft, do not ask follow-up questions.
   - **`figures` → `HANDOFF-figures.md`** — 🔴 two-session git rules in CLAUDE.md KNOWN ISSUES
     if both run again.
   - **Supabase soak → `HANDOFF-multi-user-build.md`** — daily job `node scripts/soak-day.mjs`.
-- **Current version v2.46** — shipped 2026-08-25 (master + gh-pages, Pages verified `built`);
+- **Current version v2.46.2** — shipped 2026-09-08 (master + gh-pages `built`, live PWA reads v2.46.2;
+  APK `_archive/PTApp/releases/2026-09-08-spotset-v2.46.2.apk`, versionCode 27, NOT uploaded to Play).
+  Session 2026-09-08 closed with the standing loop armed (cron 2fbda425). Was: **v2.46** — shipped 2026-08-25 (master + gh-pages, Pages verified `built`);
   the review-fixes release, detail in `docs/instructions-v2.46.md`. Last Play upload was vc25
   (v2.45) — v2.46 is NOT on Play yet. Design round v2.25 findings still parked:
   `docs/design/2026-08-22-fresh-eyes-structure-review.md` (money tracking DEFERRED, his word).
