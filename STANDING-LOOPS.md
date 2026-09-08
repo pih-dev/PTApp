@@ -27,7 +27,7 @@ recurring). Every tick commits what it found. Nothing on disk keeps it running.
 >    more than 7 days (it said 2 days; it is now ~10–14), TAKE THE ACTION: read the Resolution
 >    Center, contact App Review from the console, and tell Pierre in one line what was sent.
 >
-> **THEN REFINE ONE FIGURE:** open `HANDOFF-figures.md` §0, take the first OPEN item, do it, run the
+> **THEN REFINE ONE FIGURE:** open `HANDOFF-figures.md` §0, take the first OPEN item a session can do ALONE (skip anything blocked on Pierre/Elie — annotate it BLOCKED in §0 so the next tick does not re-derive it), do it, run the
 > figure gates, commit and push with **explicit paths only** (never `git add -A`; never
 > `git checkout gh-pages` in the main tree — see CLAUDE.md KNOWN ISSUES). One figure per tick.
 > Deploy only when a batch is verified; the PWA is the deliverable, the APK is not rebuilt per tick.
