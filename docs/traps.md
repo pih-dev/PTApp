@@ -594,6 +594,26 @@ check. `cat -A` shows it as `^H`. Use `chr(92)+'b'`, a raw string, or the Edit t
 
 ## Figures at scale (v2.23, `src/figures/`)
 
+**A flag that does two jobs makes the wrong question unanswerable — and the doc that describes it
+goes stale silently.** (2026-09-08, `ribbon()` in `render.js`.) One `keepSide` argument switched
+BOTH the hole-proof subpath build and the normal-continuity flip, so "is the flip safe on authored
+art?" sat open for a fortnight: you could not turn it on without also replacing the smooth bezier
+silhouette. Split into `spun` and `keepSide = spun` and the answer took one render.
+
+The answer is **no, and it is structural**: a closed bezier outline walks down one edge of the
+ribbon and back along the other, so at a genuine in-plane 180° fold the normal MUST swap sides —
+that swap is what makes the return edge return. Pin it and the outline crosses itself; the elbow of
+the horizontal-press family sprays into a fan of splinters and the muscle wash is sliced with it.
+The winding-additive subpath builder has no single outline to cross, which is why the identical flip
+is *required* for spun figures and fatal for authored ones. **Two switches, one mechanism.**
+
+And the standing note describing it was wrong on both facts — "24 figures, the leg-curl family's
+folded knees". Measured: **12** figures, the **horizontal-press** family. The leg curls' fold was
+removed by the v2.44/v2.45 anatomy re-authoring, and nothing re-measured the claim that outlived it.
+🔴 **A figure claim from a doc is a hypothesis; the hash of all 680 is the state.**
+Evidence: `_archive/PTApp/figures/2026-09-08-normal-continuity-{off-shipped,on-splintered-elbow}.png`.
+
+
 **The lying and kneeling bases are where a figure library goes wrong.** A supine or prone figure
 needs its centre line one torso-depth off the floor, and a plank needs its shoulders HIGHER than its
 heels — the arms are propping the front end up. Drawn dead level, a plank reads as a person lying on

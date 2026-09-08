@@ -211,6 +211,10 @@ at each milestone. A restart could end the session at any moment.
   v2.45 (item 1c): trunk re-authored, hand flat on the floor, far foot flat.**
 - 🔴 **OPEN, in rough priority for the next figures session:**
   1. **Sequences pilot — overhead press step strip** (decided above, biggest UI piece).
+     🔴 **BLOCKED on Pierre's sequences answers (brief §6) — the loop skips it.** Q1/Q2 are
+     answered (each step keeps its pair; a step strip) but Q3 — WHICH movements, and which
+     moments inside the press — is his call, and it is a UI build outside `src/figures/`. A
+     one-figure-per-tick session must move to the next item, not re-derive this.
   2. **spinEquip vocabulary** — cable,
      machine, landmine, kettlebell remain (world-anchored gear). 3. **More spin patterns** — each needs judging
      through the turn before the gate opens (`SPINS` in `figures/poses.js`). 4. **Front-authored
@@ -219,8 +223,24 @@ at each milestone. A restart could end the session at any moment.
      my depth-tint attempt was NOT what he meant** ("I'm talking about gradient… even gradient
      won't work — we'll sort this out later") — parked by his ruling; `bodyZ` stays exported for
      it. 7. ROM gate stays warn-only until it computes angles from skeleton geometry (its scope
-     is honest since v2.45: lying bodies skipped, list = leg-press's 2 deliberate warns). 8. The
-     leg-curl family (24 authored figures) re-judged with the normal-continuity fix on.
+     is honest since v2.45: lying bodies skipped, list = leg-press's 2 deliberate warns).
+     ✅ **8. CLOSED 2026-09-08 — normal continuity STAYS OFF for authored art, and the item's
+     own premise was wrong on both counts.** Judged by rendering, not by reading: the two jobs
+     the one `keepSide` flag was doing are now separate parameters (`spun` = the hole-proof
+     subpath build, `keepSide` = the normal flip, defaulting to `spun`), which is what made the
+     question askable at all. With the flip forced on for authored figures, **12** figures change
+     — not 24 — and they are the **horizontal-press** family (Chest Press Machine plus five
+     cable/band/ball presses, whose arm folds ~180° back at the elbow), **not** the leg curls,
+     whose fold the v2.44/v2.45 anatomy re-authoring had already removed. And the change is a
+     REGRESSION, plainly: the elbow sprays into a fan of splinters and the muscle wash is sliced
+     with it. Reason, general: a closed bezier outline walks down one edge and back along the
+     other, so at an in-plane 180° fold the normal swap is what makes the return edge return —
+     pinning it crosses the outline. The winding-additive subpath builder has no outline to
+     cross, which is why the same flip is required there and fatal here. Evidence (open them
+     before re-proposing this): `_archive/PTApp/figures/2026-09-08-normal-continuity-off-shipped.png`
+     vs `-on-splintered-elbow.png`; harness `tmp/legcurl-judge.mjs`. All 680 byte-identical to
+     the shipped tree, three gates exit 0. 🔴 **Do not re-propose enabling `keepSide` on
+     authored figures.**
      9. **Pierre re-judges the 14 v2.45 patterns in-app** — dip, triceps-overhead and bird-dog
      changed the most; the judging sheet shows before/after.
      (1b framing round + 1c bird-dog: CLOSED in v2.45.)

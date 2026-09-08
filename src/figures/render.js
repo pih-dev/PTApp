@@ -105,12 +105,29 @@ function closedPath(pts) {
 const r = (v) => Math.round(v);
 
 // One limb: a tapered, capped ribbon along the joint chain.
-// `keepSide` (round 4): enforce normal continuity — see the note at the flip.
-// 🔴 OPT-IN, NOT DEFAULT: byte-compared over all 680 authored figures, the
-//    flip also fires on 24 of them (the leg-curl family's folded knees) and
-//    changes judged art. Spun figures need it; authored ones keep their exact
-//    shipped bytes until those 24 are re-judged with it on.
-export function ribbon(joints, widths, keepSide = false) {
+//
+// TWO switches, split apart 2026-09-08 because they had been ONE flag and the
+// open question could not otherwise be asked:
+//   `spun`     — build the ribbon hole-proof (same-winding triangles + circles,
+//                see below). Spun figures only; authored art keeps the bezier
+//                silhouette it was judged on.
+//   `keepSide` — enforce normal continuity at a fold (the note at the flip).
+//
+// 🔴 THEY ARE ONE MECHANISM, NOT TWO OPTIONS — keepSide DEFAULTS TO `spun`
+//    AND MUST NOT BE ENABLED ALONE. Judged by rendering, 2026-09-08 (OPEN item 8):
+//    a closed bezier outline walks down one edge and back along the other, so at
+//    a genuine in-plane 180° fold the normal MUST swap sides — that swap is what
+//    makes the return edge return. Pinning it defeats that: the outline crosses
+//    itself and the elbow sprays into a fan of splinters. The winding-additive
+//    subpath builder has no outline to cross, which is why the same flip is
+//    required there and fatal here.
+//    Two facts the handoff had wrong, both measured this session and corrected
+//    in HANDOFF-figures.md: the flip fires on **12** authored figures, not 24,
+//    and on the **horizontal-press** family (Chest Press Machine and five
+//    cable/band/ball presses — the arm folds back ~180° at the elbow), not the
+//    leg curls, whose fold the v2.44/v2.45 anatomy re-authoring already removed.
+//    Evidence: `_archive/PTApp/figures/2026-09-08-normal-continuity-*.png`.
+export function ribbon(joints, widths, spun = false, keepSide = spun) {
   const [P, W] = densify(joints, widths);
   const s = sampleSpline(P, W);
   if (s.length < 2) return '';
@@ -127,9 +144,13 @@ export function ribbon(joints, widths, keepSide = false) {
     //    normal swaps sides, the left and right edges cross, and the nonzero
     //    fill rule punches a cap-sized HOLE in the body — the black circles he
     //    logged at hips, crotch, feet and armpit across three exercises. Keep
-    //    each normal on the same side as the one before it and the outline can
-    //    no longer cross itself at a fold. Unspun figures never reverse a
-    //    tangent, so this is a no-op for the authored views by construction.
+    //    each normal on the same side as the one before it and the subpath
+    //    builder's quads can no longer cross at a fold.
+    //    🔴 The claim that stood here — "unspun figures never reverse a
+    //    tangent, so this is a no-op for the authored views by construction"
+    //    — WAS FALSE, and it was the reason to believe the flag was safe to
+    //    turn on globally. 12 authored figures do reverse one (2026-09-08).
+    //    See the header: on a bezier outline the swap is load-bearing.
     if (keepSide && pnx !== null && nx * pnx + ny * pny < 0) { nx = -nx; ny = -ny; }
     pnx = nx; pny = ny;
     left.push({ x: s[i].x + nx * s[i].w, y: s[i].y + ny * s[i].w });
@@ -179,7 +200,7 @@ export function ribbon(joints, widths, keepSide = false) {
   //    never cancel to a hole. Slightly heavier path data, polygonal edge at
   //    prototype quality; the authored 680 keep the smooth bezier outline and
   //    their exact shipped bytes.
-  if (keepSide) {
+  if (spun) {
     // Triangles, not quads: at a sharp bend the four corners can order into a
     // bowtie — a self-crossing quad fills as two pinched triangles and leaves
     // a dark notch at the knee (found judging the shading preview). A

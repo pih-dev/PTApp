@@ -4,6 +4,44 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## unreleased
+
+### Normal continuity is judged and stays OFF for authored figures (figures OPEN item 8)
+
+`ribbon()` in `src/figures/render.js` took one `keepSide` flag that did two unrelated
+jobs — the hole-proof subpath build (same-winding triangles + end circles) and the
+normal-continuity flip at a fold — so the standing question "is the flip safe on
+authored art?" could not be asked without also swapping the smooth bezier silhouette
+for the prototype-quality polygonal one. Split into `spun` (the build) and `keepSide`
+(the flip, defaulting to `spun`). **No figure changes: all 680 hash byte-identical to
+the previous tree**; `sanity-figures`, `sanity-skins`, `sanity-movement-library` all
+exit 0.
+
+The answer, reached by rendering the affected figures and looking at them rather than
+by reasoning about the geometry:
+
+- Forcing the flip on for authored figures changes **12** of the 680, not the 24 the
+  handoff recorded, and they are the **horizontal-press** family (Chest Press Machine,
+  Front Rotary Medicine Ball Press, Medicine Ball Rotary Punch Toss and three
+  cable/band single-arm presses — the arm folds back roughly 180° at the elbow), not
+  the leg-curl family. The leg curls' fold was removed by the v2.44/v2.45 anatomy
+  re-authoring, so the note in the handoff had gone stale without anyone noticing.
+- It is a regression, not a fix: the folded elbow sprays into a fan of splinters and
+  the muscle wash is sliced along with it. Before/after:
+  `_archive/PTApp/figures/2026-09-08-normal-continuity-{off-shipped,on-splintered-elbow}.png`.
+- Why, stated generally so it does not have to be rediscovered: a closed bezier outline
+  walks down one edge of the ribbon and back along the other, so at a genuine in-plane
+  180° fold the normal swap is exactly what makes the return edge return. Pinning the
+  normal crosses the outline. The winding-additive subpath builder has no single
+  outline to cross, which is why the same flip is *required* there and fatal here.
+  The two are one mechanism, not two options — hence the `= spun` default.
+
+The comment in `render.js` that claimed "unspun figures never reverse a tangent, so
+this is a no-op for the authored views by construction" was false, and was the reason
+to believe the flag was safe to flip globally. Corrected in place.
+
+---
+
 ## v2.46.2 - muscle facing + pitch re-aim on spun figures (2026-09-08)
 
 Pierre's round-two ask on Elie's "tension area shifts" report. docs/instructions-v2.46.2.md.
