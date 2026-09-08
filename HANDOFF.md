@@ -1,13 +1,33 @@
 # PTApp / SpotSet — HANDOFF
 
-**Last updated:** 2026-08-25 ~14:30, Beirut — after the ultracode review session (v2.46 shipped,
-repo exposure closed, phone-number history purge).
+**Last updated:** 2026-09-08 ~05:10, Beirut — terminal restart after the v2.46.2 session (spun
+figures round two, Supabase keep-alive rewrite, Codex brief, first two loop ticks).
 **To resume:** Pierre types `continue`. **Read §0 back to him and stop.** Do not investigate, do
 not draft, do not ask follow-up questions.
 
 ---
 
 ## 0. Status — read this out
+
+- 🔴 **RESTART SEQUENCE (2026-09-08, terminal restart):** on `continue` — (1) read this §0 out;
+  (2) run the standing-loop CHECK once on a cheap agent and ARM the cron from `STANDING-LOOPS.md`
+  (it died with the terminal; nothing on disk keeps it running); (3) resume from
+  `HANDOFF-figures.md` §0 — item 1 (sequences) is BLOCKED on Pierre's brief §6 answers, item 8 is
+  CLOSED, the loop takes the next item a session can do ALONE. Loop tick 1 found Play and Apple
+  consoles behind login walls for an agent — probe them from the main session with Chrome when
+  Pierre is signed in. Nothing is uncommitted; nothing is unpushed.
+- **2026-09-08 session, what landed:** v2.46.2 live (PWA verified; APK vc27 archived at
+  `_archive/PTApp/releases/2026-09-08-spotset-v2.46.2.apk`, NOT on Play) — `MUSCLE_FACE` /
+  `faceVisibility` (a back muscle no longer lights the belly at 90°), `pitchFit` (tilted lying
+  figures stay in the cell); spun figures are judged from RASTERISED sheets (`tmp/spin-audit.mjs`).
+  **Supabase flagged for pausing AGAIN on 09-07** despite six green pings: a DENIED query is not
+  activity — the keep-alive now signs in as `keepalive@spotset.app` (creds in
+  `_archive/PTApp/supabase-spotset.env` + repo secrets) and runs answered queries 3×/day, verified
+  green. A THIRD notice with this version green ⇒ Pro plan. **Pierre's parallel path:** a
+  paste-ready Codex/GPT brief for a photoreal/3D figure library —
+  `docs/2026-09-08-codex-figure-library-brief.md`; `src/figures/` stays the pose source + fallback.
+- **Resume question:** has Pierre pasted the Codex brief yet (then this thread only maintains the
+  SVG rig), or should the loop keep refining figures in `src/figures/`?
 
 - 🔴 **2026-09-02 (from CCHealth, Pierre's words): a STANDING LOOP now exists — `STANDING-LOOPS.md`.**
   On `continue`: run it once, then arm it. Every 2 h: app health, **Supabase (PAUSED 09-01, flagged AGAIN 09-07; keep-alive rewritten 09-08 to

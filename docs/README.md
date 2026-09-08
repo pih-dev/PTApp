@@ -82,6 +82,7 @@ listed here. `.0` releases are `instructions-vX.Y.md`, patches `instructions-vX.
 
 | Release | Subject |
 |---|---|
+| `v2.46.2` / `v2.46.1` | Spun figures: muscle FACE fade + pitch re-aim (`instructions-v2.46.2.md`) · fault offset rides the turn + girth-width wash (`instructions-v2.46.1.md`) |
 | `v2.15.0` | The app is renamed SpotSet in the UI; launcher icon; versionCode 2 for the Play upload |
 | `v2.14.3` / `v2.14.2` / `v2.14.1` | Transliteration rule · Arabic exercise names · booking-time suggestion |
 | `v2.14` | Multi-day split generation, 3–6 days |
