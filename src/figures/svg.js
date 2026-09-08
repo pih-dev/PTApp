@@ -45,8 +45,14 @@ function equipMarkup(equip) {
 
 const r = (v) => Math.round(v * 10) / 10;
 
-const washes = (list, colour, opacity, id) => (list && list.length
-  ? `<g clip-path="url(#${id})" fill="${colour}" opacity="${opacity}">${list.map(d => `<path d="${d}"/>`).join('')}</g>`
+// `alpha` (v2.46.2) is index-aligned with `list`: how much of the muscle's face
+// the camera sees on a spun figure. 1 everywhere on authored art, so the
+// markup of every unspun figure is byte-identical to before.
+const washes = (list, colour, opacity, id, alpha = []) => (list && list.length
+  ? `<g clip-path="url(#${id})" fill="${colour}" opacity="${opacity}">${list.map((d, i) => {
+      const a = alpha[i] == null ? 1 : alpha[i];
+      return a <= 0.02 ? '' : `<path d="${d}"${a < 0.999 ? ` opacity="${r(a)}"` : ''}/>`;
+    }).join('')}</g>`
   : '');
 
 let uid = 0;
@@ -107,8 +113,8 @@ export function figureSvg(pose, { detail = 'full', title = '', className = '', m
       // wash that spills outside the silhouette reads as a bug, not as anatomy.
       // v2.25.1: primary wash 0.62 → 0.78 (Pierre: "make the red brighter") —
       // the hue got brighter in the same pass, see --muscle in styles.css.
-      washes(f.muscles.secondary, 'var(--muscle-2)', 0.55, id),
-      washes(f.muscles.primary, 'var(--muscle)', 0.78, id),
+      washes(f.muscles.secondary, 'var(--muscle-2)', 0.55, id, f.muscleAlpha && f.muscleAlpha.secondary),
+      washes(f.muscles.primary, 'var(--muscle)', 0.78, id, f.muscleAlpha && f.muscleAlpha.primary),
       // 🔴 THE POSTURE LINE, over everything the body paints and under the fault
       //    marker. The halo is not decoration: an accent stroke laid straight on
       //    a silhouette of similar value disappears at list size, and this line
@@ -122,7 +128,7 @@ export function figureSvg(pose, { detail = 'full', title = '', className = '', m
       // load, plus a ring outside it so the eye finds it at a glance. On the
       // joint that takes the stress — never an outline round the whole figure.
       f.fault.length
-        ? `<g clip-path="url(#${id})" fill="var(--anatomy)" opacity="0.8">${f.fault.map(m => `<circle cx="${r(m.x)}" cy="${r(m.y)}" r="${r(m.r)}"/>`).join('')}</g>`
+        ? `<g clip-path="url(#${id})" fill="var(--anatomy)" opacity="0.8">${f.fault.map(m => `<circle cx="${r(m.x)}" cy="${r(m.y)}" r="${r(m.r)}"${m.a != null && m.a < 0.999 ? ` opacity="${r(m.a)}"` : ''}/>`).join('')}</g>`
           + `<g fill="none" stroke="var(--anatomy)" stroke-width="7" opacity="0.85">${f.fault.map(m => `<circle cx="${r(m.x)}" cy="${r(m.y)}" r="${r(m.r + 12)}"/>`).join('')}</g>`
         : '',
       // The near-camera equipment, over everything: the hand goes BEHIND the

@@ -45,8 +45,9 @@ on a match. Unrouted on purpose: `docs/superpowers/plans/*` (the **spec** is the
 word boundary (`trap` misses `traps` — list both). The rule a session can act on alone stays inline;
 only the evidence routes.
 
-## Current Version: v2.46.1
-**v2.46.1** (09-01, Elie): fault offsets rotate with the spin (`spinOffset` — a screen-space nudge is camera-bound, traps.md); the muscle wash fills the SECTION at limb girth (`gks`).
+## Current Version: v2.46.2
+**v2.46.2** (09-08): a muscle has a FACE (`MUSCLE_FACE`) — a spun wash fades as its side turns away, the marker fill too, the ring never; `pitchFit` keeps a tilted lying figure in the cell. Judge spins from RASTERISED sheets (`tmp/spin-audit.mjs`).
+**v2.46.1** (09-01, Elie): fault offsets rotate with the spin (`spinOffset`, a camera-bound nudge — traps.md); the wash fills the SECTION at limb girth (`gks`).
 **v2.46 — THE REVIEW FIXES.** 🔴 **`.env` IS A BUILD INPUT — no `.env` (VITE_SUPABASE_URL + ANON key, values in `_archive/PTApp/supabase-spotset.env`) builds a token-only app, auth surface dark; ANON KEY ONLY; service_role never enters the repo.** Entry = PROVISIONED email sign-in (no self-signup, Apple 4.8) · guest/DEMO · the token field (parallel run); a signed-in tester gets an EMPTY workspace — **`isSignedIn()` gates EVERY PAT path**. v2.46 closed the 2026-08-25 review's 12 findings (rules -> TRAPS). Deferred: D4 (packages LWW). → `v2.46`, `docs/reviews/2026-08-25-full-app-review.md`.
 
 ## The figures — law (B2; thread: `HANDOFF-figures.md`)

@@ -875,3 +875,22 @@ label anchor, a zoom origin — ask "is this authored in a camera's screen space
 If yes, it must be rotated by `spinOffset()` (render.js) or the equivalent full
 transform before use. `zoomAnchor` had the same bug for the same reason and was
 fixed in the same commit. Verified by `off.x·cosθ` tracking at 0/45/90/135/180°.
+
+## TRAP: A wash clipped to the silhouette has no idea which face it is on (v2.46.2, 2026-09-08)
+
+**What happened:** the muscle wash is a band down a bone's axis, clipped to the
+body. Authored in profile that IS the back of the trunk. Spin the figure to face
+the camera and the identical band now fills the front of the trunk — a deadlift
+lit the abs, and Elie read it as the tension moving off the spine.
+
+**Root cause:** the 2D wash encodes "along which bone", never "on which face";
+the profile camera made the second question invisible. Any body-relative paint
+that survives a turn needs a normal, not just a position.
+
+**The rule:** everything painted ON a rotating body carries a face
+(`MUSCLE_FACE`, canon.js) and fades by `faceVisibility()` — the same lateral
+axis the joints turned through. Same family as the v2.46.1 offset trap: a
+datum authored for one camera is wrong for every other camera. And under
+pitch, "the floor is the bottom of the cell" is a camera assumption too —
+`pitchFit()` re-aims. Judged from rasterised sheets (`tmp/spin-audit.mjs`):
+the maths looked right on paper both times; only the pictures showed it.

@@ -4,6 +4,15 @@ A plain English summary of each version for anyone who wants the big picture wit
 
 ---
 
+## v2.46.2 - a muscle has a face, and the tilted camera keeps the figure in view (September 8, 2026)
+
+Round two on the turning figures. A back muscle used to keep painting the
+trunk after you turned the body to face you, so a deadlift looked like it
+worked the stomach — the highlight now fades as its side of the body turns
+away, and the injury disc dims the same way while its ring stays put. And
+tilting a lying figure (plank, bridge, bench) used to push it out of the
+picture; the view now re-aims so it stays in frame.
+
 ## v2.46.1 - the injury ring turns with the body, muscles light whole sections (September 1, 2026)
 
 Two fixes from Elie's screenshots. Spinning a figure used to leave the orange

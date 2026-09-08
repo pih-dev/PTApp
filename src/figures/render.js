@@ -23,7 +23,7 @@
 // the joint. That single trick is the difference between "anatomical" and
 // "inflatable".
 
-import { skeleton, GIRTH, MUSCLE_ANCHORS, MUSCLE_SIDES, HEAD_W, HEAD_H } from './canon.js';
+import { skeleton, GIRTH, MUSCLE_ANCHORS, MUSCLE_FACE, MUSCLE_SIDES, HEAD_W, HEAD_H } from './canon.js';
 
 const SAMPLES_PER_SEG = 5;   // enough to smooth; few enough to keep paths small
 const CAP_STEPS = 7;
@@ -384,9 +384,18 @@ export function buildFigure(pose, mix, skIn) {
   // Past a quarter turn both limbs are visible, so both wash — the same rule
   // MUSCLE_SIDES applies to an authored front view.
   const sides = (spun && across > 0.5) ? ['N', 'F'] : MUSCLE_SIDES(sk.view);
+  // v2.46.2: how much of a muscle's FACE the camera sees, 0..1. Unspun figures
+  // are authored for their camera and always answer 1.
+  const facing = (k, S) => {
+    const mf = spun && MUSCLE_FACE[k];
+    if (!mf) return 1;
+    const a = sk[mf.seg[0] + (mf.kind === 'limb' ? S : '')], b = sk[mf.seg[1] + (mf.kind === 'limb' ? S : '')];
+    if (!a || !b) return 1;
+    return faceVisibility(a, b, mf.kind, mf.face, sk);
+  };
   const anchor = (list) => (list || [])
-    .flatMap(k => (MUSCLE_ANCHORS[k] ? sides.map(S => MUSCLE_ANCHORS[k](sk, S)) : []))
-    .filter(Boolean)
+    .flatMap(k => (MUSCLE_ANCHORS[k] ? sides.map(S => Object.assign(MUSCLE_ANCHORS[k](sk, S) || {}, { a: facing(k, S) })) : []))
+    .filter(m => m.pts)
     .map(m => {
       // v2.46.1: the wash fills the body SECTION the muscle lives in (Elie's
       // reference app) — width follows the limb's own drawn girth end-to-end,
@@ -397,9 +406,14 @@ export function buildFigure(pose, mix, skIn) {
       const ws = m.gks
         ? m.pts.map((_, i) => lerp(g[m.gks[0]], g[m.gks[1]], i / n) * m.fill)
         : m.pts.map(() => m.w);
-      return ribbon(m.pts, ws, spun);
+      return { d: ribbon(m.pts, ws, spun), a: m.a };
     });
-  const muscles = { primary: anchor(ms.primary), secondary: anchor(ms.secondary) };
+  // `muscles` stays the list of path strings every consumer already reads;
+  // `muscleAlpha` rides alongside, index-aligned, for the one renderer that
+  // fades a wash by facing (svg.js). Unspun art: every alpha is 1.
+  const mp = anchor(ms.primary), msec = anchor(ms.secondary);
+  const muscles = { primary: mp.map(m => m.d), secondary: msec.map(m => m.d) };
+  const muscleAlpha = { primary: mp.map(m => m.a), secondary: msec.map(m => m.a) };
 
   // 🔴 THE POSTURE LINE — brief §7.9: "the spine is the hero line, drawn in the
   //    accent when held and in the warn hue when lost." Generalised past the
@@ -423,10 +437,15 @@ export function buildFigure(pose, mix, skIn) {
   // actually takes the load — a lumbar disc is at the BACK of the trunk, not on
   // its axis, and a ring drawn on the navel teaches the wrong place.
   const off = spinOffset((pose.fault && pose.fault.offset) || {}, sk);
+  // v2.46.2: the marker's FILL is tissue under load, and tissue has a face —
+  // the nudge that puts a lumbar disc at the back of the trunk also says the
+  // disc is hidden once the belly faces the camera. The fill dims with the
+  // same facing rule the washes use (never below 0.25: the ring must still
+  // find a filled centre); the RING is the teaching point and never fades.
   const fault = (pose.fault ? pose.fault.joints : [])
     .map(j => {
       const p = jointAt(sk, j);
-      return { x: p.x + off.x, y: p.y + off.y, r: pose.fault.r || 46 };
+      return { x: p.x + off.x, y: p.y + off.y, r: pose.fault.r || 46, a: Math.max(0.25, off.a) };
     });
 
   // 🔴 THE EQUIPMENT SWAPS AT THE HALFWAY POINT RATHER THAN TWEENING. A bench
@@ -438,7 +457,36 @@ export function buildFigure(pose, mix, skIn) {
   const equipPose = (pose.alt && mix > 0.5) ? pose.alt : pose;
   const equip = typeof equipPose.equip === 'function' ? equipPose.equip(sk).filter(Boolean) : [];
 
-  return { sk, body, bodyZ, deltoids, head: headPath(sk), muscles, guide, fault, equip, view: sk.view };
+  return { sk, body, bodyZ, deltoids, head: headPath(sk), muscles, muscleAlpha, guide, fault, equip, view: sk.view };
+}
+
+// ── Facing (v2.46.2) ─────────────────────────────────────────────────────────
+//
+// The body's LATERAL axis (the direction the limbs separate) after the same
+// yaw + pitch the joints received: (0,0,1) at θ=0, turned by rot3, then tilted.
+// +z is TOWARD the camera (svg.js paints z > 30 over the body).
+function lateralAxis(sk) {
+  const t = (sk.theta || 0) * Math.PI / 180, p = (sk.pitchDeg || 0) * Math.PI / 180;
+  return { x: -Math.sin(t), y: -Math.cos(t) * Math.sin(p), z: Math.cos(t) * Math.cos(p) };
+}
+
+// How much of the named face of segment a→b the camera sees, 0..1.
+// The face's outward normal lies in the sagittal plane, perpendicular to the
+// bone: cross(bone, lateral) for a trunk (whose back is −x when it stands
+// straight UP), cross(lateral, bone) for a limb (whose back is −x when it
+// hangs straight DOWN). Profile = 0 · camera → the edge still shows, factor
+// 1; the face turned fully away → 0; square-rooted so a quarter turn keeps
+// a visible wash rather than a ghost.
+function faceVisibility(a, b, kind, face, sk) {
+  const d = { x: b.x - a.x, y: b.y - a.y, z: (b.z || 0) - (a.z || 0) };
+  const L = Math.hypot(d.x, d.y, d.z) || 1;
+  d.x /= L; d.y /= L; d.z /= L;
+  const l = lateralAxis(sk);
+  // cross(d, l).z = d.x·l.y − d.y·l.x ; cross(l, d).z is its negation.
+  let nz = d.x * l.y - d.y * l.x;
+  if (kind === 'limb') nz = -nz;
+  if (face === 'front') nz = -nz;
+  return Math.sqrt(Math.max(0, Math.min(1, 1 + nz)));
 }
 
 // 🔴 A FAULT OFFSET IS AUTHORED IN THE θ=0 CAMERA'S SCREEN SPACE — "-26 in x"
@@ -449,12 +497,16 @@ export function buildFigure(pose, mix, skIn) {
 //    is really a 3D vector in the body's sagittal plane: rotate it through the
 //    same yaw + pitch the joints get, then project. Unspun figures pass through
 //    untouched (theta is absent), so authored art keeps its exact bytes.
+//    `a` (v2.46.2) is how much the camera sees of the tissue the nudge points
+//    at: the nudge's depth after the turn, as a fraction of its length. An
+//    unnudged marker sits on the axis and is always fully seen.
 function spinOffset(off, sk) {
   const x = off.x || 0, y = off.y || 0;
-  if (typeof sk.theta !== 'number') return { x, y };
+  if (typeof sk.theta !== 'number' || !x) return { x, y, a: 1 };
   const th = sk.theta * Math.PI / 180, pt = (sk.pitchDeg || 0) * Math.PI / 180;
   const z = x * Math.sin(th);                       // the nudge's depth after the yaw
-  return { x: x * Math.cos(th), y: y * Math.cos(pt) - z * Math.sin(pt) };
+  const nz = (y * Math.sin(pt) + z * Math.cos(pt)) / Math.hypot(x, y);
+  return { x: x * Math.cos(th), y: y * Math.cos(pt) - z * Math.sin(pt), a: Math.sqrt(Math.max(0, Math.min(1, 1 + nz))) };
 }
 
 // A bilateral fault (both knees, both shoulders) needs the line on both sides,

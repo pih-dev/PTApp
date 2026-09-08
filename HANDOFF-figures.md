@@ -30,6 +30,17 @@ list, in order. Verify the live version yourself before quoting one.
 🔴 **STANDING INSTRUCTION FOR THIS SUBJECT: keep this file current AS YOU GO.** Update §0 and commit
 at each milestone. A restart could end the session at any moment.
 
+> ✅ **v2.46.2 (2026-09-08, Pierre's round-two ask: "the tension area shifts from the spine to the
+> side when Elie moves the model"):** audited by RASTERISING every turning pattern's pair at 5 yaws ×
+> 3 pitches (`tmp/spin-audit.mjs`, sharp) and looking. Two defects, both fixed in the renderer:
+> (1) a wash has no face — the erector band filled the BELLY at 90°; `MUSCLE_FACE` (canon.js) +
+> `faceVisibility()` (render.js) fade a wash as its face turns away, the marker FILL likewise (floor
+> 0.25), the ring never. (2) `reground` under pitch pushed lying figures out of the cell; `pitchFit()`
+> (spin.js) re-aims, shared with `spinEquip`. 680/680 unspun figures byte-identical. Spec
+> `docs/instructions-v2.46.2.md`. **Parallel path Pierre asked for:** a paste-ready Codex/GPT brief
+> for a photoreal or 3D library — `docs/2026-09-08-codex-figure-library-brief.md`; whichever route
+> Codex prototypes, `src/figures/` stays as the pose SOURCE and fallback.
+>
 > ✅ **v2.46.1 (2026-09-01, PTApp session, Elie's WhatsApp findings):** (1) a spun figure's fault
 > marker drifted off the tissue — the authored `offset` is θ=0 camera screen space and never rode
 > the turn; `spinOffset()` (render.js) now rotates it through the same yaw+pitch as the joints,

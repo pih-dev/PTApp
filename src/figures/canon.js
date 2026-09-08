@@ -246,6 +246,30 @@ export const MUSCLE_ANCHORS = {
   traps: (s, S) => band(s.neckBase, s['shoulder' + S], -0.1, 0.85, 21, ['neckBase', 'deltoid']),
 };
 
+// v2.46.2 (Elie, via Pierre 2026-09-08: "the tension area shifts from the
+// spine to the side"): a muscle lives on ONE FACE of its segment. The erectors
+// are on the BACK of the trunk — so when the turntable brings the belly to the
+// camera, a wash that keeps painting the whole trunk lights the abs for a
+// deadlift. Each muscle names the segment it rides (proximal → distal, with
+// the side letter substituted) and which face of it; the renderer fades the
+// wash as that face turns away. `null` = a muscle with no readable face at
+// this scale (delts wrap the shoulder, forearms are round), painted as before.
+export const MUSCLE_FACE = {
+  erectors: { face: 'back', seg: ['pelvis', 'thorax'], kind: 'trunk' },
+  lats: { face: 'back', seg: ['pelvis', 'thorax'], kind: 'trunk' },
+  glutes: { face: 'back', seg: ['pelvis', 'thorax'], kind: 'trunk' },
+  traps: { face: 'back', seg: ['pelvis', 'thorax'], kind: 'trunk' },
+  abs: { face: 'front', seg: ['pelvis', 'thorax'], kind: 'trunk' },
+  chest: { face: 'front', seg: ['pelvis', 'thorax'], kind: 'trunk' },
+  hamstrings: { face: 'back', seg: ['hip', 'knee'], kind: 'limb' },
+  quads: { face: 'front', seg: ['hip', 'knee'], kind: 'limb' },
+  calves: { face: 'back', seg: ['knee', 'ankle'], kind: 'limb' },
+  triceps: { face: 'back', seg: ['shoulder', 'elbow'], kind: 'limb' },
+  biceps: { face: 'front', seg: ['shoulder', 'elbow'], kind: 'limb' },
+  delts: null,
+  forearms: null,
+};
+
 // 🔴 A LIMB MUSCLE IS PAINTED ON BOTH SIDES IN A FRONT VIEW. A squat with one
 //    crimson thigh reads as a rendering bug, not as anatomy — the viewer sees
 //    both legs, so both legs work. In profile the far limb is hidden behind the

@@ -52,6 +52,13 @@ below advanced in the gap — nothing did. The state in §0 is the state you wil
   enrolment **696HYTRB7F**. Worth checking `developer.apple.com/account` first — a stalled
   Individual enrolment often sits behind an unread identity-verification step rather than a queue.
   ⚠️ This supersedes the older "next action is Apple's" line further down this section.
+- 🟡 **2026-09-07: FLAGGED FOR PAUSING AGAIN after six green daily keep-alive runs — the prediction
+  below came true: a 42501-DENIED query does not count as activity.** Fixed 2026-09-08: the workflow
+  now signs in as a dedicated `keepalive@spotset.app` user (created with the service_role key from
+  the archived env file; owns nothing, RLS returns `[]`) and runs three ANSWERED `tenants` reads,
+  three times a day. Verified green (run 34174824389). Credentials: `_archive/PTApp/supabase-spotset.env`
+  + repo secrets `KEEPALIVE_EMAIL` / `KEEPALIVE_PASSWORD`. **If Supabase flags it a THIRD time with
+  this version green, the heuristic is not request-based at all → Pro plan, no more guessing.**
 - 🟡 **SUPABASE PAUSED ANYWAY 2026-09-01 ~09:14, RESUMED FROM THE DASHBOARD ~17:55.** The 08-31
   keep-alive did NOT avert it: the pause executed at 09:14 Beirut, five hours BEFORE the cron's
   first scheduled tick (14:36 Beirut, which then failed against the dead endpoint). The pause was

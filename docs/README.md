@@ -109,6 +109,7 @@ listed here. `.0` releases are `instructions-vX.Y.md`, patches `instructions-vX.
   open a plan only when the build sequence itself is the question.
 - **`docs/changelog-technical.md`** — 163 KB. Grep it.
 - [The figures — what Pierre asked for next](2026-08-22-figures-next-round-brief.md) — 🔴 the specified, unstarted round: zoom anchoring, direct-manipulation gestures, rotating + blue equipment, **different muscles on the fault figure**, multi-position sequences, the design round, the logo
+- [Codex brief — a better figure library](2026-09-08-codex-figure-library-brief.md) — Pierre's 2026-09-08 ask: the paste-ready prompt for Codex/GPT to research and build a photoreal or 3D replacement (routes, constraints, deliverables, rejection criteria)
 - [Rotatable figures — the options](2026-08-22-figures-3d-options.md) — Pierre's multi-angle / 3D ask: four routes, what each costs, why 2.5D on the existing skeleton wins. 🔴 Read before building it
 - [Design differentiation brief](design/2026-08-21-design-differentiation-brief.md) — why the app reads as generic, measured against the Agribond page; the opening questions for the design session
 - [Fresh-eyes structure review, first run](design/2026-08-22-fresh-eyes-structure-review.md) — the stripped-structure attack on the whole app's IA (v2.25): 4 findings shipped, the parked ones — 🔴 money tracking above all — await Pierre

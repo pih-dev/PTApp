@@ -4,6 +4,20 @@ Version history with context, decisions, and the reasoning behind each change.
 
 ---
 
+## v2.46.2 - muscle facing + pitch re-aim on spun figures (2026-09-08)
+
+Pierre's round-two ask on Elie's "tension area shifts" report. docs/instructions-v2.46.2.md.
+- MUSCLE_FACE (canon.js): per-muscle {face, seg, kind}; faceVisibility() (render.js)
+  fades a wash by the face normal's camera component, computed from the spun 3D
+  joints and lateralAxis(theta, pitch). buildFigure returns index-aligned
+  `muscleAlpha`; svg.js writes per-path opacity. Unspun art: alpha 1, bytes unchanged.
+- spinOffset() now returns `a` (visibility of the nudged tissue); the marker fill
+  takes max(0.25, a), the ring never fades.
+- pitchFit() (spin.js): vertical re-centre weighted by min(1, |pitch|/30);
+  spunSkeleton exports fitDy and spinEquip adds it to its ground shift.
+- Audit harness tmp/spin-audit.mjs (sharp-rasterised sheets); 680/680 unspun
+  figures byte-identical (tmp/hash-all.mjs).
+
 ## v2.46.1 - spun fault-offset rotation + girth-width muscle wash (2026-09-01)
 
 Both Elie-driven (WhatsApp screenshots, 2026-09-01). docs/instructions-v2.46.1.md.

@@ -143,6 +143,9 @@ export function spinEquip(pose, theta, gear, anchor, pitchDeg = 0) {
     gdx = pose.ground.x != null ? pose.ground.x - g0.x : 0;
     gdy = (pose.ground.y != null ? pose.ground.y : FLOOR) - g0.y;
   }
+  // …and the pitch re-aim (v2.46.2), read off the joints it was computed for,
+  // so the bar cannot stay on the floor while the lifter slides up the cell.
+  if (tp) gdy += spunSkeleton(pose, theta, pitchDeg).fitDy || 0;
   const pr = (p) => { const q = raw(p); return { x: q.x + gdx, y: q.y + gdy, z: q.z }; };
 
   if (gear === 'barbell') {
@@ -272,8 +275,37 @@ export function pitch3(sk, deg) {
   return sk;
 }
 
+// v2.46.2: a tilted camera must keep the figure in the cell. `reground` pins
+// the floor joint to FLOOR, which is right on the turntable — but under pitch
+// the floor is no longer the bottom of the picture: a plank tilted 40° from
+// below pushed its whole body under the cell's bottom edge (spin audit,
+// 2026-09-08: knee-tuck, bridge, bench at pitch ±40). A viewer who orbits
+// above or below a lifter also re-aims at them, so the figure slides toward
+// the cell's vertical centre by a weight that grows with the tilt — exactly 0
+// at pitch 0 (the turntable keeps its bytes), full by 30°. Vertical only:
+// the yaw already keeps the figure centred left-right.
+const CELL_MID_Y = 375;   // svg.js CELL: y −40, h 830
+export function pitchFit(sk, pitchDeg) {
+  if (!pitchDeg) return 0;
+  let lo = Infinity, hi = -Infinity;
+  for (const v of Object.values(sk)) {
+    if (!v || typeof v !== 'object' || typeof v.x !== 'number') continue;
+    lo = Math.min(lo, v.y); hi = Math.max(hi, v.y);
+  }
+  if (!isFinite(lo)) return 0;
+  const k = Math.min(1, Math.abs(pitchDeg) / 30);
+  return (CELL_MID_Y - (lo + hi) / 2) * k;
+}
+
 export const spunSkeleton = (pose, theta, pitch = 0) => {
   const sk = reground(pitch3(spin(skeleton3(pose), theta), pitch), pose);
+  const fitDy = pitchFit(sk, pitch);
+  if (fitDy) {
+    for (const v of Object.values(sk)) {
+      if (v && typeof v === 'object' && typeof v.x === 'number') v.y += fitDy;
+    }
+  }
+  sk.fitDy = fitDy;
   // The renderer needs the turn angle for two blends it cannot infer from
   // joints alone: girth (a body is wider than it is deep) and muscle sides.
   sk.theta = theta;
