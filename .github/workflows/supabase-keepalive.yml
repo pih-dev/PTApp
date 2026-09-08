@@ -5,7 +5,17 @@
 # On 2026-08-30 SpotSet was flagged for pausing because the app is still on a parallel
 # run and nobody is hitting the database. Activity is measured in REQUESTS, not rows —
 # "a few user requests to the database each day over the previous week" is enough — so
-# inserting dummy data would not have helped. One cheap read a day does.
+# inserting dummy data would not have helped.
+#
+# 🔴 2026-09-07: FLAGGED AGAIN after six daily green runs of the first version. That
+#    version's "database" request was an anon read of `tenants` that Postgres REJECTED
+#    (42501). A denied query evidently does not count as user activity — only a query
+#    that returns rows-or-empty with a 2xx does. So the ping now SIGNS IN as a dedicated
+#    keep-alive user (owns nothing, RLS returns `[]`) and reads `tenants` as that user:
+#    a real GoTrue password grant + a real PostgREST query that Postgres answers. And it
+#    runs three times a day rather than once — "a few requests each day" is the wording.
+#    The user was created with the service_role key from the archived env file; its
+#    password lives ONLY there and in the two repo secrets.
 #
 # A paused project can be restored from the dashboard, but the app would be down until
 # someone noticed. This is the cheaper insurance. The permanent fix is the Pro plan,
@@ -20,9 +30,9 @@ name: Supabase keep-alive
 
 on:
   schedule:
-    # 06:17 UTC daily. Odd minute on purpose: GitHub sheds load on the hour, so jobs
-    # scheduled at :00 are the ones that get delayed or dropped.
-    - cron: '17 6 * * *'
+    # Three times a day, odd minutes on purpose: GitHub sheds load on the hour, so
+    # jobs scheduled at :00 are the ones that get delayed or dropped.
+    - cron: '17 6,14,22 * * *'
   workflow_dispatch:
 
 jobs:
@@ -34,50 +44,54 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          KEEPALIVE_EMAIL: ${{ secrets.KEEPALIVE_EMAIL }}
+          KEEPALIVE_PASSWORD: ${{ secrets.KEEPALIVE_PASSWORD }}
         run: |
           set -euo pipefail
-          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_ANON_KEY:-}" ]; then
-            echo "::error::SUPABASE_URL or SUPABASE_ANON_KEY secret is missing - the project will pause."
-            exit 1
-          fi
+          for v in SUPABASE_URL SUPABASE_ANON_KEY KEEPALIVE_EMAIL KEEPALIVE_PASSWORD; do
+            if [ -z "${!v:-}" ]; then
+              echo "::error::secret ${v} is missing - the project will pause."; exit 1
+            fi
+          done
 
           # ---- 1. Is the project awake at all? -------------------------------
           # GoTrue's health endpoint is the one thing the anon key can always read
-          # cleanly, so this is the unambiguous reachability signal.
+          # cleanly, so this is the unambiguous reachability signal. A paused
+          # project withdraws its DNS, so this fails with a resolve error.
           auth_code=$(curl -sS -o /tmp/auth -w '%{http_code}'             -H "apikey: ${SUPABASE_ANON_KEY}"             "${SUPABASE_URL}/auth/v1/health")
           echo "auth/v1/health -> ${auth_code}"
           if [ "${auth_code}" != "200" ]; then
             echo "::error::Project unreachable (${auth_code}):"; head -c 500 /tmp/auth; exit 1
           fi
 
-          # ---- 2. Did Postgres actually do work? -----------------------------
-          # anon deliberately has no SELECT grant on the app's tables - the app
-          # authenticates users first - so this returns 401 / SQLSTATE 42501 and
-          # ALWAYS will. That is still a real database query: PostgREST reached
-          # Postgres and Postgres evaluated permissions. So 2xx and 42501 are both
-          # healthy, and anything else is not.
-          #   A 404 means 'tenants' was renamed or dropped.
-          #   A 401 WITHOUT 42501 means the key itself was rejected.
-          rest_code=$(curl -sS -o /tmp/rest -w '%{http_code}'             -H "apikey: ${SUPABASE_ANON_KEY}"             -H "Authorization: Bearer ${SUPABASE_ANON_KEY}"             "${SUPABASE_URL}/rest/v1/tenants?select=id&limit=1")
-          echo "rest/v1/tenants -> ${rest_code}"
+          # ---- 2. Sign in as the keep-alive user ------------------------------
+          # A password grant is itself database work (GoTrue reads auth.users),
+          # and it yields the JWT the next step needs. The user is provisioned,
+          # confirmed, and a member of no tenant - it can see nothing.
+          token=$(curl -sS -X POST             -H "apikey: ${SUPABASE_ANON_KEY}" -H "Content-Type: application/json"             "${SUPABASE_URL}/auth/v1/token?grant_type=password"             -d "{\"email\":\"${KEEPALIVE_EMAIL}\",\"password\":\"${KEEPALIVE_PASSWORD}\"}"             | python3 -c 'import json,sys; print(json.load(sys.stdin).get("access_token",""))')
+          if [ -z "${token}" ]; then
+            echo "::error::Sign-in failed - the keep-alive user was deleted or its password changed."; exit 1
+          fi
+          echo "auth/v1/token -> signed in"
 
-          case "${rest_code}" in
-            2*)
-              echo "Keep-alive OK (anon can read tenants)."
-              ;;
-            401|403)
-              if grep -q '42501' /tmp/rest; then
-                echo "Keep-alive OK (permission denied by Postgres, which means Postgres ran the query)."
-              else
-                echo "::error::Key rejected, not a permission error - SUPABASE_ANON_KEY was probably rotated:"
-                head -c 500 /tmp/rest; exit 1
-              fi
-              ;;
-            *)
-              echo "::error::Unexpected response ${rest_code} - 'tenants' may have been renamed or dropped:"
-              head -c 500 /tmp/rest; exit 1
-              ;;
-          esac
+          # ---- 3. A query Postgres ANSWERS --------------------------------------
+          # RLS filters tenants to the caller's own path; this user has none, so
+          # the honest answer is []. That is still a query PostgREST sent and
+          # Postgres evaluated to completion - which is what the inactivity
+          # scan counts. Three reads, spaced, so one run registers as more than
+          # a single blip.
+          for i in 1 2 3; do
+            rest_code=$(curl -sS -o /tmp/rest -w '%{http_code}'               -H "apikey: ${SUPABASE_ANON_KEY}"               -H "Authorization: Bearer ${token}"               "${SUPABASE_URL}/rest/v1/tenants?select=id&limit=1")
+            echo "rest/v1/tenants (signed in, ${i}/3) -> ${rest_code} $(head -c 80 /tmp/rest)"
+            case "${rest_code}" in
+              2*) ;;
+              *)
+                echo "::error::Signed-in read failed (${rest_code}) - RLS or the table changed:"
+                head -c 500 /tmp/rest; exit 1 ;;
+            esac
+            sleep 5
+          done
+          echo "Keep-alive OK (three answered queries as ${KEEPALIVE_EMAIL})."
 
   # Keeps GitHub itself from disabling the schedule above. Runs on the 1st of the month
   # only; every other day this is a no-op that costs a few seconds.
