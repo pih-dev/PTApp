@@ -1,7 +1,7 @@
 # PTApp / SpotSet — HANDOFF
 
-**Last updated:** 2026-09-08 ~05:10, Beirut — terminal restart after the v2.46.2 session (spun
-figures round two, Supabase keep-alive rewrite, Codex brief, first two loop ticks).
+**Last updated:** 2026-11-01 ~06:05, Beirut — terminal restart #2 (no work since 2026-09-08; only
+keep-alive heartbeat commits landed). The 2026-09-08 restart sequence below still applies.
 **To resume:** Pierre types `continue`. **Read §0 back to him and stop.** Do not investigate, do
 not draft, do not ask follow-up questions.
 
